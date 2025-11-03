@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bifrost/faker"
 	"bifrost/helpers"
 	"bifrost/routes"
 	"bifrost/services/db"
@@ -72,17 +71,7 @@ func NewApp() (*App, error) {
 
 		}
 
-		err = db.Migrate(instance.DB)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		err = db.Seed(instance.DB)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		faker.FakeUser(instance.DB, snowFlakeNode)
+		//faker.FakeUser(instance.DB, snowFlakeNode)
 
 	}
 
