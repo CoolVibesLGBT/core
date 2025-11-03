@@ -4,3 +4,5 @@
 static/posts
 /static/users/
 static/users
+go.sum
+go.mod
