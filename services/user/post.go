@@ -102,13 +102,13 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 		}
 	}
 
-	defaultLanguage := "en"
+	defaultLanguage := author.DefaultLanguage
 	newPost := &post.Post{
 		ID:              uuid.New(),
 		ParentID:        parentUUID,
 		AuthorID:        author.ID,
 		Published:       false,
-		PostKind:        post.PostTypeTimeline,
+		PostKind:        post.PostTypeStatus,
 		ContentCategory: post.ContentNormal,
 		Title:           utils.MakeLocalizedString(defaultLanguage, postForm.Title),
 		Content:         utils.MakeLocalizedString(defaultLanguage, postForm.Content),
@@ -125,7 +125,7 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 	// Post media
 
 	for _, f := range files {
-		mediaModel, err := s.mediaRepo.AddMedia(tx, newPost.ID, media.OwnerPost, media.RolePost, f)
+		mediaModel, err := s.mediaRepo.AddMedia(newPost.ID, media.OwnerPost, author.ID, media.RolePost, f)
 		if err != nil {
 			tx.Rollback()
 			return nil, err
@@ -278,10 +278,38 @@ func (s *PostService) GetTimeline(limit int, cursor *int64) (types.TimelineResul
 	return posts, nil
 }
 
-func (s *PostService) GetPostsByUserID(id uuid.UUID, limit int, cursor *int64) ([]*post.Post, error) {
-	_, err := s.postRepo.GetUserPosts(id, cursor, limit)
+func (s *PostService) GetPostsByUserID(id int64, limit int, cursor *int64) ([]post.Post, error) {
+	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+	}
+	posts, err := s.postRepo.GetUserPosts(userId, cursor, limit)
 	if err != nil {
 		return nil, fmt.Errorf("GetPostByID error: %w", err)
 	}
-	return nil, nil
+	return posts, nil
+}
+
+func (s *PostService) GetUserPostReplies(id int64, limit int, cursor *int64) ([]post.Post, error) {
+	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+	if err != nil {
+		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+	}
+	posts, err := s.postRepo.GetUserPostReplies(userId, cursor, limit)
+	if err != nil {
+		return nil, fmt.Errorf("GetPostByID error: %w", err)
+	}
+	return posts, nil
+}
+
+func (s *PostService) GetUserMedias(id int64, limit int, cursor *int64) ([]types.MediaWithUser, *int64, error) {
+	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+	}
+	medias, lastCursor, err := s.postRepo.GetUserMedias(userId, cursor, limit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("GetUserMedias error: %w", err)
+	}
+	return medias, lastCursor, nil
 }

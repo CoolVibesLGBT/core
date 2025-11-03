@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bifrost/faker"
 	"bifrost/helpers"
 	"bifrost/routes"
 	"bifrost/services/db"
@@ -31,16 +32,15 @@ var instance *App // Singleton App instance
 // NewApp, yeni bir App instance'ı oluşturur
 func NewApp() (*App, error) {
 	if instance == nil {
-		// Database başlatma ve bağlantı
-		err := db.InitDB()
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-
 		snowFlakeNode, err := helpers.NewNode(1) // Node ID, genelde 0-1023 arası
 		if err != nil {
 			log.Fatalf("Failed to initialize snowflake node: %v", err)
+		}
+		// Database başlatma ve bağlantı
+		err = db.InitDB()
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
 		}
 
 		instance = &App{
@@ -81,6 +81,8 @@ func NewApp() (*App, error) {
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		faker.FakeUser(instance.DB, snowFlakeNode)
 
 	}
 

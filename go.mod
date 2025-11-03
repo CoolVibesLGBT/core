@@ -1,6 +1,6 @@
 module bifrost
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.5
 
@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.28.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cridenour/go-postgis v1.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -34,8 +35,9 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/twpayne/go-geom v1.6.1 // indirect
 	github.com/zhouhui8915/engine.io-go v0.0.0-20150910083302-02ea08f0971f // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/image v0.32.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 )
 
 require (

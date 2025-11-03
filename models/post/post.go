@@ -3,6 +3,8 @@ package post
 import (
 	"bifrost/models/media"
 	"bifrost/models/user"
+	"encoding/json"
+	"strconv"
 	"time"
 
 	"bifrost/models/post/payloads"
@@ -17,6 +19,7 @@ type PostType string
 type ContentCategory string
 
 const (
+	PostTypeStatus     PostType = "status"
 	PostTypeTimeline   PostType = "timeline"
 	PostTypePlace      PostType = "place"
 	PostTypeClassified PostType = "classified"
@@ -51,7 +54,7 @@ type Post struct {
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
 
 	// 🔸 PostType alanının yeni ismi
-	PostKind PostType `gorm:"size:50;not null;index;default:'timeline'" json:"post_kind"`
+	PostKind PostType `gorm:"size:50;not null;index;default:'status'" json:"post_kind"`
 
 	// 🔹 İçerik kategorisi
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`
@@ -83,4 +86,17 @@ type Post struct {
 
 func (Post) TableName() string {
 	return "posts"
+}
+
+func (u Post) MarshalJSON() ([]byte, error) {
+	type Alias Post // recursive çağrıyı önlemek için alias
+	aux := struct {
+		PublicID string `json:"public_id"`
+		Alias
+	}{
+		PublicID: strconv.FormatInt(u.PublicID, 10),
+		Alias:    (Alias)(u),
+	}
+
+	return json.Marshal(aux)
 }

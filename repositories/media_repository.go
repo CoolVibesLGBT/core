@@ -16,11 +16,16 @@ import (
 )
 
 type MediaRepository struct {
-	db *gorm.DB
+	db            *gorm.DB
+	snowFlakeNode *helpers.Node
 }
 
-func NewMediaRepository(db *gorm.DB) *MediaRepository {
-	return &MediaRepository{db: db}
+func NewMediaRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *MediaRepository {
+	return &MediaRepository{db: db, snowFlakeNode: snowFlakeNode}
+}
+
+func (r *MediaRepository) Node() *helpers.Node {
+	return r.snowFlakeNode
 }
 
 func (r *MediaRepository) GenerateStoragePath(ownerID uuid.UUID, ownerType media.OwnerType, role media.MediaRole, filename string) string {
@@ -36,6 +41,8 @@ func (r *MediaRepository) GenerateStoragePath(ownerID uuid.UUID, ownerType media
 			return fmt.Sprintf("%s/users/%s/avatars/%s%s", baseDir, ownerID.String(), id, ext)
 		case media.RoleCover:
 			return fmt.Sprintf("%s/users/%s/covers/%s%s", baseDir, ownerID.String(), id, ext)
+		case media.RoleStory:
+			return fmt.Sprintf("%s/users/%s/stories/%s%s", baseDir, ownerID.String(), id, ext)
 		default:
 			return fmt.Sprintf("%s/users/%s/media/%s%s", baseDir, ownerID.String(), id, ext)
 		}
@@ -55,18 +62,20 @@ func (r *MediaRepository) GenerateStoragePath(ownerID uuid.UUID, ownerType media
 	}
 }
 
-func (r *MediaRepository) AddUserMedia(db *gorm.DB, userID uuid.UUID, role media.MediaRole, filename, url string, mimeType string, size int64, width, height *int) (*media.Media, error) {
+func (r *MediaRepository) AddUserMedia(userId uuid.UUID, role media.MediaRole, filename, url string, mimeType string, size int64, width, height *int) (*media.Media, error) {
 	media := &media.Media{
 		ID:        uuid.New(),
 		FileID:    uuid.New(), // FileMetadata kaydı için
-		OwnerID:   userID,
+		PublicID:  r.snowFlakeNode.Generate().Int64(),
+		OwnerID:   userId,
+		UserID:    userId,
 		OwnerType: media.OwnerUser,
 		Role:      role,
 		IsPublic:  true,
 		File: shared.FileMetadata{
 			ID:          uuid.New(),
 			URL:         url,
-			StoragePath: r.GenerateStoragePath(userID, media.OwnerUser, role, filename),
+			StoragePath: r.GenerateStoragePath(userId, media.OwnerUser, role, filename),
 			MimeType:    mimeType,
 			Size:        size,
 			Name:        filename,
@@ -79,11 +88,11 @@ func (r *MediaRepository) AddUserMedia(db *gorm.DB, userID uuid.UUID, role media
 	}
 
 	// DB'ye kaydet
-	if err := db.Create(&media.File).Error; err != nil {
+	if err := r.db.Create(&media.File).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Create(media).Error; err != nil {
+	if err := r.db.Create(media).Error; err != nil {
 		return nil, err
 	}
 
@@ -91,7 +100,7 @@ func (r *MediaRepository) AddUserMedia(db *gorm.DB, userID uuid.UUID, role media
 }
 
 // Generic media ekleme
-func (r *MediaRepository) AddMedia(db *gorm.DB, ownerID uuid.UUID, ownerType media.OwnerType, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
+func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
 	ext := filepath.Ext(file.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 	storagePath := r.GenerateStoragePath(ownerID, ownerType, role, newFileName)
@@ -107,8 +116,10 @@ func (r *MediaRepository) AddMedia(db *gorm.DB, ownerID uuid.UUID, ownerType med
 	// Burada basit width/height ve duration default null bırakıldı
 	media := media.Media{
 		ID:        uuid.New(),
+		PublicID:  r.snowFlakeNode.Generate().Int64(),
 		FileID:    uuid.New(),
 		OwnerID:   ownerID,
+		UserID:    userId,
 		OwnerType: ownerType,
 		Role:      role,
 		IsPublic:  true,
@@ -125,10 +136,10 @@ func (r *MediaRepository) AddMedia(db *gorm.DB, ownerID uuid.UUID, ownerType med
 		UpdatedAt: time.Now(),
 	}
 
-	if err := db.Create(&media.File).Error; err != nil {
+	if err := r.db.Create(&media.File).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Create(&media).Error; err != nil {
+	if err := r.db.Create(&media).Error; err != nil {
 		return nil, err
 	}
 

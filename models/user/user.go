@@ -5,6 +5,9 @@ import (
 	"bifrost/models/media"
 	"bifrost/models/shared"
 	"bifrost/models/user/payloads"
+	"encoding/json"
+	"strconv"
+
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -19,6 +22,24 @@ const (
 	FollowStatusMuted     constants.FollowStatus = "muted"
 	FollowStatusRequested constants.FollowStatus = "requested"
 )
+
+type Story struct {
+	ID     uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	UserID uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
+	User   *User     `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	MediaID uuid.UUID    `gorm:"type:uuid;not null" json:"media_id"`
+	Media   *media.Media `gorm:"constraint:OnDelete:CASCADE;foreignKey:MediaID;references:ID" json:"media"`
+
+	Caption    *string   `gorm:"type:text" json:"caption,omitempty"`
+	ExpiresAt  time.Time `gorm:"index" json:"expires_at"`
+	IsExpired  bool      `gorm:"default:false" json:"is_expired"`
+	IsArchived bool      `gorm:"default:false" json:"is_archived"`
+
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
 
 // === FOLLOW ===
 type Follow struct {
@@ -87,8 +108,13 @@ type Block struct {
 }
 
 type SocialRelations struct {
-	Follows        []*Follow   `json:"-" gorm:"foreignKey:FollowerID"`
-	Followers      []*Follow   `json:"-" gorm:"foreignKey:FolloweeID"`
+
+	// Takip ettikleri
+	Followees []Follow `gorm:"foreignKey:FollowerID" json:"followees,omitempty"`
+
+	// Takip edenler
+	Followers []Follow `gorm:"foreignKey:FolloweeID" json:"followers,omitempty"`
+
 	Likes          []*Like     `json:"-" gorm:"foreignKey:LikerID"`
 	LikedBy        []*Like     `json:"-" gorm:"foreignKey:LikedID"`
 	Matches        []*Match    `json:"-" gorm:"foreignKey:UserAID"`
@@ -168,6 +194,8 @@ type User struct {
 	CoverID *uuid.UUID   `json:"cover_id,omitempty"`
 	Cover   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
 
+	Stories []Story `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stories,omitempty"`
+
 	Languages     pq.StringArray           `gorm:"type:text[]" json:"languages"`
 	Hobbies       pq.StringArray           `gorm:"type:text[]" json:"hobbies,omitempty"`
 	MoviesGenres  pq.StringArray           `gorm:"type:text[]" json:"movies_genres,omitempty"`
@@ -187,6 +215,18 @@ type User struct {
 	jwt.StandardClaims
 }
 
+func (u User) MarshalJSON() ([]byte, error) {
+	type Alias User // recursive çağrıyı önlemek için alias
+	aux := struct {
+		PublicID string `json:"public_id"`
+		Alias
+	}{
+		PublicID: strconv.FormatInt(u.PublicID, 10),
+		Alias:    (Alias)(u),
+	}
+
+	return json.Marshal(aux)
+}
 func (User) TableName() string {
 	return "users"
 }

@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"bifrost/helpers"
+	"bifrost/models/media"
 	"bifrost/models/post"
 	post_payloads "bifrost/models/post/payloads"
+	userModel "bifrost/models/user"
 	"bifrost/types"
 	"sort"
 
@@ -21,6 +23,10 @@ type PostRepository struct {
 
 func (r *PostRepository) DB() *gorm.DB {
 	return r.db
+}
+
+func (r *PostRepository) Node() *helpers.Node {
+	return r.snowFlakeNode
 }
 
 func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *PostRepository {
@@ -208,14 +214,6 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	var p post.Post
 
 	err := r.db.
-		Preload("Location").
-		Preload("Poll").
-		Preload("Poll.Choices").
-		Preload("Event").
-		Preload("Event.Location").
-		Preload("Author").
-		Preload("Tags").
-		Preload("Attachments").
 		First(&p, "public_id = ?", id).Error
 
 	if err != nil {
@@ -225,7 +223,7 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 		return nil, err
 	}
 
-	return &p, nil
+	return r.GetPostByID(p.ID)
 }
 
 func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineResult, error) {
@@ -271,7 +269,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 	}, nil
 }
 
-func (r *PostRepository) GetUserPosts(userID uuid.UUID, cursor *int64, limit int) ([]post.Post, error) {
+func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int) ([]post.Post, error) {
 	var posts []post.Post
 
 	query := r.db.
@@ -287,13 +285,13 @@ func (r *PostRepository) GetUserPosts(userID uuid.UUID, cursor *int64, limit int
 		Preload("Tags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL", userID).
-		Order("created_at DESC").
+		Where("author_id = ? AND parent_id IS NULL", userId).
+		Order("public_id DESC").
 		Limit(limit)
 
 	// Eğer cursor verilmişse, sadece daha önceki postları al
 	if cursor != nil {
-		query = query.Where("created_at < ?", *cursor)
+		query = query.Where("public_id < ?", *cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
@@ -320,12 +318,12 @@ func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, lim
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("author_id = ? AND parent_id IS NOT NULL", userID).
-		Order("created_at DESC").
+		Order("public_id DESC").
 		Limit(limit)
 
 	// Cursor varsa sadece daha eski postlar
 	if cursor != nil {
-		query = query.Where("created_at < ?", *cursor)
+		query = query.Where("public_id < ?", *cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
@@ -333,4 +331,53 @@ func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, lim
 	}
 
 	return posts, nil
+}
+
+func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit int) ([]types.MediaWithUser, *int64, error) {
+	var medias []media.Media
+
+	query := r.db.Unscoped().
+		Preload("File").
+		Where("user_id = ?", userID).
+		Order("public_id DESC").
+		Limit(limit)
+
+	if cursor != nil {
+		query = query.Where("public_id < ?", *cursor)
+	}
+
+	if err := query.Find(&medias).Error; err != nil {
+		return nil, nil, err
+	}
+
+	// userID'leri topla
+	userIDs := make([]uuid.UUID, 0, len(medias))
+	for _, m := range medias {
+		userIDs = append(userIDs, m.UserID)
+	}
+
+	var users []userModel.User
+	if len(userIDs) > 0 {
+		if err := r.db.Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+			return nil, nil, err
+		}
+	}
+
+	userMap := make(map[uuid.UUID]userModel.User, len(users))
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	// Sonuçları MediaWithUser tipine dönüştür
+	results := make([]types.MediaWithUser, 0, len(medias))
+	for _, m := range medias {
+		results = append(results, types.MediaWithUser{
+			Media: m,
+			User:  userMap[m.UserID],
+		})
+	}
+
+	lastCursor := medias[len(medias)-1].PublicID
+
+	return results, &lastCursor, nil
 }

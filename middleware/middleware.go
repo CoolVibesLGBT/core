@@ -51,6 +51,32 @@ func AuthMiddleware(userRepo *repositories.UserRepository) Middleware {
 	}
 }
 
+func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) Middleware {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+
+			authHeader := r.Header.Get("Authorization")
+			if authHeader != "" {
+				parts := strings.SplitN(authHeader, " ", 2)
+				if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+					tokenString := parts[1]
+					claims, err := helpers.DecodeUserJWT(tokenString)
+					if err == nil {
+						u, err := userRepo.GetUserByPublicId(claims.PublicID)
+						if err == nil {
+							ctx := context.WithValue(r.Context(), userContextKey, u)
+							next(w, r.WithContext(ctx))
+							return
+						}
+					}
+				}
+			}
+
+			ctx := context.WithValue(r.Context(), userContextKey, nil)
+			next(w, r.WithContext(ctx))
+		}
+	}
+}
 func GetAuthenticatedUser(r *http.Request) (*user.User, bool) {
 	u, ok := r.Context().Value(userContextKey).(*user.User)
 	return u, ok

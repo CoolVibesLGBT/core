@@ -40,10 +40,10 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	// repository ve service oluştur
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode)
-	mediaRepo := repositories.NewMediaRepository(r.db)
+	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode)
 
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, postRepo, mediaRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db)) // middleware yok
@@ -53,7 +53,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	// Action register
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
 	r.action.Register(constants.CMD_AUTH_LOGIN, handlers.HandleLogin(userService))
-	r.action.Register(constants.CMD_AUTH_TEST, handlers.HandleTestUser(userService))
+	r.action.Register(constants.CMD_USER_FETCH_PROFILE, handlers.HandleFetchUserProfile(userService))
 
 	r.action.Register( // access token'a gore user bilgisi
 		constants.CMD_AUTH_USER_INFO,
@@ -106,20 +106,52 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r.action.Register(
 		constants.CMD_USER_POSTS,
-		handlers.HandleUploadStory(userService), // handler
-		middleware.AuthMiddleware(userRepo),     // middleware
+		handlers.HandleGetPostsByUser(postService),      // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
 	)
 
 	r.action.Register(
 		constants.CMD_USER_POST_REPLIES,
-		handlers.HandleUploadStory(userService), // handler
-		middleware.AuthMiddleware(userRepo),     // middleware
+		handlers.HandleGetRepliesByUser(postService),    // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
 	)
 
 	r.action.Register(
 		constants.CMD_USER_POST_MEDIA,
-		handlers.HandleUploadStory(userService), // handler
-		middleware.AuthMiddleware(userRepo),     // middleware
+		handlers.HandleGetAllMediasByUser(postService),  // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_POST_LIKES,
+		handlers.HandleGetAllMediasByUser(postService),  // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_POST_BOOKMARKS,
+		handlers.HandleGetAllMediasByUser(postService),  // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
+
+	//
+
+	//USER FOLLOW
+	r.action.Register(
+		constants.CMD_USER_FOLLOW,
+		handlers.HandleFollow(userService),  // handler
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_UNFOLLOW,
+		handlers.HandleUnfollow(userService), // handler
+		middleware.AuthMiddleware(userRepo),  // middleware
+	)
+	r.action.Register(
+		constants.CMD_USER_TOGGLE_FOLLOW,
+		handlers.HandleToggleFollow(userService), // handler
+		middleware.AuthMiddleware(userRepo),      // middleware
 	)
 
 	// POST
@@ -131,6 +163,9 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
+
+	r.action.Register(constants.CMD_USER_FETCH_STORIES, handlers.HandleFetchStories(userService))
+	r.action.Register(constants.CMD_USER_FETCH_NEARBY_USERS, handlers.HandleFetchNearbyUsers(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
 	r.mux.HandleFunc("/", r.handlePacket)
 	r.mux.HandleFunc("/test", r.handlePacket)

@@ -37,7 +37,7 @@ func HandleUploadMedia(s *services.MediaService) http.HandlerFunc {
 			return
 		}
 
-		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), media.MediaRole(roleStr), fileHeader[0])
+		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), fileHeader[0])
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
 			return

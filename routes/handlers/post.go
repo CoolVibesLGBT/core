@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"bifrost/constants"
 	"bifrost/middleware"
 	services "bifrost/services/user"
+	"bifrost/utils"
 	"encoding/json"
 	"fmt"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -63,13 +66,18 @@ func HandleGetByID(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
-			return
+		var postId int64 = 0
+
+		if idStr != "" {
+			val, err := strconv.ParseInt(idStr, 10, 64)
+			if err != nil {
+				http.Error(w, "invalid post", http.StatusBadRequest)
+				return
+			}
+			postId = val
 		}
 
-		post, err := s.GetPostByID(id)
+		post, err := s.GetPostByPublicID(postId)
 		if err != nil {
 			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -143,41 +151,40 @@ func HandleTimeline(s *services.PostService) http.HandlerFunc {
 	}
 }
 
-func HandleGetPostsByUserID(s *services.PostService) http.HandlerFunc {
+func HandleGetPostsByUser(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
 
-		userId, err := uuid.Parse(idStr)
+		userIdStr := r.FormValue("user_id")
+		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
 			return
 		}
 
-		limitStr := r.URL.Query().Get("limit")
-		limit := 10 // default
+		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
+		limit := 10                      // default değer
 		if limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
+			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
 			}
 		}
 
-		// Cursor parametresi (PublicID)
-		var cursor *int64
-		cursorStr := r.URL.Query().Get("cursor")
+		cursorStr := r.FormValue("cursor")
+		var cursor int64 = math.MaxInt64
 		if cursorStr != "" {
-			if c, err := strconv.ParseInt(cursorStr, 10, 64); err == nil {
-				cursor = &c
-			} else {
+			val, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
 				http.Error(w, "invalid cursor", http.StatusBadRequest)
 				return
 			}
+			cursor = val
 		}
 
-		post, err := s.GetPostsByUserID(userId, limit, cursor)
+		post, err := s.GetPostsByUserID(userId, limit, &cursor)
 		if err != nil {
 			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -188,21 +195,40 @@ func HandleGetPostsByUserID(s *services.PostService) http.HandlerFunc {
 	}
 }
 
-func HandleGetRepliesByUserID(s *services.PostService) http.HandlerFunc {
+func HandleGetRepliesByUser(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
 
-		id, err := uuid.Parse(idStr)
+		userIdStr := r.FormValue("user_id")
+		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
 			return
 		}
 
-		post, err := s.GetPostByID(id)
+		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
+		limit := 10                      // default değer
+		if limitStr != "" {
+			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			}
+		}
+
+		cursorStr := r.FormValue("cursor")
+		var cursor int64 = math.MaxInt64
+		if cursorStr != "" {
+			val, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
+				http.Error(w, "invalid cursor", http.StatusBadRequest)
+				return
+			}
+			cursor = val
+		}
+
+		post, err := s.GetUserPostReplies(userId, limit, &cursor)
 		if err != nil {
 			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -213,32 +239,57 @@ func HandleGetRepliesByUserID(s *services.PostService) http.HandlerFunc {
 	}
 }
 
-func HandleGetAllMediasByUserID(s *services.PostService) http.HandlerFunc {
+func HandleGetAllMediasByUser(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
 
-		id, err := uuid.Parse(idStr)
+		userIdStr := r.FormValue("user_id")
+		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
 			return
 		}
 
-		post, err := s.GetPostByID(id)
+		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
+		limit := 10                      // default değer
+		if limitStr != "" {
+			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			}
+		}
+
+		cursorStr := r.FormValue("cursor")
+		var cursor int64 = math.MaxInt64
+		if cursorStr != "" {
+			val, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
+				http.Error(w, "invalid cursor", http.StatusBadRequest)
+				return
+			}
+			cursor = val
+		}
+
+		medias, nextCursor, err := s.GetUserMedias(userId, limit, &cursor)
 		if err != nil {
 			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		response := map[string]interface{}{
+			"medias":      medias,
+			"next_cursor": nextCursor,
+			"has_more":    nextCursor != nil,
+		}
+		json.NewEncoder(w).Encode(response)
 	}
 }
 
-func HandleGetAllLikesByUserID(s *services.PostService) http.HandlerFunc {
+func HandleGetAllLikesByUser(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.URL.Query().Get("id")
 		if idStr == "" {

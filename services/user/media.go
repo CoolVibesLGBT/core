@@ -19,6 +19,6 @@ func NewMediaService(db *gorm.DB) *MediaService {
 	return &MediaService{db: db}
 }
 
-func (s *MediaService) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
-	return s.repo.AddMedia(s.db, ownerID, ownerType, role, file)
+func (s *MediaService) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
+	return s.repo.AddMedia(ownerID, ownerType, userId, role, file)
 }

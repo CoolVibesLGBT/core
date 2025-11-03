@@ -42,7 +42,26 @@ func (r *UserRepository) TestUser() error {
 
 func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*userModel.User, error) {
 	var userObj userModel.User
-	err := r.db.Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
+	err := r.db.
+		Preload("Fantasies.Fantasy").
+		Preload("Interests.InterestItem.Interest").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Preload("GenderIdentities").
+		Preload("SexualOrientations").
+		Preload("SexualRole").
+		Preload("UserAttributes.Attribute").
+		Preload("Media").
+		Preload("Followees.Followee"). // Kullanıcının takip ettikleri
+		Preload("Followers.Follower"). // Kullanıcıyı takip edenler
+		Preload("SocialRelations.Likes").
+		Preload("SocialRelations.LikedBy").
+		Preload("SocialRelations.Matches").
+		Preload("SocialRelations.Favorites").
+		Preload("SocialRelations.FavoritedBy").
+		Preload("SocialRelations.BlockedUsers").
+		Preload("SocialRelations.BlockedByUsers").
+		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +129,31 @@ func (r *UserRepository) Unfollow(followerID, followeeID uuid.UUID) error {
 	return nil
 }
 
+// Kullanıcının başka bir kullanıcıyı takip edip etmediğini kontrol eder
+func (r *UserRepository) IsFollowing(followerID, followeeID uuid.UUID) (bool, error) {
+	if followerID == followeeID {
+		// Kendini takip etme durumu her zaman false olabilir, ya da hata dönebilirsin
+		return false, nil
+	}
+
+	var follow userModel.Follow
+	err := r.db.
+		Where("follower_id = ? AND followee_id = ? AND status = ?", followerID, followeeID, "following").
+		First(&follow).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Takip yok
+			return false, nil
+		}
+		// Başka bir DB hatası var
+		return false, errors.New(constants.ErrDatabaseError.String())
+	}
+
+	// Kayıt bulundu, takip ediliyor
+	return true, nil
+}
+
 // ID ile kullanıcıyı al
 func (r *UserRepository) GetByID(userID uuid.UUID) (*userModel.User, error) {
 	var u userModel.User
@@ -125,8 +169,8 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*userModel.User, error) {
 			Preload("SexualRole").
 			Preload("UserAttributes.Attribute").
 			Preload("Media").
-			Preload("SocialRelations.Follows").
-			Preload("SocialRelations.Followers").
+			Preload("Followees.Followee"). // Kullanıcının takip ettikleri
+			Preload("Followers.Follower"). // Kullanıcıyı takip edenler
 			Preload("SocialRelations.Likes").
 			Preload("SocialRelations.LikedBy").
 			Preload("SocialRelations.Matches").
@@ -142,6 +186,15 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*userModel.User, error) {
 	return &u, nil
 }
 
+func (r *UserRepository) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
+	var userObj userModel.User
+	err := r.db.Where("public_id = ?", publicID).First(&userObj).Error
+	if err != nil {
+		return uuid.Nil, err // nil yerine uuid.Nil döneriz
+	}
+	return userObj.ID, nil
+}
+
 func (r *UserRepository) GetUserByPublicId(userID int64) (*userModel.User, error) {
 	var u userModel.User
 	err :=
@@ -150,8 +203,8 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*userModel.User, error
 			Preload("Avatar").
 			Preload("Cover").
 			Preload("Media").
-			Preload("SocialRelations.Follows").
-			Preload("SocialRelations.Followers").
+			Preload("Followees.Followee"). // Kullanıcının takip ettikleri
+			Preload("Followers.Follower"). // Kullanıcıyı takip edenler
 			Preload("SocialRelations.Likes").
 			Preload("SocialRelations.LikedBy").
 			Preload("SocialRelations.Matches").
@@ -160,6 +213,17 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*userModel.User, error
 			Preload("SocialRelations.BlockedUsers").
 			Preload("SocialRelations.BlockedByUsers").
 			First(&u, "public_id = ?", userID).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (r *UserRepository) GetUserByPublicIdWithoutRelations(userID int64) (*userModel.User, error) {
+	var u userModel.User
+	err :=
+		r.db.First(&u, "public_id = ?", userID).Error
 
 	if err != nil {
 		return nil, err
@@ -193,28 +257,41 @@ func (r *UserRepository) UpsertLocation(location *global_shared.Location) error 
 	return r.db.Model(&existing).Updates(location).Error
 }
 
-func (r *UserRepository) CreateStory(st *payloads.Story) error {
-	return r.db.Create(st).Error
+func (r *UserRepository) AddStory(userID uuid.UUID, story *userModel.Story) error {
+	story.UserID = userID
+	return r.db.Create(story).Error
 }
 
-func (r *UserRepository) GetUserStories(userID uuid.UUID) ([]*payloads.Story, error) {
-	var stories []*payloads.Story
-	if err := r.db.Preload("Media").Where("user_id = ? AND is_expired = false", userID).Order("created_at DESC").Find(&stories).Error; err != nil {
+func (r *UserRepository) GetUserStories(userID uuid.UUID, limit int) ([]*userModel.Story, error) {
+	var stories []*userModel.Story
+	if err := r.db.Preload("Media").
+		Where("user_id = ? AND is_expired = false", userID).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&stories).Error; err != nil {
 		return nil, err
 	}
 	return stories, nil
 }
 
-func (r *UserRepository) GetAllUserStories() ([]*payloads.Story, error) {
-	var stories []*payloads.Story
-	if err := r.db.Preload("Media").Where("is_expired = false").Order("created_at DESC").Find(&stories).Error; err != nil {
+func (r *UserRepository) GetAllStories(limit int) ([]*userModel.Story, error) {
+	var stories []*userModel.Story
+	if err := r.db.
+		Preload("Media.File").
+		Preload("User").
+		Preload("User.Avatar.File").
+		Preload("User.Cover.File").
+		Where("is_expired = false").
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&stories).Error; err != nil {
 		return nil, err
 	}
 	return stories, nil
 }
 
 func (r *UserRepository) ExpireOldStories() error {
-	return r.db.Model(&payloads.Story{}).
+	return r.db.Model(&userModel.Story{}).
 		Where("expires_at <= ? AND is_expired = false", gorm.Expr("NOW()")).
 		Update("is_expired", true).Error
 }
@@ -384,4 +461,101 @@ func (r *UserRepository) SetSexRole(user *userModel.User, sexRoleID uuid.UUID) e
 		return err
 	}
 	return nil
+}
+
+func (r *UserRepository) FetchNearbyUsers(auth_user *userModel.User, distance int, cursor *int64, limit int) ([]*userModel.User, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	if auth_user != nil {
+		fmt.Println("GELEN CURSOR ", *cursor)
+	} else {
+		fmt.Println("CURSOR NILL")
+	}
+
+	var users []*userModel.User
+	meters := float64(distance * 100000)
+
+	var user *userModel.User
+	if auth_user != nil {
+		r.db.Preload("Location").First(&user, "id = ?", auth_user.ID)
+	}
+
+	// Eğer kullanıcı konumu yoksa -> tüm kullanıcıları çek (cursor + limit uygula)
+	if user == nil || user.Location == nil || user.Location.Latitude == nil || user.Location.Longitude == nil {
+		q := r.db.Model(&userModel.User{}).
+			Order("public_id ASC").
+			Limit(limit)
+
+		if cursor != nil {
+			fmt.Println("CURSOR EKLENDI")
+			q = q.Where("public_id > ?", *cursor)
+		}
+
+		// Preload ilişkiler ihtiyaca göre arttır
+		if err := q.Preload("Location").
+			Preload("Avatar").
+			Preload("Avatar.File").
+			Preload("Cover").
+			Preload("Cover.File").
+			Preload("Fantasies.Fantasy").
+			Preload("Interests.InterestItem.Interest").
+			Preload("Avatar.File").
+			Preload("Cover.File").
+			Preload("GenderIdentities").
+			Preload("SexualOrientations").
+			Preload("SexualRole").
+			Preload("UserAttributes.Attribute").
+			Find(&users).Error; err != nil {
+			return nil, err
+		}
+
+		return users, nil
+	}
+
+	raw := r.db.
+		Table("users u").
+		Joins("JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
+		Select(`
+			u.*,
+			ST_Distance(
+				l.location_point,
+				ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+			) AS distance
+		`, *user.Location.Longitude, *user.Location.Latitude).
+		Where("l.location_point IS NOT NULL").
+		Where(`
+			ST_DWithin(
+				l.location_point,
+				ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+				?
+			)
+		`, *user.Location.Longitude, *user.Location.Latitude, meters).
+		Order("distance ASC, u.display_name ASC").
+		Limit(limit)
+
+	if cursor != nil {
+		raw = raw.Where("u.public_id > ?", *cursor)
+	}
+
+	if err := raw.Preload("Location").
+		Preload("Fantasies.Fantasy").
+		Preload("Interests.InterestItem.Interest").
+		Preload("Avatar").
+		Preload("Avatar.File").
+		Preload("Cover").
+		Preload("Cover.File").
+		Preload("GenderIdentities").
+		Preload("SexualOrientations").
+		Preload("SexualRole").
+		Preload("UserAttributes.Attribute").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

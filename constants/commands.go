@@ -36,16 +36,30 @@ const (
 	CMD_USER_UPLOAD_COVER  = "user.upload_cover"
 	CMD_USER_UPLOAD_STORY  = "user.upload_story"
 
-	CMD_USER_POSTS        = "user.fetch.posts"
-	CMD_USER_POST_REPLIES = "user.fetch.posts.replies"
-	CMD_USER_POST_MEDIA   = "user.fetch.posts.media"
-	CMD_USER_POST_LIKES   = "user.fetch.posts.likes"
+	CMD_USER_FETCH_STORIES = "user.fetch.stories"
+	CMD_USER_FETCH_PROFILE = "user.fetch_profile"
+
+	CMD_USER_FETCH_FOLLOWINGS = "user.fetch.followings"
+	CMD_USER_FETCH_FOLLOWERS  = "user.fetch.followers"
+
+	CMD_USER_FOLLOW        = "user.follow"
+	CMD_USER_UNFOLLOW      = "user.unfollow"
+	CMD_USER_TOGGLE_FOLLOW = "user.follow.toggle"
+
+	CMD_USER_FETCH_NEARBY_USERS = "user.fetch.nearby.users"
+
+	CMD_USER_POSTS          = "user.fetch.posts"
+	CMD_USER_POST_REPLIES   = "user.fetch.posts.replies"
+	CMD_USER_POST_MEDIA     = "user.fetch.posts.media"
+	CMD_USER_POST_LIKES     = "user.fetch.posts.likes"
+	CMD_USER_POST_BOOKMARKS = "user.fetch.posts.bookmarks"
 
 	CMD_POST_CREATE   = "post.create"
 	CMD_POST_UPDATE   = "post.update"
 	CMD_POST_DELETE   = "post.delete"
 	CMD_POST_FETCH    = "post.fetch"
 	CMD_POST_TIMELINE = "post.timeline"
+	CMD_POST_VIBES    = "post.vibes"
 )
 
 /*

@@ -1,12 +1,11 @@
 package services
 
 import (
-	"bifrost/constants"
 	"bifrost/extensions"
 	"bifrost/helpers"
 	"bifrost/models/media"
 	global_shared "bifrost/models/shared"
-	"bifrost/models/user"
+	userModal "bifrost/models/user"
 	"bifrost/models/user/payloads"
 	"bifrost/repositories"
 	"errors"
@@ -20,16 +19,20 @@ import (
 )
 
 type UserService struct {
-	repo      *repositories.UserRepository
 	mediaRepo *repositories.MediaRepository
+	userRepo  *repositories.UserRepository
+	postRepo  *repositories.PostRepository
 }
 
-func NewUserService(repo *repositories.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(
+	userRepo *repositories.UserRepository,
+	postRepo *repositories.PostRepository,
+	mediaRepo *repositories.MediaRepository) *UserService {
+	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 
 // Register işlemi
-func (s *UserService) Register(request map[string][]string) (*user.User, string, error) {
+func (s *UserService) Register(request map[string][]string) (*userModal.User, string, error) {
 
 	type RegisterForm struct {
 		Name      string `form:"name"`
@@ -68,7 +71,7 @@ func (s *UserService) Register(request map[string][]string) (*user.User, string,
 		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
 	}
 
-	existingUser, err := s.repo.GetByUserNameOrEmailOrNickname(formData.Nickname)
+	existingUser, err := s.userRepo.GetByUserNameOrEmailOrNickname(formData.Nickname)
 	if err == nil && existingUser != nil {
 		return nil, "", errors.New("username already exists")
 	}
@@ -102,21 +105,21 @@ func (s *UserService) Register(request map[string][]string) (*user.User, string,
 		UpdatedAt:     time.Now(),
 	}
 
-	if err := s.repo.UpsertLocation(locationUser); err != nil {
+	if err := s.userRepo.UpsertLocation(locationUser); err != nil {
 		return nil, "", err
 	}
 
-	userObj := &user.User{
+	userObj := &userModal.User{
 
 		ID:          UserID,
-		PublicID:    s.repo.Node().Generate().Int64(),
+		PublicID:    s.userRepo.Node().Generate().Int64(),
 		UserName:    formData.Name,
 		DisplayName: formData.Nickname,
 		DateOfBirth: &dateOfBirth,
 		Password:    hash,
 	}
 
-	if err := s.repo.Create(userObj); err != nil {
+	if err := s.userRepo.Create(userObj); err != nil {
 		return nil, "", err
 	}
 
@@ -134,11 +137,21 @@ func (s *UserService) Register(request map[string][]string) (*user.User, string,
 	return userInfo, token, nil
 }
 
-func (s *UserService) Login(request map[string][]string) (*user.User, string, error) {
+func (s *UserService) Login(request map[string][]string) (*userModal.User, string, error) {
 	// Form yapısı
 	type LoginForm struct {
 		UserName string `form:"nickname"`
 		Password string `form:"password"`
+
+		CountryCode string  `form:"location[country_code]"`
+		Country     string  `form:"location[country_name]"`
+		City        string  `form:"location[city]"`
+		Region      string  `form:"location[region]"`
+		Lat         float64 `form:"location[lat]"`
+		Lng         float64 `form:"location[lng]"`
+		Timezone    string  `form:"location[timezone]"`
+		Display     string  `form:"location[display]"`
+		Address     string  `form:"location[address]"` // varsa
 	}
 
 	decoder := form.NewDecoder()
@@ -149,7 +162,7 @@ func (s *UserService) Login(request map[string][]string) (*user.User, string, er
 	}
 
 	// Kullanıcıyı username ile bul (repo'da buna uygun fonksiyon olmalı)
-	userObj, err := s.repo.GetByUserNameOrEmailOrNickname(formData.UserName)
+	userObj, err := s.userRepo.GetByUserNameOrEmailOrNickname(formData.UserName)
 	if err != nil {
 		return nil, "", errors.New("invalid username/email/nickname or password")
 	}
@@ -162,6 +175,33 @@ func (s *UserService) Login(request map[string][]string) (*user.User, string, er
 		return nil, "", errors.New("invalid credentials") // Şifre yanlış
 	}
 
+	locationPoint := &extensions.PostGISPoint{
+		Lat: formData.Lat,
+		Lng: formData.Lng,
+	}
+
+	locationUser := &global_shared.Location{
+		ID:              uuid.New(),
+		ContentableType: global_shared.LocationOwnerUser,
+		ContentableID:   userObj.ID,
+		CountryCode:     &formData.CountryCode,
+		Country:         &formData.Country,
+		City:            &formData.City,
+		Region:          &formData.Region,
+		Display:         &formData.Display,
+		Timezone:        &formData.Timezone,
+		Address:         &formData.Address,
+		Latitude:        &formData.Lat,
+		Longitude:       &formData.Lng,
+		LocationPoint:   locationPoint,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
+	if err := s.userRepo.UpsertLocation(locationUser); err != nil {
+		return nil, "", err
+	}
+
 	// Token üret
 	token, err := helpers.GenerateUserJWT(userObj.ID, userObj.PublicID)
 	if err != nil {
@@ -171,59 +211,29 @@ func (s *UserService) Login(request map[string][]string) (*user.User, string, er
 	return userObj, token, nil
 }
 
+func (s *UserService) GetUserByID(id uuid.UUID) (*userModal.User, error) {
+	return s.userRepo.GetByID(id)
+}
+
 // Kullanıcı ID ile getir
-func (s *UserService) GetUserByID(id uuid.UUID) (*user.User, error) {
-	return s.repo.GetByID(id)
+func (s *UserService) FetchUserProfileByNickname(nickname string) (*userModal.User, error) {
+	return s.userRepo.GetByUserNameOrEmailOrNickname(nickname)
 }
 
 // Register işlemi
 func (s *UserService) Test() {
 
-	if err := s.repo.TestUser(); err != nil {
+	if err := s.userRepo.TestUser(); err != nil {
 		return
 	}
 
 }
 
-func (s *UserService) Follow(followerID, followeeID string) error {
-	fID, err := uuid.Parse(followerID)
-	if err != nil {
-		return errors.New(constants.ErrInvalidInput.String())
-	}
-	feID, err := uuid.Parse(followeeID)
-	if err != nil {
-		return errors.New(constants.ErrInvalidInput.String())
-	}
-
-	if err := s.repo.Follow(fID, feID); err != nil {
-		return errors.New(err.Error())
-	}
-
-	return nil
-}
-
-func (s *UserService) Unfollow(followerID, followeeID string) error {
-	fID, err := uuid.Parse(followerID)
-	if err != nil {
-		return errors.New(constants.ErrInvalidInput.String())
-	}
-	feID, err := uuid.Parse(followeeID)
-	if err != nil {
-		return errors.New(constants.ErrInvalidInput.String())
-	}
-
-	if err := s.repo.Unfollow(fID, feID); err != nil {
-		return errors.New(err.Error())
-	}
-
-	return nil
-}
-
-func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *user.User) (*media.Media, error) {
+func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *userModal.User) (*media.Media, error) {
 	newMedia, err := s.mediaRepo.AddMedia(
-		s.repo.DB(),
 		user.ID,
 		media.OwnerUser,
+		user.ID,
 		media.RoleAvatar,
 		file,
 	)
@@ -235,19 +245,19 @@ func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *user.User) 
 	user.AvatarID = &newMedia.ID
 	user.Avatar = newMedia
 
-	if err := s.repo.UpdateUser(user); err != nil {
+	if err := s.userRepo.UpdateUser(user); err != nil {
 		return nil, fmt.Errorf("failed to update user avatar: %w", err)
 	}
 	return newMedia, nil
 }
 
-func (s *UserService) UpdateCover(file *multipart.FileHeader, user *user.User) (*media.Media, error) {
+func (s *UserService) UpdateCover(file *multipart.FileHeader, user *userModal.User) (*media.Media, error) {
 	//
 	newMedia, err := s.mediaRepo.AddMedia(
-		s.repo.DB(),
 		user.ID,
 		media.OwnerUser,
-		media.RoleAvatar,
+		user.ID,
+		media.RoleCover,
 		file,
 	)
 	if err != nil {
@@ -256,29 +266,54 @@ func (s *UserService) UpdateCover(file *multipart.FileHeader, user *user.User) (
 	user.CoverID = &newMedia.ID
 	user.Cover = newMedia
 
-	if err := s.repo.UpdateUser(user); err != nil {
+	if err := s.userRepo.UpdateUser(user); err != nil {
 		return nil, fmt.Errorf("failed to update user avatar: %w", err)
 	}
 	return newMedia, nil
 }
 
-func (s *UserService) AddStory(file *multipart.FileHeader, user *user.User) (*payloads.Story, error) {
-	//
-	fmt.Println("Upload COVER")
-	return nil, nil
+func (s *UserService) AddStory(file *multipart.FileHeader, user *userModal.User) (*userModal.Story, error) {
+	storyMedia, err := s.mediaRepo.AddMedia(
+		user.ID,
+		media.OwnerUser,
+		user.ID,
+		media.RoleStory,
+		file,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+
+	story := &userModal.Story{
+		ID:         uuid.New(),
+		UserID:     user.ID,
+		MediaID:    storyMedia.ID,
+		Caption:    nil,                            // istersen ekleyebilirsin
+		ExpiresAt:  time.Now().Add(24 * time.Hour), // örneğin 24 saat sonra silinecek
+		IsExpired:  false,
+		IsArchived: false,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	if err := s.userRepo.AddStory(user.ID, story); err != nil {
+		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+	}
+	story.Media = storyMedia
+	return story, nil
 }
 
 func (s *UserService) GetAttribute(attributeID uuid.UUID) (*payloads.Attribute, error) {
-	return s.repo.GetAttribute(attributeID)
+	return s.userRepo.GetAttribute(attributeID)
 }
 
 func (s *UserService) GetInterestItem(interestId uuid.UUID) (*payloads.InterestItem, error) {
-	return s.repo.GetInterestItem(interestId)
+	return s.userRepo.GetInterestItem(interestId)
 }
 
 // Kullanıcı ID ile getir
 func (s *UserService) GetFantasy(id uuid.UUID) (*payloads.Fantasy, error) {
-	return s.repo.GetFantasy(id)
+	return s.userRepo.GetFantasy(id)
 }
 
 func (s *UserService) UpsertUserSexualIdentify(
@@ -289,7 +324,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 ) error {
 
 	// Kullanıcıyı repo'dan çekiyoruz (ilişkilerle birlikte)
-	user, err := s.repo.GetUserWithSexualRelations(userID)
+	user, err := s.userRepo.GetUserWithSexualRelations(userID)
 	if err != nil {
 		return err
 	}
@@ -297,7 +332,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 	// GenderIdentities güncelle
 	if genderIDs != nil {
 		if len(genderIDs) == 0 {
-			if err := s.repo.ClearGenderIdentities(user); err != nil {
+			if err := s.userRepo.ClearGenderIdentities(user); err != nil {
 				return err
 			}
 		} else {
@@ -305,7 +340,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 			if err != nil {
 				return err
 			}
-			if err := s.repo.ReplaceGenderIdentities(user, ids); err != nil {
+			if err := s.userRepo.ReplaceGenderIdentities(user, ids); err != nil {
 				return err
 			}
 		}
@@ -314,7 +349,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 	// SexualOrientations güncelle
 	if sexualIDs != nil {
 		if len(sexualIDs) == 0 {
-			if err := s.repo.ClearSexualOrientations(user); err != nil {
+			if err := s.userRepo.ClearSexualOrientations(user); err != nil {
 				return err
 			}
 		} else {
@@ -322,7 +357,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 			if err != nil {
 				return err
 			}
-			if err := s.repo.ReplaceSexualOrientations(user, ids); err != nil {
+			if err := s.userRepo.ReplaceSexualOrientations(user, ids); err != nil {
 				return err
 			}
 		}
@@ -331,7 +366,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 	// SexRole güncelle (tek ilişki)
 	if sexRoleIDs != nil {
 		if len(sexRoleIDs) == 0 {
-			if err := s.repo.ClearSexRole(user); err != nil {
+			if err := s.userRepo.ClearSexRole(user); err != nil {
 				return err
 			}
 		} else {
@@ -341,7 +376,7 @@ func (s *UserService) UpsertUserSexualIdentify(
 			}
 
 			fmt.Println("SET ROLE SEX GHERE", user.DisplayName, id)
-			if err := s.repo.SetSexRole(user, id); err != nil {
+			if err := s.userRepo.SetSexRole(user, id); err != nil {
 				fmt.Println("SET ROLE HATA OLDU GHERE", user.DisplayName)
 
 				return err
@@ -378,7 +413,7 @@ func (s *UserService) UpsertUserAttribute(attr *payloads.UserAttribute) error {
 	}
 
 	// Repository'yi çağır
-	err := s.repo.UpsertUserAttribute(attr)
+	err := s.userRepo.UpsertUserAttribute(attr)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user attribute: %w", err)
 	}
@@ -400,7 +435,7 @@ func (s *UserService) UpsertUserInterest(interest *payloads.UserInterest) error 
 	}
 
 	// Repository'yi çağır
-	err := s.repo.ToggleUserInterest(interest)
+	err := s.userRepo.ToggleUserInterest(interest)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user attribute: %w", err)
 	}
@@ -422,9 +457,76 @@ func (s *UserService) UpsertUserFantasy(fantasy *payloads.UserFantasy) error {
 	}
 
 	// Repository'yi çağır
-	err := s.repo.ToggleUserFantasy(fantasy)
+	err := s.userRepo.ToggleUserFantasy(fantasy)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user attribute: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UserService) GetAllStories(limit int) ([]*userModal.Story, error) {
+	return s.userRepo.GetAllStories(limit)
+}
+
+func (s *UserService) FetchNearbyUsers(user *userModal.User, distanceKm int, cursor *int64, limit int) ([]*userModal.User, error) {
+	return s.userRepo.FetchNearbyUsers(user, distanceKm, cursor, limit)
+}
+
+func (s *UserService) Follow(followerID, followeeID int64) error {
+	return s.HandleFollow(followerID, followeeID, true)
+}
+
+func (s *UserService) Unfollow(followerID, followeeID int64) error {
+	return s.HandleFollow(followerID, followeeID, false)
+}
+
+func (s *UserService) ToggleFollow(followerID, followeeID int64) (bool, error) {
+	follower, err := s.userRepo.GetUserByPublicIdWithoutRelations(followerID)
+	if err != nil {
+		return false, errors.New(err.Error())
+	}
+	followee, err := s.userRepo.GetUserByPublicIdWithoutRelations(followeeID)
+	if err != nil {
+		return false, errors.New(err.Error())
+	}
+
+	isFollowing, err := s.userRepo.IsFollowing(follower.ID, followee.ID)
+	if err != nil {
+		return false, errors.New(err.Error())
+	}
+
+	if isFollowing {
+		if err := s.userRepo.Unfollow(follower.ID, followee.ID); err != nil {
+			return false, errors.New(err.Error())
+		}
+	} else {
+		if err := s.userRepo.Follow(follower.ID, followee.ID); err != nil {
+			return false, errors.New(err.Error())
+		}
+	}
+	return isFollowing, nil
+}
+
+func (s *UserService) HandleFollow(followerID, followeeID int64, isFollow bool) error {
+
+	follower, err := s.userRepo.GetUserByPublicIdWithoutRelations(followerID)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	followee, err := s.userRepo.GetUserByPublicIdWithoutRelations(followeeID)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	if isFollow {
+		if err := s.userRepo.Follow(follower.ID, followee.ID); err != nil {
+			return errors.New(err.Error())
+		}
+	} else {
+		if err := s.userRepo.Unfollow(follower.ID, followee.ID); err != nil {
+			return errors.New(err.Error())
+		}
 	}
 
 	return nil

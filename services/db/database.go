@@ -73,6 +73,7 @@ func Migrate(db *gorm.DB) error {
 		&user_payloads.Attribute{},
 		&user_payloads.Interest{},
 		&user_payloads.InterestItem{},
+		&user.Story{},
 
 		&user_payloads.GenderIdentity{},
 		&user_payloads.SexualOrientation{},

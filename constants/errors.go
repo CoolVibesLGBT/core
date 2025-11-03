@@ -15,6 +15,7 @@ const (
 	ErrTokenGeneration   ErrorCode = "TOKEN_GENERATION_FAILED"
 	ErrUnauthorized      ErrorCode = "UNAUTHORIZED"
 	ErrDuplicateResource ErrorCode = "DUPLICATE_RESOURCE"
+	ErrInternalServer    ErrorCode = "INTERNAL_SERVER_ERROR"
 
 	ErrMediaUploadFailed    ErrorCode = "MEDIA_UPLOAD_FAILED"
 	ErrMediaInvalidFile     ErrorCode = "MEDIA_INVALID_FILE"

@@ -8,6 +8,7 @@ import (
 	"bifrost/utils"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +29,6 @@ func HandleRegister(s *services.UserService) http.HandlerFunc {
 		}
 
 		form := r.MultipartForm.Value
-		fmt.Println("REGISTER:FORM", form)
 		userObj, token, err := s.Register(form)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrUserExists)
@@ -64,10 +64,37 @@ func HandleLogin(s *services.UserService) http.HandlerFunc {
 	}
 }
 
-func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
+func HandleFetchUserProfile(s *services.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		nicknames, ok := r.MultipartForm.Value["nickname"]
+		if !ok || len(nicknames) == 0 {
+			utils.SendError(w, http.StatusBadRequest, "nickname is required")
+			return
+		}
+		nickname := nicknames[0]
+
+		// Service çağrısı
+		userObj, err := s.FetchUserProfileByNickname(nickname)
+		if err != nil {
+			utils.SendError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"user": userObj,
+		})
+	}
+}
+
+func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+		if err != nil {
+			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -103,8 +130,9 @@ func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
 
 func HandleUploadCover(s *services.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+		if err != nil {
+			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -140,8 +168,9 @@ func HandleUploadCover(s *services.UserService) http.HandlerFunc {
 
 func HandleUploadStory(s *services.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+		if err != nil {
+			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -153,7 +182,7 @@ func HandleUploadStory(s *services.UserService) http.HandlerFunc {
 
 		file, _, err := r.FormFile("story")
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			utils.SendError(w, http.StatusBadRequest, constants.ErrMediaInvalidFile)
 			return
 		}
 		defer file.Close()
@@ -443,46 +472,219 @@ func HandleSetUserSexualIdentities(s *services.UserService) http.HandlerFunc {
 	}
 }
 
-/*
+func HandleFetchStories(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// limit parametresini query'den al, default 20 olsun
+		limit := 20
+		if l := r.URL.Query().Get("limit"); l != "" {
+			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			}
+		}
 
-func Follow(w http.ResponseWriter, r *http.Request) {
-	form := r.MultipartForm.Value
-	followerID := form["follower_id"]
-	followeeID := form["followee_id"]
+		if limit > 20 { //maximum 20
+			limit = 20
+		}
 
-	if len(followerID) == 0 || len(followeeID) == 0 {
-		utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-		return
+		stories, err := s.GetAllStories(limit)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, constants.ErrInternalServer) // kendi error yapınıza göre ayarla
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"stories": stories,
+		})
 	}
-
-	if err := h.service.Follow(followerID[0], followeeID[0]); err != nil {
-		utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-		return
-	}
-
-	utils.SendJSON(w, http.StatusOK, map[string]string{
-		"message": "User followed successfully",
-	})
 }
 
-func Unfollow(w http.ResponseWriter, r *http.Request) {
-	form := r.MultipartForm.Value
-	followerID := form["follower_id"]
-	followeeID := form["followee_id"]
+func HandleFetchNearbyUsers(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("AuthMiddlewareWithoutCheck")
 
-	if len(followerID) == 0 || len(followeeID) == 0 {
-		utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-		return
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		// form’dan limit değerini al
+		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
+		limit := 10                      // default değer
+		if limitStr != "" {
+			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			}
+		}
+
+		distance := 10                         // kilometre
+		distanceStr := r.FormValue("distance") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
+		if distanceStr != "" {
+			if parsedDistance, err := strconv.Atoi(distanceStr); err == nil && parsedDistance > 0 {
+				distance = parsedDistance
+			}
+		}
+
+		cursorStr := r.FormValue("cursor")
+		var cursor int64 = 0
+
+		if cursorStr != "" {
+			val, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
+				http.Error(w, "invalid cursor", http.StatusBadRequest)
+				return
+			}
+			cursor = val
+		}
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			fmt.Println("LOCATIONLESSx")
+			//utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			//returnx
+		}
+
+		fmt.Println("distance", distance, cursor)
+
+		users, err := s.FetchNearbyUsers(auth_user, distance, &cursor, limit)
+		if err != nil {
+			utils.SendJSON(w, http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		nextCursor := func() *int64 {
+			if len(users) > 0 {
+				last := users[len(users)-1]
+				return &last.PublicID
+			}
+			return nil
+		}()
+
+		var nextCursorStr *string
+		if nextCursor != nil {
+			str := fmt.Sprintf("%d", *nextCursor)
+			nextCursorStr = &str
+		} else {
+			nextCursorStr = nil // JSON'da null olarak serialize edilir
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"users":       users,
+			"next_cursor": nextCursorStr,
+		})
+
 	}
-
-	if err := h.service.Unfollow(followerID[0], followeeID[0]); err != nil {
-		utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-		return
-	}
-
-	utils.SendJSON(w, http.StatusOK, map[string]string{
-		"message": "User unfollowed successfully",
-	})
 }
 
-*/
+func HandleFollow(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		form := r.MultipartForm.Value
+		followerID := auth_user.PublicID
+		followeeIDStr := form["followee_id"][0]
+		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if followerID == 0 || followeeID == 0 {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		if err := s.Follow(followerID, followeeID); err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]string{
+			"message": "User followed successfully",
+		})
+	}
+}
+
+func HandleUnfollow(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		form := r.MultipartForm.Value
+		followerID := auth_user.PublicID
+		followeeIDStr := form["followee_id"][0]
+		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if followerID == 0 || followeeID == 0 {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		if err := s.Unfollow(followerID, followeeID); err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]string{
+			"message": "User unfollowed successfully",
+		})
+	}
+}
+
+func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		form := r.MultipartForm.Value
+		followerID := auth_user.PublicID
+		followeeIDStr := form["followee_id"][0]
+		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if followerID == 0 || followeeID == 0 {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		fmt.Println("FOLLOWER,FOLLOWEE", followerID, followeeID)
+		status, err := s.ToggleFollow(followerID, followeeID)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		var message string
+		if status {
+			message = "User unfollowed successfully"
+		} else {
+			message = "User followed successfully"
+
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]string{
+			"message": message,
+		})
+	}
+}
