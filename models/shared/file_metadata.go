@@ -30,7 +30,7 @@ func (f FileMetadata) MarshalJSON() ([]byte, error) {
 
 	baseURL := os.Getenv("APP_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:3001"
+		baseURL = "https://api.coolvibes.lgbt"
 	}
 
 	// StoragePath'ten "./" kısmını kaldır
