@@ -6,6 +6,7 @@ import (
 	"bifrost/models/media"
 	global_shared "bifrost/models/shared"
 	userModal "bifrost/models/user"
+	userModel "bifrost/models/user"
 	"bifrost/models/user/payloads"
 	"bifrost/repositories"
 	"errors"
@@ -38,8 +39,8 @@ func (s *UserService) Register(request map[string][]string) (*userModal.User, st
 		Name      string `form:"name"`
 		Nickname  string `form:"nickname"`
 		Password  string `form:"password"`
-		BirthDate string `form:"birthDate"` // string veya time.Time
-
+		BirthDate string `form:"birthDate"`      // string veya time.Time
+		Captcha   string `form:"recaptchaToken"` // string veya time.Time
 		// Nested location
 		CountryCode string  `form:"location[country_code]"`
 		Country     string  `form:"location[country_name]"`
@@ -57,6 +58,15 @@ func (s *UserService) Register(request map[string][]string) (*userModal.User, st
 	// formValues map[string][]string şeklinde gelecek
 	if err := decoder.Decode(&formData, request); err != nil {
 		return nil, "", err
+	}
+
+	captchaValid, captchaErr := s.userRepo.VerifyCaptcha("6LecaQIsAAAAAE2vz3YKi5jFOWIOzXEpMX4675ox", formData.Captcha)
+	if captchaErr != nil {
+		return nil, "", errors.New("invalid  captcha")
+	}
+
+	if !captchaValid {
+		return nil, "", errors.New("invalid captcha")
 	}
 
 	// BirthDate
@@ -530,4 +540,8 @@ func (s *UserService) HandleFollow(followerID, followeeID int64, isFollow bool) 
 	}
 
 	return nil
+}
+
+func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]userModel.User, error) {
+	return s.userRepo.GetUsersStartingWith(letter, limit)
 }

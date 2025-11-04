@@ -95,6 +95,18 @@ type Match struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type MatchSeen struct {
+	ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	UserID    uuid.UUID      `gorm:"type:uuid;index;not null" json:"user_id"`    // Görüntüleyen
+	TargetID  uuid.UUID      `gorm:"type:uuid;index;not null" json:"target_id"`  // Görülen
+	Reaction  string         `gorm:"type:varchar(20)" json:"reaction,omitempty"` // örn: "like", "skip", "superlike"
+	IsMatch   bool           `gorm:"default:false" json:"is_match"`              // Tinder benzeri match durumu
+	CreatedAt time.Time      `gorm:"index" json:"created_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+
+	Target *User `gorm:"foreignKey:TargetID" json:"target,omitempty"`
+}
+
 type Block struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	BlockerID uuid.UUID `gorm:"type:uuid;index;not null" json:"blocker_id"` // Engelleyen kullanıcı
@@ -115,9 +127,14 @@ type SocialRelations struct {
 	// Takip edenler
 	Followers []Follow `gorm:"foreignKey:FolloweeID" json:"followers,omitempty"`
 
-	Likes          []*Like     `json:"-" gorm:"foreignKey:LikerID"`
-	LikedBy        []*Like     `json:"-" gorm:"foreignKey:LikedID"`
-	Matches        []*Match    `json:"-" gorm:"foreignKey:UserAID"`
+	Likes   []*Like `json:"-" gorm:"foreignKey:LikerID"`
+	LikedBy []*Like `json:"-" gorm:"foreignKey:LikedID"`
+
+	Matches []*Match `json:"-" gorm:"foreignKey:UserAID"`
+	// Görülme geçmişi kimleri gordu? kimler gordu?
+	MatchSeenUsers   []*MatchSeen `gorm:"foreignKey:UserID" json:"seen_users,omitempty"` // Bu kullanıcı kimleri gördü
+	MatchSeenByUsers []*MatchSeen `gorm:"foreignKey:TargetID" json:"seen_by,omitempty"`
+
 	Favorites      []*Favorite `json:"-" gorm:"foreignKey:UserID"`
 	FavoritedBy    []*Favorite `json:"-" gorm:"foreignKey:FavoriteID"`
 	BlockedUsers   []*Block    `gorm:"foreignKey:BlockerID" json:"blocked_users,omitempty"`

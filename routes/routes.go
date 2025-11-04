@@ -42,9 +42,11 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode)
+	matchesRepo := repositories.NewMatchesRepository(r.db, snowFlakeNode)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
+	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db)) // middleware yok
 
@@ -54,6 +56,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
 	r.action.Register(constants.CMD_AUTH_LOGIN, handlers.HandleLogin(userService))
 	r.action.Register(constants.CMD_USER_FETCH_PROFILE, handlers.HandleFetchUserProfile(userService))
+
+	r.action.Register(constants.CMD_SEARCH_LOOKUP_USER, handlers.HandleGetUsersStartingWith(userService))
 
 	r.action.Register( // access token'a gore user bilgisi
 		constants.CMD_AUTH_USER_INFO,
@@ -161,11 +165,43 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		handlers.HandleCreate(postService),  // handler
 		middleware.AuthMiddleware(userRepo), // middleware
 	)
+
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
 
 	r.action.Register(constants.CMD_USER_FETCH_STORIES, handlers.HandleFetchStories(userService))
 	r.action.Register(constants.CMD_USER_FETCH_NEARBY_USERS, handlers.HandleFetchNearbyUsers(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+
+	//MATCHES EKRANI ICIN
+	r.action.Register(
+		constants.CMD_MATCH_GET_UNSEEN,
+		handlers.HandleGetUnseenUsers(matchesService), // handler
+		middleware.AuthMiddleware(userRepo),           // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_MATCH_CREATE,
+		handlers.HandleRecordView(matchesService), // handler
+		middleware.AuthMiddleware(userRepo),       // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_MATCH_FETCH_MATCHED,
+		handlers.HandleGetMatchesAfter(matchesService), // handler
+		middleware.AuthMiddleware(userRepo),            // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_MATCH_FETCH_LIKED,
+		handlers.HandleGetLikesAfter(matchesService), // handler
+		middleware.AuthMiddleware(userRepo),          // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_MATCH_FETCH_PASSED,
+		handlers.HandleGetPassesAfter(matchesService), // handler
+		middleware.AuthMiddleware(userRepo),           // middleware
+	)
 
 	r.mux.HandleFunc("/", r.handlePacket)
 	r.mux.HandleFunc("/test", r.handlePacket)

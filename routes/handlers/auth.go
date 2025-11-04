@@ -688,3 +688,26 @@ func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
 		})
 	}
 }
+
+func HandleGetUsersStartingWith(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		searchStr := r.FormValue("query")
+		limit := 15
+
+		users, err := s.GetUsersStartingWith(searchStr, limit)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"users": users,
+		})
+	}
+}

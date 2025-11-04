@@ -1,6 +1,7 @@
 package db
 
 import (
+	"bifrost/models"
 	"bifrost/models/chat"
 	"bifrost/models/media"
 	"bifrost/models/post"
@@ -80,18 +81,21 @@ func Migrate(db *gorm.DB) error {
 		&user_payloads.SexualRole{},
 		&user.User{},
 
+		&models.Mention{},
+		&models.Hashtag{},
+
 		&user_payloads.UserFantasy{},
 		&user_payloads.UserInterest{},
 		&user_payloads.UserAttribute{},
 
+		&user.MatchSeen{},
 		&user.Follow{},
 		&user.Like{},
 		&user.Block{},
 		&user.Favorite{},
 		&user.Match{},
 
-		&post.Post{}, // Önce parent tablo
-		&post_payloads.Tag{},
+		&post.Post{},                // Önce parent tablo
 		&post_payloads.Poll{},       // Poll önce
 		&post_payloads.PollChoice{}, // child tablolar sonra
 		&post_payloads.PollVote{},

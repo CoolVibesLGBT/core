@@ -54,10 +54,12 @@ func NewApp() (*App, error) {
 		flag.Parse()
 
 		if *migrateFlag {
+			fmt.Println("Migration:BEGIN")
 			err = db.Migrate(instance.DB)
 			if err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println("Migration:END")
 			os.Exit(0) // migration sonrası programdan çık
 
 		}

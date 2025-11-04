@@ -1,6 +1,7 @@
 package post
 
 import (
+	"bifrost/models"
 	"bifrost/models/media"
 	"bifrost/models/user"
 	"encoding/json"
@@ -74,9 +75,13 @@ type Post struct {
 
 	Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
 
-	Author      user.User      `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
-	Tags        []payloads.Tag `gorm:"many2many:post_tags;" json:"tags,omitempty"`
+	Author user.User `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
+
 	Attachments []*media.Media `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
+
+	//Mentions []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post" json:"mentions,omitempty"`
+	Mentions []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
+	Hashtags []*models.Hashtag `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
 
 	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
 	Event *payloads.Event  `gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE" json:"event,omitempty"`

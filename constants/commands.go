@@ -60,6 +60,20 @@ const (
 	CMD_POST_FETCH    = "post.fetch"
 	CMD_POST_TIMELINE = "post.timeline"
 	CMD_POST_VIBES    = "post.vibes"
+
+	//MATCH EKRANI
+	CMD_MATCH_CREATE = "match.create" // Yeni eşleşme oluşturma (örneğin karşılıklı like)
+	CMD_MATCH_DELETE = "match.delete" // Eşleşmeyi kaldırma
+	CMD_MATCH_FETCH  = "match.fetch"  // Tüm eşleşmeleri listeleme
+
+	CMD_MATCH_FETCH_LIKED   = "match.fetch.liked"   // Beğenilen kullanıcıları getirme
+	CMD_MATCH_FETCH_PASSED  = "match.fetch.passed"  // Geçilen kullanıcıları getirme
+	CMD_MATCH_FETCH_MATCHED = "match.fetch.matched" // Karşılıklı eşleşmeleri getirme (gerçek matchler)
+
+	CMD_MATCH_GET_UNSEEN = "match.fetch.unseen" // Görülmemiş eşleşmeler
+	CMD_MATCH_UPDATE     = "match.update"       // Eşleşme durumunu güncelleme
+
+	CMD_SEARCH_LOOKUP_USER = "search.user.lookup"
 )
 
 /*

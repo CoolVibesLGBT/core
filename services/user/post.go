@@ -3,6 +3,7 @@ package services
 import (
 	"bifrost/extensions"
 	"bifrost/helpers"
+	"bifrost/models"
 	"bifrost/models/media"
 	"bifrost/models/post"
 	"bifrost/models/post/payloads"
@@ -54,6 +55,7 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 		Content  string   `form:"content"`
 		Audience string   `form:"audience"`
 		Hashtags []string `form:"hashtags[]"` // body[hashtags][0], body[hashtags][1]...
+		Mentions []string `form:"mentions[]"` // body[hashtags][0], body[hashtags][1]...
 
 		Polls []PollForm `form:"polls"`
 
@@ -235,6 +237,27 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 		}
 		evt.Location = locationEvent
 		newPost.Event = evt
+	}
+
+	// mentions
+	for _, mentionText := range postForm.Mentions {
+		fmt.Println("MentionText", mentionText)
+		mentionUser, err := s.userRepo.GetUserByNameOrEmailOrNickname(mentionText)
+		if err == nil {
+			mentionItem := models.Mention{
+				ID:     uuid.New(),
+				UserID: mentionUser.ID, // mention edilen kullanıcının ID'si
+			}
+			newPost.Mentions = append(newPost.Mentions, &mentionItem)
+		}
+	}
+
+	for _, hashtagStr := range postForm.Hashtags {
+		hashtagItem := models.Hashtag{
+			ID:  uuid.New(),
+			Tag: hashtagStr,
+		}
+		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
 	}
 
 	if err := tx.Save(newPost).Error; err != nil {

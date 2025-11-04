@@ -6,8 +6,13 @@ import (
 	global_shared "bifrost/models/shared"
 	userModel "bifrost/models/user"
 	"bifrost/models/user/payloads"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -61,6 +66,16 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*userMode
 		Preload("SocialRelations.FavoritedBy").
 		Preload("SocialRelations.BlockedUsers").
 		Preload("SocialRelations.BlockedByUsers").
+		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
+	if err != nil {
+		return nil, err
+	}
+	return &userObj, nil
+}
+
+func (r *UserRepository) GetUserByNameOrEmailOrNickname(input string) (*userModel.User, error) {
+	var userObj userModel.User
+	err := r.db.
 		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
 	if err != nil {
 		return nil, err
@@ -218,6 +233,23 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*userModel.User, error
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *UserRepository) GetUsersStartingWith(letter string, limit int) ([]userModel.User, error) {
+	var users []userModel.User
+	pattern := strings.ToLower(letter) + "%"
+
+	err := r.db.
+		Preload("Avatar").
+		Preload("Avatar.File").
+		Limit(limit).
+		Where("LOWER(user_name) LIKE ? OR LOWER(display_name) LIKE ?", pattern, pattern).
+		Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (r *UserRepository) GetUserByPublicIdWithoutRelations(userID int64) (*userModel.User, error) {
@@ -558,4 +590,29 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *userModel.User, distance in
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) VerifyCaptcha(secret string, response string) (bool, error) {
+	type recaptchaResponse struct {
+		Success bool `json:"success"`
+	}
+	resp, err := http.PostForm("https://www.google.com/recaptcha/api/siteverify",
+		url.Values{"secret": {secret}, "response": {response}})
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	var captchaResponse recaptchaResponse
+	err = json.Unmarshal(body, &captchaResponse)
+	if err != nil {
+		return false, err
+	}
+
+	return captchaResponse.Success, nil
 }

@@ -151,7 +151,7 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		Preload("Author").
 		Preload("Author.Cover").
 		Preload("Author.Avatar").
-		Preload("Tags").
+		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("id IN ?", ids).
@@ -246,7 +246,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 		Preload("Author.Avatar").
 		Preload("Author.Cover").
 		Preload("Author.Fantasies").
-		Preload("Tags").
+		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File")
 
@@ -282,7 +282,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int
 		Preload("Author").
 		Preload("Author.Cover").
 		Preload("Author.Avatar").
-		Preload("Tags").
+		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("author_id = ? AND parent_id IS NULL", userId).
@@ -314,7 +314,7 @@ func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, lim
 		Preload("Author").
 		Preload("Author.Cover").
 		Preload("Author.Avatar").
-		Preload("Tags").
+		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("author_id = ? AND parent_id IS NOT NULL", userID).
@@ -377,7 +377,10 @@ func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit in
 		})
 	}
 
-	lastCursor := medias[len(medias)-1].PublicID
+	var lastCursor *int64 = nil
+	if len(medias) > 0 {
+		lastCursor = &medias[len(medias)-1].PublicID
+	}
 
-	return results, &lastCursor, nil
+	return results, lastCursor, nil
 }
