@@ -4,6 +4,7 @@ import (
 	"bifrost/models"
 	"bifrost/models/media"
 	"bifrost/models/user"
+
 	"encoding/json"
 	"strconv"
 	"time"
@@ -25,8 +26,9 @@ const (
 	PostTypePlace      PostType = "place"
 	PostTypeClassified PostType = "classified"
 	PostTypeGeneric    PostType = "generic"
-	PostTypeNews       PostType = "news" // yeni haber türü
+	PostTypeNews       PostType = "news"
 	PostTypeStory      PostType = "story"
+	PostTypeChat       PostType = "chat"
 )
 
 const (
@@ -60,6 +62,9 @@ type Post struct {
 	// 🔹 İçerik kategorisi
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`
 
+	ContentableID   *uuid.UUID `gorm:"type:uuid;index" json:"contentable_id,omitempty"`
+	ContentableType *string    `gorm:"size:50;index" json:"contentable_type,omitempty"`
+
 	AuthorID uuid.UUID `gorm:"type:uuid;index;not null" json:"author_id"`
 
 	Title   *shared.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
@@ -86,7 +91,8 @@ type Post struct {
 	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
 	Event *payloads.Event  `gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE" json:"event,omitempty"`
 
-	Location *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
+	Location    *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
+	Contentable any                     `gorm:"-" json:"contentable,omitempty"`
 }
 
 func (Post) TableName() string {

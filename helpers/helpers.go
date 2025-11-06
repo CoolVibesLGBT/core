@@ -30,7 +30,6 @@ func GenerateUserJWT(user_id uuid.UUID, publicId int64) (string, error) {
 }
 
 func DecodeUserJWT(tokenString string) (*jwtclaims.UserJWTClaims, error) {
-	fmt.Println("DecodeUserJWT:Token:", tokenString)
 	token, err := jwt.ParseWithClaims(tokenString, &jwtclaims.UserJWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -50,8 +49,5 @@ func DecodeUserJWT(tokenString string) (*jwtclaims.UserJWTClaims, error) {
 		fmt.Println("DecodeUserJWT:Error:3")
 		return nil, errors.New("couldn't parse token claims")
 	}
-	fmt.Println("JWTUSER_SNOWFLAKE", myClaims.PublicID)
-	fmt.Println("JWTUSER_UUID", myClaims.UserID)
-	fmt.Println("DecodeUserJWT:Passed:1")
 	return myClaims, nil
 }

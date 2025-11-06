@@ -1,6 +1,8 @@
 package routes
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type AppHandler interface {
 	// Burada app paketinin kullanabileceği methodlar yer alacak

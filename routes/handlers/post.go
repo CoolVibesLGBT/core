@@ -38,8 +38,6 @@ func HandleCreate(s *services.PostService) http.HandlerFunc {
 		files := append([]*multipart.FileHeader{}, images...)
 		files = append(files, videos...)
 
-		fmt.Println("FILES", files, images, videos)
-
 		user, ok := middleware.GetAuthenticatedUser(r)
 		if !ok {
 			http.Error(w, "User not authenticated", http.StatusUnauthorized)
@@ -311,5 +309,34 @@ func HandleGetAllLikesByUser(s *services.PostService) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(post)
+	}
+}
+
+func HandleGetTrends(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		limit := 10 // default değer
+		if limitStr := r.FormValue("limit"); limitStr != "" {
+			if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+				limit = parsed
+			}
+		}
+
+		hashtags, err := s.GetRecentHashtags(limit)
+		if err != nil {
+			http.Error(w, "failed to get trends: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(hashtags); err != nil {
+			http.Error(w, "failed to encode response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }

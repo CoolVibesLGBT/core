@@ -9,7 +9,6 @@ import (
 
 	"bifrost/models/shared"
 
-	message_payloads "bifrost/models/chat/payloads"
 	post_payloads "bifrost/models/post/payloads"
 	user_payloads "bifrost/models/user/payloads"
 
@@ -103,21 +102,6 @@ func Migrate(db *gorm.DB) error {
 		&post_payloads.EventAttendee{},
 
 		&shared.Location{},
-
-		// Payload tabloları
-		&message_payloads.Gift{},
-		&message_payloads.Location{},
-		&message_payloads.File{},
-		&message_payloads.Poll{},
-		&message_payloads.PollOption{},
-		&message_payloads.PollVote{},
-		&message_payloads.GIF{},
-		&message_payloads.Photo{},
-		&message_payloads.Video{},
-		&message_payloads.Audio{},
-		&message_payloads.Sticker{},
-		&message_payloads.Call{},
-		&message_payloads.System{},
 
 		// önce Chat tablosu, sonra Message
 		&chat.Message{},

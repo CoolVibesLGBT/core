@@ -1,13 +1,14 @@
 package socket
 
 import (
-	user "bifrost/models/user"
-	"bifrost/services/db"
-	"errors"
+	"bifrost/helpers"
+	userModel "bifrost/models/user"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/cors"
@@ -21,21 +22,57 @@ import (
 
 var Server *socketio.Server
 var userConnections = make(map[string]socketio.Conn)
-
-type SocketRepository interface {
-	BroadcastToRoom(room string, event string, message string) error
-	SendMessageToUser(userID string, event string, message string) error
-}
-
-type SocketRepositoryImpl struct {
-	DB *gorm.DB
-}
+var userPublicIDs = make(map[string]int64) // map[socketID]publicID
 
 var allowOriginFunc = func(r *http.Request) bool {
 	return true
 }
 
-func ListenServer() {
+func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) error {
+	var chatIDs []uuid.UUID
+
+	now := time.Now()
+
+	updateData := map[string]interface{}{
+		"last_online": now,
+		"socket_id":   s.ID(),
+	}
+	result := db.Model(&userModel.User{}).Where("public_id = ?", publicID).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	err := db.
+		Table("chat_participants AS cp").
+		Select("cp.chat_id").
+		Joins("JOIN users u ON u.id = cp.user_id").
+		Where("u.public_id = ?", publicID).
+		Order("cp.id ASC").
+		Scan(&chatIDs).Error
+
+	if err != nil {
+		return err
+	}
+
+	// İşlem fonksiyonu: Join veya Leave
+	operation := s.Leave
+	if join {
+		operation = s.Join
+	}
+
+	for _, chatID := range chatIDs {
+		operation(chatID.String())
+	}
+
+	operation("news")
+	operation("notice")
+	operation("broadcast")
+	operation("system")
+
+	return nil
+}
+
+func ListenServer(db *gorm.DB) {
 
 	Server = socketio.NewServer(&engineio.Options{
 		Transports: []transport.Transport{
@@ -48,9 +85,9 @@ func ListenServer() {
 		},
 	})
 
-	Server.OnConnect("/", func(c socketio.Conn, m map[string]interface{}) error {
-		log.Println("connected:", c.ID())
-		c.Join("chat")
+	Server.OnConnect("/", func(s socketio.Conn, m map[string]interface{}) error {
+		log.Println("connected:", s.ID())
+		s.Emit("auth", s.ID())
 		return nil
 	})
 
@@ -59,8 +96,38 @@ func ListenServer() {
 		s.Emit("reply", "have "+msg)
 	})
 
-	Server.OnDisconnect("/", func(c socketio.Conn, reason string, m map[string]interface{}) {
-		fmt.Println("Disconnected:", c.ID())
+	Server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
+
+		authHeader := msg
+		if authHeader == "" {
+			return
+		}
+
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			return
+		}
+
+		tokenString := parts[1]
+
+		claims, err := helpers.DecodeUserJWT(tokenString)
+		if err != nil {
+			return
+		}
+
+		userPublicIDs[s.ID()] = claims.PublicID
+		updateUserRooms(s, db, claims.PublicID, true)
+
+	})
+
+	Server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
+		log.Println("notice:", msg)
+		s.Emit("auth", "have "+msg)
+	})
+
+	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
+		updateUserRooms(s, db, userPublicIDs[s.ID()], true)
+		fmt.Println("Disconnected:", s.ID())
 	})
 
 	go func() {
@@ -73,7 +140,6 @@ func ListenServer() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/socket.io/", Server)
-	mux.HandleFunc("/ass", serveHTML)
 
 	handler := cors.Default().Handler(mux)
 	c := cors.New(cors.Options{
@@ -86,24 +152,34 @@ func ListenServer() {
 
 }
 
-func serveHTML(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "assets/index.html")
+type SocketService struct {
+	db *gorm.DB
 }
 
-func (repo *SocketRepositoryImpl) BroadcastToRoom(namespace string, room string, event string, msg string) error {
+func NewSocketService(db *gorm.DB) *SocketService {
+	return &SocketService{db: db}
+}
+
+func (socketService *SocketService) BroadcastToRoom(namespace string, room string, event string, msg string) error {
 	Server.BroadcastToRoom(namespace, room, event, msg)
 	return nil
 }
 
-func (repo *SocketRepositoryImpl) SendMessageToUser(userID uuid.UUID, event string, message string) error {
-	userRepo := &db.UserRepositoryImpl{DB: repo.DB}
-	user, err := userRepo.GetUser(&user.User{ID: userID})
-	if err != nil {
-		return errors.New("User not found")
-	}
-	if conn, ok := userConnections[*user.SocketID]; ok {
-		conn.Emit(event, message)
-		return nil
-	}
+func (socketService *SocketService) BroadcastToNamespace(namespace string, event string, msg string) bool {
+	return Server.BroadcastToNamespace(namespace, event, msg)
+
+}
+
+func (socketService *SocketService) SendMessageToUser(userId uuid.UUID, event string, message string) error {
+	/*
+		userRepo := &db.UserRepositoryImpl{DB: repo.DB}
+		user, err := userRepo.GetUser(&models.User{ID: userID})
+		if err != nil {
+			return errors.New("User not found")
+		}
+		if conn, ok := userConnections[*user.SocketID]; ok {
+			conn.Emit(event, message)
+			return nil
+		}*/
 	return nil
 }

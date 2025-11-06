@@ -263,6 +263,17 @@ func (r *UserRepository) GetUserByPublicIdWithoutRelations(userID int64) (*userM
 	return &u, nil
 }
 
+func (r *UserRepository) GetUserByUUIDdWithoutRelations(userID uuid.UUID) (*userModel.User, error) {
+	var u userModel.User
+	err :=
+		r.db.First(&u, "id = ?", userID).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (r *UserRepository) UpsertLocation(location *global_shared.Location) error {
 	if location.ID == uuid.Nil {
 		location.ID = uuid.New()
@@ -615,4 +626,19 @@ func (r *UserRepository) VerifyCaptcha(secret string, response string) (bool, er
 	}
 
 	return captchaResponse.Success, nil
+}
+
+func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {
+	now := time.Now()
+
+	updateData := map[string]interface{}{
+		"last_online": now,
+		"socket_id":   socketID,
+	}
+	result := r.db.Model(&userModel.User{}).Where("public_id = ?", userID).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

@@ -29,7 +29,7 @@ const (
 )
 
 const (
-	Private ChatType = "private"
-	Group   ChatType = "group"
-	Channel ChatType = "channel"
+	ChatTypePrivate ChatType = "private"
+	ChatTypeGroup   ChatType = "group"
+	ChatTypeChannel ChatType = "channel"
 )

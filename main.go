@@ -4,6 +4,7 @@ import (
 	"bifrost/helpers"
 	"bifrost/routes"
 	"bifrost/services/db"
+	"bifrost/services/socket"
 	"flag"
 	"fmt"
 	"log"
@@ -12,18 +13,16 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
-	socketcli "github.com/zhouhui8915/go-socket.io-client"
+	socketio "github.com/vchitai/go-socket.io/v4"
 	"gorm.io/gorm"
 )
 
 // App struct'u, tüm uygulama bileşenlerini içerir
 type App struct {
-	DB             *gorm.DB
-	Router         routes.AppHandler
-	SocketIOClient *socketcli.Client
-	SnowFlakeNode  *helpers.Node
-
-	//RedisClient         *_redis.Client
+	DB            *gorm.DB
+	Router        routes.AppHandler
+	SnowFlakeNode *helpers.Node
+	SocketServer  *socketio.Server
 }
 
 var instance *App // Singleton App instance
@@ -50,8 +49,14 @@ func NewApp() (*App, error) {
 
 		migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
 		seedFlag := flag.Bool("seed", false, "Run DB seed")
+		installFlag := flag.Bool("install", false, "Run DB migrate & seed")
 
 		flag.Parse()
+
+		if *installFlag {
+			*seedFlag = true
+			*migrateFlag = true
+		}
 
 		if *migrateFlag {
 			fmt.Println("Migration:BEGIN")
@@ -107,17 +112,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := app.Router
+	fmt.Println("ROUTER")
 
-	c := cors.New(cors.Options{
+	applicationRouter := app.Router
+
+	httpCors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "authorization", "Content-Type", "Content-Length", "X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection", "Accept-Encoding", "Accept-Language", "X-Requested-With"},
 	})
 
-	handler := c.Handler(r)
+	go socket.ListenServer(app.DB)
+	httpHandler := httpCors.Handler(applicationRouter)
 	log.Println("App running on", os.Getenv("PORT"))
-	http.ListenAndServe(os.Getenv("PORT"), handler)
-
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), httpHandler))
 }

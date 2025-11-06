@@ -35,7 +35,7 @@ func NewPostService(
 	return &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 
-func (s *PostService) CreatePost(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
+func (s *PostService) CreatePostDeprecated(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
 	fmt.Println("POST_SERVICE:CreatePost")
 
 	type PollForm struct {
@@ -108,6 +108,7 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 	newPost := &post.Post{
 		ID:              uuid.New(),
 		ParentID:        parentUUID,
+		PublicID:        node.Generate().Int64(),
 		AuthorID:        author.ID,
 		Published:       false,
 		PostKind:        post.PostTypeStatus,
@@ -115,7 +116,6 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 		Title:           utils.MakeLocalizedString(defaultLanguage, postForm.Title),
 		Content:         utils.MakeLocalizedString(defaultLanguage, postForm.Content),
 		Summary:         utils.MakeLocalizedString(defaultLanguage, postForm.Summary),
-		PublicID:        node.Generate().Int64(),
 	}
 
 	// Post DB'ye ekle
@@ -276,6 +276,14 @@ func (s *PostService) CreatePost(request map[string][]string, files []*multipart
 	return lastPost, nil
 }
 
+func (s *PostService) CreatePost(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(request, files, author, "post", nil)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetPostByID(_post.ID)
+}
+
 func (s *PostService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	postData, err := s.postRepo.GetPostByID(id)
 	if err != nil {
@@ -335,4 +343,12 @@ func (s *PostService) GetUserMedias(id int64, limit int, cursor *int64) ([]types
 		return nil, nil, fmt.Errorf("GetUserMedias error: %w", err)
 	}
 	return medias, lastCursor, nil
+}
+
+func (s *PostService) GetRecentHashtags(limit int) ([]types.HashtagStats, error) {
+	hashtags, err := s.postRepo.GetRecentHashtags(limit)
+	if err != nil {
+		return nil, fmt.Errorf("GetRecentHashtags error: %w", err)
+	}
+	return hashtags, nil
 }

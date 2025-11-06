@@ -8,6 +8,7 @@ import (
 	"bifrost/repositories"
 	"bifrost/router"
 	"bifrost/routes/handlers"
+	"bifrost/services/socket"
 	services "bifrost/services/user"
 	"encoding/json"
 	"fmt"
@@ -26,6 +27,7 @@ type Router struct {
 }
 
 func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
+
 	r := &Router{
 		mux:           mux.NewRouter(),
 		action:        router.NewActionRouter(db),
@@ -38,15 +40,20 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 			http.FileServer(http.Dir("./static")),
 		))
 
+	socketService := socket.NewSocketService(r.db)
+
 	// repository ve service oluştur
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
-	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode)
+	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, snowFlakeNode)
+	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, socketService)
+	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
+	chatService := services.NewChatService(userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db)) // middleware yok
 
@@ -58,6 +65,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register(constants.CMD_USER_FETCH_PROFILE, handlers.HandleFetchUserProfile(userService))
 
 	r.action.Register(constants.CMD_SEARCH_LOOKUP_USER, handlers.HandleGetUsersStartingWith(userService))
+	r.action.Register(constants.CMD_SEARCH_TRENDS, handlers.HandleGetTrends(postService))
 
 	r.action.Register( // access token'a gore user bilgisi
 		constants.CMD_AUTH_USER_INFO,
@@ -203,12 +211,41 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		middleware.AuthMiddleware(userRepo),           // middleware
 	)
 
+	//CHAT
+	r.action.Register(
+		constants.CMD_TYPING,
+		handlers.HandleSendTypingEvent(chatService), // handler
+		middleware.AuthMiddleware(userRepo),         // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_CHAT_CREATE,
+		handlers.HandleCreateChat(chatService), // handler
+		middleware.AuthMiddleware(userRepo),    // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_SEND_MESSAGE,
+		handlers.HandleSendMessage(chatService), // handler
+		middleware.AuthMiddleware(userRepo),     // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_FETCH_CHATS,
+		handlers.HandleGetChatsByUserID(chatService), // handler
+		middleware.AuthMiddleware(userRepo),          // middleware
+	)
+	r.action.Register(
+		constants.CMD_FETCH_MESSAGES,
+		handlers.HandleGetMessagesByChatID(chatService), // handler
+		middleware.AuthMiddleware(userRepo),             // middleware
+	)
+
 	r.mux.HandleFunc("/", r.handlePacket)
 	r.mux.HandleFunc("/test", r.handlePacket)
 
 	// Tek packet endpoint
 	r.mux.HandleFunc("/packet", r.handlePacket)
-
 	return r
 }
 
@@ -270,4 +307,8 @@ func (r *Router) handlePacket(w http.ResponseWriter, req *http.Request) {
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.mux.ServeHTTP(w, req)
+}
+
+func (r *Router) GetMux() *mux.Router {
+	return r.mux
 }

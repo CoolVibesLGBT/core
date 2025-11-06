@@ -1,17 +1,25 @@
 package repositories
 
 import (
+	"bifrost/extensions"
 	"bifrost/helpers"
+	"bifrost/models"
 	"bifrost/models/media"
 	"bifrost/models/post"
+	"bifrost/models/post/payloads"
+	global_shared "bifrost/models/shared"
+
 	post_payloads "bifrost/models/post/payloads"
+	"bifrost/models/post/utils"
 	userModel "bifrost/models/user"
 	"bifrost/types"
+	"mime/multipart"
 	"sort"
 
 	"fmt"
 	"time"
 
+	"github.com/go-playground/form/v4"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -19,6 +27,8 @@ import (
 type PostRepository struct {
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
+	mediaRepo     *MediaRepository
+	userRepo      *UserRepository
 }
 
 func (r *PostRepository) DB() *gorm.DB {
@@ -29,8 +39,9 @@ func (r *PostRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *PostRepository {
-	return &PostRepository{db: db, snowFlakeNode: snowFlakeNode}
+func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node,
+	mediaRepo *MediaRepository, userRepo *UserRepository) *PostRepository {
+	return &PostRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 
 func (r *PostRepository) CreatePost(post *post.Post) error {
@@ -383,4 +394,254 @@ func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit in
 	}
 
 	return results, lastCursor, nil
+}
+
+func (r *PostRepository) GetRecentHashtags(limit int) ([]types.HashtagStats, error) {
+	var results []types.HashtagStats
+	cutoff := time.Now().Add(-48 * time.Hour)
+	err := r.db.Model(&types.HashtagStats{}).
+		Select("tag, COUNT(*) as count").
+		Where("created_at >= ?", cutoff).
+		Group("tag").
+		Order("count DESC").
+		Scan(&results).Error
+
+	return results, err
+}
+
+func (r *PostRepository) CreateContentablePost(request map[string][]string, files []*multipart.FileHeader, author *userModel.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+	type PollForm struct {
+		ID       string   `form:"id"`
+		Question string   `form:"question"`
+		Duration string   `form:"duration"`
+		Options  []string `form:"options"`
+	}
+
+	type PostForm struct {
+		ParentId string     `form:"parentPostId"`
+		Title    string     `form:"title"`
+		Summary  string     `form:"summary"`
+		Content  string     `form:"content"`
+		Audience string     `form:"audience"`
+		Hashtags []string   `form:"hashtags[]"`
+		Mentions []string   `form:"mentions[]"`
+		Polls    []PollForm `form:"polls"`
+
+		EventTitle       string `form:"event[title]"`
+		EventDescription string `form:"event[description]"`
+		EventDate        string `form:"event[date]"`
+		EventTime        string `form:"event[time]"`
+
+		LocationAddress string  `form:"location[address]"`
+		LocationLat     float64 `form:"location[lat]"`
+		LocationLng     float64 `form:"location[lng]"`
+	}
+
+	decoder := form.NewDecoder()
+	postForm := PostForm{}
+
+	if err := decoder.Decode(&postForm, request); err != nil {
+		return nil, err
+	}
+
+	tx := r.DB().Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	node, err := helpers.NewNode(1)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create snowflake node: %w", err)
+	}
+
+	var parentUUID *uuid.UUID
+	if len(postForm.ParentId) > 0 {
+		parsed, err := uuid.Parse(postForm.ParentId)
+		if err == nil {
+			parentUUID = &parsed
+		}
+	}
+
+	defaultLanguage := author.DefaultLanguage
+
+	var postKindType post.PostType
+	switch contentableType {
+	case "chat":
+		postKindType = post.PostTypeChat
+	default:
+		postKindType = post.PostTypeStatus
+	}
+
+	newPost := &post.Post{
+		ID:              uuid.New(),
+		ParentID:        parentUUID,
+		PublicID:        node.Generate().Int64(),
+		AuthorID:        author.ID,
+		Published:       true,
+		PostKind:        postKindType,
+		ContentCategory: post.ContentNormal,
+		Title:           utils.MakeLocalizedString(defaultLanguage, postForm.Title),
+		Content:         utils.MakeLocalizedString(defaultLanguage, postForm.Content),
+		Summary:         utils.MakeLocalizedString(defaultLanguage, postForm.Summary),
+
+		// Burada contentable bilgisi de tutuluyor
+		ContentableType: &contentableType,
+		ContentableID:   contentableID,
+	}
+
+	if err := tx.Create(newPost).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// Media ekleme
+	for _, f := range files {
+
+		var ownerType media.OwnerType
+		var role media.MediaRole
+
+		switch contentableType {
+		case "chat":
+			ownerType = media.OwnerChat
+			role = media.RoleChatMedia // burada istersen MIME type’a göre video da yapabiliriz
+		default:
+			ownerType = media.OwnerPost
+			role = media.RolePost
+		}
+
+		mediaModel, err := r.mediaRepo.AddMedia(newPost.ID, ownerType, author.ID, role, f)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		newPost.Attachments = append(newPost.Attachments, mediaModel)
+	}
+
+	// Polls ekleme
+	for _, pollInfo := range postForm.Polls {
+		poll := &payloads.Poll{
+			ID:              uuid.New(),
+			ContentableID:   newPost.ID,
+			ContentableType: payloads.ContentablePollPost,
+			Question:        *utils.MakeLocalizedString(defaultLanguage, pollInfo.Question),
+			Duration:        pollInfo.Duration,
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+		for _, choiceLabel := range pollInfo.Options {
+			poll.Choices = append(poll.Choices, payloads.PollChoice{
+				ID:        uuid.New(),
+				PollID:    poll.ID,
+				Label:     *utils.MakeLocalizedString(defaultLanguage, choiceLabel),
+				VoteCount: 0,
+			})
+		}
+		if err := r.CreatePoll(poll); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		newPost.Poll = append(newPost.Poll, poll)
+	}
+
+	// Location
+	var locationPoint *extensions.PostGISPoint = nil
+	if postForm.LocationLat != 0 && postForm.LocationLng != 0 {
+		locationPoint = &extensions.PostGISPoint{
+			Lat: postForm.LocationLat,
+			Lng: postForm.LocationLng,
+		}
+		locationPost := &global_shared.Location{
+			ID:              uuid.New(),
+			ContentableType: global_shared.LocationOwnerPost,
+			ContentableID:   newPost.ID,
+			Address:         &postForm.LocationAddress,
+			Latitude:        &postForm.LocationLat,
+			Longitude:       &postForm.LocationLng,
+			LocationPoint:   locationPoint,
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+		if err := r.userRepo.UpsertLocation(locationPost); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	// Event
+	if len(postForm.EventTitle) > 0 {
+		startTime := time.Time{}
+		if len(postForm.EventDate) > 0 && len(postForm.EventTime) > 0 {
+			if parsedTime, err := time.Parse("2006-01-02 15:04", postForm.EventDate+" "+postForm.EventTime); err == nil {
+				startTime = parsedTime
+			}
+		}
+
+		evt := &payloads.Event{
+			ID:          uuid.New(),
+			PostID:      newPost.ID,
+			Title:       *utils.MakeLocalizedString(defaultLanguage, postForm.EventTitle),
+			Description: *utils.MakeLocalizedString(defaultLanguage, postForm.EventDescription),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			StartTime:   &startTime,
+		}
+		if err := tx.Create(evt).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		locationEvent := &global_shared.Location{
+			ID:              uuid.New(),
+			ContentableType: global_shared.LocationOwnerEvent,
+			ContentableID:   evt.ID,
+			Address:         &postForm.LocationAddress,
+			Latitude:        &postForm.LocationLat,
+			Longitude:       &postForm.LocationLng,
+			LocationPoint:   locationPoint,
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+		if err := tx.Create(locationEvent).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		evt.Location = locationEvent
+		newPost.Event = evt
+	}
+
+	// Mentions
+	for _, mentionText := range postForm.Mentions {
+		mentionUser, err := r.userRepo.GetUserByNameOrEmailOrNickname(mentionText)
+		if err == nil {
+			mentionItem := models.Mention{
+				ID:     uuid.New(),
+				UserID: mentionUser.ID,
+			}
+			newPost.Mentions = append(newPost.Mentions, &mentionItem)
+		}
+	}
+
+	// Hashtags
+	for _, hashtagStr := range postForm.Hashtags {
+		hashtagItem := models.Hashtag{
+			ID:  uuid.New(),
+			Tag: hashtagStr,
+		}
+		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+	}
+
+	if err := tx.Save(newPost).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return newPost, nil
 }

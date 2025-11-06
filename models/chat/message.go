@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	message_payloads "bifrost/models/chat/payloads"
 	"bifrost/models/user"
 )
 
@@ -31,18 +30,6 @@ type Message struct {
 	Sender        user.User
 	ReplyTo       *Message `gorm:"foreignKey:ReplyToID"`
 	ForwardedFrom *user.User
-
-	Gift     *message_payloads.Gift     `gorm:"foreignKey:PayloadID;references:ID"`
-	Location *message_payloads.Location `gorm:"foreignKey:PayloadID;references:ID"`
-	File     *message_payloads.File     `gorm:"foreignKey:PayloadID;references:ID"`
-	Poll     *message_payloads.Poll     `gorm:"foreignKey:PayloadID;references:ID"`
-	GIF      *message_payloads.GIF      `gorm:"foreignKey:PayloadID;references:ID"`
-	Photo    *message_payloads.Photo    `gorm:"foreignKey:PayloadID;references:ID"`
-	Video    *message_payloads.Video    `gorm:"foreignKey:PayloadID;references:ID"`
-	Audio    *message_payloads.Audio    `gorm:"foreignKey:PayloadID;references:ID"`
-	Sticker  *message_payloads.Sticker  `gorm:"foreignKey:PayloadID;references:ID"`
-	Call     *message_payloads.Call     `gorm:"foreignKey:PayloadID;references:ID"`
-	System   *message_payloads.System   `gorm:"foreignKey:PayloadID;references:ID"`
 
 	Reads []MessageRead `gorm:"foreignKey:MessageID"`
 

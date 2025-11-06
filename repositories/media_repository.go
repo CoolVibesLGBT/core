@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -28,92 +29,50 @@ func (r *MediaRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func (r *MediaRepository) GenerateStoragePath(ownerID uuid.UUID, ownerType media.OwnerType, role media.MediaRole, filename string) string {
+func (r *MediaRepository) GenerateStoragePath(userId uuid.UUID, ownerID uuid.UUID, ownerType media.OwnerType, role media.MediaRole, filename string) string {
 	ext := strings.ToLower(filepath.Ext(filename))
 	id := uuid.New().String()
-	date := time.Now().Format("2006-01-02") // YYYY-MM-DD
-	baseDir := "./static"
+	date := time.Now().Format("2006-01-02")
+	baseDir := "./static/uploads"
 
 	switch ownerType {
 	case media.OwnerUser:
 		switch role {
 		case media.RoleProfile:
-			return fmt.Sprintf("%s/users/%s/avatars/%s%s", baseDir, ownerID.String(), id, ext)
+			return fmt.Sprintf("%s/users/%s/profile/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		case media.RoleCover:
-			return fmt.Sprintf("%s/users/%s/covers/%s%s", baseDir, ownerID.String(), id, ext)
+			return fmt.Sprintf("%s/users/%s/cover/%s/%s%s", baseDir, userId.String(), date, id, ext)
+		case media.RoleAvatar:
+			return fmt.Sprintf("%s/users/%s/avatar/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		case media.RoleStory:
-			return fmt.Sprintf("%s/users/%s/stories/%s%s", baseDir, ownerID.String(), id, ext)
+			return fmt.Sprintf("%s/users/%s/stories/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		default:
-			return fmt.Sprintf("%s/users/%s/media/%s%s", baseDir, ownerID.String(), id, ext)
+			return fmt.Sprintf("%s/users/%s/media/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		}
 	case media.OwnerPost:
-		return fmt.Sprintf("%s/posts/%s/%s/%s%s", baseDir, ownerID.String(), date, id, ext)
-	case media.OwnerBlog:
-		return fmt.Sprintf("%s/blogs/%s/%s/%s%s", baseDir, ownerID.String(), date, id, ext)
+		return fmt.Sprintf("%s/users/%s/posts/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
 	case media.OwnerChat:
-		if role == media.RoleChatVideo {
-			return fmt.Sprintf("%s/chat/%s/videos/%s%s", baseDir, ownerID.String(), id, ext)
-		}
-		return fmt.Sprintf("%s/chat/%s/images/%s%s", baseDir, ownerID.String(), id, ext)
-	case media.OwnerPage:
-		return fmt.Sprintf("%s/pages/%s/%s/%s%s", baseDir, ownerID.String(), date, id, ext)
+		return fmt.Sprintf("%s/users/%s/chat/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
 	default:
-		return fmt.Sprintf("%s/other/%s/%s%s", baseDir, ownerID.String(), id, ext)
+		return fmt.Sprintf("%s/users/%s/other/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
 	}
 }
 
-func (r *MediaRepository) AddUserMedia(userId uuid.UUID, role media.MediaRole, filename, url string, mimeType string, size int64, width, height *int) (*media.Media, error) {
-	media := &media.Media{
-		ID:        uuid.New(),
-		FileID:    uuid.New(), // FileMetadata kaydı için
-		PublicID:  r.snowFlakeNode.Generate().Int64(),
-		OwnerID:   userId,
-		UserID:    userId,
-		OwnerType: media.OwnerUser,
-		Role:      role,
-		IsPublic:  true,
-		File: shared.FileMetadata{
-			ID:          uuid.New(),
-			URL:         url,
-			StoragePath: r.GenerateStoragePath(userId, media.OwnerUser, role, filename),
-			MimeType:    mimeType,
-			Size:        size,
-			Name:        filename,
-			Width:       width,
-			Height:      height,
-			CreatedAt:   time.Now(),
-		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	// DB'ye kaydet
-	if err := r.db.Create(&media.File).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.db.Create(media).Error; err != nil {
-		return nil, err
-	}
-
-	return media, nil
-}
-
-// Generic media ekleme
+// --- ANA FONKSİYON ---
 func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
 	ext := filepath.Ext(file.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
-	storagePath := r.GenerateStoragePath(ownerID, ownerType, role, newFileName)
-
-	urlPath := fmt.Sprintf("%s%s", helpers.MD5Hash(storagePath), ext)
-	fmt.Println("STORAGE PATH", storagePath)
-	fmt.Println("URL PATH", urlPath)
+	storagePath := r.GenerateStoragePath(userId, ownerID, ownerType, role, newFileName)
 
 	if err := r.SaveUploadedFile(file, storagePath); err != nil {
 		return nil, err
 	}
 
-	// Burada basit width/height ve duration default null bırakıldı
+	variants, width, height, err := r.generateImageVariants(storagePath, ext)
+	if err != nil {
+		fmt.Println("WARN: Variant generation failed:", err)
+	}
+
 	media := media.Media{
 		ID:        uuid.New(),
 		PublicID:  r.snowFlakeNode.Generate().Int64(),
@@ -125,12 +84,16 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		IsPublic:  true,
 		File: shared.FileMetadata{
 			ID:          uuid.New(),
-			URL:         urlPath,
 			StoragePath: storagePath,
 			MimeType:    file.Header.Get("Content-Type"),
 			Size:        file.Size,
 			Name:        file.Filename,
-			CreatedAt:   time.Now(),
+			Width:       width,
+			Height:      height,
+			Variants: &shared.FileVariants{
+				Image: variants,
+			},
+			CreatedAt: time.Now(),
 		},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -146,7 +109,83 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	return &media, nil
 }
 
-// Helper
+// --- VARYANT ÜRETİCİ ---
+func (r *MediaRepository) generateImageVariants(originalPath string, ext string) (*shared.ImageVariants, *int, *int, error) {
+	img, err := imaging.Open(originalPath)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	baseDir := filepath.Dir(originalPath)
+	baseName := strings.TrimSuffix(filepath.Base(originalPath), ext)
+
+	// Original ölçüleri
+	bounds := img.Bounds()
+	w := bounds.Dx()
+	h := bounds.Dy()
+
+	// --- Original ---
+	original := &shared.VariantInfo{
+		URL:    strings.TrimPrefix(originalPath, "."),
+		Width:  &w,
+		Height: &h,
+		Format: strings.TrimPrefix(ext, "."),
+		Size:   getFileSizeSafe(originalPath),
+	}
+
+	// --- Thumbnail (128x128 portrait crop) ---
+	thumbPath := filepath.Join(baseDir, baseName+"_thumb"+ext)
+	if err := helpers.ResizePortraitCrop(originalPath, thumbPath, 128, 128); err != nil {
+		return nil, &w, &h, err
+	}
+
+	// --- Small (480x720) ---
+	smallPath := filepath.Join(baseDir, baseName+"_sm"+ext)
+	helpers.ResizePortraitCrop(originalPath, smallPath, 480, 720)
+
+	// --- Medium (720x1080) ---
+	mediumPath := filepath.Join(baseDir, baseName+"_md"+ext)
+	helpers.ResizePortraitCrop(originalPath, mediumPath, 720, 1080)
+
+	// --- Large (1080x1440) ---
+	largePath := filepath.Join(baseDir, baseName+"_lg"+ext)
+	helpers.ResizePortraitCrop(originalPath, largePath, 1080, 1440)
+
+	return &shared.ImageVariants{
+		Original:  original,
+		Thumbnail: makeVariant(thumbPath, ext),
+		Small:     makeVariant(smallPath, ext),
+		Medium:    makeVariant(mediumPath, ext),
+		Large:     makeVariant(largePath, ext),
+	}, &w, &h, nil
+}
+
+// --- HELPERLAR ---
+
+func makeVariant(path, ext string) *shared.VariantInfo {
+	img, err := imaging.Open(path)
+	if err != nil {
+		return nil
+	}
+	b := img.Bounds()
+	w, h := b.Dx(), b.Dy()
+
+	return &shared.VariantInfo{
+		URL:    strings.TrimPrefix(path, "."),
+		Width:  &w,
+		Height: &h,
+		Format: strings.TrimPrefix(ext, "."),
+		Size:   getFileSizeSafe(path),
+	}
+}
+
+func getFileSizeSafe(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
+}
 
 func (r *MediaRepository) MakeSureDirectoryPathExists(path string) error {
 	dir := filepath.Dir(path)
@@ -154,7 +193,6 @@ func (r *MediaRepository) MakeSureDirectoryPathExists(path string) error {
 }
 
 func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path string) error {
-
 	if err := r.MakeSureDirectoryPathExists(path); err != nil {
 		return err
 	}
@@ -174,49 +212,3 @@ func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path stri
 	_, err = dst.ReadFrom(src)
 	return err
 }
-
-/*
-
-
-avatarFile := FileMetadata{
-	ID:         uuid.New(),
-	URL:        "https://cdn.example.com/avatar.png",
-	StoragePath: "users/avatars/avatar.png",
-	MimeType:   "image/png",
-	Size:       120000,
-	Width:      ptrInt(512),
-	Height:     ptrInt(512),
-	CreatedAt:  time.Now(),
-}
-
-avatarMedia, _ := mediaRepo.AddMedia(user.ID, OwnerUser, RoleProfile, avatarFile, true)
-user.ProfileImageURL = &avatarMedia.File.URL
-userRepo.DB().Save(&user)
-
-coverFile := FileMetadata{
-	ID:         uuid.New(),
-	URL:        "https://cdn.example.com/cover.png",
-	StoragePath: "users/covers/cover.png",
-	MimeType:   "image/png",
-	Size:       240000,
-	Width:      ptrInt(1200),
-	Height:     ptrInt(400),
-	CreatedAt:  time.Now(),
-}
-
-coverMedia, _ := mediaRepo.AddMedia(user.ID, OwnerUser, RoleCover, coverFile, true)
-
-chatFile := FileMetadata{
-	ID:         uuid.New(),
-	URL:        "https://cdn.example.com/chat123.png",
-	StoragePath: "chat/room123/2025-10-24/chat123.png",
-	MimeType:   "image/png",
-	Size:       50000,
-	Width:      ptrInt(800),
-	Height:     ptrInt(600),
-	CreatedAt:  time.Now(),
-}
-
-chatMedia, _ := mediaRepo.AddMedia(chatID, OwnerChat, RoleChatImage, chatFile, false)
-
-*/

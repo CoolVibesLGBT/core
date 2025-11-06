@@ -74,6 +74,15 @@ const (
 	CMD_MATCH_UPDATE     = "match.update"       // Eşleşme durumunu güncelleme
 
 	CMD_SEARCH_LOOKUP_USER = "search.user.lookup"
+	CMD_SEARCH_TRENDS      = "search.trends"
+
+	CMD_CHAT_CREATE    = "chat.create" // Chat olustur
+	CMD_TYPING         = "chat.typing"
+	CMD_SEND_MESSAGE   = "chat.send_message"   // Mesaj gönder
+	CMD_DELETE_CHAT    = "chat.delete_chat"    // Sohbeti sil
+	CMD_FETCH_CHATS    = "chat.fetch_chats"    // Sohbetleri getir
+	CMD_DELETE_MESSAGE = "chat.delete_message" // Mesajı sil
+	CMD_FETCH_MESSAGES = "chat.fetch_messages" // Mesajları getir
 )
 
 /*

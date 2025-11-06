@@ -13,6 +13,7 @@ const (
 	RolePost      MediaRole = "post"
 	RoleBlog      MediaRole = "blog"
 	RoleChatImage MediaRole = "chat_image"
+	RoleChatMedia MediaRole = "chat_media"
 	RoleChatVideo MediaRole = "chat_video"
 	RoleOther     MediaRole = "other"
 
