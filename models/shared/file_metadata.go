@@ -31,7 +31,8 @@ type FileVariants struct {
 
 // Görsel varyantları
 type ImageVariants struct {
-	Thumbnail *VariantInfo `json:"thumbnail,omitempty"` // 128x128
+	Icon      *VariantInfo `json:"icon,omitempty"`      // 128x128//profil
+	Thumbnail *VariantInfo `json:"thumbnail,omitempty"` // 120x180//story
 	Small     *VariantInfo `json:"small,omitempty"`     // 480x480
 	Medium    *VariantInfo `json:"medium,omitempty"`    // 720x720
 	Large     *VariantInfo `json:"large,omitempty"`     // 1080x1080

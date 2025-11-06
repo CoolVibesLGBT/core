@@ -133,9 +133,14 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string)
 		Size:   getFileSizeSafe(originalPath),
 	}
 
+	iconPath := filepath.Join(baseDir, baseName+"_icon"+ext)
+	if err := helpers.ResizePortraitCrop(originalPath, iconPath, 128, 128); err != nil {
+		return nil, &w, &h, err
+	}
+
 	// --- Thumbnail (128x128 portrait crop) ---
 	thumbPath := filepath.Join(baseDir, baseName+"_thumb"+ext)
-	if err := helpers.ResizePortraitCrop(originalPath, thumbPath, 128, 128); err != nil {
+	if err := helpers.ResizePortraitCrop(originalPath, thumbPath, 120, 180); err != nil {
 		return nil, &w, &h, err
 	}
 
@@ -153,6 +158,7 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string)
 
 	return &shared.ImageVariants{
 		Original:  original,
+		Icon:      makeVariant(iconPath, ext),
 		Thumbnail: makeVariant(thumbPath, ext),
 		Small:     makeVariant(smallPath, ext),
 		Medium:    makeVariant(mediumPath, ext),
