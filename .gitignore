@@ -6,3 +6,6 @@ static/posts
 static/users
 go.sum
 go.mod
+./static/uploads/
+/static/uploads
+static/uploads
