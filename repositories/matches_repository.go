@@ -3,9 +3,9 @@ package repositories
 import (
 	"time"
 
-	"bifrost/helpers"
-	userModel "bifrost/models/user"
-	"bifrost/types"
+	"coolvibes/helpers"
+	userModel "coolvibes/models/user"
+	"coolvibes/types"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

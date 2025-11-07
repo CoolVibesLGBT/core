@@ -1,10 +1,10 @@
 package user
 
 import (
-	"bifrost/constants"
-	"bifrost/models/media"
-	"bifrost/models/shared"
-	"bifrost/models/user/payloads"
+	"coolvibes/constants"
+	"coolvibes/models/media"
+	"coolvibes/models/shared"
+	"coolvibes/models/user/payloads"
 	"encoding/json"
 	"strconv"
 

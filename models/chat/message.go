@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"bifrost/models/user"
+	"coolvibes/models/user"
 )
 
 type Message struct {

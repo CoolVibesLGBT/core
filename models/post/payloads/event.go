@@ -3,8 +3,8 @@ package payloads
 import (
 	"time"
 
-	"bifrost/models/post/shared"
-	global_shared "bifrost/models/shared"
+	"coolvibes/models/post/shared"
+	global_shared "coolvibes/models/shared"
 
 	"github.com/google/uuid"
 )

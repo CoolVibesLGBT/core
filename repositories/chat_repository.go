@@ -1,16 +1,16 @@
 package repositories
 
 import (
-	"bifrost/constants"
-	"bifrost/helpers"
-	"bifrost/models/chat"
-	userModel "bifrost/models/user"
-	"bifrost/services/socket"
+	"coolvibes/constants"
+	"coolvibes/helpers"
+	"coolvibes/models/chat"
+	userModel "coolvibes/models/user"
+	"coolvibes/services/socket"
 	"encoding/json"
 	"fmt"
 
-	"bifrost/models/post"
-	"bifrost/models/post/shared"
+	"coolvibes/models/post"
+	"coolvibes/models/post/shared"
 	"log"
 	"mime/multipart"
 	"time"

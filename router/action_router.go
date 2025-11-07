@@ -1,7 +1,7 @@
 package router
 
 import (
-	"bifrost/middleware"
+	"coolvibes/middleware"
 	"net/http"
 
 	"gorm.io/gorm"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"bifrost/helpers"
-	userModel "bifrost/models/user"
+	"coolvibes/helpers"
+	userModel "coolvibes/models/user"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"

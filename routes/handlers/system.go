@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"bifrost/models/user/payloads"
+	"coolvibes/models/user/payloads"
 	"encoding/json"
 	"log"
 	"net/http"

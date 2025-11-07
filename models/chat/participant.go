@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"bifrost/models/user"
+	"coolvibes/models/user"
 	"time"
 
 	"github.com/google/uuid"

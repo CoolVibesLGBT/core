@@ -1,10 +1,10 @@
 package services
 
 import (
-	"bifrost/models/chat"
-	"bifrost/models/post"
-	"bifrost/models/user"
-	"bifrost/repositories"
+	"coolvibes/models/chat"
+	"coolvibes/models/post"
+	"coolvibes/models/user"
+	"coolvibes/repositories"
 	"errors"
 	"mime/multipart"
 

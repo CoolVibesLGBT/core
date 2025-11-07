@@ -1,14 +1,14 @@
 package services
 
 import (
-	"bifrost/extensions"
-	"bifrost/helpers"
-	"bifrost/models/media"
-	global_shared "bifrost/models/shared"
-	userModal "bifrost/models/user"
-	userModel "bifrost/models/user"
-	"bifrost/models/user/payloads"
-	"bifrost/repositories"
+	"coolvibes/extensions"
+	"coolvibes/helpers"
+	"coolvibes/models/media"
+	global_shared "coolvibes/models/shared"
+	userModal "coolvibes/models/user"
+	userModel "coolvibes/models/user"
+	"coolvibes/models/user/payloads"
+	"coolvibes/repositories"
 	"errors"
 	"fmt"
 	"mime/multipart"

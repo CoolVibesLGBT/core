@@ -1,9 +1,9 @@
 package chat
 
 import (
-	"bifrost/models/media"
-	"bifrost/models/post"
-	"bifrost/models/post/shared"
+	"coolvibes/models/media"
+	"coolvibes/models/post"
+	"coolvibes/models/post/shared"
 	"time"
 
 	"github.com/google/uuid"

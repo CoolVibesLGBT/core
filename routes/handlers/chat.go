@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"bifrost/middleware"
-	services "bifrost/services/user"
-	"bifrost/utils"
+	"coolvibes/middleware"
+	services "coolvibes/services/user"
+	"coolvibes/utils"
 	"mime/multipart"
 	"net/http"
 

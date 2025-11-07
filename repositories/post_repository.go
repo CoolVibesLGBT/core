@@ -1,18 +1,18 @@
 package repositories
 
 import (
-	"bifrost/extensions"
-	"bifrost/helpers"
-	"bifrost/models"
-	"bifrost/models/media"
-	"bifrost/models/post"
-	"bifrost/models/post/payloads"
-	global_shared "bifrost/models/shared"
+	"coolvibes/extensions"
+	"coolvibes/helpers"
+	"coolvibes/models"
+	"coolvibes/models/media"
+	"coolvibes/models/post"
+	"coolvibes/models/post/payloads"
+	global_shared "coolvibes/models/shared"
 
-	post_payloads "bifrost/models/post/payloads"
-	"bifrost/models/post/utils"
-	userModel "bifrost/models/user"
-	"bifrost/types"
+	post_payloads "coolvibes/models/post/payloads"
+	"coolvibes/models/post/utils"
+	userModel "coolvibes/models/user"
+	"coolvibes/types"
 	"mime/multipart"
 	"sort"
 
@@ -243,6 +243,51 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 	fmt.Println("POST_REPO:GetTimeline:TIMELINE:")
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
+		Where("contentable_type = ?", post.PostTypePost). // 👈 sadece post olanlar
+		Order("public_id DESC").
+		Limit(limit).
+		Preload("Location").
+		Preload("Poll").
+		Preload("Poll.Choices").
+		Preload("Event").
+		Preload("Event.Location").
+		Preload("Event.Attendees").
+		Preload("Author.GenderIdentities").
+		Preload("Author.SexualOrientations").
+		Preload("Author.SexualRole").
+		Preload("Author.Avatar").
+		Preload("Author.Cover").
+		Preload("Author.Fantasies").
+		Preload("Hashtags").
+		Preload("Attachments").
+		Preload("Attachments.File")
+
+	if cursor != nil {
+		query = query.Where("public_id < ?", *cursor)
+	}
+
+	if err := query.Find(&posts).Error; err != nil {
+		return types.TimelineResult{}, err
+	}
+
+	var nextCursor *int64
+	if len(posts) > 0 {
+		nextCursor = &posts[len(posts)-1].PublicID
+	}
+
+	return types.TimelineResult{
+		Posts:      posts,
+		NextCursor: nextCursor,
+	}, nil
+}
+
+func (r *PostRepository) GetTimelineVibes(limit int, cursor *int64) (types.TimelineResult, error) {
+	var posts []post.Post
+
+	fmt.Println("POST_REPO:GetTimeline:TIMELINE:")
+	query := r.db.Model(&post.Post{}).
+		//Where("published = ?", true).
+		Where("contentable_type = ?", post.PostTypePost). // 👈 sadece post olanlar
 		Order("public_id DESC").
 		Limit(limit).
 		Preload("Location").

@@ -2,14 +2,14 @@
 package routes
 
 import (
-	"bifrost/constants"
-	"bifrost/helpers"
-	"bifrost/middleware"
-	"bifrost/repositories"
-	"bifrost/router"
-	"bifrost/routes/handlers"
-	"bifrost/services/socket"
-	services "bifrost/services/user"
+	"coolvibes/constants"
+	"coolvibes/helpers"
+	"coolvibes/middleware"
+	"coolvibes/repositories"
+	"coolvibes/router"
+	"coolvibes/routes/handlers"
+	"coolvibes/services/socket"
+	services "coolvibes/services/user"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -176,6 +176,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
+	r.action.Register(constants.CMD_POST_VIBES, handlers.HandleTimelineVibes(postService))
 
 	r.action.Register(constants.CMD_USER_FETCH_STORIES, handlers.HandleFetchStories(userService))
 	r.action.Register(constants.CMD_USER_FETCH_NEARBY_USERS, handlers.HandleFetchNearbyUsers(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))

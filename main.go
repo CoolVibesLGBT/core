@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bifrost/helpers"
-	"bifrost/routes"
-	"bifrost/services/db"
-	"bifrost/services/socket"
+	"coolvibes/helpers"
+	"coolvibes/routes"
+	"coolvibes/services/db"
+	"coolvibes/services/socket"
 	"flag"
 	"fmt"
 	"log"
@@ -65,8 +65,6 @@ func NewApp() (*App, error) {
 				fmt.Println(err)
 			}
 			fmt.Println("Migration:END")
-			os.Exit(0) // migration sonrası programdan çık
-
 		}
 
 		if *seedFlag {
@@ -74,11 +72,9 @@ func NewApp() (*App, error) {
 			if err != nil {
 				fmt.Println(err)
 			}
-			os.Exit(0) // seed sonrası programdan çık
-
 		}
 
-		//faker.FakeUser(instance.DB, snowFlakeNode)
+		//	faker.FakeUser(instance.DB, snowFlakeNode)
 
 	}
 

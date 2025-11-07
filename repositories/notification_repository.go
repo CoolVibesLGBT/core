@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"bifrost/helpers"
+	"coolvibes/helpers"
 
 	"gorm.io/gorm"
 )

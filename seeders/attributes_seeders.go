@@ -1,8 +1,8 @@
 package seeders
 
 import (
-	"bifrost/models/post/shared"
-	"bifrost/models/user/payloads"
+	"coolvibes/models/post/shared"
+	"coolvibes/models/user/payloads"
 	"fmt"
 	"log"
 

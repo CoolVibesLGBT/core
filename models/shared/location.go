@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"bifrost/extensions"
+	"coolvibes/extensions"
 	"time"
 
 	"github.com/google/uuid"

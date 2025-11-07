@@ -1,18 +1,18 @@
 package db
 
 import (
-	"bifrost/models"
-	"bifrost/models/chat"
-	"bifrost/models/media"
-	"bifrost/models/post"
-	"bifrost/models/user"
+	"coolvibes/models"
+	"coolvibes/models/chat"
+	"coolvibes/models/media"
+	"coolvibes/models/post"
+	"coolvibes/models/user"
 
-	"bifrost/models/shared"
+	"coolvibes/models/shared"
 
-	post_payloads "bifrost/models/post/payloads"
-	user_payloads "bifrost/models/user/payloads"
+	post_payloads "coolvibes/models/post/payloads"
+	user_payloads "coolvibes/models/user/payloads"
 
-	seed "bifrost/seeders"
+	seed "coolvibes/seeders"
 
 	"fmt"
 	"log"

@@ -1,8 +1,8 @@
 package socket
 
 import (
-	"bifrost/helpers"
-	userModel "bifrost/models/user"
+	"coolvibes/helpers"
+	userModel "coolvibes/models/user"
 	"fmt"
 	"log"
 	"net/http"

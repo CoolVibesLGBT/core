@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"bifrost/constants"
-	"bifrost/middleware"
-	services "bifrost/services/user"
-	"bifrost/utils"
+	"coolvibes/constants"
+	"coolvibes/middleware"
+	services "coolvibes/services/user"
+	"coolvibes/utils"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -138,6 +138,41 @@ func HandleTimeline(s *services.PostService) http.HandlerFunc {
 
 		// Timeline verisini çek
 		result, err := s.GetTimeline(limit, cursor)
+		if err != nil {
+			http.Error(w, "failed to get timeline: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// JSON olarak döndür
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	}
+}
+func HandleTimelineVibes(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Limit parametresi
+		limitStr := r.URL.Query().Get("limit")
+		limit := 10 // default
+		if limitStr != "" {
+			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+				limit = l
+			}
+		}
+
+		// Cursor parametresi (PublicID)
+		var cursor *int64
+		cursorStr := r.URL.Query().Get("cursor")
+		if cursorStr != "" {
+			if c, err := strconv.ParseInt(cursorStr, 10, 64); err == nil {
+				cursor = &c
+			} else {
+				http.Error(w, "invalid cursor", http.StatusBadRequest)
+				return
+			}
+		}
+
+		// Timeline verisini çek
+		result, err := s.GetTimelineVibes(limit, cursor)
 		if err != nil {
 			http.Error(w, "failed to get timeline: "+err.Error(), http.StatusInternalServerError)
 			return

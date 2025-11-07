@@ -1,7 +1,7 @@
 package media
 
 import (
-	"bifrost/models/shared"
+	"coolvibes/models/shared"
 	"time"
 
 	"github.com/google/uuid"

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"bifrost/constants"
-	"bifrost/utils"
+	"coolvibes/constants"
+	"coolvibes/utils"
 	"log"
 	"net/http"
 )

@@ -1,7 +1,7 @@
 package comment
 
 import (
-	"bifrost/models/user"
+	"coolvibes/models/user"
 	"time"
 
 	"github.com/google/uuid"

@@ -1,9 +1,9 @@
 package services
 
 import (
-	userModel "bifrost/models/user"
-	"bifrost/repositories"
-	"bifrost/types"
+	userModel "coolvibes/models/user"
+	"coolvibes/repositories"
+	"coolvibes/types"
 	"time"
 
 	"github.com/google/uuid"

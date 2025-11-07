@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"bifrost/constants"
-	"bifrost/helpers"
-	global_shared "bifrost/models/shared"
-	userModel "bifrost/models/user"
-	"bifrost/models/user/payloads"
+	"coolvibes/constants"
+	"coolvibes/helpers"
+	global_shared "coolvibes/models/shared"
+	userModel "coolvibes/models/user"
+	"coolvibes/models/user/payloads"
 	"encoding/json"
 	"errors"
 	"fmt"

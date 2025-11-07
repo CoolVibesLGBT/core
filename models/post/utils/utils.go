@@ -1,6 +1,6 @@
 package utils
 
-import "bifrost/models/post/shared"
+import "coolvibes/models/post/shared"
 
 func MakeLocalizedString(lang string, text string) *shared.LocalizedString {
 	if text == "" {

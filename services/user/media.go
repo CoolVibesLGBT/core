@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bifrost/models/media"
-	"bifrost/repositories"
+	"coolvibes/models/media"
+	"coolvibes/repositories"
 	"mime/multipart"
 
 	"github.com/google/uuid"

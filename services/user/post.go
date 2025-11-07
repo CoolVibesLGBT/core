@@ -1,20 +1,20 @@
 package services
 
 import (
-	"bifrost/extensions"
-	"bifrost/helpers"
-	"bifrost/models"
-	"bifrost/models/media"
-	"bifrost/models/post"
-	"bifrost/models/post/payloads"
-	"bifrost/models/post/utils"
-	global_shared "bifrost/models/shared"
+	"coolvibes/extensions"
+	"coolvibes/helpers"
+	"coolvibes/models"
+	"coolvibes/models/media"
+	"coolvibes/models/post"
+	"coolvibes/models/post/payloads"
+	"coolvibes/models/post/utils"
+	global_shared "coolvibes/models/shared"
 
 	form "github.com/go-playground/form/v4"
 
-	"bifrost/models/user"
-	"bifrost/repositories"
-	"bifrost/types"
+	"coolvibes/models/user"
+	"coolvibes/repositories"
+	"coolvibes/types"
 	"fmt"
 	"mime/multipart"
 	"time"
@@ -351,4 +351,13 @@ func (s *PostService) GetRecentHashtags(limit int) ([]types.HashtagStats, error)
 		return nil, fmt.Errorf("GetRecentHashtags error: %w", err)
 	}
 	return hashtags, nil
+}
+
+func (s *PostService) GetTimelineVibes(limit int, cursor *int64) (types.TimelineResult, error) {
+	// Repo fonksiyonunu çağırıyoruz
+	posts, err := s.postRepo.GetTimelineVibes(limit, cursor)
+	if err != nil {
+		return types.TimelineResult{}, err
+	}
+	return posts, nil
 }

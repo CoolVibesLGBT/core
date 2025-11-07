@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"bifrost/models/jwtclaims"
+	"coolvibes/models/jwtclaims"
 	"errors"
 	"fmt"
 	"os"

@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"bifrost/constants"
-	"bifrost/models/media"
-	services "bifrost/services/user"
-	"bifrost/utils"
+	"coolvibes/constants"
+	"coolvibes/models/media"
+	services "coolvibes/services/user"
+	"coolvibes/utils"
 	"net/http"
 
 	"github.com/google/uuid"

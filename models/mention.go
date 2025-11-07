@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"bifrost/models/user"
+	"coolvibes/models/user"
 
 	"github.com/google/uuid"
 )

@@ -1,9 +1,9 @@
 package types
 
 import (
-	"bifrost/models/media"
-	"bifrost/models/post"
-	userModel "bifrost/models/user"
+	"coolvibes/models/media"
+	"coolvibes/models/post"
+	userModel "coolvibes/models/user"
 )
 
 type TimelineResult struct {

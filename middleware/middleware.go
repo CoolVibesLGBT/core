@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"bifrost/helpers"
-	"bifrost/models/user"
-	"bifrost/repositories"
+	"coolvibes/helpers"
+	"coolvibes/models/user"
+	"coolvibes/repositories"
 )
 
 type contextKey string

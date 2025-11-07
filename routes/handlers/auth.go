@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"bifrost/constants"
-	"bifrost/middleware"
-	"bifrost/models/user/payloads"
-	services "bifrost/services/user"
-	"bifrost/utils"
+	"coolvibes/constants"
+	"coolvibes/middleware"
+	"coolvibes/models/user/payloads"
+	services "coolvibes/services/user"
+	"coolvibes/utils"
 	"fmt"
 	"net/http"
 	"strconv"

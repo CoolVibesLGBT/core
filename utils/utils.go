@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"bifrost/constants"
+	"coolvibes/constants"
 	"encoding/json"
 	"net/http"
 )

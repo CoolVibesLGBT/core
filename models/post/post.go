@@ -1,17 +1,17 @@
 package post
 
 import (
-	"bifrost/models"
-	"bifrost/models/media"
-	"bifrost/models/user"
+	"coolvibes/models"
+	"coolvibes/models/media"
+	"coolvibes/models/user"
 
 	"encoding/json"
 	"strconv"
 	"time"
 
-	"bifrost/models/post/payloads"
-	"bifrost/models/post/shared"
-	global_shared "bifrost/models/shared"
+	"coolvibes/models/post/payloads"
+	"coolvibes/models/post/shared"
+	global_shared "coolvibes/models/shared"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,6 +29,7 @@ const (
 	PostTypeNews       PostType = "news"
 	PostTypeStory      PostType = "story"
 	PostTypeChat       PostType = "chat"
+	PostTypePost       PostType = "post"
 )
 
 const (

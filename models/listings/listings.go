@@ -1,8 +1,8 @@
 package listings
 
 import (
-	"bifrost/models/media"
-	"bifrost/models/shared"
+	"coolvibes/models/media"
+	"coolvibes/models/shared"
 	"time"
 
 	"github.com/google/uuid"

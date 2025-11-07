@@ -1,4 +1,4 @@
-# Bifrost Core
+# CoolVibes Core
 
 A Go-based backend application with WebSocket support, PostgreSQL database, and JWT authentication.
 

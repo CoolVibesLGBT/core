@@ -1,7 +1,7 @@
 package payloads
 
 import (
-	"bifrost/models/post/shared"
+	"coolvibes/models/post/shared"
 
 	"github.com/google/uuid"
 )
