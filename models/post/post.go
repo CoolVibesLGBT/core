@@ -94,6 +94,10 @@ type Post struct {
 
 	Location    *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
 	Contentable any                     `gorm:"-" json:"contentable,omitempty"`
+
+	LikeCount    int64 `gorm:"default:0" json:"like_count"`
+	CommentCount int64 `gorm:"default:0" json:"comment_count"`
+	ViewCount    int64 `gorm:"default:0" json:"view_count"`
 }
 
 func (Post) TableName() string {
