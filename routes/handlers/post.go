@@ -148,28 +148,39 @@ func HandleTimeline(s *services.PostService) http.HandlerFunc {
 		json.NewEncoder(w).Encode(result)
 	}
 }
+
 func HandleTimelineVibes(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Form verilerini parse et
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		// Limit parametresi
-		limitStr := r.URL.Query().Get("limit")
 		limit := 10 // default
-		if limitStr != "" {
+		if limitStr := r.FormValue("limit"); limitStr != "" {
 			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 				limit = l
 			}
 		}
 
 		// Cursor parametresi (PublicID)
+
 		var cursor *int64
-		cursorStr := r.URL.Query().Get("cursor")
-		if cursorStr != "" {
-			if c, err := strconv.ParseInt(cursorStr, 10, 64); err == nil {
-				cursor = &c
-			} else {
+		if cursorStr := r.FormValue("cursor"); cursorStr != "" {
+			c, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
 				http.Error(w, "invalid cursor", http.StatusBadRequest)
 				return
 			}
+			cursor = &c
+		} else {
+			maxInt64 := int64(math.MaxInt64)
+			cursor = &maxInt64
 		}
+
+		limit = 10
 
 		// Timeline verisini çek
 		result, err := s.GetTimelineVibes(limit, cursor)
@@ -178,7 +189,7 @@ func HandleTimelineVibes(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
-		// JSON olarak döndür
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	}
@@ -312,10 +323,17 @@ func HandleGetAllMediasByUser(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
+		var nextCursorStr string
+		if nextCursor != nil {
+			nextCursorStr = strconv.FormatInt(*nextCursor, 10) // 10 tabanında string yapar
+		} else {
+			nextCursorStr = "0" // veya uygun başka bir default değer
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		response := map[string]interface{}{
 			"medias":      medias,
-			"next_cursor": nextCursor,
+			"next_cursor": nextCursorStr,
 			"has_more":    nextCursor != nil,
 		}
 		json.NewEncoder(w).Encode(response)

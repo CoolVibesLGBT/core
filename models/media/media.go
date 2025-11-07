@@ -2,6 +2,8 @@ package media
 
 import (
 	"coolvibes/models/shared"
+	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,4 +28,17 @@ type Media struct {
 
 func (Media) TableName() string {
 	return "medias"
+}
+
+func (u Media) MarshalJSON() ([]byte, error) {
+	type Alias Media // recursive çağrıyı önlemek için alias
+	aux := struct {
+		PublicID string `json:"public_id"`
+		Alias
+	}{
+		PublicID: strconv.FormatInt(u.PublicID, 10),
+		Alias:    (Alias)(u),
+	}
+
+	return json.Marshal(aux)
 }

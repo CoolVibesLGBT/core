@@ -8,6 +8,7 @@ import (
 	"coolvibes/models/post"
 	"coolvibes/models/post/payloads"
 	global_shared "coolvibes/models/shared"
+	"strconv"
 
 	post_payloads "coolvibes/models/post/payloads"
 	"coolvibes/models/post/utils"
@@ -270,9 +271,10 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 		return types.TimelineResult{}, err
 	}
 
-	var nextCursor *int64
+	var nextCursor *string
 	if len(posts) > 0 {
-		nextCursor = &posts[len(posts)-1].PublicID
+		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
+		nextCursor = &s
 	}
 
 	return types.TimelineResult{
@@ -284,39 +286,32 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 func (r *PostRepository) GetTimelineVibes(limit int, cursor *int64) (types.TimelineResult, error) {
 	var posts []post.Post
 
-	fmt.Println("POST_REPO:GetTimeline:TIMELINE:")
 	query := r.db.Model(&post.Post{}).
-		//Where("published = ?", true).
-		Where("contentable_type = ?", post.PostTypePost). // 👈 sadece post olanlar
-		Order("public_id DESC").
-		Limit(limit).
-		Preload("Location").
-		Preload("Poll").
-		Preload("Poll.Choices").
-		Preload("Event").
-		Preload("Event.Location").
-		Preload("Event.Attendees").
-		Preload("Author.GenderIdentities").
-		Preload("Author.SexualOrientations").
-		Preload("Author.SexualRole").
+		Joins("INNER JOIN medias ON medias.owner_id = posts.id AND medias.owner_type = ?", "post").
+		Preload("Author").
 		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
 		Preload("Author.Cover").
-		Preload("Author.Fantasies").
-		Preload("Hashtags").
+		Preload("Author.Cover.File").
 		Preload("Attachments").
-		Preload("Attachments.File")
+		Preload("Attachments.File").
+		Where("published = ?", true).
+		Order("posts.public_id DESC").
+		Limit(limit).
+		Group("posts.id")
 
 	if cursor != nil {
-		query = query.Where("public_id < ?", *cursor)
+		query = query.Where("posts.public_id < ?", *cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
 		return types.TimelineResult{}, err
 	}
 
-	var nextCursor *int64
+	var nextCursor *string
 	if len(posts) > 0 {
-		nextCursor = &posts[len(posts)-1].PublicID
+		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
+		nextCursor = &s
 	}
 
 	return types.TimelineResult{
