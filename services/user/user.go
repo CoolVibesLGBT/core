@@ -3,11 +3,10 @@ package services
 import (
 	"coolvibes/extensions"
 	"coolvibes/helpers"
+	"coolvibes/models"
 	"coolvibes/models/media"
 	global_shared "coolvibes/models/shared"
-	userModal "coolvibes/models/user"
-	userModel "coolvibes/models/user"
-	"coolvibes/models/user/payloads"
+	user_payloads "coolvibes/models/user_payloads"
 	"coolvibes/repositories"
 	"errors"
 	"fmt"
@@ -33,7 +32,7 @@ func NewUserService(
 }
 
 // Register işlemi
-func (s *UserService) Register(request map[string][]string) (*userModal.User, string, error) {
+func (s *UserService) Register(request map[string][]string) (*models.User, string, error) {
 
 	type RegisterForm struct {
 		Name      string `form:"name"`
@@ -119,7 +118,7 @@ func (s *UserService) Register(request map[string][]string) (*userModal.User, st
 		return nil, "", err
 	}
 
-	userObj := &userModal.User{
+	userObj := &models.User{
 
 		ID:          UserID,
 		PublicID:    s.userRepo.Node().Generate().Int64(),
@@ -147,7 +146,7 @@ func (s *UserService) Register(request map[string][]string) (*userModal.User, st
 	return userInfo, token, nil
 }
 
-func (s *UserService) Login(request map[string][]string) (*userModal.User, string, error) {
+func (s *UserService) Login(request map[string][]string) (*models.User, string, error) {
 	// Form yapısı
 	type LoginForm struct {
 		UserName string `form:"nickname"`
@@ -221,12 +220,12 @@ func (s *UserService) Login(request map[string][]string) (*userModal.User, strin
 	return userObj, token, nil
 }
 
-func (s *UserService) GetUserByID(id uuid.UUID) (*userModal.User, error) {
+func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
 	return s.userRepo.GetByID(id)
 }
 
 // Kullanıcı ID ile getir
-func (s *UserService) FetchUserProfileByNickname(nickname string) (*userModal.User, error) {
+func (s *UserService) FetchUserProfileByNickname(nickname string) (*models.User, error) {
 	return s.userRepo.GetByUserNameOrEmailOrNickname(nickname)
 }
 
@@ -239,7 +238,7 @@ func (s *UserService) Test() {
 
 }
 
-func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *userModal.User) (*media.Media, error) {
+func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *models.User) (*media.Media, error) {
 	newMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
 		media.OwnerUser,
@@ -261,7 +260,7 @@ func (s *UserService) UpdateAvatar(file *multipart.FileHeader, user *userModal.U
 	return newMedia, nil
 }
 
-func (s *UserService) UpdateCover(file *multipart.FileHeader, user *userModal.User) (*media.Media, error) {
+func (s *UserService) UpdateCover(file *multipart.FileHeader, user *models.User) (*media.Media, error) {
 	//
 	newMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
@@ -282,7 +281,7 @@ func (s *UserService) UpdateCover(file *multipart.FileHeader, user *userModal.Us
 	return newMedia, nil
 }
 
-func (s *UserService) AddStory(file *multipart.FileHeader, user *userModal.User) (*userModal.Story, error) {
+func (s *UserService) AddStory(file *multipart.FileHeader, user *models.User) (*models.Story, error) {
 	storyMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
 		media.OwnerUser,
@@ -294,7 +293,7 @@ func (s *UserService) AddStory(file *multipart.FileHeader, user *userModal.User)
 		return nil, fmt.Errorf("failed to upload avatar: %w", err)
 	}
 
-	story := &userModal.Story{
+	story := &models.Story{
 		ID:         uuid.New(),
 		UserID:     user.ID,
 		MediaID:    storyMedia.ID,
@@ -313,16 +312,16 @@ func (s *UserService) AddStory(file *multipart.FileHeader, user *userModal.User)
 	return story, nil
 }
 
-func (s *UserService) GetAttribute(attributeID uuid.UUID) (*payloads.Attribute, error) {
+func (s *UserService) GetAttribute(attributeID uuid.UUID) (*user_payloads.Attribute, error) {
 	return s.userRepo.GetAttribute(attributeID)
 }
 
-func (s *UserService) GetInterestItem(interestId uuid.UUID) (*payloads.InterestItem, error) {
+func (s *UserService) GetInterestItem(interestId uuid.UUID) (*user_payloads.InterestItem, error) {
 	return s.userRepo.GetInterestItem(interestId)
 }
 
 // Kullanıcı ID ile getir
-func (s *UserService) GetFantasy(id uuid.UUID) (*payloads.Fantasy, error) {
+func (s *UserService) GetFantasy(id uuid.UUID) (*user_payloads.Fantasy, error) {
 	return s.userRepo.GetFantasy(id)
 }
 
@@ -409,7 +408,7 @@ func parseUUIDs(strIDs []string) ([]uuid.UUID, error) {
 	return ids, nil
 }
 
-func (s *UserService) UpsertUserAttribute(attr *payloads.UserAttribute) error {
+func (s *UserService) UpsertUserAttribute(attr *user_payloads.UserAttribute) error {
 	if attr == nil {
 		return fmt.Errorf("attribute cannot be nil")
 	}
@@ -431,7 +430,7 @@ func (s *UserService) UpsertUserAttribute(attr *payloads.UserAttribute) error {
 	return nil
 }
 
-func (s *UserService) UpsertUserInterest(interest *payloads.UserInterest) error {
+func (s *UserService) UpsertUserInterest(interest *user_payloads.UserInterest) error {
 	if interest == nil {
 		return fmt.Errorf("attribute cannot be nil")
 	}
@@ -453,7 +452,7 @@ func (s *UserService) UpsertUserInterest(interest *payloads.UserInterest) error 
 	return nil
 }
 
-func (s *UserService) UpsertUserFantasy(fantasy *payloads.UserFantasy) error {
+func (s *UserService) UpsertUserFantasy(fantasy *user_payloads.UserFantasy) error {
 	if fantasy == nil {
 		return fmt.Errorf("fantasy cannot be nil")
 	}
@@ -475,11 +474,11 @@ func (s *UserService) UpsertUserFantasy(fantasy *payloads.UserFantasy) error {
 	return nil
 }
 
-func (s *UserService) GetAllStories(limit int) ([]*userModal.Story, error) {
+func (s *UserService) GetAllStories(limit int) ([]*models.Story, error) {
 	return s.userRepo.GetAllStories(limit)
 }
 
-func (s *UserService) FetchNearbyUsers(user *userModal.User, distanceKm int, cursor *int64, limit int) ([]*userModal.User, error) {
+func (s *UserService) FetchNearbyUsers(user *models.User, distanceKm int, cursor *int64, limit int) ([]*models.User, error) {
 	return s.userRepo.FetchNearbyUsers(user, distanceKm, cursor, limit)
 }
 
@@ -542,6 +541,6 @@ func (s *UserService) HandleFollow(followerID, followeeID int64, isFollow bool) 
 	return nil
 }
 
-func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]userModel.User, error) {
+func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
 	return s.userRepo.GetUsersStartingWith(letter, limit)
 }

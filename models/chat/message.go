@@ -1,12 +1,11 @@
 package chat
 
 import (
+	"coolvibes/models"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-
-	"coolvibes/models/user"
 )
 
 type Message struct {
@@ -27,9 +26,9 @@ type Message struct {
 
 	// Relations
 	Chat          Chat `gorm:"foreignKey:ChatID;constraint:OnDelete:CASCADE"`
-	Sender        user.User
+	Sender        models.User
 	ReplyTo       *Message `gorm:"foreignKey:ReplyToID"`
-	ForwardedFrom *user.User
+	ForwardedFrom *models.User
 
 	Reads []MessageRead `gorm:"foreignKey:MessageID"`
 

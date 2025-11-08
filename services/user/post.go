@@ -12,7 +12,6 @@ import (
 
 	form "github.com/go-playground/form/v4"
 
-	"coolvibes/models/user"
 	"coolvibes/repositories"
 	"coolvibes/types"
 	"fmt"
@@ -35,7 +34,7 @@ func NewPostService(
 	return &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 
-func (s *PostService) CreatePostDeprecated(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
+func (s *PostService) CreatePostDeprecated(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 	fmt.Println("POST_SERVICE:CreatePost")
 
 	type PollForm struct {
@@ -276,7 +275,7 @@ func (s *PostService) CreatePostDeprecated(request map[string][]string, files []
 	return lastPost, nil
 }
 
-func (s *PostService) CreatePost(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
+func (s *PostService) CreatePost(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 	_post, err := s.postRepo.CreateContentablePost(request, files, author, "post", nil)
 	if err != nil {
 		return nil, err

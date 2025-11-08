@@ -1,4 +1,4 @@
-package payloads
+package user_payloads
 
 import (
 	"coolvibes/models/post/shared"

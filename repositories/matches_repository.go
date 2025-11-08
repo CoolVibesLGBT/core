@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"coolvibes/helpers"
-	userModel "coolvibes/models/user"
+	userModel "coolvibes/models"
 	"coolvibes/types"
 
 	"github.com/google/uuid"

@@ -1,9 +1,9 @@
 package services
 
 import (
+	"coolvibes/models"
 	"coolvibes/models/chat"
 	"coolvibes/models/post"
-	"coolvibes/models/user"
 	"coolvibes/repositories"
 	"errors"
 	"mime/multipart"
@@ -69,7 +69,7 @@ func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
 	return s.chatRepo.GetChatsByUserID(userID)
 }
 
-func (s *ChatService) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *user.User) (*post.Post, error) {
+func (s *ChatService) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 	_post, err := s.chatRepo.AddMessageToChat(request, files, author)
 	if err != nil {
 		return nil, err

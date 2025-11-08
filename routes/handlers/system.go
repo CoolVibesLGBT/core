@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"coolvibes/models/user/payloads"
+	payloads "coolvibes/models/user_payloads"
 	"encoding/json"
 	"log"
 	"net/http"

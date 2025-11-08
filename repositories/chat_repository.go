@@ -3,8 +3,8 @@ package repositories
 import (
 	"coolvibes/constants"
 	"coolvibes/helpers"
+	"coolvibes/models"
 	"coolvibes/models/chat"
-	userModel "coolvibes/models/user"
 	"coolvibes/services/socket"
 	"encoding/json"
 	"fmt"
@@ -210,7 +210,7 @@ func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) 
 	return nil
 }
 
-func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *userModel.User) (*post.Post, error) {
+func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 
 	type PostForm struct {
 		ChatID string `form:"chat_id"`

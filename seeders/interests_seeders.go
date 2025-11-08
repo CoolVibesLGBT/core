@@ -2,7 +2,7 @@ package seeders
 
 import (
 	"coolvibes/models/post/shared"
-	"coolvibes/models/user/payloads"
+	payloads "coolvibes/models/user_payloads"
 	"encoding/json"
 	"fmt"
 	"log"

@@ -3,7 +3,6 @@ package post
 import (
 	"coolvibes/models"
 	"coolvibes/models/media"
-	"coolvibes/models/user"
 
 	"encoding/json"
 	"strconv"
@@ -81,7 +80,7 @@ type Post struct {
 
 	Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
 
-	Author user.User `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
+	Author models.User `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
 
 	Attachments []*media.Media `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
 
@@ -95,9 +94,7 @@ type Post struct {
 	Location    *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
 	Contentable any                     `gorm:"-" json:"contentable,omitempty"`
 
-	LikeCount    int64 `gorm:"default:0" json:"like_count"`
-	CommentCount int64 `gorm:"default:0" json:"comment_count"`
-	ViewCount    int64 `gorm:"default:0" json:"view_count"`
+	Engagements []*models.Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 }
 
 func (Post) TableName() string {

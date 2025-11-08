@@ -3,7 +3,7 @@ package handlers
 import (
 	"coolvibes/constants"
 	"coolvibes/middleware"
-	"coolvibes/models/user/payloads"
+	payloads "coolvibes/models/user_payloads"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"fmt"

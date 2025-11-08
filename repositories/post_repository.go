@@ -10,9 +10,9 @@ import (
 	global_shared "coolvibes/models/shared"
 	"strconv"
 
+	userModel "coolvibes/models"
 	post_payloads "coolvibes/models/post/payloads"
 	"coolvibes/models/post/utils"
-	userModel "coolvibes/models/user"
 	"coolvibes/types"
 	"mime/multipart"
 	"sort"
@@ -40,8 +40,7 @@ func (r *PostRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node,
-	mediaRepo *MediaRepository, userRepo *UserRepository) *PostRepository {
+func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository) *PostRepository {
 	return &PostRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 

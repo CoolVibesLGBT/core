@@ -1,10 +1,10 @@
-package user
+package models
 
 import (
 	"coolvibes/constants"
 	"coolvibes/models/media"
 	"coolvibes/models/shared"
-	"coolvibes/models/user/payloads"
+	payloads "coolvibes/models/user_payloads"
 	"encoding/json"
 	"strconv"
 
@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -178,16 +179,18 @@ type TravelPlan struct {
 }
 
 type User struct {
-	ID              uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	PublicID        int64      `gorm:"uniqueIndex;not null" json:"public_id"`
-	SocketID        *string    `json:"socket_id,omitempty"`
-	UserName        string     `json:"username"`
-	DisplayName     string     `json:"displayname"`
-	Email           string     `json:"email"`
-	Password        string     `json:"-"` // gizli tutulmalı
-	ProfileImageURL *string    `json:"profile_image_url,omitempty"`
-	Bio             *string    `json:"bio,omitempty"`
-	DateOfBirth     *time.Time `json:"date_of_birth,omitempty"`
+	ID              uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	PublicID        int64           `gorm:"uniqueIndex;not null" json:"public_id"`
+	SocketID        *string         `json:"socket_id,omitempty"`
+	UserName        string          `json:"username"`
+	DisplayName     string          `json:"displayname"`
+	Email           string          `json:"email"`
+	Password        string          `json:"-"` // gizli tutulmalı
+	ProfileImageURL *string         `json:"profile_image_url,omitempty"`
+	Bio             *string         `json:"bio,omitempty"`
+	DateOfBirth     *time.Time      `json:"date_of_birth,omitempty"`
+	Balance         decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"balance"`
+	IsOnline        bool            `gorm:"default:false" json:"is_online"`
 
 	UserAttributes []*payloads.UserAttribute `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user_attributes,omitempty"`
 
@@ -225,6 +228,9 @@ type User struct {
 	Interests     []*payloads.UserInterest `gorm:"foreignKey:UserID" json:"interests,omitempty"`
 
 	Travel TravelData `gorm:"embedded;embeddedPrefix:travel_" json:"travel"`
+
+	Engagements []*Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
+
 	//  Sosyal İlişkiler
 	SocialRelations SocialRelations `json:"social,omitempty" gorm:"embedded;embeddedPrefix:social_"`
 	Media           []*media.Media  `gorm:"polymorphic:Owner;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"media,omitempty"`

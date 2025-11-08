@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"coolvibes/models/user"
+	"coolvibes/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,7 +14,7 @@ type MessageRead struct {
 	ReadAt    time.Time `gorm:"autoCreateTime"`
 
 	Message Message
-	User    user.User
+	User    models.User
 }
 
 func (MessageRead) TableName() string {

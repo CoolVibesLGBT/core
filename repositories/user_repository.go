@@ -3,9 +3,9 @@ package repositories
 import (
 	"coolvibes/constants"
 	"coolvibes/helpers"
+	userModel "coolvibes/models"
 	global_shared "coolvibes/models/shared"
-	userModel "coolvibes/models/user"
-	"coolvibes/models/user/payloads"
+	payloads "coolvibes/models/user_payloads"
 	"encoding/json"
 	"errors"
 	"fmt"

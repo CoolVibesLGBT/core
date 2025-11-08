@@ -2,7 +2,7 @@ package socket
 
 import (
 	"coolvibes/helpers"
-	userModel "coolvibes/models/user"
+	userModel "coolvibes/models"
 	"fmt"
 	"log"
 	"net/http"

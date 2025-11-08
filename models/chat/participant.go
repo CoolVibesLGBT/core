@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"coolvibes/models/user"
+	"coolvibes/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +17,7 @@ type ChatParticipant struct {
 	LeftAt      *time.Time      `json:"left_at,omitempty"`
 	UnreadCount int             `gorm:"default:0" json:"unread_count"`
 	Chat        Chat            `json:"chat,omitempty"`
-	User        user.User       `json:"user,omitempty"`
+	User        models.User     `json:"user,omitempty"`
 
 	CreatedAt  time.Time  `json:"created_at"`
 	UpdatedAt  time.Time  `json:"updated_at"`

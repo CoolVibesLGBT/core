@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"coolvibes/helpers"
-	"coolvibes/models/user"
+	"coolvibes/models"
 	"coolvibes/repositories"
 )
 
@@ -77,7 +77,7 @@ func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) Middlewar
 		}
 	}
 }
-func GetAuthenticatedUser(r *http.Request) (*user.User, bool) {
-	u, ok := r.Context().Value(userContextKey).(*user.User)
+func GetAuthenticatedUser(r *http.Request) (*models.User, bool) {
+	u, ok := r.Context().Value(userContextKey).(*models.User)
 	return u, ok
 }

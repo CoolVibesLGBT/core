@@ -5,12 +5,11 @@ import (
 	"coolvibes/models/chat"
 	"coolvibes/models/media"
 	"coolvibes/models/post"
-	"coolvibes/models/user"
 
 	"coolvibes/models/shared"
 
 	post_payloads "coolvibes/models/post/payloads"
-	user_payloads "coolvibes/models/user/payloads"
+	user_payloads "coolvibes/models/user_payloads"
 
 	seed "coolvibes/seeders"
 
@@ -73,12 +72,12 @@ func Migrate(db *gorm.DB) error {
 		&user_payloads.Attribute{},
 		&user_payloads.Interest{},
 		&user_payloads.InterestItem{},
-		&user.Story{},
+		&models.Story{},
 
 		&user_payloads.GenderIdentity{},
 		&user_payloads.SexualOrientation{},
 		&user_payloads.SexualRole{},
-		&user.User{},
+		&models.User{},
 
 		&models.Mention{},
 		&models.Hashtag{},
@@ -87,12 +86,12 @@ func Migrate(db *gorm.DB) error {
 		&user_payloads.UserInterest{},
 		&user_payloads.UserAttribute{},
 
-		&user.MatchSeen{},
-		&user.Follow{},
-		&user.Like{},
-		&user.Block{},
-		&user.Favorite{},
-		&user.Match{},
+		&models.MatchSeen{},
+		&models.Follow{},
+		&models.Like{},
+		&models.Block{},
+		&models.Favorite{},
+		&models.Match{},
 
 		&post.Post{},                // Önce parent tablo
 		&post_payloads.Poll{},       // Poll önce

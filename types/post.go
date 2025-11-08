@@ -1,9 +1,9 @@
 package types
 
 import (
+	"coolvibes/models"
 	"coolvibes/models/media"
 	"coolvibes/models/post"
-	userModel "coolvibes/models/user"
 	"strconv"
 )
 
@@ -15,7 +15,7 @@ type TimelineResult struct {
 }
 type MediaWithUser struct {
 	media.Media `json:",inline"` // embedded struct, alanları direkt üstte olacak
-	User        userModel.User   `gorm:"embedded;embeddedPrefix:user_" json:"user"`
+	User        models.User      `gorm:"embedded;embeddedPrefix:user_" json:"user"`
 	NextCursor  *int64           `json:"next_cursor"` // Bir sonraki sayfa için cursor (PublicID)
 }
 

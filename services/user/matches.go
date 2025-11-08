@@ -1,7 +1,7 @@
 package services
 
 import (
-	userModel "coolvibes/models/user"
+	"coolvibes/models"
 	"coolvibes/repositories"
 	"coolvibes/types"
 	"time"
@@ -28,7 +28,7 @@ func (s *MatchesService) UserRepo() *repositories.UserRepository {
 	return s.userRepo
 }
 
-func (service *MatchesService) GetUnseenUsers(userId uuid.UUID, limit int) ([]userModel.User, error) {
+func (service *MatchesService) GetUnseenUsers(userId uuid.UUID, limit int) ([]models.User, error) {
 	return service.matchesRepo.GetUnseenUsers(userId, limit)
 }
 
@@ -36,15 +36,15 @@ func (service *MatchesService) RecordView(userId, targetId uuid.UUID, reaction t
 	return service.matchesRepo.RecordView(userId, targetId, reaction)
 }
 
-func (m *MatchesService) GetMatchesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
+func (m *MatchesService) GetMatchesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]models.User, error) {
 	return m.matchesRepo.GetMatchesAfter(userID, cursor, limit)
 }
 
-func (m *MatchesService) GetLikesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
+func (m *MatchesService) GetLikesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]models.User, error) {
 	return m.matchesRepo.GetLikesAfter(userID, cursor, limit)
 
 }
 
-func (m *MatchesService) GetPassesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
+func (m *MatchesService) GetPassesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]models.User, error) {
 	return m.matchesRepo.GetPassesAfter(userID, cursor, limit)
 }
