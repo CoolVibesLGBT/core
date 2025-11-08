@@ -141,3 +141,31 @@ psql postgres
 ALTER ROLE postgres WITH PASSWORD 'TestTest!1453!';
 
 brew services restart postgresql
+
+
+## Installation
+
+server {
+    listen 80;
+    server_name socket.coolvibes.lgbt socket.coolvibes.app socket.coolvibes.io;
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    location /health {
+        return 200 "OK";
+    }
+}
+
+sudo systemctl reload nginx

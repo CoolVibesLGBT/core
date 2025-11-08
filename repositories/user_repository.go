@@ -184,6 +184,7 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*userModel.User, error) {
 			Preload("SexualRole").
 			Preload("UserAttributes.Attribute").
 			Preload("Media").
+			Preload("Location").
 			Preload("Followees.Followee"). // Kullanıcının takip ettikleri
 			Preload("Followers.Follower"). // Kullanıcıyı takip edenler
 			Preload("SocialRelations.Likes").
@@ -218,6 +219,7 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*userModel.User, error
 			Preload("Avatar").
 			Preload("Cover").
 			Preload("Media").
+			Preload("Location").
 			Preload("Followees.Followee"). // Kullanıcının takip ettikleri
 			Preload("Followers.Follower"). // Kullanıcıyı takip edenler
 			Preload("SocialRelations.Likes").
