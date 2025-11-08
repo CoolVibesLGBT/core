@@ -508,7 +508,7 @@ func (r *UserRepository) SetSexRole(user *userModel.User, sexRoleID uuid.UUID) e
 	return nil
 }
 
-func (r *UserRepository) FetchNearbyUsers(auth_user *userModel.User, distance int, cursor *int64, limit int) ([]*userModel.User, error) {
+func (r *UserRepository) FetchNearbyUsersLegacy(auth_user *userModel.User, distance int, cursor *int64, limit int) ([]*userModel.User, error) {
 	if limit <= 0 {
 		limit = 100
 	}
@@ -594,6 +594,86 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *userModel.User, distance in
 		Preload("Avatar.File").
 		Preload("Cover").
 		Preload("Cover.File").
+		Preload("GenderIdentities").
+		Preload("SexualOrientations").
+		Preload("SexualRole").
+		Preload("UserAttributes.Attribute").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) FetchNearbyUsers(auth_user *userModel.User, distance int, cursor *int64, limit int) ([]*userModel.User, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	var users []*userModel.User
+	var user *userModel.User
+
+	if auth_user != nil {
+		r.db.Preload("Location").First(&user, "id = ?", auth_user.ID)
+	}
+
+	// Kullanıcının konumu varsa -> yakından uzağa tüm kullanıcılar
+	if user != nil && user.Location != nil && user.Location.Latitude != nil && user.Location.Longitude != nil {
+		raw := r.db.
+			Table("users u").
+			Select(`
+				u.*,
+				COALESCE(
+					ST_Distance(
+						l.location_point,
+						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+					),
+					9999999999
+				) AS distance
+			`, *user.Location.Longitude, *user.Location.Latitude).
+			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
+			Order("distance ASC, u.public_id ASC").
+			Limit(limit)
+
+		if cursor != nil {
+			raw = raw.Where("u.public_id > ?", *cursor)
+		}
+
+		if err := r.db.Table("(?) as subquery", raw).
+			Preload("Location").
+			Preload("Avatar.File").
+			Preload("Cover.File").
+			Preload("Fantasies.Fantasy").
+			Preload("Interests.InterestItem.Interest").
+			Preload("GenderIdentities").
+			Preload("SexualOrientations").
+			Preload("SexualRole").
+			Preload("UserAttributes.Attribute").
+			Find(&users).Error; err != nil {
+			return nil, err
+		}
+
+		return users, nil
+	}
+
+	// Kullanıcının konumu yoksa -> normal sıralama
+	q := r.db.Model(&userModel.User{}).
+		Order("public_id ASC").
+		Limit(limit)
+
+	if cursor != nil {
+		q = q.Where("public_id > ?", *cursor)
+	}
+
+	if err := q.
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Preload("Fantasies.Fantasy").
+		Preload("Interests.InterestItem.Interest").
 		Preload("GenderIdentities").
 		Preload("SexualOrientations").
 		Preload("SexualRole").
