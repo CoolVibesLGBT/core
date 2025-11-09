@@ -51,3 +51,13 @@ const (
 	UserRoleVerified   UserRole = "verified"
 	UserRoleUnverified UserRole = "unverified"
 )
+
+type PrivacyLevel string
+
+const (
+	PrivacyPublic        PrivacyLevel = "public"
+	PrivacyFriendsOnly   PrivacyLevel = "friends_only"
+	PrivacyFollowersOnly PrivacyLevel = "followers_only"
+	PrivacyMutualsOnly   PrivacyLevel = "mutuals_only"
+	PrivacyPrivate       PrivacyLevel = "private"
+)

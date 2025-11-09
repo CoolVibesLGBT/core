@@ -1,8 +1,8 @@
 package seeders
 
 import (
-	"coolvibes/models/post/shared"
 	payloads "coolvibes/models/user_payloads"
+	"coolvibes/models/utils"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -57,7 +57,7 @@ func SeedInterests(db *gorm.DB) error {
 			if err == gorm.ErrRecordNotFound {
 				// Bulunamadı, ekle
 				interest.ID = uuid.New()
-				interest.Name = shared.LocalizedString{"en": group.Name}
+				interest.Name = utils.LocalizedString{"en": group.Name}
 				if err := db.Create(&interest).Error; err != nil {
 					log.Fatal(err)
 				}
@@ -66,7 +66,7 @@ func SeedInterests(db *gorm.DB) error {
 			}
 		} else {
 			// Bulundu, güncelle
-			interest.Name = shared.LocalizedString{"en": group.Name}
+			interest.Name = utils.LocalizedString{"en": group.Name}
 			if err := db.Save(&interest).Error; err != nil {
 				log.Fatal(err)
 			}
@@ -81,7 +81,7 @@ func SeedInterests(db *gorm.DB) error {
 						// Bulunamadı, ekle
 						interestItem.ID = uuid.New()
 						interestItem.InterestID = interest.ID
-						interestItem.Name = shared.LocalizedString{"en": item.Name}
+						interestItem.Name = utils.LocalizedString{"en": item.Name}
 						interestItem.Emoji = item.Emoji
 						if err := db.Create(&interestItem).Error; err != nil {
 							log.Fatal(err)
@@ -91,7 +91,7 @@ func SeedInterests(db *gorm.DB) error {
 					}
 				} else {
 					// Bulundu, güncelle
-					interestItem.Name = shared.LocalizedString{"en": item.Name}
+					interestItem.Name = utils.LocalizedString{"en": item.Name}
 					interestItem.Emoji = item.Emoji
 					if err := db.Save(&interestItem).Error; err != nil {
 						log.Fatal(err)

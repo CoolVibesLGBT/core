@@ -78,13 +78,14 @@ func HandleSendMessage(s *services.ChatService) http.HandlerFunc {
 		files := append([]*multipart.FileHeader{}, images...)
 		files = append(files, videos...)
 
-		_, err = s.AddMessageToChat(formParams, files, user)
+		_post, err := s.AddMessageToChat(formParams, files, user)
 		if err != nil {
 			http.Error(w, "Send message failed", http.StatusInternalServerError)
 			return
 		}
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"success": true,
+			"message": _post,
 		})
 	}
 }

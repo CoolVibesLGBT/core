@@ -3,8 +3,7 @@ package payloads
 import (
 	"time"
 
-	"coolvibes/models/post/shared"
-	global_shared "coolvibes/models/shared"
+	"coolvibes/models/utils"
 
 	"github.com/google/uuid"
 )
@@ -19,14 +18,14 @@ type EventAttendee struct {
 }
 
 type Event struct {
-	ID          uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
-	PostID      uuid.UUID              `gorm:"type:uuid;uniqueIndex;not null" json:"post_id"`
-	Title       shared.LocalizedString `gorm:"type:jsonb" json:"title"`
-	Description shared.LocalizedString `gorm:"type:jsonb" json:"description"`
-	StartTime   *time.Time             `json:"start_time,omitempty"`
-	EndTime     *time.Time             `json:"end_time,omitempty"`
+	ID          uuid.UUID             `gorm:"type:uuid;primaryKey" json:"id"`
+	PostID      uuid.UUID             `gorm:"type:uuid;uniqueIndex;not null" json:"post_id"`
+	Title       utils.LocalizedString `gorm:"type:jsonb" json:"title"`
+	Description utils.LocalizedString `gorm:"type:jsonb" json:"description"`
+	StartTime   *time.Time            `json:"start_time,omitempty"`
+	EndTime     *time.Time            `json:"end_time,omitempty"`
 	//	Location    *global_shared.Location `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"location,omitempty"`
-	Location *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:event;constraint:OnDelete:CASCADE" json:"location,omitempty"`
+	Location *utils.Location `gorm:"polymorphic:Contentable;polymorphicValue:event;constraint:OnDelete:CASCADE" json:"location,omitempty"`
 
 	Type      string          `gorm:"size:64;index" json:"type"`
 	Attendees []EventAttendee `gorm:"foreignKey:EventID;constraint:OnDelete:CASCADE" json:"attendees,omitempty"`

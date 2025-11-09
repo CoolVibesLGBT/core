@@ -2,7 +2,7 @@ package listings
 
 import (
 	"coolvibes/models/media"
-	"coolvibes/models/shared"
+	"coolvibes/models/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,7 +41,7 @@ type Listing struct {
 	Title       string `gorm:"type:varchar(255);not null" json:"title"`
 	Description string `gorm:"type:text" json:"description,omitempty"`
 
-	Location *shared.Location `gorm:"embedded" json:"location,omitempty"` // opsiyonel location bilgisi
+	Location *utils.Location `gorm:"embedded" json:"location,omitempty"` // opsiyonel location bilgisi
 
 	Attributes map[string]string `gorm:"type:jsonb" json:"attributes,omitempty"`
 	// generic alanlar: örneğin: oda sayısı, maaş, tecrübe yılı, vs.

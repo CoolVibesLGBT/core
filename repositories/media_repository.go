@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"coolvibes/helpers"
 	"coolvibes/models/media"
-	"coolvibes/models/shared"
+	"coolvibes/models/utils"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -143,7 +143,7 @@ func getRoleHeight(role media.MediaRole, size string) int {
 
 // --- HELPERLAR ---
 
-func makeVariant(path, ext string) *shared.VariantInfo {
+func makeVariant(path, ext string) *utils.VariantInfo {
 	img, err := imaging.Open(path)
 	if err != nil {
 		return nil
@@ -151,7 +151,7 @@ func makeVariant(path, ext string) *shared.VariantInfo {
 	b := img.Bounds()
 	w, h := b.Dx(), b.Dy()
 
-	return &shared.VariantInfo{
+	return &utils.VariantInfo{
 		URL:    strings.TrimPrefix(path, "."),
 		Width:  &w,
 		Height: &h,
@@ -194,7 +194,7 @@ func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path stri
 	return err
 }
 
-func (r *MediaRepository) generateImageVariants(originalPath string, ext string, role media.MediaRole) (*shared.ImageVariants, *int, *int, error) {
+func (r *MediaRepository) generateImageVariants(originalPath string, ext string, role media.MediaRole) (*utils.ImageVariants, *int, *int, error) {
 	img, err := imaging.Open(originalPath)
 	if err != nil {
 		return nil, nil, nil, err
@@ -207,7 +207,7 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 	w := bounds.Dx()
 	h := bounds.Dy()
 
-	original := &shared.VariantInfo{
+	original := &utils.VariantInfo{
 		URL:    strings.TrimPrefix(originalPath, "."),
 		Width:  &w,
 		Height: &h,
@@ -273,7 +273,7 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 		return nil, &w, &h, err
 	}
 
-	return &shared.ImageVariants{
+	return &utils.ImageVariants{
 		Original:  original,
 		Icon:      makeVariant(iconPath, "webp"),
 		Thumbnail: makeVariant(thumbPath, "webp"),
@@ -284,8 +284,8 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 }
 
 // generateVideoVariants: video için poster + 3 kalite + preview üretir
-// döndürür: *shared.VideoVariants, *width, *height, error
-func (r *MediaRepository) generateVideoVariants(originalPath string, ext string, role media.MediaRole) (*shared.VideoVariants, *int, *int, error) {
+// döndürür: *utils.VideoVariants, *width, *height, error
+func (r *MediaRepository) generateVideoVariants(originalPath string, ext string, role media.MediaRole) (*utils.VideoVariants, *int, *int, error) {
 	// 1) ffprobe ile orijinal çözünürlüğü al
 	width, height, err := probeVideoDimensions(originalPath)
 	if err != nil {
@@ -339,14 +339,14 @@ func (r *MediaRepository) generateVideoVariants(originalPath string, ext string,
 	}
 
 	// 5) build VariantInfo structs (URL = path without leading dot)
-	makeVideoVariant := func(p string) *shared.VariantInfo {
+	makeVideoVariant := func(p string) *utils.VariantInfo {
 		if _, er := os.Stat(p); er != nil {
 			return nil
 		}
 		w, h := probeFileDimensionsOrNil(p) // helper to probe or nil
 		size := getFileSizeSafe(p)
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(p)), ".")
-		return &shared.VariantInfo{
+		return &utils.VariantInfo{
 			URL:    strings.TrimPrefix(p, "."),
 			Width:  w,
 			Height: h,
@@ -355,7 +355,7 @@ func (r *MediaRepository) generateVideoVariants(originalPath string, ext string,
 		}
 	}
 
-	videoVars := &shared.VideoVariants{
+	videoVars := &utils.VideoVariants{
 		Poster:  makeImageVariantInfo(posterPath),
 		Low:     makeVideoVariant(lowPath),
 		Medium:  makeVideoVariant(mediumPath),
@@ -426,13 +426,13 @@ func probeFileDimensionsOrNil(path string) (*int, *int) {
 }
 
 // makeImageVariantInfo (poster için) - poster genellikle jpg
-func makeImageVariantInfo(path string) *shared.VariantInfo {
+func makeImageVariantInfo(path string) *utils.VariantInfo {
 	if _, err := os.Stat(path); err != nil {
 		return nil
 	}
 	img, err := imaging.Open(path)
 	if err != nil {
-		return &shared.VariantInfo{
+		return &utils.VariantInfo{
 			URL:    strings.TrimPrefix(path, "."),
 			Format: strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."),
 			Size:   getFileSizeSafe(path),
@@ -441,7 +441,7 @@ func makeImageVariantInfo(path string) *shared.VariantInfo {
 	b := img.Bounds()
 	w := b.Dx()
 	h := b.Dy()
-	return &shared.VariantInfo{
+	return &utils.VariantInfo{
 		URL:    strings.TrimPrefix(path, "."),
 		Width:  &w,
 		Height: &h,
@@ -451,7 +451,7 @@ func makeImageVariantInfo(path string) *shared.VariantInfo {
 }
 
 // makeVideoVariant - video için VariantInfo
-func makeVideoVariant(path string) *shared.VariantInfo {
+func makeVideoVariant(path string) *utils.VariantInfo {
 	if _, err := os.Stat(path); err != nil {
 		return nil
 	}
@@ -464,7 +464,7 @@ func makeVideoVariant(path string) *shared.VariantInfo {
 		*hptr = h
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), ".")
-	return &shared.VariantInfo{
+	return &utils.VariantInfo{
 		URL:    strings.TrimPrefix(path, "."),
 		Width:  wptr,
 		Height: hptr,
@@ -486,7 +486,7 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	mimeType := file.Header.Get("Content-Type")
 
 	var (
-		variants *shared.FileVariants
+		variants *utils.FileVariants
 		width    *int
 		height   *int
 		err      error
@@ -494,24 +494,24 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 
 	// MIME tipine göre varyant üretimi
 	if strings.HasPrefix(mimeType, "image/") {
-		var imageVariants *shared.ImageVariants
+		var imageVariants *utils.ImageVariants
 		var w, h *int
 		imageVariants, w, h, err = r.generateImageVariants(storagePath, ext, role)
 		if err != nil {
 			fmt.Println("WARN: image variant generation failed:", err)
 		} else {
-			variants = &shared.FileVariants{Image: imageVariants}
+			variants = &utils.FileVariants{Image: imageVariants}
 			width, height = w, h
 		}
 	} else if strings.HasPrefix(mimeType, "video/") {
-		var videoVariants *shared.VideoVariants
+		var videoVariants *utils.VideoVariants
 		var w, h *int
 		var vidErr error
 		videoVariants, w, h, vidErr = r.generateVideoVariants(storagePath, ext, role)
 		if vidErr != nil {
 			fmt.Println("WARN: video variant generation failed:", vidErr)
 		} else {
-			variants = &shared.FileVariants{Video: videoVariants}
+			variants = &utils.FileVariants{Video: videoVariants}
 			width, height = w, h
 		}
 	}
@@ -525,7 +525,7 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		OwnerType: ownerType,
 		Role:      role,
 		IsPublic:  true,
-		File: shared.FileMetadata{
+		File: utils.FileMetadata{
 			ID:          uuid.New(),
 			StoragePath: storagePath,
 			MimeType:    mimeType,

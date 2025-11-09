@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -189,7 +190,6 @@ func HandleTimelineVibes(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	}
@@ -387,9 +387,10 @@ func HandleGetTrends(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
-		if err := json.NewEncoder(w).Encode(hashtags); err != nil {
-			http.Error(w, "failed to encode response: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success":     true,
+			"trends":      hashtags,
+			"last_update": time.Now(),
+		})
 	}
 }

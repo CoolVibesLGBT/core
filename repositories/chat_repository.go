@@ -5,12 +5,12 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/models/chat"
+	"coolvibes/models/utils"
 	"coolvibes/services/socket"
 	"encoding/json"
 	"fmt"
 
 	"coolvibes/models/post"
-	"coolvibes/models/post/shared"
 	"log"
 	"mime/multipart"
 	"time"
@@ -107,8 +107,8 @@ func (r *ChatRepository) CreatePrivateChat(userID1, userID2 uuid.UUID) (*chat.Ch
 		ID:          uuid.New(),
 		Type:        chat.ChatTypePrivate,
 		CreatorID:   userID1,
-		Title:       &shared.LocalizedString{"en": "Private Chat"},
-		Description: &shared.LocalizedString{"en": "A private chat is a secure, invite-only conversation between selected participants."},
+		Title:       &utils.LocalizedString{"en": "Private Chat"},
+		Description: &utils.LocalizedString{"en": "A private chat is a secure, invite-only conversation between selected participants."},
 		Participants: []chat.ChatParticipant{
 			{ID: uuid.New(), UserID: userID1},
 			{ID: uuid.New(), UserID: userID2},
@@ -144,8 +144,8 @@ func (r *ChatRepository) GetParticipants(chatID uuid.UUID) ([]chat.ChatParticipa
 func (r *ChatRepository) CreateGroupChat(
 	creatorID uuid.UUID,
 	participantIDs []uuid.UUID,
-	title *shared.LocalizedString,
-	description *shared.LocalizedString,
+	title *utils.LocalizedString,
+	description *utils.LocalizedString,
 ) (*chat.Chat, error) {
 	// Katılımcılar içine creatorID mutlaka eklenmeli, eklenmemişse ekle
 	hasCreator := false

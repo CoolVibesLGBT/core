@@ -32,12 +32,14 @@ const (
 	CMD_USER_UPDATE_FANTASY   = "user.update_fantasy"
 	CMD_USER_UPDATE_IDENTIFY  = "user.update_identify"
 
-	CMD_USER_UPLOAD_AVATAR = "user.upload_avatar"
-	CMD_USER_UPLOAD_COVER  = "user.upload_cover"
-	CMD_USER_UPLOAD_STORY  = "user.upload_story"
+	CMD_USER_UPLOAD_AVATAR  = "user.upload_avatar"
+	CMD_USER_UPLOAD_COVER   = "user.upload_cover"
+	CMD_USER_UPLOAD_STORY   = "user.upload_story"
+	CMD_UPDATE_USER_PROFILE = "user.update_profile"
 
-	CMD_USER_FETCH_STORIES = "user.fetch.stories"
-	CMD_USER_FETCH_PROFILE = "user.fetch_profile"
+	CMD_USER_FETCH_STORIES     = "user.fetch.stories"
+	CMD_USER_FETCH_PROFILE     = "user.fetch_profile"
+	CMD_USER_FETCH_ENGAGEMENTS = "user.fetch_engagements"
 
 	CMD_USER_FETCH_FOLLOWINGS = "user.fetch.followings"
 	CMD_USER_FETCH_FOLLOWERS  = "user.fetch.followers"
@@ -83,6 +85,7 @@ const (
 	CMD_FETCH_CHATS    = "chat.fetch_chats"    // Sohbetleri getir
 	CMD_DELETE_MESSAGE = "chat.delete_message" // Mesajı sil
 	CMD_FETCH_MESSAGES = "chat.fetch_messages" // Mesajları getir
+
 )
 
 /*

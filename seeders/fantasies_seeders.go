@@ -1,8 +1,8 @@
 package seeders
 
 import (
-	"coolvibes/models/post/shared"
 	payloads "coolvibes/models/user_payloads"
+	"coolvibes/models/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func newCategoryLocalizedString(en, tr, es, he, ar, zh, ja, hi, de, th, ru, pl, fr, pt, id, bn string) shared.LocalizedString {
-	return shared.LocalizedString{
+func newCategoryLocalizedString(en, tr, es, he, ar, zh, ja, hi, de, th, ru, pl, fr, pt, id, bn string) utils.LocalizedString {
+	return utils.LocalizedString{
 		"en": en,
 		"tr": tr,
 		"es": es,
@@ -32,7 +32,7 @@ func newCategoryLocalizedString(en, tr, es, he, ar, zh, ja, hi, de, th, ru, pl, 
 	}
 }
 
-var categories = map[string]shared.LocalizedString{
+var categories = map[string]utils.LocalizedString{
 	"joy_or_tabu": newCategoryLocalizedString(
 		"Joy or Taboo", "Zevk veya Tabu", "Alegría o Tabú", "שמחה או טאבו", "فرح أو تابو", "欢乐或禁忌", "喜びまたは禁忌", "आनंद या वर्जना", "Freude oder Tabu", "ความสุขหรือตาบู", "Радость или табу", "Radość lub tabu", "Joie ou tabou", "Alegria ou tabu", "Kegembiraan atau tabu", "আনন্দ বা ট্যাবু",
 	),
@@ -68,8 +68,8 @@ func SeedFantasies(db *gorm.DB) error {
 	}
 
 	for index, item := range data {
-		labelLocalized := shared.LocalizedString(item.Label)
-		descriptionLocalized := shared.LocalizedString(item.Description)
+		labelLocalized := utils.LocalizedString(item.Label)
+		descriptionLocalized := utils.LocalizedString(item.Description)
 		var existing payloads.Fantasy
 		slug := item.Category // ya da uygun slug oluştur
 

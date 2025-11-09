@@ -43,7 +43,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	socketService := socket.NewSocketService(r.db)
 
 	// repository ve service oluştur
-	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode)
+	engagementRepo := repositories.NewEngagementRepository(r.db, socketService)
+	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, snowFlakeNode)
@@ -77,7 +78,18 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		constants.CMD_USER_UPDATE_ATTRIBUTE,
 		handlers.HandleSetUserAttribute(userService),
 		middleware.AuthMiddleware(userRepo), // middleware
+	)
 
+	r.action.Register( // access token'a gore user interestlerini guncelleme
+		constants.CMD_UPDATE_USER_PROFILE,
+		handlers.HandleUpdateUserProfile(userService),
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register( // access token'a gore user engagelentlerini guncelleme
+		constants.CMD_USER_FETCH_ENGAGEMENTS,
+		handlers.HandleFetchUserEngagements(userService),
+		middleware.AuthMiddleware(userRepo), // middleware
 	)
 
 	r.action.Register( // access token'a gore user interestlerini guncelleme
@@ -252,7 +264,6 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 func (r *Router) handlePacket(w http.ResponseWriter, req *http.Request) {
 	var action string
-
 	switch req.Method {
 	case http.MethodGet:
 		// GET query parametrelerinden al

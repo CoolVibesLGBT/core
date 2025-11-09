@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"coolvibes/helpers"
-	userModel "coolvibes/models/user"
+	"coolvibes/models"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
@@ -35,7 +35,7 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 
 		dob := gofakeit.DateRange(time.Now().AddDate(-60, 0, 0), time.Now().AddDate(-18, 0, 0))
 
-		user := userModel.User{
+		user := models.User{
 			ID:              uuid.New(),
 			PublicID:        snowFlakeNode.Generate().Int64(),
 			UserName:        gofakeit.Username(),
@@ -82,8 +82,8 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 			Fantasies: nil,
 			Interests: nil,
 
-			Travel:          userModel.TravelData{},      // Gerekirse doldurabilirsin
-			SocialRelations: userModel.SocialRelations{}, // Aynı şekilde
+			Travel:          models.TravelData{},      // Gerekirse doldurabilirsin
+			SocialRelations: models.SocialRelations{}, // Aynı şekilde
 
 			Media: nil,
 			// jwt.StandardClaims içindeki alanları istersen ekle ya da boş bırak

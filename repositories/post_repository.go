@@ -7,12 +7,10 @@ import (
 	"coolvibes/models/media"
 	"coolvibes/models/post"
 	"coolvibes/models/post/payloads"
-	global_shared "coolvibes/models/shared"
+	"coolvibes/models/utils"
 	"strconv"
 
-	userModel "coolvibes/models"
 	post_payloads "coolvibes/models/post/payloads"
-	"coolvibes/models/post/utils"
 	"coolvibes/types"
 	"mime/multipart"
 	"sort"
@@ -156,9 +154,11 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		Preload("Location").
 		Preload("Poll").
 		Preload("Poll.Choices").
+		Preload("Poll.Choices.Votes").
 		Preload("Event").
 		Preload("Event.Location").
 		Preload("Event.Attendees").
+		Preload("Engagements").
 		Preload("Author").
 		Preload("Author.Cover").
 		Preload("Author.Avatar").
@@ -406,14 +406,14 @@ func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit in
 		userIDs = append(userIDs, m.UserID)
 	}
 
-	var users []userModel.User
+	var users []models.User
 	if len(userIDs) > 0 {
 		if err := r.db.Where("id IN ?", userIDs).Find(&users).Error; err != nil {
 			return nil, nil, err
 		}
 	}
 
-	userMap := make(map[uuid.UUID]userModel.User, len(users))
+	userMap := make(map[uuid.UUID]models.User, len(users))
 	for _, u := range users {
 		userMap[u.ID] = u
 	}
@@ -438,17 +438,19 @@ func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit in
 func (r *PostRepository) GetRecentHashtags(limit int) ([]types.HashtagStats, error) {
 	var results []types.HashtagStats
 	cutoff := time.Now().Add(-48 * time.Hour)
-	err := r.db.Model(&types.HashtagStats{}).
-		Select("tag, COUNT(*) as count").
-		Where("created_at >= ?", cutoff).
-		Group("tag").
-		Order("count DESC").
-		Scan(&results).Error
+
+	err := r.db.Model(&models.Hashtag{}). // gerçek tablo struct'ı buraya
+						Select("tag, COUNT(*) as count").
+						Where("created_at >= ?", cutoff).
+						Group("tag").
+						Order("count DESC").
+						Limit(limit).
+						Scan(&results).Error
 
 	return results, err
 }
 
-func (r *PostRepository) CreateContentablePost(request map[string][]string, files []*multipart.FileHeader, author *userModel.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+func (r *PostRepository) CreateContentablePost(request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	type PollForm struct {
 		ID       string   `form:"id"`
 		Question string   `form:"question"`
@@ -592,9 +594,9 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			Lat: postForm.LocationLat,
 			Lng: postForm.LocationLng,
 		}
-		locationPost := &global_shared.Location{
+		locationPost := &utils.Location{
 			ID:              uuid.New(),
-			ContentableType: global_shared.LocationOwnerPost,
+			ContentableType: utils.LocationOwnerPost,
 			ContentableID:   newPost.ID,
 			Address:         &postForm.LocationAddress,
 			Latitude:        &postForm.LocationLat,
@@ -632,9 +634,9 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			return nil, err
 		}
 
-		locationEvent := &global_shared.Location{
+		locationEvent := &utils.Location{
 			ID:              uuid.New(),
-			ContentableType: global_shared.LocationOwnerEvent,
+			ContentableType: utils.LocationOwnerEvent,
 			ContentableID:   evt.ID,
 			Address:         &postForm.LocationAddress,
 			Latitude:        &postForm.LocationLat,

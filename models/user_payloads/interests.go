@@ -1,25 +1,25 @@
 package user_payloads
 
 import (
-	"coolvibes/models/post/shared"
+	"coolvibes/models/utils"
 
 	"github.com/google/uuid"
 )
 
 // Interest = ana kategori
 type Interest struct {
-	ID    uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	Name  shared.LocalizedString `gorm:"type:jsonb;not null" json:"name"` // Çoklu dil desteği
-	Items []*InterestItem        `gorm:"foreignKey:InterestID" json:"items,omitempty"`
+	ID    uuid.UUID             `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	Name  utils.LocalizedString `gorm:"type:jsonb;not null" json:"name"` // Çoklu dil desteği
+	Items []*InterestItem       `gorm:"foreignKey:InterestID" json:"items,omitempty"`
 }
 
 // InterestItem = alt ilgi alanı
 type InterestItem struct {
-	ID         uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	InterestID uuid.UUID              `gorm:"type:uuid;index;not null" json:"interest_id"`
-	Name       shared.LocalizedString `gorm:"type:jsonb;not null" json:"name"` // Çoklu dil desteği
-	Emoji      string                 `gorm:"type:varchar(10)" json:"emoji,omitempty"`
-	Interest   *Interest              `gorm:"foreignKey:InterestID;references:ID" json:"interest,omitempty"`
+	ID         uuid.UUID             `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	InterestID uuid.UUID             `gorm:"type:uuid;index;not null" json:"interest_id"`
+	Name       utils.LocalizedString `gorm:"type:jsonb;not null" json:"name"` // Çoklu dil desteği
+	Emoji      string                `gorm:"type:varchar(10)" json:"emoji,omitempty"`
+	Interest   *Interest             `gorm:"foreignKey:InterestID;references:ID" json:"interest,omitempty"`
 }
 
 type UserInterest struct {

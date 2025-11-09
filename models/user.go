@@ -3,7 +3,8 @@ package models
 import (
 	"coolvibes/constants"
 	"coolvibes/models/media"
-	"coolvibes/models/shared"
+	"coolvibes/models/utils"
+
 	payloads "coolvibes/models/user_payloads"
 	"encoding/json"
 	"strconv"
@@ -121,13 +122,6 @@ type Block struct {
 }
 
 type SocialRelations struct {
-
-	// Takip ettikleri
-	Followees []Follow `gorm:"foreignKey:FollowerID" json:"followees,omitempty"`
-
-	// Takip edenler
-	Followers []Follow `gorm:"foreignKey:FolloweeID" json:"followers,omitempty"`
-
 	Likes   []*Like `json:"-" gorm:"foreignKey:LikerID"`
 	LikedBy []*Like `json:"-" gorm:"foreignKey:LikedID"`
 
@@ -179,21 +173,21 @@ type TravelPlan struct {
 }
 
 type User struct {
-	ID              uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	PublicID        int64           `gorm:"uniqueIndex;not null" json:"public_id"`
-	SocketID        *string         `json:"socket_id,omitempty"`
-	UserName        string          `json:"username"`
-	DisplayName     string          `json:"displayname"`
-	Email           string          `json:"email"`
-	Password        string          `json:"-"` // gizli tutulmalı
-	ProfileImageURL *string         `json:"profile_image_url,omitempty"`
-	Bio             *string         `json:"bio,omitempty"`
-	DateOfBirth     *time.Time      `json:"date_of_birth,omitempty"`
-	Balance         decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"balance"`
-	IsOnline        bool            `gorm:"default:false" json:"is_online"`
+	ID          uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	PublicID    int64                  `gorm:"uniqueIndex;not null" json:"public_id"`
+	SocketID    *string                `json:"socket_id,omitempty"`
+	UserName    string                 `json:"username"`
+	DisplayName string                 `json:"displayname"`
+	Email       string                 `json:"email"`
+	Password    string                 `json:"-"` // gizli tutulmalı
+	Bio         *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
 
-	UserAttributes []*payloads.UserAttribute `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user_attributes,omitempty"`
+	DateOfBirth *time.Time      `json:"date_of_birth,omitempty"`
+	Balance     decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"balance"`
+	IsOnline    bool            `gorm:"default:false" json:"is_online"`
 
+	UserAttributes     []*payloads.UserAttribute    `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user_attributes,omitempty"`
+	PrivacyLevel       constants.PrivacyLevel       `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
 	GenderIdentities   []payloads.GenderIdentity    `gorm:"many2many:user_gender_identities;joinForeignKey:UserID;joinReferences:GenderIdentityID" json:"gender_identities"`
 	SexualOrientations []payloads.SexualOrientation `gorm:"many2many:user_sexual_orientations;joinForeignKey:UserID;joinReferences:SexualOrientationID" json:"sexual_orientations"`
 
@@ -204,7 +198,7 @@ type User struct {
 	CreatedAt    time.Time            `json:"created_at"`
 	UpdatedAt    time.Time            `json:"updated_at"`
 	LastOnline   *time.Time           `json:"last_online,omitempty"`
-	Location     *shared.Location     `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
+	Location     *utils.Location      `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
 
 	DefaultLanguage string `gorm:"type:varchar(8);default:'en'" json:"default_language"`
 
@@ -229,12 +223,15 @@ type User struct {
 
 	Travel TravelData `gorm:"embedded;embeddedPrefix:travel_" json:"travel"`
 
-	Engagements []*Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
-
+	Engagements *Engagement `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 	//  Sosyal İlişkiler
 	SocialRelations SocialRelations `json:"social,omitempty" gorm:"embedded;embeddedPrefix:social_"`
-	Media           []*media.Media  `gorm:"polymorphic:Owner;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"media,omitempty"`
-	DeletedAt       gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
+
+	// Dinamik Alanlar
+	IsFollowing  *bool `gorm:"-" json:"is_following,omitempty"`   // Ben onu takip ediyor muyum?
+	IsFollowedBy *bool `gorm:"-" json:"is_followed_by,omitempty"` // O beni takip ediyor mu?
+
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
 }
 

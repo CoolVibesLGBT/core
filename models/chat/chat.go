@@ -3,7 +3,7 @@ package chat
 import (
 	"coolvibes/models/media"
 	"coolvibes/models/post"
-	"coolvibes/models/post/shared"
+	"coolvibes/models/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,8 +14,8 @@ type Chat struct {
 	ID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	Type ChatType  `gorm:"index;not null" json:"type"` // private, group, channel
 
-	Title       *shared.LocalizedString `gorm:"type:jsonb" json:"title"` // JSONB olarak sakla
-	Description *shared.LocalizedString `gorm:"type:jsonb" json:"description"`
+	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title"` // JSONB olarak sakla
+	Description *utils.LocalizedString `gorm:"type:jsonb" json:"description"`
 
 	AvatarID *uuid.UUID   `json:"avatar_id,omitempty"`
 	Avatar   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`

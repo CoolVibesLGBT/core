@@ -3,14 +3,13 @@ package post
 import (
 	"coolvibes/models"
 	"coolvibes/models/media"
+	"coolvibes/models/utils"
 
 	"encoding/json"
 	"strconv"
 	"time"
 
 	"coolvibes/models/post/payloads"
-	"coolvibes/models/post/shared"
-	global_shared "coolvibes/models/shared"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -67,10 +66,10 @@ type Post struct {
 
 	AuthorID uuid.UUID `gorm:"type:uuid;index;not null" json:"author_id"`
 
-	Title   *shared.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
-	Slug    *string                 `gorm:"size:255;uniqueIndex" json:"slug,omitempty"`
-	Content *shared.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
-	Summary *shared.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
+	Title   *utils.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
+	Slug    *string                `gorm:"size:255;uniqueIndex" json:"slug,omitempty"`
+	Content *utils.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
+	Summary *utils.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
 
 	Published   bool           `gorm:"default:false;index" json:"published"`
 	PublishedAt *time.Time     `gorm:"index" json:"published_at,omitempty"`
@@ -82,17 +81,15 @@ type Post struct {
 
 	Author models.User `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
 
-	Attachments []*media.Media `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
-
-	//Mentions []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post" json:"mentions,omitempty"`
-	Mentions []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
-	Hashtags []*models.Hashtag `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
+	Attachments []*media.Media    `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
+	Mentions    []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
+	Hashtags    []*models.Hashtag `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
 
 	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
 	Event *payloads.Event  `gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE" json:"event,omitempty"`
 
-	Location    *global_shared.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
-	Contentable any                     `gorm:"-" json:"contentable,omitempty"`
+	Location    *utils.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
+	Contentable any             `gorm:"-" json:"contentable,omitempty"`
 
 	Engagements []*models.Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 }

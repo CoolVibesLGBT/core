@@ -75,6 +75,8 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 func ListenServer(db *gorm.DB) {
 
 	Server = socketio.NewServer(&engineio.Options{
+		PingInterval: 30 * time.Second, // her 30 sn’de bir ping
+		PingTimeout:  90 * time.Second, // 90 sn içinde pong gelmezse bağlantı düşer
 		Transports: []transport.Transport{
 			&polling.Transport{
 				CheckOrigin: allowOriginFunc,

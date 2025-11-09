@@ -5,54 +5,103 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 )
 
+// EngagementKind enumu
+type EngagementKind string
+
+const (
+	EngagementKindTouch     EngagementKind = "touch"
+	EngagementKindBanana    EngagementKind = "banana"
+	EngagementKindCarrot    EngagementKind = "carrot"
+	EngagementKindCoffee    EngagementKind = "coffee"
+	EngagementKindKiss      EngagementKind = "kiss"
+	EngagementKindLike      EngagementKind = "like"
+	EngagementKindDislike   EngagementKind = "dislike"
+	EngagementKindPost      EngagementKind = "post"
+	EngagementKindComment   EngagementKind = "comment"
+	EngagementKindFollower  EngagementKind = "follower"
+	EngagementKindFollowing EngagementKind = "following"
+
+	EngagementKindBlockedBy EngagementKind = "blocked_by" // seni engelleyenler
+	EngagementKindBlocking  EngagementKind = "blocking"   // senin engellediklerin
+
+	EngagementKindView     EngagementKind = "view"
+	EngagementKindBookmark EngagementKind = "bookmark"
+	EngagementKindRating   EngagementKind = "rating"
+	EngagementTip          EngagementKind = "tip"
+	EngagementKindGift     EngagementKind = "gift"
+	EngagementKindReport   EngagementKind = "report"
+	EngagementKindDeposit  EngagementKind = "deposit"
+	EngagementKindWithdraw EngagementKind = "withdraw"
+)
+
+var EngagementCountKeys = map[EngagementKind]struct {
+	CountKey  string
+	AmountKey string // boşsa yok demek
+}{
+	EngagementKindTouch:  {"touch_count", ""},
+	EngagementKindBanana: {"banana_count", ""},
+	EngagementKindCarrot: {"carrot_count", ""},
+	EngagementKindCoffee: {"coffee_count", ""},
+	EngagementKindKiss:   {"kiss_count", ""},
+
+	EngagementKindLike:    {"like_count", ""},
+	EngagementKindDislike: {"dislike_count", ""},
+
+	EngagementKindPost:      {"post_count", ""},
+	EngagementKindComment:   {"comment_count", ""},
+	EngagementKindFollower:  {"follower_count", ""},
+	EngagementKindFollowing: {"following_count", ""},
+
+	EngagementKindBlockedBy: {"blocked_by_count", ""},
+	EngagementKindBlocking:  {"blocking_count", ""},
+
+	EngagementKindView:     {"view_count", ""},
+	EngagementKindBookmark: {"bookmark_count", ""},
+	EngagementKindRating:   {"rating_count", "rating_sum"},
+	EngagementTip:          {"tip_count", "tip_amount"},
+	EngagementKindGift:     {"gift_count", "gift_amount"},
+	EngagementKindReport:   {"report_count", ""},
+	EngagementKindDeposit:  {"deposit_count", "deposit_amount"},
+	EngagementKindWithdraw: {"withdraw_count", "withdraw_amount"},
+}
+
+func NewCountsMap() map[string]interface{} {
+	counts := make(map[string]interface{})
+	for _, v := range EngagementCountKeys {
+		counts[v.CountKey] = int64(0)
+		if v.AmountKey != "" {
+			counts[v.AmountKey] = decimal.NewFromInt(0)
+		}
+	}
+
+	return counts
+}
+
 type Engagement struct {
-	ID uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID              uuid.UUID      `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ContentableID   uuid.UUID      `gorm:"type:uuid;not null;index" json:"contentable_id"`
+	ContentableType string         `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
+	Counts          datatypes.JSON `gorm:"type:jsonb;default:'{}'" json:"counts"`
+	CreatedAt       time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt       time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 
-	// Polymorphic ilişki için contentable
-	ContentableID   uuid.UUID `gorm:"type:uuid;index;not null" json:"contentable_id"`
-	ContentableType string    `gorm:"size:255;index;not null" json:"contentable_type"`
-
-	LikeCount     int64 `gorm:"default:0" json:"like_count"`
-	CommentCount  int64 `gorm:"default:0" json:"comment_count"`
-	ViewCount     int64 `gorm:"default:0" json:"view_count"`
-	BookmarkCount int64 `gorm:"default:0" json:"bookmark_count"`
-
-	RatingCount int64 `gorm:"default:0" json:"rating_count"`
-	RatingSum   int64 `gorm:"default:0" json:"rating_sum"`
-
-	ReportCount         int64 `gorm:"default:0;index" json:"report_count"`
-	ReportUpvoteCount   int64 `gorm:"default:0;index" json:"report_upvote_count"`
-	ReportDownvoteCount int64 `gorm:"default:0;index" json:"report_downvote_count"`
-
-	TipCount  int64           `gorm:"default:0" json:"tip_count"`
-	TipAmount decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"tip_amount"`
-
-	Kind string `gorm:"size:50;index;not null" json:"kind"`
-
-	Details []EngagementDetail `gorm:"foreignKey:EngagementID" json:"details,omitempty"`
-
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	EngagementDetails []EngagementDetail `gorm:"foreignKey:EngagementID;constraint:OnDelete:CASCADE;" json:"engagement_details,omitempty"`
 }
 
 type EngagementDetail struct {
-	ID uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID           uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	EngagementID uuid.UUID `gorm:"type:uuid;not null;index" json:"engagement_id"`
 
-	EngagementID uuid.UUID  `gorm:"type:uuid;index;not null" json:"engagement_id"`
-	Engagement   Engagement `gorm:"foreignKey:EngagementID;constraint:OnDelete:CASCADE" json:"-"`
+	EngagerID uuid.UUID `gorm:"type:uuid;not null;index" json:"engager_id"`
+	Engager   User      `gorm:"foreignKey:EngagerID" json:"engager,omitempty"`
 
-	UserID uuid.UUID `gorm:"type:uuid;index;not null" json:"user_id"` // Kim yaptı
-	User   User      `gorm:"foreignKey:UserID" json:"user"`
-
-	TargetUserID *uuid.UUID `gorm:"type:uuid;index" json:"target_user_id,omitempty"` // Kime yapıldı (isteğe bağlı)
-	TargetUser   *User      `gorm:"foreignKey:TargetUserID" json:"target_user,omitempty"`
-
-	Kind string `gorm:"size:50;index;not null" json:"kind"`
-
-	TipAmount *decimal.Decimal `gorm:"type:numeric(38,18);default:null" json:"tip_amount,omitempty"`
-
-	Rating *int8 `gorm:"default:null" json:"rating,omitempty"`
-
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	RecipientID uuid.UUID      `gorm:"type:uuid;index" json:"recipient_id,omitempty"`
+	Recipient   User           `gorm:"foreignKey:RecipientID" json:"recipient,omitempty"`
+	Kind        EngagementKind `gorm:"type:varchar(50);not null;index" json:"kind"`
+	Details     datatypes.JSON `gorm:"type:jsonb;default:'{}'" json:"details"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 }

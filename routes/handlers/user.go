@@ -113,7 +113,7 @@ func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
 
 		fileHeader := r.MultipartForm.File["avatar"][0]
 
-		newAvatar, err := s.UpdateAvatar(fileHeader, user)
+		newAvatar, err := s.UpdateAvatar(r.Context(), fileHeader, user)
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
 			return
@@ -151,7 +151,7 @@ func HandleUploadCover(s *services.UserService) http.HandlerFunc {
 
 		fileHeader := r.MultipartForm.File["cover"][0]
 
-		newCover, err := s.UpdateCover(fileHeader, user)
+		newCover, err := s.UpdateCover(r.Context(), fileHeader, user)
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
 			return
@@ -189,7 +189,7 @@ func HandleUploadStory(s *services.UserService) http.HandlerFunc {
 
 		fileHeader := r.MultipartForm.File["story"][0]
 
-		newStory, err := s.AddStory(fileHeader, user)
+		newStory, err := s.AddStory(r.Context(), fileHeader, user)
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
 			return
@@ -257,7 +257,7 @@ func HandleSetUserAttribute(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		attribute, err := s.GetAttribute(attributeID)
+		attribute, err := s.GetAttribute(r.Context(), attributeID)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 
@@ -270,7 +270,7 @@ func HandleSetUserAttribute(s *services.UserService) http.HandlerFunc {
 			Notes:        notes,
 		}
 
-		err = s.UpsertUserAttribute(attr)
+		err = s.UpsertUserAttribute(r.Context(), attr)
 		if err != nil {
 			fmt.Println("ERROR", err)
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
@@ -323,7 +323,7 @@ func HandleSetUserInterests(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		interest, err := s.GetInterestItem(interestId)
+		interest, err := s.GetInterestItem(r.Context(), interestId)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 
@@ -336,7 +336,7 @@ func HandleSetUserInterests(s *services.UserService) http.HandlerFunc {
 			Notes:          notes,
 		}
 
-		err = s.UpsertUserInterest(userInterest)
+		err = s.UpsertUserInterest(r.Context(), userInterest)
 		if err != nil {
 			fmt.Println("ERROR", err)
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
@@ -350,7 +350,8 @@ func HandleSetUserInterests(s *services.UserService) http.HandlerFunc {
 		}
 
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user": userInfo,
+			"user":    userInfo,
+			"success": true,
 		})
 	}
 }
@@ -384,7 +385,7 @@ func HandleSetUserFantasies(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		fantasyInfo, err := s.GetFantasy(fantasyId)
+		fantasyInfo, err := s.GetFantasy(r.Context(), fantasyId)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 
@@ -395,7 +396,7 @@ func HandleSetUserFantasies(s *services.UserService) http.HandlerFunc {
 			UserID:    auth_user.ID,
 		}
 
-		err = s.UpsertUserFantasy(fantasy)
+		err = s.UpsertUserFantasy(r.Context(), fantasy)
 		if err != nil {
 			fmt.Println("ERROR", err)
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
@@ -453,7 +454,7 @@ func HandleSetUserSexualIdentities(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		err := s.UpsertUserSexualIdentify(auth_user.ID, genderIDs, sexualIDs, sexRoleIDs)
+		err := s.UpsertUserSexualIdentify(r.Context(), auth_user.ID, genderIDs, sexualIDs, sexRoleIDs)
 		if err != nil {
 
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrInvalidInput)
@@ -486,7 +487,7 @@ func HandleFetchStories(s *services.UserService) http.HandlerFunc {
 			limit = 20
 		}
 
-		stories, err := s.GetAllStories(limit)
+		stories, err := s.GetAllStories(r.Context(), limit)
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrInternalServer) // kendi error yapınıza göre ayarla
 			return
@@ -545,7 +546,7 @@ func HandleFetchNearbyUsers(s *services.UserService) http.HandlerFunc {
 
 		fmt.Println("distance", distance, cursor)
 
-		users, err := s.FetchNearbyUsers(auth_user, distance, &cursor, limit)
+		users, err := s.FetchNearbyUsers(r.Context(), auth_user, distance, &cursor, limit)
 		if err != nil {
 			utils.SendJSON(w, http.StatusInternalServerError, map[string]string{
 				"error": err.Error(),
@@ -600,13 +601,15 @@ func HandleFollow(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		if err := s.Follow(followerID, followeeID); err != nil {
+		status, err := s.Follow(r.Context(), followerID, followeeID)
+		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
 			return
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]string{
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"message": "User followed successfully",
+			"status":  status,
 		})
 	}
 }
@@ -634,14 +637,17 @@ func HandleUnfollow(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		if err := s.Unfollow(followerID, followeeID); err != nil {
+		status, err := s.Unfollow(r.Context(), followerID, followeeID)
+		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
 			return
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]string{
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"message": "User unfollowed successfully",
+			"status":  status,
 		})
+
 	}
 }
 
@@ -669,7 +675,7 @@ func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
 		}
 
 		fmt.Println("FOLLOWER,FOLLOWEE", followerID, followeeID)
-		status, err := s.ToggleFollow(followerID, followeeID)
+		status, err := s.ToggleFollow(r.Context(), followerID, followeeID)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
 			return
@@ -708,6 +714,51 @@ func HandleGetUsersStartingWith(s *services.UserService) http.HandlerFunc {
 
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"users": users,
+		})
+	}
+}
+
+func HandleUpdateUserProfile(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+		form := r.MultipartForm.Value
+
+		// Formdan kullanıcı bilgilerini al
+
+		// Örnek: Kullanıcıyı güncelle
+		user, err := s.UpdateUserProfile(*auth_user, form)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "failed to update user profile")
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"user":    user,
+			"success": true,
+		})
+	}
+}
+
+func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"user":    nil,
+			"success": true,
 		})
 	}
 }

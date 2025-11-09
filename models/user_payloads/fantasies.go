@@ -1,18 +1,18 @@
 package user_payloads
 
 import (
-	"coolvibes/models/post/shared"
+	"coolvibes/models/utils"
 
 	"github.com/google/uuid"
 )
 
 type Fantasy struct {
-	ID           uuid.UUID               `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	DisplayOrder int                     `gorm:"not null" json:"display_order"` // 0,1,2...
-	Slug         string                  `gorm:"type:varchar(50);not null" json:"slug"`
-	Category     *shared.LocalizedString `gorm:"type:jsonb" json:"category,omitempty"`
-	Label        shared.LocalizedString  `gorm:"type:jsonb;not null" json:"label"`       // Çoklu dil desteği
-	Description  shared.LocalizedString  `gorm:"type:jsonb;not null" json:"description"` // Çoklu dil desteği
+	ID           uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	DisplayOrder int                    `gorm:"not null" json:"display_order"` // 0,1,2...
+	Slug         string                 `gorm:"type:varchar(50);not null" json:"slug"`
+	Category     *utils.LocalizedString `gorm:"type:jsonb" json:"category,omitempty"`
+	Label        utils.LocalizedString  `gorm:"type:jsonb;not null" json:"label"`       // Çoklu dil desteği
+	Description  utils.LocalizedString  `gorm:"type:jsonb;not null" json:"description"` // Çoklu dil desteği
 }
 
 type UserFantasy struct {

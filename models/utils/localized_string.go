@@ -1,4 +1,4 @@
-package shared
+package utils
 
 import (
 	"database/sql/driver"
@@ -27,4 +27,12 @@ func (ls LocalizedString) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(ls)
+}
+
+func MakeLocalizedString(lang string, text string) *LocalizedString {
+	if text == "" {
+		return nil
+	}
+	ls := LocalizedString{lang: text}
+	return &ls
 }

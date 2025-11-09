@@ -7,8 +7,7 @@ import (
 	"coolvibes/models/media"
 	"coolvibes/models/post"
 	"coolvibes/models/post/payloads"
-	"coolvibes/models/post/utils"
-	global_shared "coolvibes/models/shared"
+	"coolvibes/models/utils"
 
 	form "github.com/go-playground/form/v4"
 
@@ -162,7 +161,7 @@ func (s *PostService) CreatePostDeprecated(request map[string][]string, files []
 		newPost.Poll = append(newPost.Poll, poll)
 	}
 
-	var locationPost *global_shared.Location = nil // varsayılan olarak nil
+	var locationPost *utils.Location = nil // varsayılan olarak nil
 	var locationPoint *extensions.PostGISPoint = nil
 
 	// location
@@ -173,9 +172,9 @@ func (s *PostService) CreatePostDeprecated(request map[string][]string, files []
 			Lng: postForm.LocationLng,
 		}
 
-		locationPost = &global_shared.Location{
+		locationPost = &utils.Location{
 			ID:              uuid.New(),
-			ContentableType: global_shared.LocationOwnerPost,
+			ContentableType: utils.LocationOwnerPost,
 			ContentableID:   newPost.ID,
 			Address:         &postForm.LocationAddress,
 			Latitude:        &postForm.LocationLat,
@@ -218,9 +217,9 @@ func (s *PostService) CreatePostDeprecated(request map[string][]string, files []
 			return nil, err
 		}
 
-		locationEvent := &global_shared.Location{
+		locationEvent := &utils.Location{
 			ID:              uuid.New(),
-			ContentableType: global_shared.LocationOwnerEvent,
+			ContentableType: utils.LocationOwnerEvent,
 			ContentableID:   evt.ID,
 			Address:         &postForm.LocationAddress,
 			Latitude:        &postForm.LocationLat,

@@ -1,7 +1,7 @@
 package user_payloads
 
 import (
-	"coolvibes/models/post/shared"
+	"coolvibes/models/utils"
 
 	"github.com/google/uuid"
 )
@@ -35,10 +35,10 @@ const (
 
 // UserAttributeOption = Attribute tipi / metadata
 type Attribute struct {
-	ID           uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	Category     string                 `gorm:"type:varchar(50);index;not null" json:"category"` // hair_color, eye_color, body_type, skin_color, ethnicity
-	DisplayOrder int                    `gorm:"not null" json:"display_order"`                   // 0,1,2...
-	Name         shared.LocalizedString `gorm:"type:jsonb;not null" json:"name"`                 // Çoklu dil desteği
+	ID           uuid.UUID             `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	Category     string                `gorm:"type:varchar(50);index;not null" json:"category"` // hair_color, eye_color, body_type, skin_color, ethnicity
+	DisplayOrder int                   `gorm:"not null" json:"display_order"`                   // 0,1,2...
+	Name         utils.LocalizedString `gorm:"type:jsonb;not null" json:"name"`                 // Çoklu dil desteği
 }
 
 func (Attribute) TableName() string {

@@ -5,8 +5,7 @@ import (
 	"coolvibes/models/chat"
 	"coolvibes/models/media"
 	"coolvibes/models/post"
-
-	"coolvibes/models/shared"
+	"coolvibes/models/utils"
 
 	post_payloads "coolvibes/models/post/payloads"
 	user_payloads "coolvibes/models/user_payloads"
@@ -63,7 +62,7 @@ func Migrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 
-		&shared.FileMetadata{},
+		&utils.FileMetadata{},
 
 		&media.Media{},
 
@@ -73,6 +72,8 @@ func Migrate(db *gorm.DB) error {
 		&user_payloads.Interest{},
 		&user_payloads.InterestItem{},
 		&models.Story{},
+		&models.Engagement{},
+		&models.EngagementDetail{},
 
 		&user_payloads.GenderIdentity{},
 		&user_payloads.SexualOrientation{},
@@ -100,7 +101,7 @@ func Migrate(db *gorm.DB) error {
 		&post_payloads.Event{}, // Event tablosu artık Post tablosundan sonra
 		&post_payloads.EventAttendee{},
 
-		&shared.Location{},
+		&utils.Location{},
 
 		// önce Chat tablosu, sonra Message
 		&chat.Message{},

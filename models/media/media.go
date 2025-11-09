@@ -1,7 +1,7 @@
 package media
 
 import (
-	"coolvibes/models/shared"
+	"coolvibes/models/utils"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -20,7 +20,7 @@ type Media struct {
 	Role      MediaRole `gorm:"type:varchar(20);not null" json:"role"` // profile, cover, post, chat_image...
 	IsPublic  bool      `gorm:"default:true" json:"is_public"`         // Herkes görebilir mi?
 
-	File shared.FileMetadata `gorm:"foreignKey:FileID;references:ID;constraint:OnDelete:CASCADE" json:"file"`
+	File utils.FileMetadata `gorm:"foreignKey:FileID;references:ID;constraint:OnDelete:CASCADE" json:"file"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
