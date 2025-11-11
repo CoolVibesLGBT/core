@@ -78,7 +78,7 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 func (r *UserRepository) GetUserByNameOrEmailOrNickname(input string) (*models.User, error) {
 	var userObj models.User
 	err := r.db.
-		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
+		Where("user_name = ? OR email = ? OR display_name", input, input, input).First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}

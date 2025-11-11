@@ -596,7 +596,7 @@ func HandleFollow(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		if followerID == 0 || followeeID == 0 {
+		if followeeID == 0 || followerID == 0 || followeeID == followerID {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
@@ -632,7 +632,7 @@ func HandleUnfollow(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		if followerID == 0 || followeeID == 0 {
+		if followeeID == 0 || followerID == 0 || followeeID == followerID {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
@@ -659,17 +659,20 @@ func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
 			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
 			return
 		}
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
 
-		form := r.MultipartForm.Value
+		followeeIDStr := r.FormValue("followee_id")
 		followerID := auth_user.PublicID
-		followeeIDStr := form["followee_id"][0]
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
 			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
 			return
 		}
 
-		if followerID == 0 || followeeID == 0 {
+		if followeeID == 0 || followerID == 0 || followeeID == followerID {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
@@ -759,6 +762,264 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"user":    nil,
 			"success": true,
+		})
+	}
+}
+
+func HandleUserLike(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		likeeIDStr := r.FormValue("likee_id")
+		likerID := auth_user.PublicID
+		likeeID, err := strconv.ParseInt(likeeIDStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		if likeeID == 0 || likerID == 0 || likeeID == likerID {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+		// Beğeni işlemi
+		_, status, err := s.Like(r.Context(), *auth_user, likerID, likeeID)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "User liked successfully",
+			"status":  status,
+		})
+	}
+}
+
+func HandleUserDislike(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		likeeIdStr := r.FormValue("likee_id")
+		likerId := auth_user.PublicID
+		likeeId, err := strconv.ParseInt(likeeIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if likeeId == 0 || likerId == 0 || likeeId == likerId {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		_, status, err := s.Dislike(r.Context(), *auth_user, likerId, likeeId)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "User disliked successfully",
+			"status":  status,
+		})
+
+	}
+}
+
+func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		likeeIdStr := r.FormValue("likee_id")
+		likerId := auth_user.PublicID
+		likeeId, err := strconv.ParseInt(likeeIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if likerId == 0 || likeeId == 0 || likeeId == likerId {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		fmt.Println("FOLLOWER,FOLLOWEE", likerId, likeeId)
+		_, status, err := s.ToggleLike(r.Context(), *auth_user, likerId, likeeId, isLike)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		var message string
+		if status {
+			message = "User unfollowed successfully"
+		} else {
+			message = "User followed successfully"
+
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]string{
+			"message": message,
+		})
+	}
+}
+
+func HandleUserBlock(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		blockedIdStr := r.FormValue("blocked_id")
+		blockerId := auth_user.PublicID
+		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+		// Block işlemi
+		status, err := s.Block(r.Context(), *auth_user, blockerId, blockedId)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "User blocked successfully",
+			"status":  status,
+		})
+	}
+}
+
+func HandleUserUnblock(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		blockedIdStr := r.FormValue("blocked_id")
+		blockerId := auth_user.PublicID
+		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		status, err := s.Unblock(r.Context(), *auth_user, blockerId, blockedId)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "User unblocked successfully",
+			"status":  status,
+		})
+
+	}
+}
+
+func HandleUserToggleBlock(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		blockedIdStr := r.FormValue("blocked_id")
+		blockerId := auth_user.PublicID
+		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+
+		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		fmt.Println("BLOCK,", blockerId, blockedId)
+		status, err := s.ToggleBlock(r.Context(), *auth_user, blockerId, blockedId)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		var message string
+		if status {
+			message = "User blocked successfully"
+		} else {
+			message = "User unblocked successfully"
+
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]string{
+			"message": message,
 		})
 	}
 }

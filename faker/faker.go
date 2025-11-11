@@ -6,6 +6,7 @@ import (
 
 	"coolvibes/helpers"
 	"coolvibes/models"
+	"coolvibes/models/utils"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ import (
 )
 
 func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 
 		gofakeit.Seed(time.Now().UnixNano())
 
@@ -36,16 +37,15 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 		dob := gofakeit.DateRange(time.Now().AddDate(-60, 0, 0), time.Now().AddDate(-18, 0, 0))
 
 		user := models.User{
-			ID:              uuid.New(),
-			PublicID:        snowFlakeNode.Generate().Int64(),
-			UserName:        gofakeit.Username(),
-			DisplayName:     gofakeit.Name(),
-			Email:           gofakeit.Email(),
-			Password:        hash,
-			SocketID:        stringPtr(gofakeit.UUID()),
-			ProfileImageURL: stringPtr(gofakeit.ImageURL(200, 200)),
-			Bio:             stringPtr(gofakeit.Sentence(10)),
-			DateOfBirth:     timePtr(dob),
+			ID:          uuid.New(),
+			PublicID:    snowFlakeNode.Generate().Int64(),
+			UserName:    gofakeit.Username(),
+			DisplayName: gofakeit.Name(),
+			Email:       gofakeit.Email(),
+			Password:    hash,
+			SocketID:    stringPtr(gofakeit.UUID()),
+			Bio:         utils.MakeLocalizedString("en", gofakeit.Sentence(10)),
+			DateOfBirth: timePtr(dob),
 
 			// Burada ilişkisel alanları elle doldurabilirsin veya boş bırakabilirsin.
 			UserAttributes:     nil,
@@ -85,7 +85,6 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 			Travel:          models.TravelData{},      // Gerekirse doldurabilirsin
 			SocialRelations: models.SocialRelations{}, // Aynı şekilde
 
-			Media: nil,
 			// jwt.StandardClaims içindeki alanları istersen ekle ya da boş bırak
 		}
 

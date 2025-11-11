@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"strconv"
+	"strings"
 	"time"
 
 	form "github.com/go-playground/form/v4"
@@ -70,6 +71,9 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	if !captchaValid {
 		return nil, "", errors.New("invalid captcha")
 	}
+
+	formData.Nickname = strings.ToLower(formData.Nickname)
+	formData.Password = strings.ToLower(formData.Password)
 
 	// BirthDate
 	dateOfBirth, err := time.Parse("2006-01-02", formData.BirthDate)
@@ -135,8 +139,6 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		return nil, "", err
 	}
 
-	fmt.Println("INSERT:FANTASIES")
-
 	userInfo, err := s.GetUserByID(userObj.ID)
 	if err != nil {
 		return nil, "", err
@@ -172,6 +174,9 @@ func (s *UserService) Login(request map[string][]string) (*models.User, string, 
 	if err := decoder.Decode(&formData, request); err != nil {
 		return nil, "", err
 	}
+
+	formData.Password = strings.ToLower(formData.Password)
+	formData.UserName = strings.ToLower(formData.UserName)
 
 	// Kullanıcıyı username ile bul (repo'da buna uygun fonksiyon olmalı)
 	userObj, err := s.userRepo.GetByUserNameOrEmailOrNickname(formData.UserName)
@@ -487,6 +492,10 @@ func (s *UserService) FetchNearbyUsers(ctx context.Context, user *models.User, d
 	return s.userRepo.FetchNearbyUsers(user, distanceKm, cursor, limit)
 }
 
+func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
+	return s.userRepo.GetUsersStartingWith(letter, limit)
+}
+
 func (s *UserService) Follow(ctx context.Context, followerID, followeeID int64) (bool, error) {
 	return s.HandleFollow(ctx, followerID, followeeID, true)
 }
@@ -497,10 +506,6 @@ func (s *UserService) Unfollow(ctx context.Context, followerID, followeeID int64
 
 func (s *UserService) HandleFollow(ctx context.Context, followerID, followeeID int64, isFollow bool) (bool, error) {
 	return s.ToggleFollow(ctx, followerID, followeeID)
-}
-
-func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
-	return s.userRepo.GetUsersStartingWith(letter, limit)
 }
 
 func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID int64) (bool, error) {
@@ -614,8 +619,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 	userInfo.Bio = utils.MakeLocalizedString("en", formData.Bio)
 	//userObj.Website = formData.Website
 
-	// Tarih formatını parse et
-
 	userInfo.PrivacyLevel = constants.PrivacyLevel(formData.PrivacyLevel)
 
 	// Update et
@@ -646,4 +649,99 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 	}
 
 	return s.GetUserByID(authUser.ID)
+}
+
+// return Params : bool isLike, bool success, error
+func (s *UserService) Like(ctx context.Context, authUser models.User, likerId, likeeId int64) (bool, bool, error) {
+	return s.HandleLike(ctx, authUser, likerId, likeeId, true)
+}
+
+func (s *UserService) Dislike(ctx context.Context, authUser models.User, likerId, likeeId int64) (bool, bool, error) {
+	return s.HandleLike(ctx, authUser, likerId, likeeId, false)
+}
+
+func (s *UserService) HandleLike(ctx context.Context, authUser models.User, likerId, likeeId int64, isLike bool) (bool, bool, error) {
+	return s.ToggleLike(ctx, authUser, likerId, likeeId, isLike)
+}
+
+func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, likerId, likeeId int64, isLike bool) (bool, bool, error) {
+	likerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(likerId)
+	if err != nil {
+		return isLike, false, errors.New(err.Error())
+	}
+	likeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(likeeId)
+	if err != nil {
+		return isLike, false, errors.New(err.Error())
+	}
+
+	engagementRepo := s.userRepo.GetEngagementRepository()
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	switch {
+	case isLike:
+		engagementKindGiven = models.EngagementKindLikeGiven
+		engagementKindReceived = models.EngagementKindLikeReceived
+	default:
+		engagementKindGiven = models.EngagementKindDislikeGiven
+		engagementKindReceived = models.EngagementKindDisLikeReceived
+
+	}
+
+	status, err := engagementRepo.ToggleEngagement(ctx, likerUser.ID, likeeUser.ID, engagementKindGiven, likerUser.ID, "user")
+	if err != nil {
+		return isLike, status, err
+	}
+
+	status, err = engagementRepo.ToggleEngagement(ctx, likeeUser.ID, likerUser.ID, engagementKindReceived, likeeUser.ID, "user")
+	if err != nil {
+		return isLike, status, err
+	}
+
+	return isLike, true, nil
+}
+
+// return Params : bool isLike, bool success, error
+func (s *UserService) Block(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+	return s.HandleBlock(ctx, authUser, blockerId, blockedId, true)
+}
+
+func (s *UserService) Unblock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+	return s.HandleBlock(ctx, authUser, blockerId, blockedId, false)
+}
+
+func (s *UserService) HandleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64, isBlock bool) (bool, error) {
+	return s.ToggleBlock(ctx, authUser, blockerId, blockedId)
+}
+
+func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+	blockerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(blockerId)
+	if err != nil {
+		return false, errors.New(err.Error())
+	}
+	blockedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(blockedId)
+	if err != nil {
+		return false, errors.New(err.Error())
+	}
+
+	engagementRepo := s.userRepo.GetEngagementRepository()
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	engagementKindGiven = models.EngagementKindBlocking
+	engagementKindReceived = models.EngagementKindBlockedBy
+
+	status, err := engagementRepo.ToggleEngagement(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven, blockerUser.ID, "user")
+	if err != nil {
+		return status, err
+	}
+
+	status, err = engagementRepo.ToggleEngagement(ctx, blockedUser.ID, blockerUser.ID, engagementKindReceived, blockedUser.ID, "user")
+	if err != nil {
+		return status, err
+	}
+
+	return true, nil
 }

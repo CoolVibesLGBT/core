@@ -231,6 +231,11 @@ type User struct {
 	IsFollowing  *bool `gorm:"-" json:"is_following,omitempty"`   // Ben onu takip ediyor muyum?
 	IsFollowedBy *bool `gorm:"-" json:"is_followed_by,omitempty"` // O beni takip ediyor mu?
 
+	IsLiked   *bool `gorm:"-" json:"is_liked,omitempty"`    // Ben onu beğendim mi?
+	IsLikedBy *bool `gorm:"-" json:"is_liked_by,omitempty"` // O beni beğendi mi?
+
+	IsMatched *bool `gorm:"-" json:"is_matched,omitempty"` // İkimiz de birbirimizi beğendik mi?
+
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
 }

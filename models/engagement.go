@@ -12,29 +12,29 @@ import (
 type EngagementKind string
 
 const (
-	EngagementKindTouch     EngagementKind = "touch"
-	EngagementKindBanana    EngagementKind = "banana"
-	EngagementKindCarrot    EngagementKind = "carrot"
-	EngagementKindCoffee    EngagementKind = "coffee"
-	EngagementKindKiss      EngagementKind = "kiss"
-	EngagementKindLike      EngagementKind = "like"
-	EngagementKindDislike   EngagementKind = "dislike"
-	EngagementKindPost      EngagementKind = "post"
-	EngagementKindComment   EngagementKind = "comment"
-	EngagementKindFollower  EngagementKind = "follower"
-	EngagementKindFollowing EngagementKind = "following"
-
-	EngagementKindBlockedBy EngagementKind = "blocked_by" // seni engelleyenler
-	EngagementKindBlocking  EngagementKind = "blocking"   // senin engellediklerin
-
-	EngagementKindView     EngagementKind = "view"
-	EngagementKindBookmark EngagementKind = "bookmark"
-	EngagementKindRating   EngagementKind = "rating"
-	EngagementTip          EngagementKind = "tip"
-	EngagementKindGift     EngagementKind = "gift"
-	EngagementKindReport   EngagementKind = "report"
-	EngagementKindDeposit  EngagementKind = "deposit"
-	EngagementKindWithdraw EngagementKind = "withdraw"
+	EngagementKindTouch           EngagementKind = "touch"
+	EngagementKindBanana          EngagementKind = "banana"
+	EngagementKindCarrot          EngagementKind = "carrot"
+	EngagementKindCoffee          EngagementKind = "coffee"
+	EngagementKindKiss            EngagementKind = "kiss"
+	EngagementKindLikeGiven       EngagementKind = "like_given"       // Kullanıcının beğendikleri
+	EngagementKindLikeReceived    EngagementKind = "like_received"    // Kullanıcıyı beğenenler
+	EngagementKindDislikeGiven    EngagementKind = "dislike_given"    // Kullanıcının beğendikleri
+	EngagementKindDisLikeReceived EngagementKind = "dislike_received" // Kullanıcıyı beğenenler
+	EngagementKindPost            EngagementKind = "post"
+	EngagementKindComment         EngagementKind = "comment"
+	EngagementKindFollower        EngagementKind = "follower"
+	EngagementKindFollowing       EngagementKind = "following"
+	EngagementKindBlockedBy       EngagementKind = "blocked_by" // seni engelleyenler
+	EngagementKindBlocking        EngagementKind = "blocking"   // senin engellediklerin
+	EngagementKindView            EngagementKind = "view"
+	EngagementKindBookmark        EngagementKind = "bookmark"
+	EngagementKindRating          EngagementKind = "rating"
+	EngagementTip                 EngagementKind = "tip"
+	EngagementKindGift            EngagementKind = "gift"
+	EngagementKindReport          EngagementKind = "report"
+	EngagementKindDeposit         EngagementKind = "deposit"
+	EngagementKindWithdraw        EngagementKind = "withdraw"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {
@@ -47,8 +47,11 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindCoffee: {"coffee_count", ""},
 	EngagementKindKiss:   {"kiss_count", ""},
 
-	EngagementKindLike:    {"like_count", ""},
-	EngagementKindDislike: {"dislike_count", ""},
+	EngagementKindLikeGiven:    {"like_given_count", ""},
+	EngagementKindLikeReceived: {"like_received_count", ""},
+
+	EngagementKindDislikeGiven:    {"dislike_given_count", ""},
+	EngagementKindDisLikeReceived: {"dislike_received_count", ""},
 
 	EngagementKindPost:      {"post_count", ""},
 	EngagementKindComment:   {"comment_count", ""},

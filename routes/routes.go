@@ -178,6 +178,47 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		middleware.AuthMiddleware(userRepo),      // middleware
 	)
 
+	//USER LIKE
+	r.action.Register(
+		constants.CMD_USER_LIKE,
+		handlers.HandleUserLike(userService), // handler
+		middleware.AuthMiddleware(userRepo),  // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_DISLIKE,
+		handlers.HandleUserDislike(userService), // handler
+		middleware.AuthMiddleware(userRepo),     // middleware
+	)
+
+	r.action.Register(constants.CMD_USER_TOGGLE_LIKE,
+		handlers.HandleUserToggleLikeDislike(userService, true), // handler
+		middleware.AuthMiddleware(userRepo),                     // middleware
+	)
+
+	r.action.Register(constants.CMD_USER_TOGGLE_DISLIKE,
+		handlers.HandleUserToggleLikeDislike(userService, false), // handler
+		middleware.AuthMiddleware(userRepo),                      // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_BLOCK,
+		handlers.HandleUserBlock(userService), // handler
+		middleware.AuthMiddleware(userRepo),   // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_UNBLOCK,
+		handlers.HandleUserUnblock(userService), // handler
+		middleware.AuthMiddleware(userRepo),     // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_USER_TOGGLE_BLOCK,
+		handlers.HandleUserToggleBlock(userService), // handler
+		middleware.AuthMiddleware(userRepo),         // middleware
+	)
+
 	// POST
 	//	r.action.Register(constants.CMD_POST_CREATE, middleware.AuthMiddleware(userRepo) handlers.HandleCreate(postService))
 	r.action.Register(
