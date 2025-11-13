@@ -57,14 +57,8 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 		Preload("Engagements").
 		Preload("Engagements.EngagementDetails").
 		Preload("Engagements.EngagementDetails.Recipient").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Preload("SocialRelations.Likes").
 		Preload("SocialRelations.LikedBy").
 		Preload("SocialRelations.Matches").
@@ -72,7 +66,8 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 		Preload("SocialRelations.FavoritedBy").
 		Preload("SocialRelations.BlockedUsers").
 		Preload("SocialRelations.BlockedByUsers").
-		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
+		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?)", input, input).
+		First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +209,8 @@ func (r *UserRepository) GetUserByUUIDdWithoutRelations(userID uuid.UUID) (*mode
 func (r *UserRepository) GetByNameOrMailWithoutRelations(input string) (*models.User, error) {
 	var userObj models.User
 	err := r.db.
-		Where("user_name = ? OR email = ?", input, input).First(&userObj).Error
+		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?)", input, input).
+		First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}

@@ -149,12 +149,6 @@ func (m *MatchesRepository) GetMatchesAfter(userID uuid.UUID, cursor *time.Time,
 		Preload("Location").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Where("id IN (?)", subQuery).
 		Order("created_at DESC").
 		Limit(limit).
@@ -190,12 +184,6 @@ func (m *MatchesRepository) GetLikesAfter(userID uuid.UUID, cursor *time.Time, l
 		Preload("Location").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Find(&users).Error
 
 	return users, err
@@ -231,12 +219,6 @@ func (m *MatchesRepository) GetPassesAfter(userID uuid.UUID, cursor *time.Time, 
 		Preload("Location").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Find(&users).Error
 
 	return users, err
@@ -255,14 +237,8 @@ func (m *MatchesRepository) GetUnseenUsers(userID uuid.UUID, limit int) ([]userM
 		Preload("Avatar.File").
 		Preload("Cover").
 		Preload("Cover.File").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Where("id != ?", userID).
 		Where("id NOT IN (?)", subQuery).
 		Where("deleted_at IS NULL").

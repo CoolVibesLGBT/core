@@ -434,21 +434,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		}
 	}
 
-	// Latitude ve Longitude string olarak geldiği için dönüştür
-	lat, err := strconv.ParseFloat(formData.LocationLatitude, 64)
-	if err != nil {
-		return nil, errors.New("invalid latitude")
-	}
-	lng, err := strconv.ParseFloat(formData.LocationLongitude, 64)
-	if err != nil {
-		return nil, errors.New("invalid longitude")
-	}
-
-	locationPoint := &extensions.PostGISPoint{
-		Lat: lat,
-		Lng: lng,
-	}
-
 	if formData.DateOfBirth != "" {
 		dateOfBirth, err := time.Parse("2006-01-02", formData.DateOfBirth)
 		if err == nil {
@@ -470,26 +455,43 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		return nil, err
 	}
 
-	locationUser := &utils.Location{
-		ID:              uuid.New(),
-		ContentableType: utils.LocationOwnerUser,
-		ContentableID:   userInfo.ID,
-		CountryCode:     &formData.LocationCountryCode,
-		Country:         &formData.LocationCountry,
-		City:            &formData.LocationCity,
-		Region:          &formData.LocationRegion,
-		Display:         &formData.LocationDisplay,
-		Timezone:        &formData.LocationTimezone,
-		Address:         &formData.LocationAddress,
-		Latitude:        &lat,
-		Longitude:       &lng,
-		LocationPoint:   locationPoint,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
-	}
+	if formData.LocationLatitude != "" && formData.LocationLongitude != "" {
 
-	if err := s.userRepo.UpsertLocation(locationUser); err != nil {
-		return nil, err
+		lat, err := strconv.ParseFloat(formData.LocationLatitude, 64)
+		if err != nil {
+			return nil, errors.New("invalid latitude")
+		}
+		lng, err := strconv.ParseFloat(formData.LocationLongitude, 64)
+		if err != nil {
+			return nil, errors.New("invalid longitude")
+		}
+
+		locationPoint := &extensions.PostGISPoint{
+			Lat: lat,
+			Lng: lng,
+		}
+
+		locationUser := &utils.Location{
+			ID:              uuid.New(),
+			ContentableType: utils.LocationOwnerUser,
+			ContentableID:   userInfo.ID,
+			CountryCode:     &formData.LocationCountryCode,
+			Country:         &formData.LocationCountry,
+			City:            &formData.LocationCity,
+			Region:          &formData.LocationRegion,
+			Display:         &formData.LocationDisplay,
+			Timezone:        &formData.LocationTimezone,
+			Address:         &formData.LocationAddress,
+			Latitude:        &lat,
+			Longitude:       &lng,
+			LocationPoint:   locationPoint,
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+
+		if err := s.userRepo.UpsertLocation(locationUser); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.GetUserByID(authUser.ID)
