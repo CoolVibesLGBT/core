@@ -4,8 +4,10 @@ import (
 	"coolvibes/constants"
 	"coolvibes/models/media"
 	"coolvibes/models/utils"
+	"errors"
+	"math/big"
 
-	payloads "coolvibes/models/user_payloads"
+	"encoding/hex"
 	"encoding/json"
 	"strconv"
 
@@ -186,19 +188,17 @@ type User struct {
 	Balance     decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"balance"`
 	IsOnline    bool            `gorm:"default:false" json:"is_online"`
 
-	UserAttributes     []*payloads.UserAttribute    `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user_attributes,omitempty"`
-	PrivacyLevel       constants.PrivacyLevel       `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
-	GenderIdentities   []payloads.GenderIdentity    `gorm:"many2many:user_gender_identities;joinForeignKey:UserID;joinReferences:GenderIdentityID" json:"gender_identities"`
-	SexualOrientations []payloads.SexualOrientation `gorm:"many2many:user_sexual_orientations;joinForeignKey:UserID;joinReferences:SexualOrientationID" json:"sexual_orientations"`
+	PrivacyLevel constants.PrivacyLevel `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
 
-	SexualRoleID *uuid.UUID           `gorm:"type:uuid" json:"sexual_role_id,omitempty"`
-	SexualRole   *payloads.SexualRole `gorm:"foreignKey:SexualRoleID" json:"sexual_role,omitempty"`
-	UserRole     constants.UserRole   `json:"user_role"`
-	IsActive     bool                 `json:"is_active"`
-	CreatedAt    time.Time            `json:"created_at"`
-	UpdatedAt    time.Time            `json:"updated_at"`
-	LastOnline   *time.Time           `json:"last_online,omitempty"`
-	Location     *utils.Location      `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
+	//PreferencesFlags int64 `gorm:"column:preferences_flags" json:"preferences_flags"`
+	PreferencesFlags string `gorm:"column:preferences_flags" json:"preferences_flags"` // hex string representation of bits
+
+	UserRole   constants.UserRole `json:"user_role"`
+	IsActive   bool               `json:"is_active"`
+	CreatedAt  time.Time          `json:"created_at"`
+	UpdatedAt  time.Time          `json:"updated_at"`
+	LastOnline *time.Time         `json:"last_online,omitempty"`
+	Location   *utils.Location    `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
 
 	DefaultLanguage string `gorm:"type:varchar(8);default:'en'" json:"default_language"`
 
@@ -210,16 +210,14 @@ type User struct {
 
 	Stories []Story `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stories,omitempty"`
 
-	Languages     pq.StringArray           `gorm:"type:text[]" json:"languages"`
-	Hobbies       pq.StringArray           `gorm:"type:text[]" json:"hobbies,omitempty"`
-	MoviesGenres  pq.StringArray           `gorm:"type:text[]" json:"movies_genres,omitempty"`
-	TVShowsGenres pq.StringArray           `gorm:"type:text[]" json:"tv_shows_genres,omitempty"`
-	TheaterGenres pq.StringArray           `gorm:"type:text[]" json:"theater_genres,omitempty"`
-	CinemaGenres  pq.StringArray           `gorm:"type:text[]" json:"cinema_genres,omitempty"`
-	ArtInterests  pq.StringArray           `gorm:"type:text[]" json:"art_interests,omitempty"`
-	Entertainment pq.StringArray           `gorm:"type:text[]" json:"entertainment,omitempty"`
-	Fantasies     []*payloads.UserFantasy  `gorm:"foreignKey:UserID" json:"fantasies,omitempty"`
-	Interests     []*payloads.UserInterest `gorm:"foreignKey:UserID" json:"interests,omitempty"`
+	Languages     pq.StringArray `gorm:"type:text[]" json:"languages"`
+	Hobbies       pq.StringArray `gorm:"type:text[]" json:"hobbies,omitempty"`
+	MoviesGenres  pq.StringArray `gorm:"type:text[]" json:"movies_genres,omitempty"`
+	TVShowsGenres pq.StringArray `gorm:"type:text[]" json:"tv_shows_genres,omitempty"`
+	TheaterGenres pq.StringArray `gorm:"type:text[]" json:"theater_genres,omitempty"`
+	CinemaGenres  pq.StringArray `gorm:"type:text[]" json:"cinema_genres,omitempty"`
+	ArtInterests  pq.StringArray `gorm:"type:text[]" json:"art_interests,omitempty"`
+	Entertainment pq.StringArray `gorm:"type:text[]" json:"entertainment,omitempty"`
 
 	Travel TravelData `gorm:"embedded;embeddedPrefix:travel_" json:"travel"`
 
@@ -286,4 +284,58 @@ func (CountryVisit) TableName() string {
 
 func (Favorite) TableName() string {
 	return "user_favorites"
+}
+
+func (u *User) SetPreference(bitIndex int) error {
+	if bitIndex < 0 {
+		return errors.New("bitIndex must be non-negative")
+	}
+
+	flags := big.NewInt(0)
+	if u.PreferencesFlags != "" {
+		bytes, err := hex.DecodeString(u.PreferencesFlags)
+		if err != nil {
+			return err
+		}
+		flags.SetBytes(bytes)
+	}
+	flags.SetBit(flags, bitIndex, 1)
+
+	u.PreferencesFlags = hex.EncodeToString(flags.Bytes())
+	return nil
+}
+
+func (u *User) IsPreferenceSet(bitIndex int) (bool, error) {
+	if bitIndex < 0 {
+		return false, errors.New("bitIndex must be non-negative")
+	}
+
+	flags := big.NewInt(0)
+	if u.PreferencesFlags != "" {
+		bytes, err := hex.DecodeString(u.PreferencesFlags)
+		if err != nil {
+			return false, err
+		}
+		flags.SetBytes(bytes)
+	}
+
+	return flags.Bit(bitIndex) == 1, nil
+}
+
+func (u *User) UnsetPreference(bitIndex int) error {
+	if bitIndex < 0 {
+		return errors.New("bitIndex must be non-negative")
+	}
+	flags := big.NewInt(0)
+	if u.PreferencesFlags != "" {
+		bytes, err := hex.DecodeString(u.PreferencesFlags)
+		if err != nil {
+			return err
+		}
+		flags.SetBytes(bytes)
+	}
+	flags.SetBit(flags, bitIndex, 0)
+
+	u.PreferencesFlags = hex.EncodeToString(flags.Bytes())
+	return nil
 }

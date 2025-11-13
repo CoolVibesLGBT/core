@@ -52,6 +52,44 @@ const (
 	UserRoleUnverified UserRole = "unverified"
 )
 
+const (
+	UserAttributeGenderIdentity     = "gender_identity"    // Gender Identity
+	UserAttributeSexualOrientations = "sexual_orientation" // Sexual
+	UserAttributeSexRole            = "sex_role"           // Sex Role
+	UserAttributeHairColor          = "hair_color"         // Saç rengi
+	UserAttributeEyeColor           = "eye_color"          // Göz rengi
+	UserAttributeSkinColor          = "skin_color"         // Ten rengi
+	UserAttributeBodyType           = "body_type"          // Vücut yapısı
+	UserAttributeTattoos            = "tattoos"            // Dovme
+
+	UserAttributeEthnicity               = "ethnicity"                // Etnik köken
+	UserAttributeZodiac                  = "zodiac_sign"              // Burç
+	UserAttributeCircumcision            = "circumcision"             // Sünnet durumu kategorisi
+	UserAttributePhysicalDisability      = "physical_disability"      // Fiziksel engel
+	UserAttributeSmoking                 = "smoking"                  // Sigara kullanımı
+	UserAttributeDrinking                = "drinking"                 // Alkol kullanımı
+	UserAttributeHeight                  = "height"                   // Boy
+	UserAttributeWeight                  = "weight"                   // Kilo
+	UserAttributeReligion                = "religion"                 // Din
+	UserAttributeEducation               = "education"                // Eğitim düzeyi
+	UserAttributeRelationshipStatus      = "relationship_status"      // İlişki durumu
+	UserAttributeRelationshipPreferences = "relationship_preferences" // iliski tercihleri
+	UserAttributePets                    = "pets"                     // Evcil hayvan
+	UserAttributePersonality             = "personality"              // Kişilik tipi
+	UserAttributePreferredPartnerGender  = "preferred_partner_gender" //Partnerin Tercih Edilen Cinsiyeti
+	UserAttributeMBTIType                = "mbti_type"                // MBTI kişilik tipleri, farklı kişilik özelliklerini ve tercihlerini tanımlar
+	UserAttributeChronotype              = "cronotype"                //Uyku Turu
+	UserAttributeSenseOfHumor            = "sense_of_humor"           // Mizah Anlayisi
+	UserAttributeKidsPreference          = "kids_preference"          // Çocuk tercihi
+	UserAttributeDietary                 = "dietary"                  // Beslenme diyet
+	UserAttributeHIVAIDS                 = "hiv_aids_status"          // HIV / AIDS durumu
+	UserAttributeBDSMInterest            = "bdsm_interest"
+	UserAttributeBDSMRoles               = "bdsm_roles" // BDSM roller
+	UserAttributeBDSMPlays               = "bdsm_plays" // BDSM oyun/aktivite
+	UserAttributeInterests               = "interests"  // Gender Identity
+	UserAttributeFantasies               = "fantasies"
+)
+
 type PrivacyLevel string
 
 const (

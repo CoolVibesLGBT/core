@@ -27,10 +27,8 @@ const (
 	CMD_CHAT_SEND_STICKER = "chat.send_sticker"
 
 	// USER
-	CMD_USER_UPDATE_ATTRIBUTE = "user.update_attribute"
-	CMD_USER_UPDATE_INTEREST  = "user.update_interest"
-	CMD_USER_UPDATE_FANTASY   = "user.update_fantasy"
-	CMD_USER_UPDATE_IDENTIFY  = "user.update_identify"
+	CMD_USER_UPDATE_PREFERENCES = "user.update_preferences"
+	CMD_USER_UPDATE_IDENTIFY    = "user.update_identify"
 
 	CMD_USER_UPLOAD_AVATAR  = "user.upload_avatar"
 	CMD_USER_UPLOAD_COVER   = "user.upload_cover"

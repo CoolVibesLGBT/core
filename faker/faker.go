@@ -48,11 +48,6 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 			DateOfBirth: timePtr(dob),
 
 			// Burada ilişkisel alanları elle doldurabilirsin veya boş bırakabilirsin.
-			UserAttributes:     nil,
-			GenderIdentities:   nil,
-			SexualOrientations: nil,
-			SexualRoleID:       nil,
-			SexualRole:         nil,
 
 			IsActive:   true,
 			CreatedAt:  time.Now(),
@@ -78,9 +73,6 @@ func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
 			CinemaGenres:  []string{"sci-fi"},
 			ArtInterests:  []string{"painting", "sculpture"},
 			Entertainment: []string{"music", "concerts"},
-
-			Fantasies: nil,
-			Interests: nil,
 
 			Travel:          models.TravelData{},      // Gerekirse doldurabilirsin
 			SocialRelations: models.SocialRelations{}, // Aynı şekilde

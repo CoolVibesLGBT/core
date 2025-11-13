@@ -252,12 +252,8 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 		Preload("Event").
 		Preload("Event.Location").
 		Preload("Event.Attendees").
-		Preload("Author.GenderIdentities").
-		Preload("Author.SexualOrientations").
-		Preload("Author.SexualRole").
 		Preload("Author.Avatar").
 		Preload("Author.Cover").
-		Preload("Author.Fantasies").
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File")

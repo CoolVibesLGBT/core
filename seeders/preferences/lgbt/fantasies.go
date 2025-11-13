@@ -1,14 +1,15 @@
-package seeders
+package lgbt
 
 import (
-	payloads "coolvibes/models/user_payloads"
+	payloads "coolvibes/constants"
+	helpers "coolvibes/helpers"
+	"coolvibes/models"
 	"coolvibes/models/utils"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
-	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
 func newCategoryLocalizedString(en, tr, es, he, ar, zh, ja, hi, de, th, ru, pl, fr, pt, id, bn string) utils.LocalizedString {
@@ -50,11 +51,14 @@ var categories = map[string]utils.LocalizedString{
 	),
 }
 
-func SeedFantasies(db *gorm.DB) error {
+func FetchFantasies() ([]models.PreferenceCategory, error) {
+
+	var fantasies []models.PreferenceCategory
+
 	// JSON dosyasını aç
 	file, err := os.Open("static/data/sexual_preferences.json")
 	if err != nil {
-		return fmt.Errorf("cannot open JSON file: %w", err)
+		return nil, fmt.Errorf("cannot open JSON file: %w", err)
 	}
 	defer file.Close()
 
@@ -64,50 +68,55 @@ func SeedFantasies(db *gorm.DB) error {
 		Category    string            `json:"category"`
 	}
 	if err := json.NewDecoder(file).Decode(&data); err != nil {
-		return fmt.Errorf("cannot decode JSON: %w", err)
+		return nil, fmt.Errorf("cannot decode JSON: %w", err)
 	}
 
-	for index, item := range data {
-		labelLocalized := utils.LocalizedString(item.Label)
-		descriptionLocalized := utils.LocalizedString(item.Description)
-		var existing payloads.Fantasy
-		slug := item.Category // ya da uygun slug oluştur
+	var displayOrder = 0
+	for categorySlug, categoryItem := range categories {
+		category_title := categoryItem
+		category_slug := helpers.GenerateSlug(category_title["en"])
+		category_tag := payloads.UserAttributeFantasies
 
-		categoryLocalized := categories[item.Category]
-		categoryPtr := &categoryLocalized
+		category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+		category_description := "Gender identity refers to a person’s deeply held sense of their own gender how they personally experience themselves as male, female, both, neither, or somewhere along the gender spectrum. It may or may not align with the sex they were assigned at birth, and it is an internal, individual understanding of who they are, rather than how others perceive them."
 
-		// Label["en"] alanına göre sorgula
-		if err := db.Where("label->>'en' = ?", item.Label["en"]).First(&existing).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Kayıt yok, yeni oluştur
-				fantasy := payloads.Fantasy{
-					DisplayOrder: index,
-					Slug:         slug,
-					Category:     categoryPtr,
-					Label:        labelLocalized,
-					Description:  descriptionLocalized,
-				}
-				if err := db.Create(&fantasy).Error; err != nil {
-					return fmt.Errorf("failed to insert fantasy: %w", err)
-				}
-			} else {
-				return fmt.Errorf("db error: %w", err)
-			}
-		} else {
-			// Kayıt var, güncelle
-			existing.Slug = slug
-			existing.Description = descriptionLocalized
-			existing.Label = labelLocalized
-			existing.Category = categoryPtr
-			existing.DisplayOrder = index
-			// Category da güncellenmek istenirse buraya ekle
-
-			if err := db.Save(&existing).Error; err != nil {
-				return fmt.Errorf("failed to update fantasy: %w", err)
-			}
+		category := models.PreferenceCategory{
+			ID:            category_id,
+			DisplayOrder:  displayOrder,
+			Tag:           &category_tag,
+			Slug:          &category_slug,
+			Title:         &category_title,
+			Description:   utils.MakeLocalizedString("en", category_description),
+			Icon:          nil,
+			AllowMultiple: true,
+			Items:         []models.PreferenceItem{},
 		}
+		displayOrder += 1
+
+		for index, item := range data {
+			labelLocalized := utils.LocalizedString(item.Label)
+			descriptionLocalized := utils.LocalizedString(item.Description)
+
+			if item.Category == categorySlug {
+
+				slug := helpers.GenerateSlug(labelLocalized["en"])
+				item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+				item := models.PreferenceItem{
+					ID:           item_id,
+					DisplayOrder: index,
+					Slug:         &slug,
+					Title:        &labelLocalized,
+					Description:  &descriptionLocalized,
+					Icon:         nil,
+					Visible:      true,
+				}
+				category.Items = append(category.Items, item)
+			}
+
+		}
+		fantasies = append(fantasies, category)
 
 	}
 
-	return nil
+	return fantasies, nil
 }

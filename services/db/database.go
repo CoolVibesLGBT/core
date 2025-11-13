@@ -8,7 +8,6 @@ import (
 	"coolvibes/models/utils"
 
 	post_payloads "coolvibes/models/post/payloads"
-	user_payloads "coolvibes/models/user_payloads"
 
 	seed "coolvibes/seeders"
 
@@ -66,26 +65,16 @@ func Migrate(db *gorm.DB) error {
 
 		&media.Media{},
 
-		&user_payloads.Fantasy{},
-
-		&user_payloads.Attribute{},
-		&user_payloads.Interest{},
-		&user_payloads.InterestItem{},
 		&models.Story{},
 		&models.Engagement{},
 		&models.EngagementDetail{},
 
-		&user_payloads.GenderIdentity{},
-		&user_payloads.SexualOrientation{},
-		&user_payloads.SexualRole{},
+		&models.Preferences{},
+
 		&models.User{},
 
 		&models.Mention{},
 		&models.Hashtag{},
-
-		&user_payloads.UserFantasy{},
-		&user_payloads.UserInterest{},
-		&user_payloads.UserAttribute{},
 
 		&models.MatchSeen{},
 		&models.Follow{},
@@ -134,11 +123,7 @@ func Migrate(db *gorm.DB) error {
 
 func Seed(db *gorm.DB) error {
 	fmt.Println("Seed Begin")
-
-	seed.SeedFantasies(db)
-	seed.SeedIdentities(db)
-	seed.SeedInterests(db)
-	seed.SeedAttributes(db)
+	seed.Seed(db)
 	fmt.Println("Seed End")
 	return nil
 }

@@ -58,8 +58,6 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db)) // middleware yok
 
-	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
-
 	// Action register
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
 	r.action.Register(constants.CMD_AUTH_LOGIN, handlers.HandleLogin(userService))
@@ -75,8 +73,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 
 	r.action.Register( // access token'a gore user attributes guncelleme
-		constants.CMD_USER_UPDATE_ATTRIBUTE,
-		handlers.HandleSetUserAttribute(userService),
+		constants.CMD_USER_UPDATE_PREFERENCES,
+		handlers.HandleSetUserPreferences(userService),
 		middleware.AuthMiddleware(userRepo), // middleware
 	)
 
@@ -89,24 +87,6 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register( // access token'a gore user engagelentlerini guncelleme
 		constants.CMD_USER_FETCH_ENGAGEMENTS,
 		handlers.HandleFetchUserEngagements(userService),
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
-
-	r.action.Register( // access token'a gore user interestlerini guncelleme
-		constants.CMD_USER_UPDATE_INTEREST,
-		handlers.HandleSetUserInterests(userService),
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
-
-	r.action.Register( // access token'a gore user fantasylerini guncelleme
-		constants.CMD_USER_UPDATE_FANTASY,
-		handlers.HandleSetUserFantasies(userService),
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
-
-	r.action.Register( // access token'a gore user sexual identity guncelleme
-		constants.CMD_USER_UPDATE_IDENTIFY,
-		handlers.HandleSetUserSexualIdentities(userService),
 		middleware.AuthMiddleware(userRepo), // middleware
 	)
 

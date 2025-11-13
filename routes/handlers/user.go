@@ -3,14 +3,11 @@ package handlers
 import (
 	"coolvibes/constants"
 	"coolvibes/middleware"
-	payloads "coolvibes/models/user_payloads"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -223,7 +220,7 @@ func HandleUserInfo(s *services.UserService) http.HandlerFunc {
 	}
 }
 
-func HandleSetUserAttribute(s *services.UserService) http.HandlerFunc {
+func HandleSetUserPreferences(s *services.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(r)
@@ -238,226 +235,31 @@ func HandleSetUserAttribute(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		form := r.MultipartForm.Value
-		attrIDs, exists := form["attribute_id"]
-		if !exists || len(attrIDs) == 0 {
+		preferenceItemId := r.FormValue("id")
+		if len(preferenceItemId) == 0 {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
 
-		var notes *string
-		if noteVals, ok := form["notes"]; ok && len(noteVals) > 0 {
-			notes = &noteVals[0]
+		bitIndex := r.FormValue("bit_index")
+		if len(bitIndex) == 0 {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
 		}
 
-		// Tek attribute_id al
-		attributeID, err := uuid.Parse(attrIDs[0])
+		enabledStr := r.FormValue("enabled")
+		enabled, err := strconv.ParseBool(enabledStr)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
 
-		attribute, err := s.GetAttribute(r.Context(), attributeID)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+		fmt.Println("BITINDEX", bitIndex, "Enabled", enabled)
 
-		}
-
-		attr := &payloads.UserAttribute{
-			CategoryType: attribute.Category,
-			UserID:       auth_user.ID,
-			AttributeID:  attributeID,
-			Notes:        notes,
-		}
-
-		err = s.UpsertUserAttribute(r.Context(), attr)
+		err = s.UpsertUserPreference(r.Context(), *auth_user, preferenceItemId, bitIndex, enabled)
 		if err != nil {
 			fmt.Println("ERROR", err)
 			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
-			return
-		}
-
-		userInfo, err := s.GetUserByID(auth_user.ID)
-		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user": userInfo,
-		})
-	}
-}
-
-func HandleSetUserInterests(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		// Form verisini parse et
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		form := r.MultipartForm.Value
-		attrIDs, exists := form["interest_id"]
-		if !exists || len(attrIDs) == 0 {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		var notes *string
-		if noteVals, ok := form["notes"]; ok && len(noteVals) > 0 {
-			notes = &noteVals[0]
-		}
-
-		// Tek attribute_id al
-		interestId, err := uuid.Parse(attrIDs[0])
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		interest, err := s.GetInterestItem(r.Context(), interestId)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-
-		}
-
-		userInterest := &payloads.UserInterest{
-
-			UserID:         auth_user.ID,
-			InterestItemID: interest.ID,
-			Notes:          notes,
-		}
-
-		err = s.UpsertUserInterest(r.Context(), userInterest)
-		if err != nil {
-			fmt.Println("ERROR", err)
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
-			return
-		}
-
-		userInfo, err := s.GetUserByID(auth_user.ID)
-		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user":    userInfo,
-			"success": true,
-		})
-	}
-}
-
-func HandleSetUserFantasies(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		// Form verisini parse et
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		form := r.MultipartForm.Value
-		fantasyIdRaw, exists := form["fantasy_id"]
-		if !exists || len(fantasyIdRaw) == 0 {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		// Tek attribute_id al
-		fantasyId, err := uuid.Parse(fantasyIdRaw[0])
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		fantasyInfo, err := s.GetFantasy(r.Context(), fantasyId)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-
-		}
-
-		fantasy := &payloads.UserFantasy{
-			FantasyID: fantasyInfo.ID,
-			UserID:    auth_user.ID,
-		}
-
-		err = s.UpsertUserFantasy(r.Context(), fantasy)
-		if err != nil {
-			fmt.Println("ERROR", err)
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
-			return
-		}
-
-		userInfo, err := s.GetUserByID(auth_user.ID)
-		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user": userInfo,
-		})
-	}
-}
-
-func HandleSetUserSexualIdentities(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		// Form verisini parse et
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		form := r.MultipartForm.Value
-
-		genderIDs, hasGender := form["gender_identity_id"]
-		sexualIDs, hasSexual := form["sexual_orientation_id"]
-		sexRoleIDs, hasRole := form["sexual_role_id"]
-
-		// Üçü de boşsa hata döndür
-		if (!hasGender || len(genderIDs) == 0) &&
-			(!hasSexual || len(sexualIDs) == 0) &&
-			(!hasRole || len(sexRoleIDs) == 0) {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		//
-
-		fmt.Println("SEX ROLE IDS", sexRoleIDs)
-
-		// En az birisi dolu olmalı
-		if len(genderIDs) == 0 && len(sexualIDs) == 0 && len(sexRoleIDs) == 0 {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		err := s.UpsertUserSexualIdentify(r.Context(), auth_user.ID, genderIDs, sexualIDs, sexRoleIDs)
-		if err != nil {
-
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrInvalidInput)
 			return
 		}
 
@@ -759,6 +561,13 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		//engagement_type
+
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"user":    nil,
 			"success": true,
@@ -780,28 +589,23 @@ func HandleUserLike(s *services.UserService) http.HandlerFunc {
 			return
 		}
 
-		likeeIDStr := r.FormValue("likee_id")
-		likerID := auth_user.PublicID
-		likeeID, err := strconv.ParseInt(likeeIDStr, 10, 64)
+		engagement_type := r.FormValue("engagement_type")
+		userIdStr := r.FormValue("user_id")
+
+		authUserId := auth_user.PublicID
+		requestUserId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
 			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
 			return
 		}
 
-		if likeeID == 0 || likerID == 0 || likeeID == likerID {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-		// Beğeni işlemi
-		_, status, err := s.Like(r.Context(), *auth_user, likerID, likeeID)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
-		}
+		fmt.Println("engagement_type", engagement_type)
+		fmt.Println("authUserId", authUserId)
+		fmt.Println("requestUserId", requestUserId)
 
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"message": "User liked successfully",
-			"status":  status,
+			"status":  true,
 		})
 	}
 }

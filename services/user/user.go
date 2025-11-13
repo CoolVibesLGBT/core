@@ -7,7 +7,6 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/models/media"
-	user_payloads "coolvibes/models/user_payloads"
 	"coolvibes/models/utils"
 	"coolvibes/repositories"
 	"errors"
@@ -321,167 +320,12 @@ func (s *UserService) AddStory(ctx context.Context, file *multipart.FileHeader, 
 	return story, nil
 }
 
-func (s *UserService) GetAttribute(ctx context.Context, attributeID uuid.UUID) (*user_payloads.Attribute, error) {
-	return s.userRepo.GetAttribute(attributeID)
-}
-
-func (s *UserService) GetInterestItem(ctx context.Context, interestId uuid.UUID) (*user_payloads.InterestItem, error) {
-	return s.userRepo.GetInterestItem(interestId)
-}
-
-// Kullanıcı ID ile getir
-func (s *UserService) GetFantasy(ctx context.Context, id uuid.UUID) (*user_payloads.Fantasy, error) {
-	return s.userRepo.GetFantasy(id)
-}
-
-func (s *UserService) UpsertUserSexualIdentify(
-	ctx context.Context,
-	userID uuid.UUID,
-	genderIDs []string,
-	sexualIDs []string,
-	sexRoleIDs []string,
-) error {
-
-	// Kullanıcıyı repo'dan çekiyoruz (ilişkilerle birlikte)
-	user, err := s.userRepo.GetUserWithSexualRelations(userID)
-	if err != nil {
-		return err
-	}
-
-	// GenderIdentities güncelle
-	if genderIDs != nil {
-		if len(genderIDs) == 0 {
-			if err := s.userRepo.ClearGenderIdentities(user); err != nil {
-				return err
-			}
-		} else {
-			ids, err := parseUUIDs(genderIDs)
-			if err != nil {
-				return err
-			}
-			if err := s.userRepo.ReplaceGenderIdentities(user, ids); err != nil {
-				return err
-			}
-		}
-	}
-
-	// SexualOrientations güncelle
-	if sexualIDs != nil {
-		if len(sexualIDs) == 0 {
-			if err := s.userRepo.ClearSexualOrientations(user); err != nil {
-				return err
-			}
-		} else {
-			ids, err := parseUUIDs(sexualIDs)
-			if err != nil {
-				return err
-			}
-			if err := s.userRepo.ReplaceSexualOrientations(user, ids); err != nil {
-				return err
-			}
-		}
-	}
-
-	// SexRole güncelle (tek ilişki)
-	if sexRoleIDs != nil {
-		if len(sexRoleIDs) == 0 {
-			if err := s.userRepo.ClearSexRole(user); err != nil {
-				return err
-			}
-		} else {
-			id, err := uuid.Parse(sexRoleIDs[0])
-			if err != nil {
-				return err
-			}
-
-			fmt.Println("SET ROLE SEX GHERE", user.DisplayName, id)
-			if err := s.userRepo.SetSexRole(user, id); err != nil {
-				fmt.Println("SET ROLE HATA OLDU GHERE", user.DisplayName)
-
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func parseUUIDs(strIDs []string) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	for _, strID := range strIDs {
-		id, err := uuid.Parse(strID)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-	return ids, nil
-}
-
-func (s *UserService) UpsertUserAttribute(ctx context.Context, attr *user_payloads.UserAttribute) error {
-	if attr == nil {
-		return fmt.Errorf("attribute cannot be nil")
-	}
-
-	if attr.UserID == uuid.Nil {
-		return fmt.Errorf("user_id is required")
-	}
-
-	if attr.AttributeID == uuid.Nil {
-		return fmt.Errorf("attribute_id is required")
-	}
-
-	// Repository'yi çağır
-	err := s.userRepo.UpsertUserAttribute(attr)
+func (s *UserService) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
+	err := s.userRepo.UpsertUserPreference(ctx, user, preferenceItemId, bitIndexStr, enabled)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user attribute: %w", err)
 	}
-
-	return nil
-}
-
-func (s *UserService) UpsertUserInterest(ctx context.Context, interest *user_payloads.UserInterest) error {
-	if interest == nil {
-		return fmt.Errorf("attribute cannot be nil")
-	}
-
-	if interest.UserID == uuid.Nil {
-		return fmt.Errorf("user_id is required")
-	}
-
-	if interest.InterestItemID == uuid.Nil {
-		return fmt.Errorf("attribute_id is required")
-	}
-
-	// Repository'yi çağır
-	err := s.userRepo.ToggleUserInterest(interest)
-	if err != nil {
-		return fmt.Errorf("failed to upsert user attribute: %w", err)
-	}
-
-	return nil
-}
-
-func (s *UserService) UpsertUserFantasy(ctx context.Context, fantasy *user_payloads.UserFantasy) error {
-	if fantasy == nil {
-		return fmt.Errorf("fantasy cannot be nil")
-	}
-
-	if fantasy.UserID == uuid.Nil {
-		return fmt.Errorf("user_id is required")
-	}
-
-	if fantasy.FantasyID == uuid.Nil {
-		return fmt.Errorf("fantasy is required")
-	}
-
-	// Repository'yi çağır
-	err := s.userRepo.ToggleUserFantasy(fantasy)
-	if err != nil {
-		return fmt.Errorf("failed to upsert user attribute: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 func (s *UserService) GetAllStories(ctx context.Context, limit int) ([]*models.Story, error) {

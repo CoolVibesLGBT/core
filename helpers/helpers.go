@@ -11,6 +11,9 @@ import (
 	"github.com/google/uuid"
 )
 
+var zeroNamespace = uuid.Nil
+var NameSpace = uuid.NewSHA1(zeroNamespace, []byte("coolvibes"))
+
 func GenerateUserJWT(user_id uuid.UUID, publicId int64) (string, error) {
 	var jwtSecret = []byte(os.Getenv("USER_JWT_SECRET"))
 

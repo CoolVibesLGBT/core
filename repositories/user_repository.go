@@ -1,16 +1,18 @@
 package repositories
 
 import (
+	"context"
 	"coolvibes/helpers"
 	"coolvibes/models"
-	payloads "coolvibes/models/user_payloads"
 	"coolvibes/models/utils"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -53,6 +55,8 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 	var userObj models.User
 	err := r.db.
 		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Recipient").
 		Preload("Fantasies.Fantasy").
 		Preload("Interests.InterestItem.Interest").
 		Preload("Avatar.File").
@@ -113,15 +117,11 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 
 	err :=
 		r.db.
-			Preload("Fantasies.Fantasy").
-			Preload("Interests.InterestItem.Interest").
 			Preload("Avatar.File").
 			Preload("Engagements").
+			Preload("Engagements.EngagementDetails").
+			Preload("Engagements.EngagementDetails.Recipient").
 			Preload("Cover.File").
-			Preload("GenderIdentities").
-			Preload("SexualOrientations").
-			Preload("SexualRole").
-			Preload("UserAttributes.Attribute").
 			Preload("Location").
 			Preload("SocialRelations.Likes").
 			Preload("SocialRelations.LikedBy").
@@ -151,10 +151,12 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*models.User, error) {
 	var u models.User
 	err :=
 		r.db.
-			Preload("Fantasies.Fantasy").
 			Preload("Avatar").
 			Preload("Cover").
 			Preload("Location").
+			Preload("Engagements").
+			Preload("Engagements.EngagementDetails").
+			Preload("Engagements.EngagementDetails.Recipient").
 			Preload("SocialRelations.Likes").
 			Preload("SocialRelations.LikedBy").
 			Preload("SocialRelations.Matches").
@@ -284,170 +286,85 @@ func (r *UserRepository) ExpireOldStories() error {
 		Update("is_expired", true).Error
 }
 
-func (r *UserRepository) GetAttribute(attributeID uuid.UUID) (*payloads.Attribute, error) {
-	var attr payloads.Attribute
-	if err := r.db.Where("id = ?", attributeID).First(&attr).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &attr, nil
-}
+func (r *UserRepository) UpsertUserPreferenceEx(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
 
-func (r *UserRepository) GetInterestItem(interestId uuid.UUID) (*payloads.InterestItem, error) {
-	var interest payloads.InterestItem
-	if err := r.db.Where("id = ?", interestId).First(&interest).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &interest, nil
-}
-
-func (r *UserRepository) GetFantasy(fantasyId uuid.UUID) (*payloads.Fantasy, error) {
-	var fantasy payloads.Fantasy
-	if err := r.db.Where("id = ?", fantasyId).First(&fantasy).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &fantasy, nil
-}
-
-func (r *UserRepository) UpsertUserAttribute(attr *payloads.UserAttribute) error {
-
-	fmt.Println("USER", attr.AttributeID, attr.UserID)
-	attr.ID = uuid.New()
-	if attr.AttributeID == uuid.Nil {
-		return fmt.Errorf("invalid attribute")
-
-	}
-
-	if attr.UserID == uuid.Nil {
-		return fmt.Errorf("invalid user")
-	}
-
-	var existing payloads.UserAttribute
-	err := r.db.Where("user_id = ? AND category_type = ?", attr.UserID, attr.CategoryType).First(&existing).Error
+	bitIndex, err := strconv.ParseInt(bitIndexStr, 10, 64)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Kayıt yoksa ekle
-			if attr.ID == uuid.Nil {
-				attr.ID = uuid.New()
+		return fmt.Errorf("invalid bitIndex: %w", err)
+	}
+
+	if enabled {
+		user.SetPreference(int(bitIndex))
+	} else {
+		user.UnsetPreference(int(bitIndex))
+	}
+
+	updateError := r.db.Model(&user).Update("preferences_flags", user.PreferencesFlags).Error
+
+	fmt.Println("USER_ID", user.ID, user.UserName, user.PreferencesFlags)
+	return updateError
+
+}
+
+func (s *UserRepository) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
+	bitIndex, err := strconv.ParseInt(bitIndexStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid bitIndex: %w", err)
+	}
+
+	var pref models.PreferencesData
+	if err := s.db.Model(&models.Preferences{}).Select("data").First(&pref).Error; err != nil {
+		return err
+	}
+
+	allCategories := append(append(pref.Attributes, pref.Interests...), pref.Fantasies...)
+
+	var foundCategory *models.PreferenceCategory
+	var foundItem *models.PreferenceItem
+	for i, cat := range allCategories {
+		for j, item := range cat.Items {
+			if item.ID.String() == preferenceItemId {
+				foundCategory = &allCategories[i]
+				foundItem = &allCategories[i].Items[j]
+				break
 			}
-			return r.db.Create(attr).Error
 		}
-		return err
-	}
-	existing.AttributeID = attr.AttributeID
-	existing.Notes = attr.Notes
-	return r.db.Save(&existing).Error
-}
-
-func (r *UserRepository) ToggleUserInterest(interest *payloads.UserInterest) error {
-	if interest.InterestItemID == uuid.Nil {
-		return fmt.Errorf("invalid interest_item_id")
-	}
-
-	if interest.UserID == uuid.Nil {
-		return fmt.Errorf("invalid user_id")
-	}
-
-	var existing payloads.UserInterest
-	err := r.db.Where("user_id = ? AND interest_item_id = ?", interest.UserID, interest.InterestItemID).First(&existing).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// Kayıt yok → ekle
-		if interest.ID == uuid.Nil {
-			interest.ID = uuid.New()
+		if foundItem != nil {
+			break
 		}
-		return r.db.Create(interest).Error
-	} else if err != nil {
-		return err
 	}
 
-	// Kayıt varsa → sil
-	return r.db.Delete(&existing).Error
-}
-
-func (r *UserRepository) ToggleUserFantasy(fantasy *payloads.UserFantasy) error {
-	if fantasy.FantasyID == uuid.Nil {
-		return fmt.Errorf("invalid fantasy_id")
+	if foundItem == nil {
+		return fmt.Errorf("preference item not found")
 	}
 
-	if fantasy.UserID == uuid.Nil {
-		return fmt.Errorf("invalid user_id")
-	}
-
-	var existing payloads.UserFantasy
-	err := r.db.Where("user_id = ? AND fantasy_id = ?", fantasy.UserID, fantasy.FantasyID).First(&existing).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// Kayıt yok → ekle
-		if fantasy.ID == uuid.Nil {
-			fantasy.ID = uuid.New()
+	var flags big.Int
+	if user.PreferencesFlags != "" {
+		bytes, err := hex.DecodeString(user.PreferencesFlags)
+		if err != nil {
+			return err
 		}
-		return r.db.Create(fantasy).Error
-	} else if err != nil {
-		return err
+		flags.SetBytes(bytes)
 	}
 
-	// Kayıt varsa → sil
-	return r.db.Delete(&existing).Error
-}
-
-func (r *UserRepository) GetUserWithSexualRelations(userID uuid.UUID) (*models.User, error) {
-	var user models.User
-	err := r.db.Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		First(&user, "id = ?", userID).Error
-	if err != nil {
-		return nil, err
+	if !foundCategory.AllowMultiple {
+		for _, item := range foundCategory.Items {
+			flags.SetBit(&flags, int(item.BitIndex), 0)
+		}
 	}
-	return &user, nil
-}
 
-func (r *UserRepository) ClearGenderIdentities(user *models.User) error {
-	return r.db.Model(user).Association("GenderIdentities").Clear()
-}
-
-func (r *UserRepository) ReplaceGenderIdentities(user *models.User, ids []uuid.UUID) error {
-	var genders []payloads.GenderIdentity
-	for _, id := range ids {
-		genders = append(genders, payloads.GenderIdentity{ID: id})
+	if enabled {
+		flags.SetBit(&flags, int(bitIndex), 1)
+	} else {
+		flags.SetBit(&flags, int(bitIndex), 0)
 	}
-	return r.db.Model(user).Association("GenderIdentities").Replace(genders)
-}
 
-func (r *UserRepository) ClearSexualOrientations(user *models.User) error {
-	return r.db.Model(user).Association("SexualOrientations").Clear()
-}
-
-func (r *UserRepository) ReplaceSexualOrientations(user *models.User, ids []uuid.UUID) error {
-	var sexuals []payloads.SexualOrientation
-	for _, id := range ids {
-		sexuals = append(sexuals, payloads.SexualOrientation{ID: id})
+	user.PreferencesFlags = hex.EncodeToString(flags.Bytes())
+	updateError := s.db.Model(&user).Update("preferences_flags", user.PreferencesFlags).Error
+	if updateError != nil {
+		return updateError
 	}
-	return r.db.Model(user).Association("SexualOrientations").Replace(sexuals)
-}
 
-func (r *UserRepository) ClearSexRole(user *models.User) error {
-	return r.db.Save(user).Error
-}
-
-func (r *UserRepository) SetSexRole(user *models.User, sexRoleID uuid.UUID) error {
-	var dbUser models.User
-	if err := r.db.First(&dbUser, "id = ?", user.ID).Error; err != nil {
-		return err
-	}
-	dbUser.SexualRoleID = &sexRoleID
-	if err := r.db.Save(&dbUser).Error; err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -589,12 +506,6 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *models.User, distance int, 
 			Preload("Location").
 			Preload("Avatar.File").
 			Preload("Cover.File").
-			Preload("Fantasies.Fantasy").
-			Preload("Interests.InterestItem.Interest").
-			Preload("GenderIdentities").
-			Preload("SexualOrientations").
-			Preload("SexualRole").
-			Preload("UserAttributes.Attribute").
 			Find(&users).Error; err != nil {
 			return nil, err
 		}
@@ -615,12 +526,6 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *models.User, distance int, 
 		Preload("Location").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
 		Find(&users).Error; err != nil {
 		return nil, err
 	}
