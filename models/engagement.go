@@ -21,20 +21,26 @@ const (
 	EngagementKindLikeReceived    EngagementKind = "like_received"    // Kullanıcıyı beğenenler
 	EngagementKindDislikeGiven    EngagementKind = "dislike_given"    // Kullanıcının beğendikleri
 	EngagementKindDisLikeReceived EngagementKind = "dislike_received" // Kullanıcıyı beğenenler
-	EngagementKindPost            EngagementKind = "post"
-	EngagementKindComment         EngagementKind = "comment"
-	EngagementKindFollower        EngagementKind = "follower"
-	EngagementKindFollowing       EngagementKind = "following"
-	EngagementKindBlockedBy       EngagementKind = "blocked_by" // seni engelleyenler
-	EngagementKindBlocking        EngagementKind = "blocking"   // senin engellediklerin
-	EngagementKindView            EngagementKind = "view"
-	EngagementKindBookmark        EngagementKind = "bookmark"
-	EngagementKindRating          EngagementKind = "rating"
-	EngagementTip                 EngagementKind = "tip"
-	EngagementKindGift            EngagementKind = "gift"
-	EngagementKindReport          EngagementKind = "report"
-	EngagementKindDeposit         EngagementKind = "deposit"
-	EngagementKindWithdraw        EngagementKind = "withdraw"
+	EngagementKindMatched         EngagementKind = "matched"          // Kullanıcının eslestikleri
+
+	EngagementKindViewGiven    EngagementKind = "view_given"    // Görüntüleyen kişi (benim baktıklarım)
+	EngagementKindViewReceived EngagementKind = "view_received" // Görülen kişi (bana bakanlar)
+
+	EngagementKindPost      EngagementKind = "post"
+	EngagementKindComment   EngagementKind = "comment"
+	EngagementKindFollower  EngagementKind = "follower"
+	EngagementKindFollowing EngagementKind = "following"
+	EngagementKindBlockedBy EngagementKind = "blocked_by" // seni engelleyenler
+	EngagementKindBlocking  EngagementKind = "blocking"   // senin engellediklerin
+	EngagementKindView      EngagementKind = "view"
+
+	EngagementKindBookmark EngagementKind = "bookmark"
+	EngagementKindRating   EngagementKind = "rating"
+	EngagementTip          EngagementKind = "tip"
+	EngagementKindGift     EngagementKind = "gift"
+	EngagementKindReport   EngagementKind = "report"
+	EngagementKindDeposit  EngagementKind = "deposit"
+	EngagementKindWithdraw EngagementKind = "withdraw"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {
@@ -49,6 +55,10 @@ var EngagementCountKeys = map[EngagementKind]struct {
 
 	EngagementKindLikeGiven:    {"like_given_count", ""},
 	EngagementKindLikeReceived: {"like_received_count", ""},
+	EngagementKindMatched:      {"match_count", ""},
+
+	EngagementKindViewGiven:    {"view_given_count", ""},
+	EngagementKindViewReceived: {"view_received_count", ""},
 
 	EngagementKindDislikeGiven:    {"dislike_given_count", ""},
 	EngagementKindDisLikeReceived: {"dislike_received_count", ""},

@@ -19,6 +19,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB // Global değişken olarak veritabanı bağlantısı
@@ -35,7 +36,16 @@ func InitDB() error {
 		panic("DATABASE_URL is required")
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	errorOnlyLogger := logger.New(
+		log.New(os.Stderr, "\r\n", log.LstdFlags),
+		logger.Config{
+			LogLevel:                  logger.Error, // sadece Error
+			IgnoreRecordNotFoundError: true,         // record not found'u loglama
+			Colorful:                  false,
+		},
+	)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: errorOnlyLogger})
 	if err != nil {
 		panic("failed to connect database")
 	}

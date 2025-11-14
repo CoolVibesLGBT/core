@@ -1,10 +1,10 @@
 package repositories
 
 import (
+	"context"
 	"time"
 
-	"coolvibes/helpers"
-	userModel "coolvibes/models"
+	"coolvibes/models"
 	"coolvibes/types"
 
 	"github.com/google/uuid"
@@ -12,237 +12,297 @@ import (
 )
 
 type MatchesRepository struct {
-	db            *gorm.DB
-	snowFlakeNode *helpers.Node
+	db             *gorm.DB
+	engagementRepo *EngagementRepository
 }
 
-func (r *MatchesRepository) DB() *gorm.DB {
-	return r.db
+func NewMatchesRepository(db *gorm.DB, engagementRepo *EngagementRepository) *MatchesRepository {
+	return &MatchesRepository{
+		db:             db,
+		engagementRepo: engagementRepo,
+	}
 }
 
-func NewMatchesRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *MatchesRepository {
-	return &MatchesRepository{db: db, snowFlakeNode: snowFlakeNode}
-}
+func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID, toUserId uuid.UUID, reaction types.ReactionType) (bool, error) {
 
-func (r *MatchesRepository) Node() *helpers.Node {
-	return r.snowFlakeNode
-}
+	var kindGiven models.EngagementKind
+	var kindReceived models.EngagementKind
 
-func (m *MatchesRepository) RecordView(userID, targetID uuid.UUID, reaction types.ReactionType) (bool, error) {
-	var existing userModel.MatchSeen
+	switch reaction {
+	case types.ReactionLike:
+		kindGiven = models.EngagementKindLikeGiven
+		kindReceived = models.EngagementKindLikeReceived
 
-	// 1️⃣ Önce mevcut kaydı kontrol et
-	err := m.db.
-		Where("user_id = ? AND target_id = ?", userID, targetID).
-		First(&existing).Error
+	case types.ReactionDislike:
+		kindGiven = models.EngagementKindDislikeGiven
+		kindReceived = models.EngagementKindDisLikeReceived
 
-	switch err {
-	case nil:
-		// 2️⃣ Kayıt varsa sadece güncelle
-		existing.Reaction = string(reaction)
-		existing.CreatedAt = time.Now()
-
-		if err := m.db.Save(&existing).Error; err != nil {
-			return false, err
-		}
-	case gorm.ErrRecordNotFound:
-		// 3️⃣ Yoksa yeni kayıt oluştur
-		entry := userModel.MatchSeen{
-			UserID:   userID,
-			TargetID: targetID,
-			Reaction: string(reaction),
-		}
-		if err := m.db.Create(&entry).Error; err != nil {
-			return false, err
-		}
 	default:
-		// 4️⃣ Diğer DB hataları
+		return false, nil
+	}
+	kindMatched := models.EngagementKindMatched
+
+	recipientId := toUserId
+	engagerId := fromUserId
+
+	_, err := m.addEngagementPair(ctx, recipientId, engagerId, kindGiven)
+	if err != nil {
 		return false, err
 	}
 
-	// 5️⃣ Match kontrolü
-	isMatched, err := m.IsMatched(userID, targetID, types.ReactionLike)
+	_, err = m.addEngagementPair(ctx, engagerId, recipientId, kindReceived)
+	if err != nil {
+		return false, err
+	}
+
+	isMatched, err := m.IsMatched(ctx, fromUserId, toUserId)
 	if err != nil {
 		return false, err
 	}
 
 	if isMatched {
-		// Her iki taraf da LIKE ettiyse, IsMatch güncellenir
-		err = m.db.Model(&userModel.MatchSeen{}).
-			Where("(user_id = ? AND target_id = ?) OR (user_id = ? AND target_id = ?)",
-				userID, targetID, targetID, userID).
-			Updates(map[string]interface{}{
-				"is_match": true,
-				"reaction": string(types.ReactionMatched), // ya da istediğin reaction tipi
-			}).Error
+		_, err := m.addEngagementPair(ctx, recipientId, engagerId, kindMatched)
+		if err != nil {
+			return false, err
+		}
+
+		_, err = m.addEngagementPair(ctx, engagerId, recipientId, kindMatched)
 		if err != nil {
 			return false, err
 		}
 	}
 
+	_, err = m.addEngagementPair(ctx, recipientId, engagerId, models.EngagementKindViewGiven)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = m.addEngagementPair(ctx, engagerId, recipientId, models.EngagementKindViewReceived)
+	if err != nil {
+		return false, err
+	}
+
 	return isMatched, nil
 }
 
-func (m *MatchesRepository) IsMatched(userID1, userID2 uuid.UUID, reaction types.ReactionType) (bool, error) {
-	var count1 int64
-	err := m.db.Model(&userModel.MatchSeen{}).
-		Where("user_id = ? AND target_id = ? AND reaction = ?", userID1, userID2, reaction).
-		Count(&count1).Error
+// -----------------------------------------------
+// 🔥 2) Match = iki taraf da LIKE göndermişse
+// -----------------------------------------------
+
+func (m *MatchesRepository) IsMatched(ctx context.Context, fromUserId, toUserId uuid.UUID) (bool, error) {
+
+	a, err := m.engagementRepo.HasUserEngaged(ctx, fromUserId, toUserId, models.EngagementKindLikeGiven)
 	if err != nil {
 		return false, err
 	}
 
-	var count2 int64
-	err = m.db.Model(&userModel.MatchSeen{}).
-		Where("user_id = ? AND target_id = ? AND reaction = ?", userID2, userID1, reaction).
-		Count(&count2).Error
+	b, err := m.engagementRepo.HasUserEngaged(ctx, toUserId, fromUserId, models.EngagementKindLikeGiven)
 	if err != nil {
 		return false, err
 	}
 
-	// Her iki taraf da like etmişse eşleşme var
-	return count1 > 0 && count2 > 0, nil
+	return a && b, nil
 }
 
-// ⏱ Son X saat içinde gösterilmiş mi?
-func (m *MatchesRepository) WasSeenRecently(userID, targetID uuid.UUID, hours int) (bool, error) {
+// -----------------------------------------------
+// 🔥 Engagement çiftlerini ekler
+// userID → targetID
+// -----------------------------------------------
+
+func (m *MatchesRepository) addEngagementPair(ctx context.Context, recipientID, engagerID uuid.UUID, kind models.EngagementKind) (bool, error) {
+	status, err := m.engagementRepo.ToggleEngagement(ctx, recipientID, engagerID, kind, engagerID, "user")
+	if err != nil {
+		return status, err
+	}
+
+	return true, err
+}
+
+// -----------------------------------------------
+// 🔥 Engagement çiftlerini siler (toggle off)
+// -----------------------------------------------
+
+func (m *MatchesRepository) removeEngagementPair(
+	ctx context.Context,
+	userID, targetID uuid.UUID,
+	kindGiven, kindReceived models.EngagementKind,
+) error {
+
+	// GIVEN sil
+	_, err := m.engagementRepo.ToggleEngagement(ctx,
+		targetID, userID, kindGiven,
+		targetID, "user",
+	)
+	if err != nil {
+		return err
+	}
+
+	// RECEIVED sil
+	_, err = m.engagementRepo.ToggleEngagement(ctx,
+		userID, targetID, kindReceived,
+		userID, "user",
+	)
+	return err
+}
+
+// -----------------------------------------------
+// 🔍 Son X saat içinde target’ı gördü mü?
+// -----------------------------------------------
+
+func (m *MatchesRepository) WasSeenRecently(
+	ctx context.Context,
+	userID, targetID uuid.UUID,
+	hours int,
+) (bool, error) {
+
 	var count int64
-	err := m.db.Model(&userModel.MatchSeen{}).
-		Where("user_id = ? AND target_id = ? AND created_at >= ?", userID, targetID, time.Now().Add(-time.Duration(hours)*time.Hour)).
+	since := time.Now().Add(-time.Duration(hours) * time.Hour)
+
+	err := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Where(`
+			engager_id = ? AND recipient_id = ? 
+			AND created_at >= ? 
+			AND kind IN ('like_given','dislike_given')
+		`, userID, targetID, since).
 		Count(&count).Error
+
 	return count > 0, err
 }
 
-// 💾 Geçmiş (history) – kullanıcının son gördükleri
-func (m *MatchesRepository) GetSeenHistory(userID uuid.UUID, limit int) ([]userModel.MatchSeen, error) {
-	var seen []userModel.MatchSeen
-	err := m.db.
-		Preload("Target").
-		Where("user_id = ?", userID).
-		Order("created_at DESC").
+// -----------------------------------------------
+// 🔍 Beğendiği kullanıcılar (cursor destekli)
+// -----------------------------------------------
+
+func (m *MatchesRepository) GetLikesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
+
+	var users []models.User
+
+	q := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Select("users.*").
+		Joins("JOIN users ON users.id = engagement_details.recipient_id").
+		Where("engager_id = ? AND kind = ?", userID, models.EngagementKindLikeGiven)
+
+	if cursor != nil {
+		q = q.Where("engagement_details.created_at < ?", *cursor)
+	}
+
+	err := q.
+		Order("engagement_details.created_at DESC").
 		Limit(limit).
-		Find(&seen).Error
-	return seen, err
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Scan(&users).Error
+
+	return users, err
 }
 
-func (m *MatchesRepository) GetMatchesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
-	var matchedUsers []userModel.User
+// -----------------------------------------------
+// 🔍 MATCH olmuş kullanıcılar
+// -----------------------------------------------
 
-	// Alt sorgu: kullanıcının match olduğu diğer user_id'leri bul
-	subQuery := m.db.
-		Table("match_seens").
-		Select(`
-			CASE 
-				WHEN user_id = ? THEN target_id 
-				ELSE user_id 
-			END
-		`, userID).
-		Where("(user_id = ? OR target_id = ?) AND is_match = TRUE", userID, userID)
+func (m *MatchesRepository) GetMatchesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
 
+	// Karşılıklı beğenme (match)
+	sub := m.db.
+		Table("engagement_details AS a").
+		Select("a.recipient_id").
+		Joins(`
+			INNER JOIN engagement_details b 
+			ON a.recipient_id = b.engager_id 
+			AND a.engager_id = b.recipient_id
+			AND a.kind = 'like_given'
+			AND b.kind = 'like_given'
+		`).
+		Where("a.engager_id = ?", userID)
+
+	if cursor != nil {
+		sub = sub.Where("a.created_at < ?", *cursor)
+	}
+
+	var users []models.User
+	err := m.db.
+		Model(&models.User{}).
+		Where("id IN (?)", sub).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&users).Error
+
+	return users, err
+}
+
+// -----------------------------------------------
+// 🔍 Geçen 24 saatte görmediğin kullanıcılar
+// -----------------------------------------------
+
+func (m *MatchesRepository) GetUnseenUsers(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit int,
+) ([]models.User, error) {
+
+	sub := m.db.
+		Table("engagement_details").
+		Select("recipient_id").
+		Where("engager_id = ? AND created_at >= NOW() - INTERVAL '24 hours' AND kind = ?", userID, models.EngagementKindViewGiven)
+
+	var users []models.User
+	err := m.db.
+		Model(&models.User{}).
+		Where("id != ?", userID).
+		Where("id NOT IN (?)", sub).
+		Where("deleted_at IS NULL").
+		Order("RANDOM()").
+		Limit(limit).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error
+
+	return users, err
+}
+
+func (m *MatchesRepository) GetPassesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
+
+	// Öncelikle dislike edilen kullanıcıların ID'lerini engagement_details tablosundan alıyoruz
+	subQuery := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Select("recipient_id").
+		Where("engager_id = ?", userID).
+		Where("kind = ?", models.EngagementKindDislikeGiven) // dislike türü
 	if cursor != nil {
 		subQuery = subQuery.Where("created_at < ?", *cursor)
 	}
 
-	// Ana sorgu: bu ID’lerdeki kullanıcıları preload’lu getir
-	err := m.db.
-		Model(&userModel.User{}).
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
+	// Ardından bu ID'lere göre kullanıcıları çekiyoruz
+	var users []models.User
+	err := m.db.WithContext(ctx).
+		Model(&models.User{}).
 		Where("id IN (?)", subQuery).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
 		Order("created_at DESC").
-		Limit(limit).
-		Find(&matchedUsers).Error
-
-	return matchedUsers, err
-}
-
-func (m *MatchesRepository) GetLikesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
-	var targetIDs []uuid.UUID
-
-	// Önce beğenilen kullanıcıların ID'lerini al
-	query := m.db.Model(&userModel.MatchSeen{}).
-		Where("user_id = ?", userID).
-		Where("reaction = ?", string(types.ReactionLike)).
-		Where("target_id != ?", userID)
-
-	if cursor != nil {
-		query = query.Where("created_at < ?", *cursor)
-	}
-
-	err := query.Order("created_at DESC").
-		Limit(limit).
-		Pluck("target_id", &targetIDs).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Sonra bu kullanıcıları çek
-	var users []userModel.User
-	err = m.db.Model(&userModel.User{}).
-		Where("id IN ?", targetIDs).
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Find(&users).Error
-
-	return users, err
-}
-
-func (m *MatchesRepository) GetPassesAfter(userID uuid.UUID, cursor *time.Time, limit int) ([]userModel.User, error) {
-	var targetIDs []uuid.UUID
-
-	// Pas verdiğin kullanıcıların target_id'lerini çek
-	query := m.db.
-		Model(&userModel.MatchSeen{}).
-		Where("user_id = ?", userID).
-		Where("reaction = ?", string(types.ReactionDislike)).
-		Where("target_id != ?", userID)
-
-	if cursor != nil {
-		query = query.Where("created_at < ?", *cursor)
-	}
-
-	err := query.
-		Order("created_at DESC").
-		Limit(limit).
-		Pluck("target_id", &targetIDs).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// TargetID'lere göre user kayıtlarını çek
-	var users []userModel.User
-	err = m.db.
-		Model(&userModel.User{}).
-		Where("id IN ?", targetIDs).
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Find(&users).Error
-
-	return users, err
-}
-
-func (m *MatchesRepository) GetUnseenUsers(userID uuid.UUID, limit int) ([]userModel.User, error) {
-	var users []userModel.User
-
-	subQuery := m.db.Model(&userModel.MatchSeen{}).
-		Select("target_id").
-		Where("user_id = ? AND created_at >= NOW() - INTERVAL '24 hours'", userID)
-
-	err := m.db.Model(&userModel.User{}).
-		Preload("Location").
-		Preload("Avatar").
-		Preload("Avatar.File").
-		Preload("Cover").
-		Preload("Cover.File").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Where("id != ?", userID).
-		Where("id NOT IN (?)", subQuery).
-		Where("deleted_at IS NULL").
-		Order("RANDOM()").
 		Limit(limit).
 		Find(&users).Error
 

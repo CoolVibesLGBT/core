@@ -6,6 +6,7 @@ import (
 	"coolvibes/routes"
 	"coolvibes/services/db"
 	"coolvibes/services/socket"
+	"coolvibes/test"
 	"flag"
 	"fmt"
 	"log"
@@ -51,6 +52,7 @@ func NewApp() (*App, error) {
 		migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
 		seedFlag := flag.Bool("seed", false, "Run DB seed")
 		installFlag := flag.Bool("install", false, "Run DB migrate & seed")
+		testFlag := flag.Bool("test", false, "Test")
 
 		flag.Parse()
 
@@ -73,6 +75,10 @@ func NewApp() (*App, error) {
 			if err != nil {
 				fmt.Println(err)
 			}
+		}
+
+		if *testFlag {
+			test.StartTest(db.DB, snowFlakeNode, nil)
 		}
 
 		faker.FakeUser(instance.DB, snowFlakeNode)

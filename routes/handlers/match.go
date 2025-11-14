@@ -26,7 +26,7 @@ func HandleGetUnseenUsers(s *services.MatchesService) http.HandlerFunc {
 			http.Error(w, "User not authenticated", http.StatusUnauthorized)
 			return
 		}
-		users, err := s.GetUnseenUsers(user.ID, 10)
+		users, err := s.GetUnseenUsers(r.Context(), user.ID, 10)
 		if err != nil {
 			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
 			return
@@ -65,7 +65,7 @@ func HandleRecordView(s *services.MatchesService) http.HandlerFunc {
 
 		reactionStr := r.FormValue("reaction") //like dislike vs.
 
-		isMatched, err := s.RecordView(auth_user.ID, targetUserId, types.ReactionType(reactionStr))
+		isMatched, err := s.RecordView(r.Context(), auth_user.ID, targetUserId, types.ReactionType(reactionStr))
 		if err != nil {
 			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
 			return
@@ -109,7 +109,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) http.HandlerFunc {
 			}
 		}
 
-		matches, err := s.GetMatchesAfter(auth_user.ID, cursor, int(limit))
+		matches, err := s.GetMatchesAfter(r.Context(), auth_user.ID, cursor, int(limit))
 		if err != nil {
 			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
 			return
@@ -160,7 +160,7 @@ func HandleGetPassesAfter(s *services.MatchesService) http.HandlerFunc {
 			}
 		}
 
-		passes, err := s.GetPassesAfter(auth_user.ID, cursor, int(limit))
+		passes, err := s.GetPassesAfter(r.Context(), auth_user.ID, cursor, int(limit))
 		if err != nil {
 			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
 			return
@@ -211,7 +211,7 @@ func HandleGetLikesAfter(s *services.MatchesService) http.HandlerFunc {
 			}
 		}
 
-		likes, err := s.GetLikesAfter(auth_user.ID, cursor, int(limit))
+		likes, err := s.GetLikesAfter(r.Context(), auth_user.ID, cursor, int(limit))
 		if err != nil {
 			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
 			return

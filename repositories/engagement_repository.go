@@ -222,11 +222,11 @@ func (r *EngagementRepository) RemoveEngagementDetail(ctx context.Context, detai
 	})
 }
 
-func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagementID uuid.UUID, userID uuid.UUID, kind models.EngagementKind) (bool, error) {
+func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagerID uuid.UUID, recipientID uuid.UUID, kind models.EngagementKind) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&models.EngagementDetail{}).
-		Where("engagement_id = ? AND user_id = ? AND kind = ?", engagementID, userID, kind).
+		Where("engager_id = ? AND recipient_id = ? AND kind = ?", engagerID, recipientID, kind).
 		Count(&count).Error
 
 	if err != nil {
@@ -237,7 +237,7 @@ func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagementID 
 
 // userID,       // Kimin içeriği (post, video, vs) bu? İçeriğin sahibi (target user)
 // engagerID,    // Etkileşimi yapan kullanıcı (engager)
-func (r *EngagementRepository) ToggleEngagement(ctx context.Context, userID, engagerID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType string) (bool, error) {
+func (r *EngagementRepository) ToggleEngagement(ctx context.Context, recipientID, engagerID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType string) (bool, error) {
 	// Engagement kaydını al veya oluştur
 	var engagement models.Engagement
 	err := r.db.WithContext(ctx).
@@ -263,7 +263,7 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, userID, eng
 	// EngagementDetail kontrolü
 	var existingDetail models.EngagementDetail
 	err = r.db.WithContext(ctx).
-		Where("engagement_id = ? AND engager_id = ? AND kind = ?", engagement.ID, engagerID, kind).
+		Where("engagement_id = ? AND engager_id = ? AND recipient_id = ? AND kind = ?", engagement.ID, engagerID, recipientID, kind).
 		First(&existingDetail).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -272,7 +272,7 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, userID, eng
 			ID:           uuid.New(),
 			EngagementID: engagement.ID,
 			EngagerID:    engagerID,
-			RecipientID:  userID, // İçeriğin sahibi (target user)
+			RecipientID:  recipientID, // İçeriğin sahibi (target user)
 			Kind:         kind,
 			CreatedAt:    time.Now(),
 		}

@@ -47,7 +47,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
-	matchesRepo := repositories.NewMatchesRepository(r.db, snowFlakeNode)
+	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
 	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, socketService)
 	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
 
