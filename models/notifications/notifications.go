@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"coolvibes/models"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
@@ -26,8 +27,10 @@ const (
 
 type Notification struct {
 	ID        uuid.UUID           `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID    uuid.UUID           `gorm:"type:uuid;index;not null" json:"user_id"` // Bildirimin hedef kullanıcısı
-	Type      string              `gorm:"size:64;index;not null" json:"type"`      // Tip: "chat_message", "friend_request" vb.
+	SenderID  *uuid.UUID          `gorm:"type:uuid;index" json:"sender_id,omitempty"`  // Gönderen kullanıcı ID'si
+	Sender    *models.User        `gorm:"foreignKey:SenderID" json:"sender,omitempty"` // GORM relation
+	UserID    uuid.UUID           `gorm:"type:uuid;index;not null" json:"user_id"`     // Bildirimin hedef kullanıcısı
+	Type      string              `gorm:"size:64;index;not null" json:"type"`          // Tip: "chat_message", "friend_request" vb.
 	Title     string              `gorm:"size:255" json:"title"`
 	Message   string              `gorm:"type:text" json:"message"`
 	Payload   NotificationPayload `gorm:"type:jsonb" json:"payload"` // JSONB olarak saklanacak

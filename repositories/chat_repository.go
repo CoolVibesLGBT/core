@@ -299,7 +299,7 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 			// diğer alanlar eklenecekse ekle
 		}
 
-		err := r.notificationRepo.SendNotificationToUser(user, notifications.NotificationTypeChatMessage, messageTitle, messageText, payload)
+		err := r.notificationRepo.SendNotificationToUser(author, user, notifications.NotificationTypeChatMessage, messageTitle, messageText, payload)
 		if err != nil {
 			fmt.Printf("Bildirim gönderilemedi user %s: %v\n", user.ID, err)
 		}

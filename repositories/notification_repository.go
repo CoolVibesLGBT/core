@@ -52,10 +52,11 @@ func (r *NotificationRepository) GetAllSubscriptions() ([]models.Subscription, e
 	return allSubs, nil
 }
 
-func (r *NotificationRepository) CreateNotification(userID uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (*notifications.Notification, error) {
+func (r *NotificationRepository) CreateNotification(senderUser uuid.UUID, receiverUser uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (*notifications.Notification, error) {
 	notification := &notifications.Notification{
 		ID:        uuid.New(),
-		UserID:    userID,
+		SenderID:  &senderUser,
+		UserID:    receiverUser,
 		Type:      notifType,
 		Title:     title,
 		Message:   message,
@@ -72,10 +73,10 @@ func (r *NotificationRepository) CreateNotification(userID uuid.UUID, notifType,
 	return notification, nil
 }
 
-func (r *NotificationRepository) SendNotificationToUser(user models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
+func (r *NotificationRepository) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
 	// Kullanıcının kayıtlı subscriptionlarını json'dan ayıkla
 
-	notification, err := r.CreateNotification(user.ID, notificationType, notificationTitle, notificationMessage, payload)
+	notification, err := r.CreateNotification(sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
 	if err != nil {
 		return fmt.Errorf("notification cannot be saved: %w", err)
 	}
@@ -83,11 +84,11 @@ func (r *NotificationRepository) SendNotificationToUser(user models.User, notifi
 	fmt.Println(notification.ID)
 
 	var subscriptions []models.Subscription
-	if len(user.Subscriptions) == 0 {
+	if len(receiver.Subscriptions) == 0 {
 		return fmt.Errorf("user has no subscriptions")
 	}
 
-	err = json.Unmarshal(user.Subscriptions, &subscriptions)
+	err = json.Unmarshal(receiver.Subscriptions, &subscriptions)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal subscriptions: %w", err)
 	}
