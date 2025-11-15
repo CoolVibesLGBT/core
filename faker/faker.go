@@ -82,7 +82,7 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 	return user
 }
 func FakeUser(db *gorm.DB, snowFlakeNode *helpers.Node) {
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 10; i++ {
 		CreateUser(db, snowFlakeNode)
 
 	}

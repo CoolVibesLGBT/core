@@ -89,6 +89,7 @@ func ListenServer(db *gorm.DB) {
 
 	Server.OnConnect("/", func(s socketio.Conn, m map[string]interface{}) error {
 		log.Println("connected:", s.ID())
+		userConnections[s.ID()] = s
 		s.Emit("auth", s.ID())
 		return nil
 	})
@@ -99,7 +100,6 @@ func ListenServer(db *gorm.DB) {
 	})
 
 	Server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
-
 		authHeader := msg
 		if authHeader == "" {
 			return
@@ -123,12 +123,24 @@ func ListenServer(db *gorm.DB) {
 	})
 
 	Server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
-		log.Println("notice:", msg)
+		fmt.Println("chatJoin:", msg)
 		s.Emit("auth", "have "+msg)
 	})
 
+	Server.OnEvent("/", "init", func(s socketio.Conn, msg string) {
+		fmt.Println("chatInit:", msg)
+	})
+
+	Server.OnEvent("/", "leave", func(s socketio.Conn, msg string) {
+		fmt.Println("chatLeave:", msg)
+	})
+
 	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
-		updateUserRooms(s, db, userPublicIDs[s.ID()], true)
+		publicID, ok := userPublicIDs[s.ID()]
+		if ok {
+			updateUserRooms(s, db, publicID, false) // false = leave rooms
+			delete(userPublicIDs, s.ID())
+		}
 		fmt.Println("Disconnected:", s.ID())
 	})
 
@@ -183,5 +195,49 @@ func (socketService *SocketService) SendMessageToUser(userId uuid.UUID, event st
 			conn.Emit(event, message)
 			return nil
 		}*/
+	return nil
+}
+
+func (s *SocketService) UpdateUserRooms(conn socketio.Conn, publicID int64, join bool) error {
+	var chatIDs []uuid.UUID
+
+	now := time.Now()
+
+	updateData := map[string]interface{}{
+		"last_online": now,
+		"socket_id":   conn.ID(),
+	}
+
+	result := s.db.Model(&userModel.User{}).Where("public_id = ?", publicID).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	err := s.db.
+		Table("chat_participants AS cp").
+		Select("cp.chat_id").
+		Joins("JOIN users u ON u.id = cp.user_id").
+		Where("u.public_id = ?", publicID).
+		Order("cp.id ASC").
+		Scan(&chatIDs).Error
+
+	if err != nil {
+		return err
+	}
+
+	operation := conn.Leave
+	if join {
+		operation = conn.Join
+	}
+
+	for _, chatID := range chatIDs {
+		operation(chatID.String())
+	}
+
+	operation("news")
+	operation("notice")
+	operation("broadcast")
+	operation("system")
+
 	return nil
 }
