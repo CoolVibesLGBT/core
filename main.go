@@ -123,6 +123,14 @@ func main() {
 		AllowedHeaders:   []string{"Accept", "Authorization", "authorization", "Content-Type", "Content-Length", "X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection", "Accept-Encoding", "Accept-Language", "X-Requested-With"},
 	})
 
+	vapidKeys, err := helpers.CreateVapidKeys(app.DB)
+	if err != nil {
+		log.Fatal("VAPID anahtarı alınamadı:", err)
+	}
+
+	fmt.Println("PublicKey:", vapidKeys.PublicKey)
+	fmt.Println("PrivateKey:", vapidKeys.PrivateKey)
+
 	go socket.ListenServer(app.DB)
 	httpHandler := httpCors.Handler(applicationRouter)
 	log.Println("App running on", os.Getenv("PORT"))

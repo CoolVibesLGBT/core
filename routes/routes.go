@@ -48,15 +48,23 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
-	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, socketService)
 	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
+	notificationService := services.NewNotificationsService(notificationRepo)
+
+	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, socketService, notificationRepo)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 	chatService := services.NewChatService(userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
-	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db)) // middleware yok
+	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
+	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
+	r.action.Register(                                                                      // vapid
+		constants.CMD_SET_VAPID_SUBSCRIBE,
+		handlers.HandleVapidSubscribe(r.db),
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
 
 	// Action register
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
@@ -69,6 +77,12 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register( // access token'a gore user bilgisi
 		constants.CMD_AUTH_USER_INFO,
 		handlers.HandleUserInfo(userService),
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register( // access token'a gore user bilgisi
+		constants.CMD_GET_NOTIFICATIONS,
+		handlers.HandleGetNotifications(notificationService),
 		middleware.AuthMiddleware(userRepo), // middleware
 	)
 

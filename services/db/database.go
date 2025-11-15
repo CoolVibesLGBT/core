@@ -4,6 +4,7 @@ import (
 	"coolvibes/models"
 	"coolvibes/models/chat"
 	"coolvibes/models/media"
+	"coolvibes/models/notifications"
 	"coolvibes/models/post"
 	"coolvibes/models/utils"
 
@@ -71,6 +72,8 @@ func Migrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 
+		models.VapidKey{},
+		notifications.Notification{},
 		&utils.FileMetadata{},
 
 		&media.Media{},

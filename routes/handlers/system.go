@@ -1,8 +1,14 @@
 package handlers
 
 import (
+	"coolvibes/constants"
+	"coolvibes/helpers"
+	"coolvibes/middleware"
 	"coolvibes/models"
+	services "coolvibes/services/user"
+	"coolvibes/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -35,10 +41,19 @@ type GroupedAttributes struct {
 
 // InitialData dönecek ana struct
 type InitialData struct {
-	Preferences models.PreferencesData      `json:"preferences"`
-	Countries   map[string]CountryResponse  `json:"countries"`
-	Languages   map[string]LanguageResponse `json:"languages"`
-	Status      string                      `json:"status"`
+	VapidPubicKey string                      `json:"vapid_public_key"`
+	Preferences   models.PreferencesData      `json:"preferences"`
+	Countries     map[string]CountryResponse  `json:"countries"`
+	Languages     map[string]LanguageResponse `json:"languages"`
+	Status        string                      `json:"status"`
+}
+
+type SystemHandler struct {
+	service *services.NotificationsService
+}
+
+func NewSystemHandler(service *services.NotificationsService) *SystemHandler {
+	return &SystemHandler{service: service}
 }
 
 func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
@@ -77,15 +92,150 @@ func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
 			"bn": {Code: "bn", Flag: "🇧🇩", Name: "বাংলা"},            // Bengalce
 		}
 
+		key, err := helpers.CreateVapidKeys(db)
+		if err != nil {
+			http.Error(w, "Failed to get VAPID key", http.StatusInternalServerError)
+			return
+		}
 		// 5. InitialData hazırla
 		initialData := InitialData{
-			Preferences: preferences,
-			Countries:   countries,
-			Languages:   languages,
-			Status:      "ok",
+			VapidPubicKey: key.PublicKey,
+			Preferences:   preferences,
+			Countries:     countries,
+			Languages:     languages,
+			Status:        "ok",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(initialData)
+	}
+}
+
+func HandleVapidGetKey(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		key, err := helpers.CreateVapidKeys(db)
+		if err != nil {
+			http.Error(w, "Failed to get VAPID key", http.StatusInternalServerError)
+			return
+		}
+
+		resp := struct {
+			PublicKey string `json:"key"`
+		}{
+			PublicKey: key.PublicKey,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}
+}
+
+func HandleVapidSubscribe(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		// Gelen subscription'u json olarak oku
+		err := r.ParseMultipartForm(10 << 20) // 10 MB max memory
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, "Failed to parse multipart form")
+			return
+		}
+
+		// Form field içindeki JSON stringi al
+		subscriptionJson := r.FormValue("subscriptions")
+		if subscriptionJson == "" {
+			utils.SendError(w, http.StatusBadRequest, "subscriptions field is required")
+			return
+		}
+
+		fmt.Println("GELEN DATA", subscriptionJson)
+
+		var newSub models.Subscription
+		if err := json.Unmarshal([]byte(subscriptionJson), &newSub); err != nil {
+			utils.SendError(w, http.StatusBadRequest, "Invalid subscription JSON")
+			return
+		}
+
+		// Kullanıcıyı veritabanından çek
+		var user models.User
+		if err := db.First(&user, "id = ?", auth_user.ID).Error; err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "User not found")
+			return
+		}
+
+		fmt.Println("AUTH_USER", user.UserName)
+
+		// Var olan subscriptionları çıkar
+		var subscriptions []models.Subscription
+		if len(user.Subscriptions) > 0 {
+			if err := json.Unmarshal(user.Subscriptions, &subscriptions); err != nil {
+				// Eğer hata varsa, boş liste olarak başlatabiliriz
+				subscriptions = []models.Subscription{}
+			}
+		}
+
+		// Yeni subscription zaten varsa ekleme (unique endpoint kontrolü)
+		exists := false
+		for _, sub := range subscriptions {
+			if sub.Endpoint == newSub.Endpoint {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			subscriptions = append(subscriptions, newSub)
+		}
+
+		// Tekrar json'a çevir
+		subsJson, err := json.Marshal(subscriptions)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Could not marshal subscriptions")
+			return
+		}
+
+		// Güncelle
+		user.Subscriptions = subsJson
+
+		if err := db.Save(&user).Error; err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to update subscriptions")
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": true,
+			"message": "Subscription saved",
+		})
+	}
+}
+
+func HandleGetNotifications(s *services.NotificationsService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		// Gelen subscription'u json olarak oku
+		err := r.ParseMultipartForm(10 << 20) // 10 MB max memory
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, "Failed to parse multipart form")
+			return
+		}
+
+		notifications, err := s.FetchNotifications(auth_user.ID, 1)
+
+		fmt.Println("Notifications", auth_user.ID)
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success":       true,
+			"notifications": notifications,
+		})
 	}
 }

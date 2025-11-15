@@ -12,7 +12,11 @@ type TCommandTypes int
 
 const (
 	//SYSTEM
-	CMD_INITIAL_SYNC = "system.initial_sync"
+	CMD_INITIAL_SYNC         = "system.initial_sync"
+	CMD_GET_VAPID_PUBLIC_KEY = "system_vapid_get_key"
+	CMD_SET_VAPID_SUBSCRIBE  = "system_vapid_subscribe"
+	CMD_GET_NOTIFICATIONS    = "system_notifications"
+
 	// AUTH
 	CMD_AUTH_LOGIN     = "auth.login"
 	CMD_AUTH_REGISTER  = "auth.register"

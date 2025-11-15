@@ -5,6 +5,7 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/models/chat"
+	"coolvibes/models/notifications"
 	"coolvibes/models/utils"
 	"coolvibes/services/socket"
 	"encoding/json"
@@ -21,10 +22,11 @@ import (
 )
 
 type ChatRepository struct {
-	db            *gorm.DB
-	snowFlakeNode *helpers.Node
-	postRepo      *PostRepository
-	socketService *socket.SocketService
+	db               *gorm.DB
+	snowFlakeNode    *helpers.Node
+	postRepo         *PostRepository
+	notificationRepo *NotificationRepository
+	socketService    *socket.SocketService
 }
 
 func (r *ChatRepository) DB() *gorm.DB {
@@ -35,8 +37,8 @@ func (r *ChatRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, socketService *socket.SocketService) *ChatRepository {
-	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, socketService: socketService}
+func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, socketService *socket.SocketService, notificationRepo *NotificationRepository) *ChatRepository {
+	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, socketService: socketService, notificationRepo: notificationRepo}
 }
 
 func (r *ChatRepository) CreateChat(chat *chat.Chat) error {
@@ -267,7 +269,43 @@ func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*
 		return chatPost, err
 	}
 
+	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
+	r.NotifyChatParticipants(chatObj.ID, *author, "New Message", newMessageNotification)
 	return chatPost, err
+}
+
+func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.User, messageTitle, messageText string) error {
+
+	// Katılımcıları ve user ilişkisini preload ile çek
+	var participants []chat.ChatParticipant
+	err := r.db.Preload("User").
+		Where("chat_id = ? AND user_id <> ?", chatId, author.ID).
+		Find(&participants).Error
+	if err != nil {
+		return err
+	}
+
+	// Her katılımcıya bildirim gönder
+	for _, participant := range participants {
+		user := participant.User
+		if user.ID == uuid.Nil {
+			fmt.Printf("User data missing for participant %s\n", participant.ID)
+			continue
+		}
+
+		payload := notifications.NotificationPayload{
+			Title: messageTitle,
+			Body:  messageText,
+			// diğer alanlar eklenecekse ekle
+		}
+
+		err := r.notificationRepo.SendNotificationToUser(user, notifications.NotificationTypeChatMessage, messageTitle, messageText, payload)
+		if err != nil {
+			fmt.Printf("Bildirim gönderilemedi user %s: %v\n", user.ID, err)
+		}
+	}
+
+	return nil
 }
 
 func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {

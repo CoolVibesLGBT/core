@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -174,6 +175,14 @@ type TravelPlan struct {
 	IsPublic    bool                    `json:"is_public"` // Profilde gözükebilir mi?
 }
 
+type Subscription struct {
+	Endpoint string `json:"endpoint"`
+	Keys     struct {
+		P256dh string `json:"p256dh"`
+		Auth   string `json:"auth"`
+	} `json:"keys"`
+}
+
 type User struct {
 	ID          uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	PublicID    int64                  `gorm:"uniqueIndex;not null" json:"public_id"`
@@ -224,6 +233,9 @@ type User struct {
 	Engagements *Engagement `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 	//  Sosyal İlişkiler
 	SocialRelations SocialRelations `json:"social,omitempty" gorm:"embedded;embeddedPrefix:social_"`
+
+	//	Subscriptions []Subscription `gorm:"type:jsonb" json:"subscriptions,omitempty"`
+	Subscriptions datatypes.JSON `gorm:"type:jsonb" json:"subscriptions,omitempty"`
 
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
