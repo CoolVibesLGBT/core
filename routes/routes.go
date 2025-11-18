@@ -87,6 +87,12 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 
 	r.action.Register( // access token'a gore user attributes guncelleme
+		constants.CMD_USER_GET_NOTIFICATIONS,
+		handlers.HandleUserNotifications(userService),
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register( // access token'a gore user attributes guncelleme
 		constants.CMD_USER_UPDATE_PREFERENCES,
 		handlers.HandleSetUserPreferences(userService),
 		middleware.AuthMiddleware(userRepo), // middleware

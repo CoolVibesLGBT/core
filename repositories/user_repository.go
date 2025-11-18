@@ -4,6 +4,7 @@ import (
 	"context"
 	"coolvibes/helpers"
 	"coolvibes/models"
+	"coolvibes/models/notifications"
 	"coolvibes/models/utils"
 	"encoding/hex"
 	"encoding/json"
@@ -567,4 +568,25 @@ func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) ([]*notifications.Notification, error) {
+	var notifications []*notifications.Notification
+
+	db := r.db.WithContext(ctx).
+		Where("user_id = ?", auth_user.ID).
+		Order("created_at DESC").
+		Limit(limit).
+		Preload("Sender")
+
+	if cursor != nil {
+		// Cursor varsa, created_at değeri cursor'dan küçük olanları getir (daha eski)
+		db = db.Where("created_at < ?", *cursor)
+	}
+
+	if err := db.Find(&notifications).Error; err != nil {
+		return nil, err
+	}
+
+	return notifications, nil
 }

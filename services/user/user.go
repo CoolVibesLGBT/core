@@ -7,6 +7,7 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/models/media"
+	"coolvibes/models/notifications"
 	"coolvibes/models/utils"
 	"coolvibes/repositories"
 	"errors"
@@ -590,4 +591,8 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 	}
 
 	return true, nil
+}
+
+func (s *UserService) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) ([]*notifications.Notification, error) {
+	return s.userRepo.FetchUserNotifications(ctx, auth_user, cursor, limit)
 }

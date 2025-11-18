@@ -60,6 +60,7 @@ const (
 	CMD_USER_TOGGLE_BLOCK = "user.block.toggle"
 
 	CMD_USER_FETCH_NEARBY_USERS = "user.fetch.nearby.users"
+	CMD_USER_GET_NOTIFICATIONS  = "user.fetch.notifications"
 
 	CMD_USER_POSTS          = "user.fetch.posts"
 	CMD_USER_POST_REPLIES   = "user.fetch.posts.replies"

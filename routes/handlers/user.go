@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UserHandler struct {
@@ -824,6 +825,53 @@ func HandleUserToggleBlock(s *services.UserService) http.HandlerFunc {
 
 		utils.SendJSON(w, http.StatusOK, map[string]string{
 			"message": message,
+		})
+	}
+}
+
+func HandleUserNotifications(s *services.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
+			return
+		}
+
+		// Form verilerini parse et
+		if err := r.ParseForm(); err != nil {
+			utils.SendError(w, http.StatusBadRequest, "Failed to parse form data")
+			return
+		}
+
+		limit := 100 // default limit
+		if l := r.Form.Get("limit"); l != "" {
+			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			} else {
+				utils.SendError(w, http.StatusBadRequest, "Invalid limit value")
+				return
+			}
+		}
+
+		var cursor *time.Time
+		if c := r.Form.Get("cursor"); c != "" {
+			parsedTime, err := time.Parse(time.RFC3339, c)
+			if err != nil {
+				utils.SendError(w, http.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
+				return
+			}
+			cursor = &parsedTime
+		}
+
+		notifications, err := s.FetchUserNotifications(r.Context(), auth_user, cursor, limit)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to fetch notifications")
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"notifications": notifications,
 		})
 	}
 }
