@@ -3,6 +3,7 @@ package handlers
 import (
 	"coolvibes/constants"
 	"coolvibes/middleware"
+	"coolvibes/models"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"fmt"
@@ -568,17 +569,74 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 			http.Error(w, "invalid form data", http.StatusBadRequest)
 			return
 		}
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
+		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
 			return
 		}
 
 		//engagement_type
+		engagement_type := r.FormValue("engagement_type")
+		engageeIdStr := r.FormValue("user_id")
+		engageeId, err := strconv.ParseInt(engageeIdStr, 10, 64)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+			return
+		}
+
+		var cursor *time.Time
+		if c := r.FormValue("cursor"); c != "" {
+			parsedTime, err := time.Parse(time.RFC3339, c)
+			if err != nil {
+				utils.SendError(w, http.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
+				return
+			}
+			cursor = &parsedTime
+		}
+
+		limit := 100 // default limit
+		if l := r.FormValue("limit"); l != "" {
+			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
+				limit = parsedLimit
+			} else {
+				utils.SendError(w, http.StatusBadRequest, "Invalid limit value")
+				return
+			}
+		}
+
+		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(engageeId)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrUserDoesntExists)
+			return
+		}
+
+		fmt.Println("AuthUser", auth_user.ID)
+		fmt.Println("engagerId", auth_user.ID)
+		fmt.Println("engageeId", engageeId)
+		fmt.Println("EngagementType", engagement_type)
+
+		var engagementKind models.EngagementKind
+		switch engagement_type {
+		case "followings":
+			engagementKind = models.EngagementKindFollowing
+		case "followers":
+			engagementKind = models.EngagementKindFollower
+		default:
+			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidEngagementKind)
+			return
+		}
+
+		engagements, nextCursor, err := s.FetchUserEngagements(r.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrEngagementsDoesntExists)
+			return
+		}
 
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user":    nil,
-			"success": true,
+			"engagements": engagements,
+			"next_cursor": nextCursor,
+			"prev_cursor": cursor,
+			"success":     true,
 		})
 	}
 }

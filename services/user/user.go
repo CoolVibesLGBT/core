@@ -26,6 +26,7 @@ type UserService struct {
 	mediaRepo        *repositories.MediaRepository
 	userRepo         *repositories.UserRepository
 	postRepo         *repositories.PostRepository
+	engagementRepo   *repositories.EngagementRepository
 	notificationRepo *repositories.NotificationRepository
 }
 
@@ -33,9 +34,14 @@ func NewUserService(
 	userRepo *repositories.UserRepository,
 	postRepo *repositories.PostRepository,
 	mediaRepo *repositories.MediaRepository,
+	engagementRepo *repositories.EngagementRepository,
 	notificationRepo *repositories.NotificationRepository,
 ) *UserService {
-	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo}
+	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo, engagementRepo: engagementRepo}
+}
+
+func (s *UserService) UserRepository() *repositories.UserRepository {
+	return s.userRepo
 }
 
 // Register işlemi
@@ -656,6 +662,10 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 	return true, nil
 }
 
-func (s *UserService) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
-	return s.userRepo.FetchUserNotifications(ctx, auth_user, cursor, limit)
+func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
+	return s.userRepo.FetchUserNotifications(ctx, authUser, cursor, limit)
+}
+
+func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
 }

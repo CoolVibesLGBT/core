@@ -572,12 +572,7 @@ func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {
 	return nil
 }
 
-func (r *UserRepository) FetchUserNotifications(
-	ctx context.Context,
-	auth_user *models.User,
-	cursor *time.Time,
-	limit int,
-) (items []*notifications.Notification, nextCursor *time.Time, err error) {
+func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
 
 	db := r.db.WithContext(ctx).
 		Where("user_id = ?", auth_user.ID).

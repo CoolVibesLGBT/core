@@ -1,7 +1,6 @@
 package main
 
 import (
-	"coolvibes/faker"
 	"coolvibes/helpers"
 	"coolvibes/routes"
 	"coolvibes/services/db"
@@ -81,7 +80,7 @@ func NewApp() (*App, error) {
 			test.StartTest(db.DB, snowFlakeNode, nil)
 		}
 
-		faker.FakeUser(instance.DB, snowFlakeNode)
+		//faker.FakeUser(instance.DB, snowFlakeNode)
 
 	}
 

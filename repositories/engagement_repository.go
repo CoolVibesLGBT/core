@@ -115,7 +115,7 @@ func (r *EngagementRepository) CreateEngagementDetail(ctx context.Context, detai
 }
 
 // GetEngagement fetches engagement aggregate record by contentable id/type
-func (r *EngagementRepository) GetEngagement(ctx context.Context, contentableID uuid.UUID, contentableType string) (*models.Engagement, error) {
+func (r *EngagementRepository) GetEngagement(ctx context.Context, contentableID uuid.UUID, contentableType models.EngagementContentableType) (*models.Engagement, error) {
 	var engagement models.Engagement
 	if err := r.db.WithContext(ctx).Where("contentable_id = ? AND contentable_type = ?", contentableID, contentableType).First(&engagement).Error; err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (r *EngagementRepository) ListEngagementDetailsDeprecated(ctx context.Conte
 	return details, nil
 }
 
-func (r *EngagementRepository) ListEngagementDetails(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind) ([]models.EngagementDetail, error) {
+func (r *EngagementRepository) GetEngagementDetails(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind) ([]models.EngagementDetail, error) {
 	var details []models.EngagementDetail
 	// Base filter
 	filters := models.EngagementDetail{
@@ -152,6 +152,41 @@ func (r *EngagementRepository) ListEngagementDetails(ctx context.Context, engage
 	}
 
 	return details, nil
+}
+
+func (r *EngagementRepository) GetEngagementDetailsWithCursor(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+	var details []models.EngagementDetail
+	filters := models.EngagementDetail{
+		EngagementID: engagementID,
+	}
+	if kind != nil {
+		filters.Kind = *kind
+	}
+	q := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+		Preload("Engager.Avatar.File").
+		Preload("Engagee.Avatar.File").
+		Where(&filters)
+	if cursor != nil {
+		q = q.Where("created_at < ?", *cursor)
+	}
+	if limit <= 0 {
+		limit = 100
+	}
+	err := q.Order("created_at DESC").
+		Limit(limit).
+		Find(&details).
+		Error
+
+	if err != nil {
+		return []models.EngagementDetail{}, nil, err
+	}
+	if len(details) == 0 {
+		return []models.EngagementDetail{}, nil, nil
+	}
+	last := details[len(details)-1].CreatedAt
+	nextCursor := &last
+
+	return details, nextCursor, nil
 }
 
 // RemoveEngagementDetail deletes an engagement detail and decrements the count/amount in aggregate
@@ -330,4 +365,14 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, engagerID u
 		// Var ise sil (toggle OFF)
 		return false, r.RemoveEngagementDetail(ctx, existingDetail.ID)
 	}
+}
+
+func (r *EngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableId uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+	engagement, err := r.GetEngagement(ctx, contentableId, contentableType)
+	if err != nil {
+		return []models.EngagementDetail{}, nil, err
+	}
+
+	fmt.Println("engagement", engagement.ID, engagement.ContentableID)
+	return r.GetEngagementDetailsWithCursor(ctx, engagement.ID, &engagementKind, cursor, limit)
 }
