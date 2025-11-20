@@ -331,7 +331,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL", userId).
+		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId,"post").
 		Order("public_id DESC").
 		Limit(limit)
 
@@ -363,7 +363,7 @@ func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, lim
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NOT NULL", userID).
+		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", userID, "post").
 		Order("public_id DESC").
 		Limit(limit)
 
