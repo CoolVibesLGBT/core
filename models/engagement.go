@@ -8,6 +8,13 @@ import (
 	"gorm.io/datatypes"
 )
 
+type EngagementContentableType string
+
+const (
+	EngagementContentableTypeUser EngagementContentableType = "user"
+	EngagementContentableTypePost EngagementContentableType = "post"
+)
+
 // EngagementKind enumu
 type EngagementKind string
 
@@ -94,27 +101,25 @@ func NewCountsMap() map[string]interface{} {
 }
 
 type Engagement struct {
-	ID              uuid.UUID      `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
-	ContentableID   uuid.UUID      `gorm:"type:uuid;not null;index" json:"contentable_id"`
-	ContentableType string         `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
-	Counts          datatypes.JSON `gorm:"type:jsonb;default:'{}'" json:"counts"`
-	CreatedAt       time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt       time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	ID              uuid.UUID                 `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ContentableID   uuid.UUID                 `gorm:"type:uuid;not null;index" json:"contentable_id"`
+	ContentableType EngagementContentableType `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
+	Counts          datatypes.JSON            `gorm:"type:jsonb;default:'{}'" json:"counts"`
+	CreatedAt       time.Time                 `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt       time.Time                 `gorm:"autoUpdateTime" json:"updated_at"`
 
 	EngagementDetails []EngagementDetail `gorm:"foreignKey:EngagementID;constraint:OnDelete:CASCADE;" json:"engagement_details,omitempty"`
 }
 
 type EngagementDetail struct {
-	ID           uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
-	EngagementID uuid.UUID `gorm:"type:uuid;not null;index" json:"engagement_id"`
-
-	EngagerID uuid.UUID `gorm:"type:uuid;not null;index" json:"engager_id"`
-	Engager   User      `gorm:"foreignKey:EngagerID" json:"engager,omitempty"`
-
-	RecipientID uuid.UUID      `gorm:"type:uuid;index" json:"recipient_id,omitempty"`
-	Recipient   User           `gorm:"foreignKey:RecipientID" json:"recipient,omitempty"`
-	Kind        EngagementKind `gorm:"type:varchar(50);not null;index" json:"kind"`
-	Details     datatypes.JSON `gorm:"type:jsonb;default:'{}'" json:"details"`
-	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	ID           uuid.UUID      `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	EngagementID uuid.UUID      `gorm:"type:uuid;not null;index" json:"engagement_id"`
+	EngagerID    uuid.UUID      `gorm:"type:uuid;not null;index" json:"engager_id"` //etkilesimi yapan ornegin: takip eden
+	Engager      User           `gorm:"foreignKey:EngagerID" json:"engager,omitempty"`
+	EngageeID    uuid.UUID      `gorm:"type:uuid;index" json:"engagee_id,omitempty"` //etkilesimi alan ornegin: takip edilen
+	Engagee      User           `gorm:"foreignKey:EngageeID" json:"engagee,omitempty"`
+	Kind         EngagementKind `gorm:"type:varchar(50);not null;index" json:"kind"`
+	Details      datatypes.JSON `gorm:"type:jsonb;default:'{}'" json:"details"`
+	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 }

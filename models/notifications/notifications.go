@@ -17,12 +17,13 @@ const (
 	NotificationTypeFriendRequest = "friend_request" // Arkadaşlık isteği (isteğe bağlı)
 	NotificationTypeEventReminder = "event_reminder" // Etkinlik hatırlatıcısı
 	NotificationTypeSystemAlert   = "system_alert"   // Sistem uyarısı veya güncelleme
-
-	NotificationTypeLike         = "like"          // Profil beğenisi bildirimi
-	NotificationTypeFollow       = "follow"        // Takip bildirimi (eğer varsa)
-	NotificationTypeSuperLike    = "super_like"    // Özel beğeni bildirimi (örn. Tinder’daki gibi)
-	NotificationTypeMessageRead  = "message_read"  // Mesaj okundu bildirimi
-	NotificationTypeMatchUnmatch = "match_unmatch" // Eşleşme iptali bildirimi
+	NotificationTypeLike          = "like"           // Profil beğenisi bildirimi
+	NotificationTypeGiftReceived  = "gift"           // Profil beğenisi bildirimi
+	NotificationTypeFollow        = "follow"         // Takip bildirimi (eğer varsa)
+	NotificationTypeUnFollow      = "unfollow"       // Takip birakma bildirimi (eğer varsa)
+	NotificationTypeSuperLike     = "super_like"     // Özel beğeni bildirimi (örn. Tinder’daki gibi)
+	NotificationTypeMessageRead   = "message_read"   // Mesaj okundu bildirimi
+	NotificationTypeMatchUnmatch  = "match_unmatch"  // Eşleşme iptali bildirimi
 )
 
 type Notification struct {

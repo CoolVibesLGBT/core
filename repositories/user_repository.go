@@ -57,7 +57,8 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 	err := r.db.
 		Preload("Engagements").
 		Preload("Engagements.EngagementDetails").
-		Preload("Engagements.EngagementDetails.Recipient").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Avatar.File").
 		Preload("Cover.File").
 		Preload("SocialRelations.Likes").
@@ -116,7 +117,8 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 			Preload("Avatar.File").
 			Preload("Engagements").
 			Preload("Engagements.EngagementDetails").
-			Preload("Engagements.EngagementDetails.Recipient").
+			Preload("Engagements.EngagementDetails.Engager").
+			Preload("Engagements.EngagementDetails.Engagee").
 			Preload("Cover.File").
 			Preload("Location").
 			Preload("SocialRelations.Likes").
@@ -151,8 +153,8 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*models.User, error) {
 			Preload("Cover").
 			Preload("Location").
 			Preload("Engagements").
-			Preload("Engagements.EngagementDetails").
-			Preload("Engagements.EngagementDetails.Recipient").
+			Preload("Engagements.EngagementDetails.Engager").
+			Preload("Engagements.EngagementDetails.Engagee").
 			Preload("SocialRelations.Likes").
 			Preload("SocialRelations.LikedBy").
 			Preload("SocialRelations.Matches").
@@ -570,23 +572,35 @@ func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {
 	return nil
 }
 
-func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) ([]*notifications.Notification, error) {
-	var notifications []*notifications.Notification
+func (r *UserRepository) FetchUserNotifications(
+	ctx context.Context,
+	auth_user *models.User,
+	cursor *time.Time,
+	limit int,
+) (items []*notifications.Notification, nextCursor *time.Time, err error) {
 
 	db := r.db.WithContext(ctx).
 		Where("user_id = ?", auth_user.ID).
 		Order("created_at DESC").
-		Limit(limit).
+		Limit(limit + 1). // +1 => daha fazla var mı görmek için
 		Preload("Sender")
 
 	if cursor != nil {
-		// Cursor varsa, created_at değeri cursor'dan küçük olanları getir (daha eski)
 		db = db.Where("created_at < ?", *cursor)
 	}
 
-	if err := db.Find(&notifications).Error; err != nil {
-		return nil, err
+	if err := db.Find(&items).Error; err != nil {
+		return nil, nil, err
 	}
 
-	return notifications, nil
+	// Eğer fazla varsa next cursor üret
+	if len(items) > limit {
+		last := items[limit]
+		items = items[:limit]        // fazlayı çıkar
+		nextCursor = &last.CreatedAt // bir sonraki cursor bu
+	} else {
+		nextCursor = nil // daha fazla yok
+	}
+
+	return items, nextCursor, nil
 }

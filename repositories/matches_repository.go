@@ -42,15 +42,15 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID
 	}
 	kindMatched := models.EngagementKindMatched
 
-	recipientId := toUserId
+	engageeId := toUserId
 	engagerId := fromUserId
 
-	_, err := m.addEngagementPair(ctx, recipientId, engagerId, kindGiven)
+	_, err := m.addEngagementPair(ctx, engageeId, engagerId, kindGiven)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = m.addEngagementPair(ctx, engagerId, recipientId, kindReceived)
+	_, err = m.addEngagementPair(ctx, engagerId, engageeId, kindReceived)
 	if err != nil {
 		return false, err
 	}
@@ -61,23 +61,23 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID
 	}
 
 	if isMatched {
-		_, err := m.addEngagementPair(ctx, recipientId, engagerId, kindMatched)
+		_, err := m.addEngagementPair(ctx, engageeId, engagerId, kindMatched)
 		if err != nil {
 			return false, err
 		}
 
-		_, err = m.addEngagementPair(ctx, engagerId, recipientId, kindMatched)
+		_, err = m.addEngagementPair(ctx, engagerId, engageeId, kindMatched)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	_, err = m.addEngagementPair(ctx, recipientId, engagerId, models.EngagementKindViewGiven)
+	_, err = m.addEngagementPair(ctx, engageeId, engagerId, models.EngagementKindViewGiven)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = m.addEngagementPair(ctx, engagerId, recipientId, models.EngagementKindViewReceived)
+	_, err = m.addEngagementPair(ctx, engagerId, engageeId, models.EngagementKindViewReceived)
 	if err != nil {
 		return false, err
 	}
@@ -109,8 +109,8 @@ func (m *MatchesRepository) IsMatched(ctx context.Context, fromUserId, toUserId 
 // userID → targetID
 // -----------------------------------------------
 
-func (m *MatchesRepository) addEngagementPair(ctx context.Context, recipientID, engagerID uuid.UUID, kind models.EngagementKind) (bool, error) {
-	status, err := m.engagementRepo.ToggleEngagement(ctx, recipientID, engagerID, kind, engagerID, "user")
+func (m *MatchesRepository) addEngagementPair(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error) {
+	status, err := m.engagementRepo.ToggleEngagement(ctx, engageeID, engagerID, kind, engagerID, "user")
 	if err != nil {
 		return status, err
 	}
@@ -161,7 +161,7 @@ func (m *MatchesRepository) WasSeenRecently(
 	err := m.db.WithContext(ctx).
 		Model(&models.EngagementDetail{}).
 		Where(`
-			engager_id = ? AND recipient_id = ? 
+			engager_id = ? AND engagee_id = ? 
 			AND created_at >= ? 
 			AND kind IN ('like_given','dislike_given')
 		`, userID, targetID, since).
@@ -186,7 +186,7 @@ func (m *MatchesRepository) GetLikesAfter(
 	q := m.db.WithContext(ctx).
 		Model(&models.EngagementDetail{}).
 		Select("users.*").
-		Joins("JOIN users ON users.id = engagement_details.recipient_id").
+		Joins("JOIN users ON users.id = engagement_details.engagee_id").
 		Where("engager_id = ? AND kind = ?", userID, models.EngagementKindLikeGiven)
 
 	if cursor != nil {
@@ -218,11 +218,11 @@ func (m *MatchesRepository) GetMatchesAfter(
 	// Karşılıklı beğenme (match)
 	sub := m.db.
 		Table("engagement_details AS a").
-		Select("a.recipient_id").
+		Select("a.engagee_id").
 		Joins(`
 			INNER JOIN engagement_details b 
-			ON a.recipient_id = b.engager_id 
-			AND a.engager_id = b.recipient_id
+			ON a.engagee_id = b.engager_id 
+			AND a.engager_id = b.engagee_id
 			AND a.kind = 'like_given'
 			AND b.kind = 'like_given'
 		`).
@@ -258,7 +258,7 @@ func (m *MatchesRepository) GetUnseenUsers(
 
 	sub := m.db.
 		Table("engagement_details").
-		Select("recipient_id").
+		Select("engagee_id").
 		Where("engager_id = ? AND created_at >= NOW() - INTERVAL '24 hours' AND kind = ?", userID, models.EngagementKindViewGiven)
 
 	var users []models.User
@@ -287,7 +287,7 @@ func (m *MatchesRepository) GetPassesAfter(
 	// Öncelikle dislike edilen kullanıcıların ID'lerini engagement_details tablosundan alıyoruz
 	subQuery := m.db.WithContext(ctx).
 		Model(&models.EngagementDetail{}).
-		Select("recipient_id").
+		Select("engagee_id").
 		Where("engager_id = ?", userID).
 		Where("kind = ?", models.EngagementKindDislikeGiven) // dislike türü
 	if cursor != nil {

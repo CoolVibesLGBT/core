@@ -489,14 +489,21 @@ func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
 
 		var message string
 		if status {
-			message = "User unfollowed successfully"
-		} else {
 			message = "User followed successfully"
-
+		} else {
+			message = "User unfollowed successfully"
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]string{
+		user, err := s.GetUserByID(auth_user.ID)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"message": message,
+			"status":  status,
+			"user":    user,
 		})
 	}
 }
@@ -864,7 +871,7 @@ func HandleUserNotifications(s *services.UserService) http.HandlerFunc {
 			cursor = &parsedTime
 		}
 
-		notifications, err := s.FetchUserNotifications(r.Context(), auth_user, cursor, limit)
+		notifications, nextCursor, err := s.FetchUserNotifications(r.Context(), auth_user, cursor, limit)
 		if err != nil {
 			utils.SendError(w, http.StatusInternalServerError, "Failed to fetch notifications")
 			return
@@ -872,6 +879,9 @@ func HandleUserNotifications(s *services.UserService) http.HandlerFunc {
 
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"notifications": notifications,
+			"prev_cursor":   cursor,
+			"next_cursor":   nextCursor,
+			"success":       true,
 		})
 	}
 }

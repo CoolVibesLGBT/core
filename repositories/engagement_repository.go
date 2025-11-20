@@ -124,7 +124,7 @@ func (r *EngagementRepository) GetEngagement(ctx context.Context, contentableID 
 }
 
 // ListEngagementDetails lists all engagement details for a given engagement ID, optionally filtered by kind
-func (r *EngagementRepository) ListEngagementDetails(ctx context.Context, engagementID uuid.UUID, kind *string) ([]models.EngagementDetail, error) {
+func (r *EngagementRepository) ListEngagementDetailsDeprecated(ctx context.Context, engagementID uuid.UUID, kind *string) ([]models.EngagementDetail, error) {
 	var details []models.EngagementDetail
 	query := r.db.WithContext(ctx).Where("engagement_id = ?", engagementID)
 	if kind != nil {
@@ -133,6 +133,24 @@ func (r *EngagementRepository) ListEngagementDetails(ctx context.Context, engage
 	if err := query.Order("created_at desc").Find(&details).Error; err != nil {
 		return nil, err
 	}
+	return details, nil
+}
+
+func (r *EngagementRepository) ListEngagementDetails(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind) ([]models.EngagementDetail, error) {
+	var details []models.EngagementDetail
+	// Base filter
+	filters := models.EngagementDetail{
+		EngagementID: engagementID,
+	}
+	// If kind provided, apply it
+	if kind != nil {
+		filters.Kind = *kind
+	}
+	err := r.db.WithContext(ctx).Where(&filters).Order("created_at DESC").Find(&details).Error
+	if err != nil {
+		return nil, err
+	}
+
 	return details, nil
 }
 
@@ -222,13 +240,23 @@ func (r *EngagementRepository) RemoveEngagementDetail(ctx context.Context, detai
 	})
 }
 
-func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagerID uuid.UUID, recipientID uuid.UUID, kind models.EngagementKind) (bool, error) {
+func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error) {
 	var count int64
+
+	/*
+		err := r.db.WithContext(ctx).
+			Model(&models.EngagementDetail{}).
+			Where("engager_id = ? AND engagee_id = ? AND kind = ?", engagerID, engageeID, kind).
+			Count(&count).Error
+	*/
 	err := r.db.WithContext(ctx).
 		Model(&models.EngagementDetail{}).
-		Where("engager_id = ? AND recipient_id = ? AND kind = ?", engagerID, recipientID, kind).
+		Where(&models.EngagementDetail{
+			EngagerID: engagerID,
+			EngageeID: engageeID,
+			Kind:      kind,
+		}).
 		Count(&count).Error
-
 	if err != nil {
 		return false, err
 	}
@@ -236,12 +264,22 @@ func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagerID uui
 }
 
 // userID,       // Kimin içeriği (post, video, vs) bu? İçeriğin sahibi (target user)
-// engagerID,    // Etkileşimi yapan kullanıcı (engager)
-func (r *EngagementRepository) ToggleEngagement(ctx context.Context, recipientID, engagerID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType string) (bool, error) {
+// engagerID,    // Etkileşimi yapan kullanıcı (engager) //takip eden
+// engageeID,	// Etkilesimi alan kullanici ornegin: takip edilen
+func (r *EngagementRepository) ToggleEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) (bool, error) {
 	// Engagement kaydını al veya oluştur
 	var engagement models.Engagement
+
+	/*
+		err := r.db.WithContext(ctx).
+			Where("contentable_id = ? AND contentable_type = ?", contentableID, contentableType).
+			First(&engagement).Error
+	*/
 	err := r.db.WithContext(ctx).
-		Where("contentable_id = ? AND contentable_type = ?", contentableID, contentableType).
+		Where(&models.Engagement{
+			ContentableID:   contentableID,
+			ContentableType: contentableType,
+		}).
 		First(&engagement).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -262,8 +300,17 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, recipientID
 
 	// EngagementDetail kontrolü
 	var existingDetail models.EngagementDetail
+	//err = r.db.WithContext(ctx).
+	//	Where("engagement_id = ? AND engager_id = ? AND engagee_id = ? AND kind = ?", engagement.ID, engagerID, engageeID, kind).
+	// First(&existingDetail).Error
+
 	err = r.db.WithContext(ctx).
-		Where("engagement_id = ? AND engager_id = ? AND recipient_id = ? AND kind = ?", engagement.ID, engagerID, recipientID, kind).
+		Where(&models.EngagementDetail{
+			EngagementID: engagement.ID,
+			EngagerID:    engagerID,
+			EngageeID:    engageeID,
+			Kind:         kind,
+		}).
 		First(&existingDetail).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -272,7 +319,7 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, recipientID
 			ID:           uuid.New(),
 			EngagementID: engagement.ID,
 			EngagerID:    engagerID,
-			RecipientID:  recipientID, // İçeriğin sahibi (target user)
+			EngageeID:    engageeID, // İçeriğin sahibi (target user)
 			Kind:         kind,
 			CreatedAt:    time.Now(),
 		}

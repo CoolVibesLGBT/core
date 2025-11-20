@@ -23,16 +23,19 @@ import (
 )
 
 type UserService struct {
-	mediaRepo *repositories.MediaRepository
-	userRepo  *repositories.UserRepository
-	postRepo  *repositories.PostRepository
+	mediaRepo        *repositories.MediaRepository
+	userRepo         *repositories.UserRepository
+	postRepo         *repositories.PostRepository
+	notificationRepo *repositories.NotificationRepository
 }
 
 func NewUserService(
 	userRepo *repositories.UserRepository,
 	postRepo *repositories.PostRepository,
-	mediaRepo *repositories.MediaRepository) *UserService {
-	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
+	mediaRepo *repositories.MediaRepository,
+	notificationRepo *repositories.NotificationRepository,
+) *UserService {
+	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo}
 }
 
 // Register işlemi
@@ -354,30 +357,90 @@ func (s *UserService) HandleFollow(ctx context.Context, followerID, followeeID i
 }
 
 func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID int64) (bool, error) {
-	follower, err := s.userRepo.GetUserByPublicIdWithoutRelations(followerID)
+	followerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(followerID)
 	if err != nil {
-		return false, errors.New(err.Error())
+		return false, err
 	}
-	followee, err := s.userRepo.GetUserByPublicIdWithoutRelations(followeeID)
+	followeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(followeeID)
 	if err != nil {
-		return false, errors.New(err.Error())
+		return false, err
 	}
 
 	engagementRepo := s.userRepo.GetEngagementRepository()
+	notificationRepo := s.notificationRepo
 
-	// Takip edilenin takipçi sayısını toggle et (kind = follower)
-	status, err := engagementRepo.ToggleEngagement(ctx, followee.ID, follower.ID, models.EngagementKindFollower, followee.ID, "user")
+	//takip et
+	_, err = engagementRepo.ToggleEngagement(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing, followerUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
-		return status, err
+		return false, err
+	}
+	// takipcilere yaz
+	_, err = engagementRepo.ToggleEngagement(ctx, followeeUser.ID, followerUser.ID, models.EngagementKindFollower, followeeUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return false, err
 	}
 
-	// Takip edenin takip ettiği kişi sayısını toggle et (kind = following)
-	status, err = engagementRepo.ToggleEngagement(ctx, follower.ID, followee.ID, models.EngagementKindFollowing, follower.ID, "user")
+	isFollowing, err := engagementRepo.HasUserEngaged(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing)
 	if err != nil {
-		return status, err
+		return false, err
 	}
 
-	return true, nil
+	fmt.Println("isFollowing:", isFollowing)
+
+	if isFollowing {
+		// Follow started
+		notificationTitleToFollowee := "New Follower"
+		notificationBodyToFollowee := followerUser.UserName + " started following you."
+
+		payloadToFollowee := notifications.NotificationPayload{
+			Title: notificationTitleToFollowee,
+			Body:  notificationBodyToFollowee,
+		}
+		err := notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+		}
+
+		notificationTitleToFollower := "Follow Started"
+		notificationBodyToFollower := "You started following " + followeeUser.UserName + "."
+
+		payloadToFollower := notifications.NotificationPayload{
+			Title: notificationTitleToFollower,
+			Body:  notificationBodyToFollower,
+		}
+		err = notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+		}
+
+	} else {
+		// Follow stopped
+		notificationTitleToFollowee := "Unfollowed"
+		notificationBodyToFollowee := followerUser.UserName + " unfollowed you."
+
+		payloadToFollowee := notifications.NotificationPayload{
+			Title: notificationTitleToFollowee,
+			Body:  notificationBodyToFollowee,
+		}
+		err := notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeUnFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+		}
+
+		notificationTitleToFollower := "Unfollowed"
+		notificationBodyToFollower := "You unfollowed " + followeeUser.UserName + "."
+
+		payloadToFollower := notifications.NotificationPayload{
+			Title: notificationTitleToFollower,
+			Body:  notificationBodyToFollower,
+		}
+		err = notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeUnFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+		}
+	}
+
+	return isFollowing, nil
 }
 
 func (s *UserService) UpdateUserProfile(authUser models.User, request map[string][]string) (*models.User, error) {
@@ -593,6 +656,6 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 	return true, nil
 }
 
-func (s *UserService) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) ([]*notifications.Notification, error) {
+func (s *UserService) FetchUserNotifications(ctx context.Context, auth_user *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
 	return s.userRepo.FetchUserNotifications(ctx, auth_user, cursor, limit)
 }
