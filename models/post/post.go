@@ -85,13 +85,14 @@ type Post struct {
 	Mentions    []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
 	Hashtags    []*models.Hashtag `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
 
-	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
+	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
 	Event *payloads.Event  `gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE" json:"event,omitempty"`
 
 	Location    *utils.Location `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE;" json:"location,omitempty"`
 	Contentable any             `gorm:"-" json:"contentable,omitempty"`
 
-	Engagements []*models.Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
+	//	Engagements *models.Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
+	Engagements *models.Engagement `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 }
 
 func (Post) TableName() string {

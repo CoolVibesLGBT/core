@@ -43,7 +43,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	socketService := socket.NewSocketService(r.db)
 
 	// repository ve service oluştur
-	engagementRepo := repositories.NewEngagementRepository(r.db, socketService)
+	engagementRepo := repositories.NewEngagementRepository(r.db)
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
@@ -51,12 +51,12 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
 	notificationService := services.NewNotificationsService(notificationRepo)
 
-	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, socketService, notificationRepo)
+	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, notificationRepo)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
-	chatService := services.NewChatService(userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
+	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
@@ -227,6 +227,18 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		middleware.AuthMiddleware(userRepo), // middleware
 	)
 
+	r.action.Register(
+		constants.CMD_POST_VOTE,
+		handlers.HandleVote(postService),    // handler
+		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register(constants.CMD_POST_BANANA, handlers.HandlePostBanana(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_LIKE, handlers.HandlePostLike(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_DISLIKE, handlers.HandlePostDislike(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_BOOKMARK, handlers.HandlePostBookmark(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_REPORT, handlers.HandlePostReport(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_VIEW, handlers.HandlePostView(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
 	r.action.Register(constants.CMD_POST_VIBES, handlers.HandleTimelineVibes(postService))

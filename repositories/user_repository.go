@@ -578,7 +578,7 @@ func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *
 		Where("user_id = ?", auth_user.ID).
 		Order("created_at DESC").
 		Limit(limit + 1). // +1 => daha fazla var mı görmek için
-		Preload("Sender")
+		Preload("Sender.Avatar.File")
 
 	if cursor != nil {
 		db = db.Where("created_at < ?", *cursor)

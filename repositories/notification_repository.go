@@ -169,3 +169,17 @@ func (r *NotificationRepository) FetchAndMarkShownNotifications(userID uuid.UUID
 
 	return notificationList, nil
 }
+
+func (r *NotificationRepository) MarkNotificationAsRead(notificationID string) error {
+	id, err := uuid.Parse(notificationID)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	return r.db.Model(&notifications.Notification{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"is_read": true,
+			"read_at": now,
+		}).Error
+}

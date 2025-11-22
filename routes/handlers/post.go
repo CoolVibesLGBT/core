@@ -57,6 +57,251 @@ func HandleCreate(s *services.PostService) http.HandlerFunc {
 	}
 }
 
+func HandleVote(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		choiceIdStr := r.FormValue("choice_id")
+		weightStr := r.FormValue("weight")
+		rankStr := r.FormValue("rank")
+
+		choiceId, err := uuid.Parse(choiceIdStr)
+		if err != nil {
+			utils.SendError(w, http.StatusBadRequest, "invalid_choice_id")
+			return
+		}
+
+		weight := 1 // default
+		if weightStr != "" {
+			weight, err = strconv.Atoi(weightStr)
+			if err != nil || weight <= 0 {
+				utils.SendError(w, http.StatusBadRequest, "invalid_weight")
+				return
+			}
+		}
+
+		rank := 0 // default
+		if rankStr != "" {
+			rank, err = strconv.Atoi(rankStr)
+			if err != nil || rank < 0 {
+				utils.SendError(w, http.StatusBadRequest, "invalid_rank")
+				return
+			}
+		}
+
+		err = s.Vote(r.Context(), choiceId, weight, rank, user.ID)
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+			"error":   err,
+		})
+
+	}
+}
+
+func HandlePostLike(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Like(r.Context(), postId, user)
+		if err != nil {
+			http.Error(w, "failed to like post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+		})
+
+	}
+}
+
+func HandlePostBanana(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Banana(r.Context(), postId, user)
+		if err != nil {
+			http.Error(w, "failed to like post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+		})
+
+	}
+}
+
+func HandlePostDislike(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Dislike(r.Context(), postId, user)
+		if err != nil {
+			http.Error(w, "failed to dislike post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+		})
+
+	}
+}
+
+func HandlePostBookmark(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Bookmark(r.Context(), postId, user)
+		if err != nil {
+			http.Error(w, "failed to bookmark post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+		})
+
+	}
+}
+
+func HandlePostReport(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		fmt.Println("CODER", user.ID)
+
+	}
+}
+
+func HandlePostView(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		fmt.Println("CODER", user.ID)
+
+	}
+}
+
 func HandleGetByID(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.URL.Query().Get("id")

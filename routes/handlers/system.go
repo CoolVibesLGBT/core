@@ -5,6 +5,7 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/middleware"
 	"coolvibes/models"
+	eventkinds "coolvibes/models/post/payloads"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"encoding/json"
@@ -43,6 +44,8 @@ type GroupedAttributes struct {
 type InitialData struct {
 	VapidPubicKey string                      `json:"vapid_public_key"`
 	Preferences   models.PreferencesData      `json:"preferences"`
+	EventKinds    []eventkinds.EventKind      `json:"event_kinds"`
+	ReportKinds   []models.ReportKind         `json:"report_kinds"`
 	Countries     map[string]CountryResponse  `json:"countries"`
 	Languages     map[string]LanguageResponse `json:"languages"`
 	Status        string                      `json:"status"`
@@ -64,6 +67,19 @@ func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
 			http.Error(w, "Failed to fetch preferences data", http.StatusInternalServerError)
 			return
 		}
+
+		var eventKinds []eventkinds.EventKind
+		if err := db.Model(&eventkinds.EventKind{}).Order("display_order ASC").Find(&eventKinds).Error; err != nil {
+			http.Error(w, "Failed to fetch preferences data", http.StatusInternalServerError)
+			return
+		}
+
+		var reportKinds []models.ReportKind
+		if err := db.Model(&models.ReportKind{}).Order("display_order ASC").Find(&reportKinds).Error; err != nil {
+			http.Error(w, "Failed to fetch preferences data", http.StatusInternalServerError)
+			return
+		}
+
 		// 3. Ülkeleri çek
 		// Örneğin countries tablosu veya sabit listeden
 		countries := map[string]CountryResponse{
@@ -103,6 +119,8 @@ func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
 			Preferences:   preferences,
 			Countries:     countries,
 			Languages:     languages,
+			EventKinds:    eventKinds,
+			ReportKinds:   reportKinds,
 			Status:        "ok",
 		}
 

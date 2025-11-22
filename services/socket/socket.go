@@ -1,8 +1,11 @@
 package socket
 
 import (
+	"coolvibes/constants"
 	"coolvibes/helpers"
 	userModel "coolvibes/models"
+	"coolvibes/services/socket/managers"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,7 +26,6 @@ import (
 var Server *socketio.Server
 var userConnections = make(map[string]socketio.Conn)
 var userPublicIDs = make(map[string]int64) // map[socketID]publicID
-
 var allowOriginFunc = func(r *http.Request) bool {
 	return true
 }
@@ -72,7 +74,7 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 	return nil
 }
 
-func ListenServer(db *gorm.DB) {
+func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) {
 
 	Server = socketio.NewServer(&engineio.Options{
 		PingInterval: 25 * time.Second, // Sunucunun istemciye ping atma sıklığı
@@ -135,6 +137,26 @@ func ListenServer(db *gorm.DB) {
 		fmt.Println("chatLeave:", msg)
 	})
 
+	Server.OnEvent("/", "notifications", func(s socketio.Conn, msg string) {
+
+		type NotificationMessage struct {
+			Action         string `json:"action"`
+			Token          string `json:"token"`
+			NotificationID string `json:"notification_id"`
+		}
+
+		var notificationMsg NotificationMessage
+		err := json.Unmarshal([]byte(msg), &notificationMsg)
+		if err != nil {
+			fmt.Println("Error unmarshalling JSON:", err)
+			return
+		}
+		if notificationMsg.Action == constants.CMD_USER_MARK_NOTIFICATIONS_SEEN {
+			notificationManager.MarkNotificationAsRead(notificationMsg.NotificationID)
+		}
+
+	})
+
 	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
 		publicID, ok := userPublicIDs[s.ID()]
 		if ok {
@@ -176,6 +198,7 @@ func NewSocketService(db *gorm.DB) *SocketService {
 
 func (socketService *SocketService) BroadcastToRoom(namespace string, room string, event string, msg string) error {
 	Server.BroadcastToRoom(namespace, room, event, msg)
+
 	return nil
 }
 

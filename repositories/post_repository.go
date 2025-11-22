@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+	"coolvibes/constants"
 	"coolvibes/extensions"
 	"coolvibes/helpers"
 	"coolvibes/models"
@@ -8,6 +10,7 @@ import (
 	"coolvibes/models/post"
 	"coolvibes/models/post/payloads"
 	"coolvibes/models/utils"
+	"errors"
 	"strconv"
 
 	post_payloads "coolvibes/models/post/payloads"
@@ -127,7 +130,6 @@ func (r *PostRepository) GetPostByIDEx(id uuid.UUID) (*post.Post, error) {
 }
 
 func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
-	// 1️⃣ Recursive CTE ile root ve tüm children ID'lerini al
 	var ids []uuid.UUID
 	cte := `
 		WITH RECURSIVE post_tree AS (
@@ -148,20 +150,29 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		return nil, fmt.Errorf("post with id %s not found", id)
 	}
 
-	// 2️⃣ Tüm post'ları ilişkileriyle al
 	var posts []post.Post
 	if err := r.db.
 		Preload("Location").
 		Preload("Poll").
-		Preload("Poll.Choices").
+		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
 		Preload("Poll.Choices.Votes").
+		Preload("Poll.Choices.Votes.User").
+		Preload("Poll.Choices.Votes.User.Avatar").
+		Preload("Poll.Choices.Votes.User.Avatar.File").
 		Preload("Event").
 		Preload("Event.Location").
 		Preload("Event.Attendees").
 		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Author").
 		Preload("Author.Cover").
+		Preload("Author.Cover.File").
 		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
@@ -175,14 +186,12 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		return nil, fmt.Errorf("no posts found for %s", id)
 	}
 
-	// 3️⃣ ID -> *Post map oluştur
 	postMap := make(map[uuid.UUID]*post.Post, len(posts))
 	for i := range posts {
 		posts[i].Children = nil // temizle
 		postMap[posts[i].ID] = &posts[i]
 	}
 
-	// 4️⃣ Recursive ağaç oluşturucu fonksiyon
 	var buildTree func(parent *post.Post)
 	buildTree = func(parent *post.Post) {
 		for _, p := range posts {
@@ -194,16 +203,13 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		}
 	}
 
-	// 5️⃣ Root post'u bul
 	root, ok := postMap[id]
 	if !ok {
 		return nil, fmt.Errorf("post with id %s not found in postMap", id)
 	}
 
-	// 6️⃣ Root’un tüm children’larını derinlemesine inşa et
 	buildTree(root)
 
-	// 7️⃣ Recursive sort (sabit sıra için)
 	var sortChildren func(p *post.Post)
 	sortChildren = func(p *post.Post) {
 		sort.SliceStable(p.Children, func(i, j int) bool {
@@ -240,21 +246,34 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineResult, error) {
 	var posts []post.Post
 
-	fmt.Println("POST_REPO:GetTimeline:TIMELINE:")
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type = ?", post.PostTypePost). // 👈 sadece post olanlar
+		Where("contentable_type = ?", post.PostTypePost).
+		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
 		Preload("Location").
 		Preload("Poll").
-		Preload("Poll.Choices").
+		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("Poll.Choices.Votes").
+		Preload("Poll.Choices.Votes.User").
+		Preload("Poll.Choices.Votes.User.Avatar").
+		Preload("Poll.Choices.Votes.User.Avatar.File").
+		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Event").
 		Preload("Event.Location").
 		Preload("Event.Attendees").
 		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
 		Preload("Author.Cover").
+		Preload("Author.Cover.File").
 		Preload("Hashtags").
+		Preload("Mentions").
 		Preload("Attachments").
 		Preload("Attachments.File")
 
@@ -288,6 +307,10 @@ func (r *PostRepository) GetTimelineVibes(limit int, cursor *int64) (types.Timel
 		Preload("Author.Avatar.File").
 		Preload("Author.Cover").
 		Preload("Author.Cover.File").
+		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("published = ?", true).
@@ -331,7 +354,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId,"post").
+		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, "post").
 		Order("public_id DESC").
 		Limit(limit)
 
@@ -448,10 +471,14 @@ func (r *PostRepository) GetRecentHashtags(limit int) ([]types.HashtagStats, err
 
 func (r *PostRepository) CreateContentablePost(request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	type PollForm struct {
-		ID       string   `form:"id"`
-		Question string   `form:"question"`
-		Duration string   `form:"duration"`
-		Options  []string `form:"options"`
+		ID            string   `form:"id"`
+		Question      string   `form:"question"`
+		Duration      string   `form:"duration"`
+		Kind          string   `form:"kind"`           // single, multiple, ranked, weighted
+		MaxSelectable string   `form:"max_selectable"` // only for multiple, weighted
+		Options       []string `form:"options"`        // seçenekler
+		InitialRanks  []string `form:"ranks"`          // ranked için: her option'ın başlangıç sırası
+		Weights       []string `form:"weights"`        // only for weighted, optional
 	}
 
 	type PostForm struct {
@@ -468,6 +495,13 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		EventDescription string `form:"event[description]"`
 		EventDate        string `form:"event[date]"`
 		EventTime        string `form:"event[time]"`
+		EventKind        string `form:"event[kind]"`
+		EventCapacity    string `form:"event[capacity]"`
+		EventIsPaid      string `form:"event[is_paid]"`
+		EventPrice       string `form:"event[price]"`
+		EventCurrency    string `form:"event[currency]"`
+		EventIsOnline    string `form:"event[is_online]"`
+		EventIsOnlineURL string `form:"event[online_url]"`
 
 		LocationAddress string  `form:"location[address]"`
 		LocationLat     float64 `form:"location[lat]"`
@@ -495,10 +529,15 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	}
 
 	var parentUUID *uuid.UUID
+	var parentPost *post.Post
 	if len(postForm.ParentId) > 0 {
-		parsed, err := uuid.Parse(postForm.ParentId)
+		parentIDInt, err := strconv.ParseInt(postForm.ParentId, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parentId %s: %w", postForm.ParentId, err)
+		}
+		parentPost, err = r.FindPostByPublicID(parentIDInt)
 		if err == nil {
-			parentUUID = &parsed
+			parentUUID = &parentPost.ID
 		}
 	}
 
@@ -559,21 +598,47 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 
 	// Polls ekleme
 	for _, pollInfo := range postForm.Polls {
+
+		maxSelectable := 1
+		if len(pollInfo.MaxSelectable) > 0 {
+			if v, err := strconv.Atoi(pollInfo.MaxSelectable); err == nil {
+				maxSelectable = v
+			}
+		}
+		pollKind := payloads.PollKindSingle
+		if len(pollInfo.Kind) > 0 {
+			pollKind = payloads.PollKind(pollInfo.Kind)
+		}
+
+		if len(pollInfo.Question) == 0 {
+			tx.Rollback()
+			return nil, errors.New(constants.ErrPollTitleEmpty.String())
+		}
+
 		poll := &payloads.Poll{
 			ID:              uuid.New(),
 			ContentableID:   newPost.ID,
 			ContentableType: payloads.ContentablePollPost,
 			Question:        *utils.MakeLocalizedString(defaultLanguage, pollInfo.Question),
 			Duration:        pollInfo.Duration,
+			Kind:            pollKind,
+			MaxSelectable:   maxSelectable,
 			CreatedAt:       time.Now(),
 			UpdatedAt:       time.Now(),
 		}
-		for _, choiceLabel := range pollInfo.Options {
+
+		for index, choiceLabel := range pollInfo.Options {
+			if len(choiceLabel) == 0 {
+				tx.Rollback()
+				return nil, errors.New(constants.ErrPollOptionsEmpty.String())
+			}
+
 			poll.Choices = append(poll.Choices, payloads.PollChoice{
-				ID:        uuid.New(),
-				PollID:    poll.ID,
-				Label:     *utils.MakeLocalizedString(defaultLanguage, choiceLabel),
-				VoteCount: 0,
+				ID:           uuid.New(),
+				DisplayOrder: index,
+				PollID:       poll.ID,
+				Label:        *utils.MakeLocalizedString(defaultLanguage, choiceLabel),
+				VoteCount:    0,
 			})
 		}
 		if err := r.CreatePoll(poll); err != nil {
@@ -616,15 +681,30 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			}
 		}
 
+		isPaid, _ := strconv.ParseBool(postForm.EventIsPaid)
+		isOnline, _ := strconv.ParseBool(postForm.EventIsOnline)
+		var pricePtr *float64
+		if postForm.EventPrice != "" {
+			price, _ := strconv.ParseFloat(postForm.EventPrice, 64)
+			pricePtr = &price
+		}
+
 		evt := &payloads.Event{
 			ID:          uuid.New(),
 			PostID:      newPost.ID,
 			Title:       *utils.MakeLocalizedString(defaultLanguage, postForm.EventTitle),
 			Description: *utils.MakeLocalizedString(defaultLanguage, postForm.EventDescription),
+			Kind:        postForm.EventKind,
+			IsPaid:      isPaid,
+			Price:       pricePtr,
+			Currency:    &postForm.EventCurrency,
+			IsOnline:    isOnline,
+			OnlineURL:   &postForm.EventIsOnlineURL,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 			StartTime:   &startTime,
 		}
+
 		if err := tx.Create(evt).Error; err != nil {
 			tx.Rollback()
 			return nil, err
@@ -680,5 +760,163 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		return nil, err
 	}
 
+	if parentPost != nil {
+		err = r.userRepo.engagementRepo.AddEngagement(context.Background(), author.ID, parentPost.AuthorID, models.EngagementKindComment, parentPost.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return newPost, nil
+}
+
+func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight int, rank int, userId uuid.UUID) error {
+	tx := r.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 1) Choice mevcut mu kontrol et
+	var choice payloads.PollChoice
+	if err := tx.WithContext(ctx).
+		First(&choice, "id = ?", choiceId).Error; err != nil {
+
+		tx.Rollback()
+		return fmt.Errorf("choice not found: %w", err)
+	}
+
+	// 2) Kullanıcının mevcut oyu var mı?
+	var existingVote payloads.PollVote
+	err := tx.WithContext(ctx).
+		Where("choice_id = ? AND user_id = ?", choiceId, userId).
+		First(&existingVote).Error
+
+	// Vote zaten varsa -> sil (toggle off)
+	if err == nil {
+		if err := tx.WithContext(ctx).Delete(&existingVote).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// VoteCount azalt
+		if err := tx.WithContext(ctx).
+			Model(&payloads.PollChoice{}).
+			Where("id = ?", choiceId).
+			UpdateColumn("vote_count", gorm.Expr("vote_count - 1")).Error; err != nil {
+
+			tx.Rollback()
+			return err
+		}
+
+		return tx.Commit().Error
+	}
+
+	// Eğer hata "record not found" değilse gerçek hata
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		tx.Rollback()
+		return err
+	}
+
+	// 3) Vote yoksa -> yeni oy ekle (toggle on)
+	newVote := payloads.PollVote{
+		ID:       uuid.New(),
+		ChoiceID: choiceId,
+		UserID:   userId,
+		Weight:   weight,
+		Rank:     rank,
+	}
+
+	if err := tx.WithContext(ctx).Create(&newVote).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// VoteCount artır
+	if err := tx.WithContext(ctx).
+		Model(&payloads.PollChoice{}).
+		Where("id = ?", choiceId).
+		UpdateColumn("vote_count", gorm.Expr("vote_count + 1")).Error; err != nil {
+
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func (r *PostRepository) FindPostByPublicID(id int64) (*post.Post, error) {
+	var p post.Post
+	err := r.db.
+		First(&p, "public_id = ?", id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("post with id %d not found", id)
+		}
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *PostRepository) Like(ctx context.Context, postId int64, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *PostRepository) Dislike(ctx context.Context, postId int64, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *PostRepository) Banana(ctx context.Context, postId int64, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *PostRepository) Report(ctx context.Context, postId int64, authUser *models.User) error {
+	return nil
+}
+
+func (r *PostRepository) Bookmark(ctx context.Context, postId int64, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *PostRepository) View(ctx context.Context, postId int64, authUser *models.User) error {
+	return nil
 }

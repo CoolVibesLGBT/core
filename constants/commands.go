@@ -58,9 +58,11 @@ const (
 	CMD_USER_BLOCK        = "user.block"
 	CMD_USER_UNBLOCK      = "user.unblock"
 	CMD_USER_TOGGLE_BLOCK = "user.block.toggle"
+	CMD_USER_REPORT       = "user.report"
 
-	CMD_USER_FETCH_NEARBY_USERS = "user.fetch.nearby.users"
-	CMD_USER_GET_NOTIFICATIONS  = "user.fetch.notifications"
+	CMD_USER_FETCH_NEARBY_USERS      = "user.fetch.nearby.users"
+	CMD_USER_GET_NOTIFICATIONS       = "user.fetch.notifications"
+	CMD_USER_MARK_NOTIFICATIONS_SEEN = "user.notifications.mark.seen"
 
 	CMD_USER_POSTS          = "user.fetch.posts"
 	CMD_USER_POST_REPLIES   = "user.fetch.posts.replies"
@@ -69,11 +71,18 @@ const (
 	CMD_USER_POST_BOOKMARKS = "user.fetch.posts.bookmarks"
 
 	CMD_POST_CREATE   = "post.create"
+	CMD_POST_VOTE     = "post.vote"
 	CMD_POST_UPDATE   = "post.update"
 	CMD_POST_DELETE   = "post.delete"
 	CMD_POST_FETCH    = "post.fetch"
 	CMD_POST_TIMELINE = "post.timeline"
 	CMD_POST_VIBES    = "post.vibes"
+	CMD_POST_LIKE     = "post.like"
+	CMD_POST_DISLIKE  = "post.dislike"
+	CMD_POST_BOOKMARK = "post.bookmark"
+	CMD_POST_REPORT   = "post.report"
+	CMD_POST_VIEW     = "post.view"
+	CMD_POST_BANANA   = "post.banana"
 
 	//MATCH EKRANI
 	CMD_MATCH_CREATE = "match.create" // Yeni eşleşme oluşturma (örneğin karşılıklı like)

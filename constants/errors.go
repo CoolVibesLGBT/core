@@ -27,6 +27,8 @@ const (
 	ErrEngagementsDoesntExists ErrorCode = "ENGAGEMENTS_DOESNT_EXISTS"
 
 	ErrInvalidEngagementKind ErrorCode = "INVALID_ENGAGEMENT_KIND"
+	ErrPollTitleEmpty        ErrorCode = "POLL_TITLE_EMPTY"
+	ErrPollOptionsEmpty      ErrorCode = "POLL_OPTIONS_EMPTY"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -50,6 +52,8 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrUserDoesntExists:        "User doesnt exists",
 	ErrInvalidEngagementKind:   "Invalid engagement kind",
 	ErrEngagementsDoesntExists: "Engagements doesnt exists",
+	ErrPollTitleEmpty:          "Anket başlığı boş olamaz.",
+	ErrPollOptionsEmpty:        "Anket seçeneği boş olamaz.",
 }
 
 // String returns a readable message for the given error code.

@@ -2,9 +2,11 @@ package main
 
 import (
 	"coolvibes/helpers"
+	"coolvibes/repositories"
 	"coolvibes/routes"
 	"coolvibes/services/db"
 	"coolvibes/services/socket"
+	"coolvibes/services/socket/managers"
 	"coolvibes/test"
 	"flag"
 	"fmt"
@@ -77,7 +79,7 @@ func NewApp() (*App, error) {
 		}
 
 		if *testFlag {
-			test.StartTest(db.DB, snowFlakeNode, nil)
+			test.StartTest(db.DB, snowFlakeNode)
 		}
 
 		//faker.FakeUser(instance.DB, snowFlakeNode)
@@ -131,7 +133,9 @@ func main() {
 	fmt.Println("PublicKey:", vapidKeys.PublicKey)
 	fmt.Println("PrivateKey:", vapidKeys.PrivateKey)
 
-	go socket.ListenServer(app.DB)
+	notificationRepo := repositories.NewNotificationRepository(app.DB, nil)
+	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
+	go socket.ListenServer(app.DB, notificationMgr)
 	httpHandler := httpCors.Handler(applicationRouter)
 	log.Println("App running on", os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), httpHandler))

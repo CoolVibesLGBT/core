@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"coolvibes/models"
-	"coolvibes/services/socket"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -17,17 +16,14 @@ import (
 )
 
 type EngagementRepository struct {
-	db            *gorm.DB
-	socketService *socket.SocketService
+	db *gorm.DB
 }
 
 func NewEngagementRepository(
 	db *gorm.DB,
-	socketService *socket.SocketService,
 ) *EngagementRepository {
 	return &EngagementRepository{
-		db:            db,
-		socketService: socketService,
+		db: db,
 	}
 }
 
@@ -375,4 +371,44 @@ func (r *EngagementRepository) GetEngagements(ctx context.Context, contentableTy
 
 	fmt.Println("engagement", engagement.ID, engagement.ContentableID)
 	return r.GetEngagementDetailsWithCursor(ctx, engagement.ID, &engagementKind, cursor, limit)
+}
+
+func (r *EngagementRepository) AddEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) error {
+	// Engagement kaydını al veya oluştur
+	var engagement models.Engagement
+
+	err := r.db.WithContext(ctx).
+		Where(&models.Engagement{
+			ContentableID:   contentableID,
+			ContentableType: contentableType,
+		}).
+		First(&engagement).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		engagement = models.Engagement{
+			ID:              uuid.New(),
+			ContentableID:   contentableID,
+			ContentableType: contentableType,
+			Counts:          datatypes.JSON([]byte("{}")),
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+		if err := r.db.WithContext(ctx).Create(&engagement).Error; err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	// Yeni EngagementDetail oluştur (toggle yok, hep ekle)
+	newDetail := models.EngagementDetail{
+		ID:           uuid.New(),
+		EngagementID: engagement.ID,
+		EngagerID:    engagerID,
+		EngageeID:    engageeID,
+		Kind:         kind,
+		CreatedAt:    time.Now(),
+	}
+
+	return r.CreateEngagementDetail(ctx, &newDetail)
 }

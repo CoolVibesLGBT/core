@@ -72,8 +72,9 @@ func Migrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 
-		models.VapidKey{},
-		notifications.Notification{},
+		&models.VapidKey{},
+		&models.ReportKind{},
+		&notifications.Notification{},
 		&utils.FileMetadata{},
 
 		&media.Media{},
@@ -100,6 +101,7 @@ func Migrate(db *gorm.DB) error {
 		&post_payloads.Poll{},       // Poll önce
 		&post_payloads.PollChoice{}, // child tablolar sonra
 		&post_payloads.PollVote{},
+		&post_payloads.EventKind{},
 		&post_payloads.Event{}, // Event tablosu artık Post tablosundan sonra
 		&post_payloads.EventAttendee{},
 

@@ -7,8 +7,6 @@ import (
 	"coolvibes/models/chat"
 	"coolvibes/models/notifications"
 	"coolvibes/models/utils"
-	"coolvibes/services/socket"
-	"encoding/json"
 	"fmt"
 
 	"coolvibes/models/post"
@@ -26,7 +24,6 @@ type ChatRepository struct {
 	snowFlakeNode    *helpers.Node
 	postRepo         *PostRepository
 	notificationRepo *NotificationRepository
-	socketService    *socket.SocketService
 }
 
 func (r *ChatRepository) DB() *gorm.DB {
@@ -37,8 +34,8 @@ func (r *ChatRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, socketService *socket.SocketService, notificationRepo *NotificationRepository) *ChatRepository {
-	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, socketService: socketService, notificationRepo: notificationRepo}
+func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, notificationRepo *NotificationRepository) *ChatRepository {
+	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, notificationRepo: notificationRepo}
 }
 
 func (r *ChatRepository) CreateChat(chat *chat.Chat) error {
@@ -184,32 +181,14 @@ func (r *ChatRepository) CreateGroupChat(
 	return newChat, nil
 }
 
-func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) error {
-
+func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) (map[string]interface{}, error) {
 	message := map[string]interface{}{
 		"action":  constants.CMD_TYPING,
 		"chat_id": chatID.String(),
 		"user_id": userID.String(),
 		"typing":  typing,
 	}
-
-	jsonMessage, err := json.Marshal(message)
-	if err != nil {
-		log.Printf("Error marshalling typing event: %v", err)
-		return err
-	}
-
-	log.Printf("User %s is typing in chat %s: %v", userID, chatID, typing)
-
-	// BroadcastToNamespace(namespace string, room string, message string)
-	err = r.socketService.BroadcastToRoom("/", chatID.String(), "chat", string(jsonMessage))
-
-	if err != nil {
-		log.Printf("Error broadcasting typing event: %v", err)
-		return nil
-	}
-
-	return nil
+	return message, nil
 }
 
 func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
@@ -255,18 +234,6 @@ func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*
 		Error
 	if err != nil {
 		return nil, err
-	}
-
-	message := map[string]interface{}{
-		"action":  constants.CMD_SEND_MESSAGE,
-		"message": chatPost,
-	}
-	jsonMessage, _ := json.Marshal(message)
-	//r.socketService.BroadcastToNamespace("/", chatObj.ID.String(), string(jsonMessage))
-	err = r.socketService.BroadcastToRoom("/", chatObj.ID.String(), "chat", string(jsonMessage))
-	if err != nil {
-		log.Printf("Failed to broadcast message: %v", err)
-		return chatPost, err
 	}
 
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
