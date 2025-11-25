@@ -51,8 +51,6 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 	}
 
 	for _, group := range data.Groups {
-		fmt.Printf("Group: %s\n", group.Name)
-
 		category_title := group.Name
 		category_slug := helpers.GenerateSlug(category_title)
 		category_tag := payloads.UserAttributeInterests

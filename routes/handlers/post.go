@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type PostHandler struct {
@@ -103,6 +104,45 @@ func HandleVote(s *services.PostService) http.HandlerFunc {
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
 			"success": err == nil,
 			"error":   err,
+		})
+
+	}
+}
+
+func HandlePostDelete(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		fmt.Println(ok)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = s.Delete(r.Context(), postId, user)
+		if err != nil {
+			http.Error(w, "failed to delete post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
 		})
 
 	}
@@ -298,6 +338,58 @@ func HandlePostView(s *services.PostService) http.HandlerFunc {
 		}
 
 		fmt.Println("CODER", user.ID)
+
+	}
+}
+
+func HandlePostTip(s *services.PostService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user, ok := middleware.GetAuthenticatedUser(r)
+		if !ok {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		amountStr := r.FormValue("amount")
+		if amountStr == "" {
+			http.Error(w, "amount is required", http.StatusBadRequest)
+			return
+		}
+
+		amount, err := decimal.NewFromString(amountStr)
+		if err != nil {
+			http.Error(w, "invalid amount: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		balance, err := s.Tip(r.Context(), postId, user, amount)
+		if err != nil {
+			http.Error(w, "failed to tip post: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": err == nil,
+			"balance": balance,
+		})
 
 	}
 }

@@ -412,3 +412,54 @@ func (r *EngagementRepository) AddEngagement(ctx context.Context, engagerID uuid
 
 	return r.CreateEngagementDetail(ctx, &newDetail)
 }
+
+func (r *EngagementRepository) AddTip(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, tipAmount decimal.Decimal, contentableID uuid.UUID, contentableType models.EngagementContentableType, kind models.EngagementKind) error {
+	// kind mutlaka tipler arasında olmalı: EngagementKindTipGiven veya EngagementKindTipReceived
+
+	// Engagement kaydını al veya oluştur
+	var engagement models.Engagement
+
+	err := r.db.WithContext(ctx).
+		Where(&models.Engagement{
+			ContentableID:   contentableID,
+			ContentableType: contentableType,
+		}).
+		First(&engagement).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		engagement = models.Engagement{
+			ID:              uuid.New(),
+			ContentableID:   contentableID,
+			ContentableType: contentableType,
+			Counts:          datatypes.JSON([]byte("{}")),
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+		if err := r.db.WithContext(ctx).Create(&engagement).Error; err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	// Details JSON içine amount koy
+	detailsMap := map[string]string{
+		"amount": tipAmount.String(),
+	}
+	detailsJSON, err := json.Marshal(detailsMap)
+	if err != nil {
+		return err
+	}
+
+	newDetail := models.EngagementDetail{
+		ID:           uuid.New(),
+		EngagementID: engagement.ID,
+		EngagerID:    engagerID,
+		EngageeID:    engageeID,
+		Kind:         kind, // örn. models.EngagementKindTipGiven veya TipReceived
+		Details:      datatypes.JSON(detailsJSON),
+		CreatedAt:    time.Now(),
+	}
+
+	return r.CreateEngagementDetail(ctx, &newDetail)
+}

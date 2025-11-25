@@ -72,8 +72,7 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 		ArtInterests:  []string{"painting", "sculpture"},
 		Entertainment: []string{"music", "concerts"},
 
-		Travel:          models.TravelData{},      // Gerekirse doldurabilirsin
-		SocialRelations: models.SocialRelations{}, // Aynı şekilde
+		Travel: models.TravelData{}, // Gerekirse doldurabilirsin
 
 		// jwt.StandardClaims içindeki alanları istersen ekle ya da boş bırak
 	}

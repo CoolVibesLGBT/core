@@ -142,6 +142,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		DisplayName: formData.Nickname,
 		DateOfBirth: &dateOfBirth,
 		Password:    hash,
+		UserRole:    constants.UserRoleUser,
 	}
 
 	if err := s.userRepo.Create(userObj); err != nil {

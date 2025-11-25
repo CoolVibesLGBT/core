@@ -83,6 +83,7 @@ const (
 	CMD_POST_REPORT   = "post.report"
 	CMD_POST_VIEW     = "post.view"
 	CMD_POST_BANANA   = "post.banana"
+	CMD_POST_TIP      = "post.tip"
 
 	//MATCH EKRANI
 	CMD_MATCH_CREATE = "match.create" // Yeni eşleşme oluşturma (örneğin karşılıklı like)

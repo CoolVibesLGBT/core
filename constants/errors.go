@@ -17,46 +17,75 @@ const (
 	ErrDuplicateResource ErrorCode = "DUPLICATE_RESOURCE"
 	ErrInternalServer    ErrorCode = "INTERNAL_SERVER_ERROR"
 
+	// Media
 	ErrMediaUploadFailed    ErrorCode = "MEDIA_UPLOAD_FAILED"
 	ErrMediaInvalidFile     ErrorCode = "MEDIA_INVALID_FILE"
 	ErrMediaUnsupportedType ErrorCode = "MEDIA_UNSUPPORTED_TYPE"
 	ErrMediaSaveFailed      ErrorCode = "MEDIA_SAVE_FAILED"
 
-	ErrUserExists              ErrorCode = "USER_EXISTS"
-	ErrUserDoesntExists        ErrorCode = "USER_DOESNT_EXISTS"
-	ErrEngagementsDoesntExists ErrorCode = "ENGAGEMENTS_DOESNT_EXISTS"
+	// User
+	ErrUserExists   ErrorCode = "USER_EXISTS"
+	ErrUserNotFound ErrorCode = "USER_NOT_FOUND"
 
+	// Engagement
+	ErrEngagementNotFound    ErrorCode = "ENGAGEMENT_NOT_FOUND"
 	ErrInvalidEngagementKind ErrorCode = "INVALID_ENGAGEMENT_KIND"
-	ErrPollTitleEmpty        ErrorCode = "POLL_TITLE_EMPTY"
-	ErrPollOptionsEmpty      ErrorCode = "POLL_OPTIONS_EMPTY"
+
+	// Poll
+	ErrPollTitleEmpty   ErrorCode = "POLL_TITLE_EMPTY"
+	ErrPollOptionsEmpty ErrorCode = "POLL_OPTIONS_EMPTY"
+
+	// Post
+	ErrPostNotFound        ErrorCode = "POST_NOT_FOUND"
+	ErrPostDeleteDenied    ErrorCode = "POST_DELETE_DENIED"
+	ErrPostDeleteFailed    ErrorCode = "POST_DELETE_FAILED"
+	ErrInsufficientBalance ErrorCode = "INSUFFICIENT_BALANCE"
+	ErrInvalidAmount       ErrorCode = "INVALID_AMOUNT" // yeni hata kodu
+
 )
 
 var ErrorMessages = map[ErrorCode]string{
-	ErrUnknown:                 "An unknown error occurred.",
-	ErrFileNotFound:            "The requested file could not be found.",
-	ErrPermissionDenied:        "Permission denied.",
-	ErrInvalidInput:            "Invalid input provided.",
-	ErrNetworkError:            "A network error occurred.",
-	ErrDatabaseError:           "A database error occurred.",
-	ErrResourceNotFound:        "The requested resource could not be found.",
-	ErrInvalidAction:           "The requested action is not valid.",
-	ErrInvalidPassword:         "Invalid password.",
-	ErrTokenGeneration:         "Failed to generate authentication token.",
-	ErrUnauthorized:            "Unauthorized access.",
-	ErrDuplicateResource:       "This resource already exists.",
-	ErrMediaUploadFailed:       "Failed to upload media.",
-	ErrMediaInvalidFile:        "Invalid media file provided.",
-	ErrMediaUnsupportedType:    "Unsupported media file type.",
-	ErrMediaSaveFailed:         "Failed to save media file.",
-	ErrUserExists:              "User already exists",
-	ErrUserDoesntExists:        "User doesnt exists",
-	ErrInvalidEngagementKind:   "Invalid engagement kind",
-	ErrEngagementsDoesntExists: "Engagements doesnt exists",
-	ErrPollTitleEmpty:          "Anket başlığı boş olamaz.",
-	ErrPollOptionsEmpty:        "Anket seçeneği boş olamaz.",
+	ErrUnknown:           "An unknown error occurred.",
+	ErrFileNotFound:      "The requested file could not be found.",
+	ErrPermissionDenied:  "Permission denied.",
+	ErrInvalidInput:      "Invalid input provided.",
+	ErrNetworkError:      "A network error occurred.",
+	ErrDatabaseError:     "A database error occurred.",
+	ErrResourceNotFound:  "The requested resource could not be found.",
+	ErrInvalidAction:     "The requested action is not valid.",
+	ErrInvalidPassword:   "Invalid password.",
+	ErrTokenGeneration:   "Failed to generate authentication token.",
+	ErrUnauthorized:      "Unauthorized access.",
+	ErrDuplicateResource: "This resource already exists.",
+	ErrInternalServer:    "An internal server error occurred.",
+
+	// Media
+	ErrMediaUploadFailed:    "Failed to upload media.",
+	ErrMediaInvalidFile:     "Invalid media file.",
+	ErrMediaUnsupportedType: "Unsupported media type.",
+	ErrMediaSaveFailed:      "Failed to save media.",
+
+	// User
+	ErrUserExists:   "User already exists.",
+	ErrUserNotFound: "User not found.",
+
+	// Engagement
+	ErrEngagementNotFound:    "Engagement record not found.",
+	ErrInvalidEngagementKind: "Invalid engagement type.",
+
+	// Poll
+	ErrPollTitleEmpty:   "Poll title cannot be empty.",
+	ErrPollOptionsEmpty: "Poll options cannot be empty.",
+
+	// Post
+	ErrPostNotFound:        "Post not found.",
+	ErrPostDeleteDenied:    "You are not allowed to delete this post.",
+	ErrPostDeleteFailed:    "Failed to delete the post.",
+	ErrInsufficientBalance: "Insufficient balance.",    // yeni mesaj eklendi
+	ErrInvalidAmount:       "Invalid amount provided.", // yeni mesaj
+
 }
 
-// String returns a readable message for the given error code.
 func (e ErrorCode) String() string {
 	if msg, ok := ErrorMessages[e]; ok {
 		return msg

@@ -606,7 +606,7 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 
 		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(engageeId)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrUserDoesntExists)
+			utils.SendError(w, http.StatusBadRequest, constants.ErrUserNotFound)
 			return
 		}
 
@@ -628,7 +628,7 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 
 		engagements, nextCursor, err := s.FetchUserEngagements(r.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrEngagementsDoesntExists)
+			utils.SendError(w, http.StatusBadRequest, constants.ErrEngagementNotFound)
 			return
 		}
 

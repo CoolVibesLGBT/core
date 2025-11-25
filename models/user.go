@@ -21,13 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	FollowStatusFollowing constants.FollowStatus = "following"
-	FollowStatusBlocked   constants.FollowStatus = "blocked"
-	FollowStatusMuted     constants.FollowStatus = "muted"
-	FollowStatusRequested constants.FollowStatus = "requested"
-)
-
 type Story struct {
 	ID     uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	UserID uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
@@ -44,99 +37,6 @@ type Story struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-}
-
-// === FOLLOW ===
-type Follow struct {
-	ID         uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	FollowerID uuid.UUID              `gorm:"type:uuid;index;not null" json:"follower_id"`
-	FolloweeID uuid.UUID              `gorm:"type:uuid;index;not null" json:"followee_id"`
-	Status     constants.FollowStatus `gorm:"type:varchar(20);default:'following';index" json:"status"`
-
-	Follower *User `gorm:"foreignKey:FollowerID" json:"follower,omitempty"`
-	Followee *User `gorm:"foreignKey:FolloweeID" json:"followee,omitempty"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// === LIKE ===
-type Like struct {
-	ID      uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	LikerID uuid.UUID `gorm:"type:uuid;index;not null" json:"liker_id"`
-	LikedID uuid.UUID `gorm:"type:uuid;index;not null" json:"liked_id"`
-	IsMatch bool      `gorm:"default:false" json:"is_match"`
-
-	Liker *User `gorm:"foreignKey:LikerID" json:"liker,omitempty"`
-	Liked *User `gorm:"foreignKey:LikedID" json:"liked,omitempty"`
-
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// === FAVORITE ===
-type Favorite struct {
-	ID         uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID     uuid.UUID `gorm:"type:uuid;index;not null" json:"user_id"`
-	FavoriteID uuid.UUID `gorm:"type:uuid;index;not null" json:"favorite_id"`
-	Note       *string   `gorm:"type:text" json:"note,omitempty"`
-
-	User     *User `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	Favorite *User `gorm:"foreignKey:FavoriteID" json:"favorite,omitempty"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// === MATCH ===
-type Match struct {
-	ID      uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserAID uuid.UUID `gorm:"type:uuid;index;not null" json:"user_a_id"`
-	UserBID uuid.UUID `gorm:"type:uuid;index;not null" json:"user_b_id"`
-
-	UserA *User `gorm:"foreignKey:UserAID" json:"user_a,omitempty"`
-	UserB *User `gorm:"foreignKey:UserBID" json:"user_b,omitempty"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-type MatchSeen struct {
-	ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID    uuid.UUID      `gorm:"type:uuid;index;not null" json:"user_id"`    // Görüntüleyen
-	TargetID  uuid.UUID      `gorm:"type:uuid;index;not null" json:"target_id"`  // Görülen
-	Reaction  string         `gorm:"type:varchar(20)" json:"reaction,omitempty"` // örn: "like", "skip", "superlike"
-	IsMatch   bool           `gorm:"default:false" json:"is_match"`              // Tinder benzeri match durumu
-	CreatedAt time.Time      `gorm:"index" json:"created_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-
-	Target *User `gorm:"foreignKey:TargetID" json:"target,omitempty"`
-}
-
-type Block struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	BlockerID uuid.UUID `gorm:"type:uuid;index;not null" json:"blocker_id"` // Engelleyen kullanıcı
-	BlockedID uuid.UUID `gorm:"type:uuid;index;not null" json:"blocked_id"` // Engellenen kullanıcı
-	Reason    *string   `gorm:"type:text" json:"reason,omitempty"`          // Opsiyonel açıklama
-
-	Blocker *User `gorm:"foreignKey:BlockerID" json:"blocker,omitempty"`
-	Blocked *User `gorm:"foreignKey:BlockedID" json:"blocked,omitempty"`
-
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type SocialRelations struct {
-	Likes   []*Like `json:"-" gorm:"foreignKey:LikerID"`
-	LikedBy []*Like `json:"-" gorm:"foreignKey:LikedID"`
-
-	Matches []*Match `json:"-" gorm:"foreignKey:UserAID"`
-	// Görülme geçmişi kimleri gordu? kimler gordu?
-	MatchSeenUsers   []*MatchSeen `gorm:"foreignKey:UserID" json:"seen_users,omitempty"` // Bu kullanıcı kimleri gördü
-	MatchSeenByUsers []*MatchSeen `gorm:"foreignKey:TargetID" json:"seen_by,omitempty"`
-
-	Favorites      []*Favorite `json:"-" gorm:"foreignKey:UserID"`
-	FavoritedBy    []*Favorite `json:"-" gorm:"foreignKey:FavoriteID"`
-	BlockedUsers   []*Block    `gorm:"foreignKey:BlockerID" json:"blocked_users,omitempty"`
-	BlockedByUsers []*Block    `gorm:"foreignKey:BlockedID" json:"blocked_by_users,omitempty"`
 }
 
 type TravelData struct {
@@ -232,7 +132,6 @@ type User struct {
 
 	Engagements *Engagement `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 	//  Sosyal İlişkiler
-	SocialRelations SocialRelations `json:"social,omitempty" gorm:"embedded;embeddedPrefix:social_"`
 
 	//	Subscriptions []Subscription `gorm:"type:jsonb" json:"subscriptions,omitempty"`
 	Subscriptions datatypes.JSON `gorm:"type:jsonb" json:"subscriptions,omitempty"`
@@ -265,28 +164,8 @@ func (FavoriteCity) TableName() string {
 	return "user_favorite_cities"
 }
 
-func (Block) TableName() string {
-	return "user_blocks"
-}
-
-func (Match) TableName() string {
-	return "user_matches"
-}
-
-func (Like) TableName() string {
-	return "user_likes"
-}
-
-func (Follow) TableName() string {
-	return "user_follows"
-}
-
 func (CountryVisit) TableName() string {
 	return "user_country_visits"
-}
-
-func (Favorite) TableName() string {
-	return "user_favorites"
 }
 
 func (u *User) SetPreference(bitIndex int) error {

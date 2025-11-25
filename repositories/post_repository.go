@@ -23,14 +23,16 @@ import (
 
 	"github.com/go-playground/form/v4"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 type PostRepository struct {
-	db            *gorm.DB
-	snowFlakeNode *helpers.Node
-	mediaRepo     *MediaRepository
-	userRepo      *UserRepository
+	db               *gorm.DB
+	snowFlakeNode    *helpers.Node
+	mediaRepo        *MediaRepository
+	userRepo         *UserRepository
+	notificationRepo *NotificationRepository
 }
 
 func (r *PostRepository) DB() *gorm.DB {
@@ -41,8 +43,8 @@ func (r *PostRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository) *PostRepository {
-	return &PostRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo}
+func NewPostRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository, notificationRepo *NotificationRepository) *PostRepository {
+	return &PostRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo}
 }
 
 func (r *PostRepository) CreatePost(post *post.Post) error {
@@ -919,4 +921,100 @@ func (r *PostRepository) Bookmark(ctx context.Context, postId int64, authUser *m
 
 func (r *PostRepository) View(ctx context.Context, postId int64, authUser *models.User) error {
 	return nil
+}
+
+func (r *PostRepository) Delete(ctx context.Context, postId int64, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+
+	if post == nil {
+		return errors.New(constants.ErrPostNotFound.String())
+	}
+
+	if post.AuthorID != authUser.ID {
+		return errors.New(constants.ErrPostDeleteDenied.String())
+	}
+
+	allowed := post.AuthorID == authUser.ID ||
+		authUser.UserRole == constants.UserRoleModerator ||
+		authUser.UserRole == constants.UserRoleAdmin ||
+		authUser.UserRole == constants.UserRoleSuperAdmin
+
+	if !allowed {
+		return errors.New(constants.ErrPostDeleteDenied.String())
+	}
+
+	// 3. Soft delete
+	if err := r.db.WithContext(ctx).Delete(&post).Error; err != nil {
+		return errors.New(constants.ErrPostDeleteFailed.String())
+	}
+	return nil
+}
+
+func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error) {
+	// Postu bul
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return &authUser.Balance, err
+	}
+	if post == nil {
+		return &authUser.Balance, errors.New(constants.ErrPostNotFound.String())
+	}
+
+	// Kullanıcı kendine tip atamaz (opsiyonel kural)
+	if post.AuthorID == authUser.ID {
+		return &authUser.Balance, errors.New(constants.ErrInvalidAction.String()) // veya özel hata: "Cannot tip own post"
+	}
+
+	if amount.Cmp(decimal.Zero) <= 0 {
+		return &authUser.Balance, errors.New(constants.ErrInvalidAmount.String()) // veya uygun başka hata
+	}
+
+	minAmount := decimal.NewFromFloat(0.01)
+	if amount.Cmp(minAmount) < 0 {
+		return &authUser.Balance, errors.New(constants.ErrInvalidAmount.String()) // veya uygun başka hata
+	}
+
+	// Kullanıcının bakiyesi yeterli mi?
+	if !authUser.Balance.GreaterThanOrEqual(amount) {
+		return &authUser.Balance, errors.New(constants.ErrInsufficientBalance.String())
+	}
+
+	// Transaction başlat (ör: GORM ile)
+	tx := r.db.Begin()
+	if tx.Error != nil {
+		return &authUser.Balance, tx.Error
+	}
+
+	authUser.Balance = authUser.Balance.Sub(amount)
+	if err := tx.Model(&models.User{}).Where("id = ?", authUser.ID).Update("balance", authUser.Balance).Error; err != nil {
+		tx.Rollback()
+		return &authUser.Balance, err
+	}
+
+	var postAuthor models.User
+	if err := tx.Where("id = ?", post.AuthorID).First(&postAuthor).Error; err != nil {
+		tx.Rollback()
+		return &authUser.Balance, err
+	}
+	postAuthor.Balance = postAuthor.Balance.Add(amount)
+	if err := tx.Model(&models.User{}).Where("id = ?", post.AuthorID).Update("balance", postAuthor.Balance).Error; err != nil {
+		tx.Rollback()
+		return &authUser.Balance, err
+	}
+
+	err = r.userRepo.engagementRepo.AddTip(ctx, authUser.ID, post.AuthorID, amount, post.ID, models.EngagementContentableTypePost, models.EngagementKindTip)
+	if err != nil {
+		tx.Rollback()
+		return &authUser.Balance, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return &authUser.Balance, err
+	}
+
+	return &authUser.Balance, nil
 }

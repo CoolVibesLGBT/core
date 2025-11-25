@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type PostService struct {
@@ -128,6 +129,10 @@ func (s *PostService) Banana(ctx context.Context, postId int64, authUser *models
 	return s.postRepo.Banana(ctx, postId, authUser)
 }
 
+func (s *PostService) Delete(ctx context.Context, postId int64, authUser *models.User) error {
+	return s.postRepo.Delete(ctx, postId, authUser)
+}
+
 func (s *PostService) Report(ctx context.Context, postId int64, authUser *models.User) error {
 	return s.postRepo.Report(ctx, postId, authUser)
 }
@@ -138,4 +143,8 @@ func (s *PostService) Bookmark(ctx context.Context, postId int64, authUser *mode
 
 func (s *PostService) View(ctx context.Context, postId int64, authUser *models.User) error {
 	return s.postRepo.View(ctx, postId, authUser)
+}
+
+func (s *PostService) Tip(ctx context.Context, postId int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error) {
+	return s.postRepo.Tip(ctx, postId, authUser, amount)
 }

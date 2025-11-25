@@ -42,14 +42,14 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	socketService := socket.NewSocketService(r.db)
 
+	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
+	notificationService := services.NewNotificationsService(notificationRepo)
 	// repository ve service oluştur
 	engagementRepo := repositories.NewEngagementRepository(r.db)
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
-	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo)
+	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
-	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
-	notificationService := services.NewNotificationsService(notificationRepo)
 
 	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, notificationRepo)
 
@@ -240,6 +240,9 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register(constants.CMD_POST_REPORT, handlers.HandlePostReport(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_VIEW, handlers.HandlePostView(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
+	r.action.Register(constants.CMD_POST_DELETE, handlers.HandlePostDelete(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_TIP, handlers.HandlePostTip(postService), middleware.AuthMiddleware(userRepo))
+
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
 	r.action.Register(constants.CMD_POST_VIBES, handlers.HandleTimelineVibes(postService))
 

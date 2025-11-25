@@ -43,7 +43,8 @@ const (
 
 	EngagementKindBookmark EngagementKind = "bookmark"
 	EngagementKindRating   EngagementKind = "rating"
-	EngagementTip          EngagementKind = "tip"
+	EngagementKindTip      EngagementKind = "tip"
+
 	EngagementKindGift     EngagementKind = "gift"
 	EngagementKindReport   EngagementKind = "report"
 	EngagementKindDeposit  EngagementKind = "deposit"
@@ -81,7 +82,7 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindView:     {"view_count", ""},
 	EngagementKindBookmark: {"bookmark_count", ""},
 	EngagementKindRating:   {"rating_count", "rating_sum"},
-	EngagementTip:          {"tip_count", "tip_amount"},
+	EngagementKindTip:      {"tip_count", "tip_amount"},
 	EngagementKindGift:     {"gift_count", "gift_amount"},
 	EngagementKindReport:   {"report_count", ""},
 	EngagementKindDeposit:  {"deposit_count", "deposit_amount"},

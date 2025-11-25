@@ -90,13 +90,6 @@ func Migrate(db *gorm.DB) error {
 		&models.Mention{},
 		&models.Hashtag{},
 
-		&models.MatchSeen{},
-		&models.Follow{},
-		&models.Like{},
-		&models.Block{},
-		&models.Favorite{},
-		&models.Match{},
-
 		&post.Post{},                // Önce parent tablo
 		&post_payloads.Poll{},       // Poll önce
 		&post_payloads.PollChoice{}, // child tablolar sonra

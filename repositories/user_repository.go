@@ -61,13 +61,6 @@ func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.U
 		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Avatar.File").
 		Preload("Cover.File").
-		Preload("SocialRelations.Likes").
-		Preload("SocialRelations.LikedBy").
-		Preload("SocialRelations.Matches").
-		Preload("SocialRelations.Favorites").
-		Preload("SocialRelations.FavoritedBy").
-		Preload("SocialRelations.BlockedUsers").
-		Preload("SocialRelations.BlockedByUsers").
 		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?)", input, input).
 		First(&userObj).Error
 	if err != nil {
@@ -121,13 +114,6 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 			Preload("Engagements.EngagementDetails.Engagee").
 			Preload("Cover.File").
 			Preload("Location").
-			Preload("SocialRelations.Likes").
-			Preload("SocialRelations.LikedBy").
-			Preload("SocialRelations.Matches").
-			Preload("SocialRelations.Favorites").
-			Preload("SocialRelations.FavoritedBy").
-			Preload("SocialRelations.BlockedUsers").
-			Preload("SocialRelations.BlockedByUsers").
 			First(&u, "id = ?", userID).Error
 
 	if err != nil {
@@ -155,13 +141,6 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*models.User, error) {
 			Preload("Engagements").
 			Preload("Engagements.EngagementDetails.Engager").
 			Preload("Engagements.EngagementDetails.Engagee").
-			Preload("SocialRelations.Likes").
-			Preload("SocialRelations.LikedBy").
-			Preload("SocialRelations.Matches").
-			Preload("SocialRelations.Favorites").
-			Preload("SocialRelations.FavoritedBy").
-			Preload("SocialRelations.BlockedUsers").
-			Preload("SocialRelations.BlockedByUsers").
 			First(&u, "public_id = ?", userID).Error
 
 	if err != nil {
