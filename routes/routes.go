@@ -60,11 +60,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
-	r.action.Register(                                                                      // vapid
-		constants.CMD_SET_VAPID_SUBSCRIBE,
-		handlers.HandleVapidSubscribe(r.db),
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
+	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))
 
 	// Action register
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
