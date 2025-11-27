@@ -58,6 +58,9 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
+	paymentsRepo := repositories.NewPaymentRepositoryy(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
+
+	paymentService := services.NewPaymentService(paymentsRepo, userRepo, postRepo, mediaRepo)
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
 	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))
@@ -74,6 +77,12 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		constants.CMD_AUTH_USER_INFO,
 		handlers.HandleUserInfo(userService),
 		middleware.AuthMiddleware(userRepo), // middleware
+	)
+
+	r.action.Register( // access token'a gore user bilgisi
+		constants.CMD_PAYMENT_METHODS,
+		handlers.HandleFetchPaymentMethods(db),
+		//middleware.AuthMiddleware(userRepo), // middleware
 	)
 
 	r.action.Register( // access token'a gore user bilgisi
@@ -305,6 +314,9 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		handlers.HandleGetMessagesByChatID(chatService), // handler
 		middleware.AuthMiddleware(userRepo),             // middleware
 	)
+
+	r.mux.HandleFunc("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
+	r.mux.HandleFunc("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))
 
 	r.mux.HandleFunc("/", r.handlePacket)
 	r.mux.HandleFunc("/test", r.handlePacket)

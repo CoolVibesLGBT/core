@@ -5,11 +5,14 @@ import (
 	"coolvibes/helpers"
 	"coolvibes/middleware"
 	"coolvibes/models"
+	"coolvibes/models/payment"
 	eventkinds "coolvibes/models/post/payloads"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -255,5 +258,35 @@ func HandleGetNotifications(s *services.NotificationsService) http.HandlerFunc {
 			"success":       true,
 			"notifications": notifications,
 		})
+	}
+}
+
+func HandleFetchPaymentMethods(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var pm payment.PaymentMethod
+		if err := db.First(&pm).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				w.WriteHeader(http.StatusNotFound)
+				_ = json.NewEncoder(w).Encode(map[string]string{
+					"error": "payment method not found",
+				})
+				return
+			}
+
+			// Beklenmeyen DB hatası
+			log.Printf("db error fetching payment method: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"error": "internal server error",
+			})
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(pm); err != nil {
+			log.Printf("encode error: %v", err)
+		}
 	}
 }
