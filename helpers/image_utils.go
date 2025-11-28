@@ -55,8 +55,6 @@ func ResizeSquareKeepAspect(srcPath, dstPath string, width, height int) error {
 	fitted := imaging.Fit(img, size, size, imaging.Lanczos)
 	dst := imaging.New(size, size, image.Transparent)
 	offset := image.Pt((size-fitted.Bounds().Dx())/2, (size-fitted.Bounds().Dy())/2)
-	// DÜZELTME:
-	offset = image.Pt((size-fitted.Bounds().Dx())/2, (size-fitted.Bounds().Dy())/2)
 
 	final := imaging.Paste(dst, fitted, offset)
 
