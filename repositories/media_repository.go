@@ -14,7 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/disintegration/imaging"
+	"github.com/boxes-ltd/imaging"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
