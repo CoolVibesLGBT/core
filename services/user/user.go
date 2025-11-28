@@ -48,21 +48,10 @@ func (s *UserService) UserRepository() *repositories.UserRepository {
 func (s *UserService) Register(request map[string][]string) (*models.User, string, error) {
 
 	type RegisterForm struct {
-		Name      string `form:"name"`
-		Nickname  string `form:"nickname"`
-		Password  string `form:"password"`
-		BirthDate string `form:"birthDate"`      // string veya time.Time
-		Captcha   string `form:"recaptchaToken"` // string veya time.Time
-		// Nested location
-		CountryCode string  `form:"location[country_code]"`
-		Country     string  `form:"location[country_name]"`
-		City        string  `form:"location[city]"`
-		Region      string  `form:"location[region]"`
-		Lat         float64 `form:"location[lat]"`
-		Lng         float64 `form:"location[lng]"`
-		Timezone    string  `form:"location[timezone]"`
-		Display     string  `form:"location[display]"`
-		Address     string  `form:"location[address]"` // varsa
+		Name     string `form:"name"`
+		Nickname string `form:"nickname"`
+		Password string `form:"password"`
+		Captcha  string `form:"recaptchaToken"` // string veya time.Time
 	}
 	decoder := form.NewDecoder()
 	var formData RegisterForm
@@ -84,12 +73,6 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	formData.Nickname = strings.ToLower(formData.Nickname)
 	formData.Password = strings.ToLower(formData.Password)
 
-	// BirthDate
-	dateOfBirth, err := time.Parse("2006-01-02", formData.BirthDate)
-	if err != nil {
-		return nil, "", errors.New("invalid birthDate")
-	}
-
 	// Hashle
 	hash, err := helpers.HashPasswordArgon2id(formData.Password)
 	if err != nil {
@@ -105,34 +88,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		return nil, "", err
 	}
 
-	locationPoint := &extensions.PostGISPoint{
-		Lat: formData.Lat,
-		Lng: formData.Lng,
-	}
-
 	UserID := uuid.New()
-	locationUser := &utils.Location{
-		ID:              uuid.New(),
-		ContentableType: utils.LocationOwnerUser,
-		ContentableID:   UserID,
-
-		CountryCode:   &formData.CountryCode,
-		Country:       &formData.Country,
-		City:          &formData.City,
-		Region:        &formData.Region,
-		Display:       &formData.Display,
-		Timezone:      &formData.Timezone,
-		Address:       &formData.Address,
-		Latitude:      &formData.Lat,
-		Longitude:     &formData.Lng,
-		LocationPoint: locationPoint,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-	}
-
-	if err := s.userRepo.UpsertLocation(locationUser); err != nil {
-		return nil, "", err
-	}
 
 	userObj := &models.User{
 
@@ -140,7 +96,6 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		PublicID:    s.userRepo.Node().Generate().Int64(),
 		UserName:    formData.Name,
 		DisplayName: formData.Nickname,
-		DateOfBirth: &dateOfBirth,
 		Password:    hash,
 		UserRole:    constants.UserRoleUser,
 	}
@@ -166,16 +121,6 @@ func (s *UserService) Login(request map[string][]string) (*models.User, string, 
 	type LoginForm struct {
 		UserName string `form:"nickname"`
 		Password string `form:"password"`
-
-		CountryCode string  `form:"location[country_code]"`
-		Country     string  `form:"location[country_name]"`
-		City        string  `form:"location[city]"`
-		Region      string  `form:"location[region]"`
-		Lat         float64 `form:"location[lat]"`
-		Lng         float64 `form:"location[lng]"`
-		Timezone    string  `form:"location[timezone]"`
-		Display     string  `form:"location[display]"`
-		Address     string  `form:"location[address]"` // varsa
 	}
 
 	decoder := form.NewDecoder()
@@ -201,33 +146,6 @@ func (s *UserService) Login(request map[string][]string) (*models.User, string, 
 	}
 	if !ok {
 		return nil, "", errors.New("invalid credentials") // Şifre yanlış
-	}
-
-	locationPoint := &extensions.PostGISPoint{
-		Lat: formData.Lat,
-		Lng: formData.Lng,
-	}
-
-	locationUser := &utils.Location{
-		ID:              uuid.New(),
-		ContentableType: utils.LocationOwnerUser,
-		ContentableID:   userObj.ID,
-		CountryCode:     &formData.CountryCode,
-		Country:         &formData.Country,
-		City:            &formData.City,
-		Region:          &formData.Region,
-		Display:         &formData.Display,
-		Timezone:        &formData.Timezone,
-		Address:         &formData.Address,
-		Latitude:        &formData.Lat,
-		Longitude:       &formData.Lng,
-		LocationPoint:   locationPoint,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
-	}
-
-	if err := s.userRepo.UpsertLocation(locationUser); err != nil {
-		return nil, "", err
 	}
 
 	// Token üret
