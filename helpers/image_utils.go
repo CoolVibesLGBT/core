@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/boxes-ltd/imaging"
 	"github.com/chai2010/webp"
-	"github.com/disintegration/imaging"
 )
 
 // ResizeSquareCrop WebP formatında kare crop + resize yapar
