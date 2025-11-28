@@ -1,10 +1,13 @@
 package helpers
 
 import (
+	"coolvibes/constants"
 	"coolvibes/models/jwtclaims"
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -12,7 +15,7 @@ import (
 )
 
 var zeroNamespace = uuid.Nil
-var NameSpace = uuid.NewSHA1(zeroNamespace, []byte("coolvibes"))
+var NameSpace = uuid.NewSHA1(zeroNamespace, []byte(constants.APPLICATION_NAME))
 
 func GenerateUserJWT(user_id uuid.UUID, publicId int64) (string, error) {
 	var jwtSecret = []byte(os.Getenv("USER_JWT_SECRET"))
@@ -21,7 +24,10 @@ func GenerateUserJWT(user_id uuid.UUID, publicId int64) (string, error) {
 		UserID:   user_id,  // uuid.UUID
 		PublicID: publicId, // int64
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().AddDate(0, 0, 30).Unix(),
+			ExpiresAt: time.Now().AddDate(1, 0, 30).Unix(),
+			NotBefore: time.Now().Unix(),
+			Issuer:    constants.APPLICATION_NAME,
+			Subject:   "AUTH",
 		},
 	}
 
@@ -32,7 +38,24 @@ func GenerateUserJWT(user_id uuid.UUID, publicId int64) (string, error) {
 	return result, error
 }
 
+func IsValidJWTFormat(token string) bool {
+	var jwtRegex = regexp.MustCompile(`^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$`)
+	return jwtRegex.MatchString(token)
+}
+
 func DecodeUserJWT(tokenString string) (*jwtclaims.UserJWTClaims, error) {
+	if len(tokenString) > 1024 {
+		return nil, errors.New("token too long")
+	}
+
+	if !IsValidJWTFormat(tokenString) {
+		return nil, errors.New("invalid JWT format")
+	}
+
+	if strings.Count(tokenString, ".") != 2 {
+		return nil, errors.New("invalid token format")
+	}
+
 	token, err := jwt.ParseWithClaims(tokenString, &jwtclaims.UserJWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -47,10 +70,15 @@ func DecodeUserJWT(tokenString string) (*jwtclaims.UserJWTClaims, error) {
 		fmt.Println("DecodeUserJWT:Error:2")
 		return nil, errors.New("invalid jwt token")
 	}
-	myClaims, ok := token.Claims.(*jwtclaims.UserJWTClaims)
-	if !ok {
-		fmt.Println("DecodeUserJWT:Error:3")
-		return nil, errors.New("couldn't parse token claims")
+	claims, ok := token.Claims.(*jwtclaims.UserJWTClaims)
+	if !ok || !token.Valid {
+		return nil, errors.New("invalid token or claims")
 	}
-	return myClaims, nil
+	if claims.ExpiresAt != 0 {
+		expTime := time.Unix(claims.ExpiresAt, 0) // Unix timestamp -> time.Time
+		if expTime.Before(time.Now()) {
+			return nil, errors.New("token expired")
+		}
+	}
+	return claims, nil
 }

@@ -2,6 +2,8 @@ package constants
 
 import "encoding/json"
 
+const APPLICATION_NAME = "COOLVIBES"
+
 type CommandEnvelope struct {
 	Version string          `json:"version"` // "v1", "v2" gibi
 	Code    string          `json:"code"`    // "chat.send_gif" gibi
