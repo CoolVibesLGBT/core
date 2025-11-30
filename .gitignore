@@ -9,3 +9,7 @@ go.mod
 ./static/uploads/
 /static/uploads
 static/uploads
+
+./static/samples/
+/static/samples
+static/samples

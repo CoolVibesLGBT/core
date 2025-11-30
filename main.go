@@ -79,7 +79,9 @@ func NewApp() (*App, error) {
 		}
 
 		if *testFlag {
-			test.StartTest(db.DB, snowFlakeNode)
+			test.StartImageTest(db.DB, snowFlakeNode)
+			//test.StartTest(db.DB, snowFlakeNode)
+			os.Exit(0)
 		}
 
 		//faker.FakeUser(instance.DB, snowFlakeNode)

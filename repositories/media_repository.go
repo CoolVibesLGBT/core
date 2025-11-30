@@ -126,7 +126,7 @@ func getRoleHeight(role media.MediaRole, size string) int {
 		case "medium":
 			return 1080
 		case "large":
-			return 1440
+			return 1920
 		}
 	default:
 		// Diğer medya türleri için dikey

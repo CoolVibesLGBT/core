@@ -120,8 +120,13 @@ func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
 		user.AvatarID = &newAvatar.ID
 		user.Avatar = newAvatar
 
+		updatedUser, err := s.GetUserByID(user.ID)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
+			return
+		}
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user": user,
+			"user": updatedUser,
 		})
 
 	}
@@ -158,8 +163,13 @@ func HandleUploadCover(s *services.UserService) http.HandlerFunc {
 		user.AvatarID = &newCover.ID
 		user.Avatar = newCover
 
+		updatedUser, err := s.GetUserByID(user.ID)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
+			return
+		}
 		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"user": user,
+			"user": updatedUser,
 		})
 
 	}

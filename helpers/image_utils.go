@@ -1,9 +1,13 @@
 package helpers
 
 import (
+	"bytes"
+	"fmt"
 	"image"
 	"os"
 	"path/filepath"
+
+	"github.com/rwcarlsen/goexif/exif"
 
 	"github.com/boxes-ltd/imaging"
 	"github.com/chai2010/webp"
@@ -52,7 +56,7 @@ func ResizeSquareKeepAspect(srcPath, dstPath string, width, height int) error {
 		return err
 	}
 
-	fitted := imaging.Fit(img, size, size, imaging.Lanczos)
+	fitted := imaging.Fill(img, size, size, imaging.Center, imaging.Lanczos)
 	dst := imaging.New(size, size, image.Transparent)
 	offset := image.Pt((size-fitted.Bounds().Dx())/2, (size-fitted.Bounds().Dy())/2)
 
@@ -71,17 +75,67 @@ func ResizeSquareKeepAspect(srcPath, dstPath string, width, height int) error {
 	return webp.Encode(f, final, &webp.Options{Lossless: true, Quality: 100})
 }
 
-// ResizeLandscapeKeepAspect WebP formatında landscape için aspect koruyarak resize eder
+// EXIF orientasyonu uygular
+func fixOrientation(img image.Image, data []byte) (image.Image, error) {
+	exifData, err := exif.Decode(bytes.NewReader(data))
+	if err != nil {
+		// EXIF yoksa, oryantasyon düzeltemezsin
+		return img, nil
+	}
+
+	orientationTag, err := exifData.Get(exif.Orientation)
+	if err != nil {
+		return img, nil
+	}
+
+	orientation, err := orientationTag.Int(0)
+	if err != nil {
+		return img, nil
+	}
+
+	switch orientation {
+	case 2:
+		img = imaging.FlipH(img)
+	case 3:
+		img = imaging.Rotate180(img)
+	case 4:
+		img = imaging.FlipV(img)
+	case 5:
+		img = imaging.Transpose(img)
+	case 6:
+		img = imaging.Rotate270(img)
+	case 7:
+		img = imaging.Transverse(img)
+	case 8:
+		img = imaging.Rotate90(img)
+	}
+
+	return img, nil
+}
+
 func ResizeLandscapeKeepAspect(srcPath, dstPath string, width, height int) error {
+	data, err := os.ReadFile(srcPath)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("WIDTH", width, "HEIGHT", height)
 	img, err := imaging.Open(srcPath)
 	if err != nil {
 		return err
 	}
 
-	fitted := imaging.Fit(img, width, height, imaging.Lanczos)
-	dst := imaging.New(width, height, image.Transparent)
-	offset := image.Pt((width-fitted.Bounds().Dx())/2, (height-fitted.Bounds().Dy())/2)
-	final := imaging.Paste(dst, fitted, offset)
+	img, err = imaging.Decode(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+
+	img, err = fixOrientation(img, data)
+	if err != nil {
+		return err
+	}
+
+	final := imaging.Fill(img, width, height, imaging.Center, imaging.Lanczos)
 
 	if err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm); err != nil {
 		return err
