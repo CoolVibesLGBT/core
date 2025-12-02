@@ -454,8 +454,15 @@ func HandleGetByPublicID(s *services.PostService) http.HandlerFunc {
 func HandleTimeline(s *services.PostService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Limit parametresi
-		limitStr := r.URL.Query().Get("limit")
-		limit := 10 // default
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Failed to parse form", http.StatusBadRequest)
+			return
+		}
+
+		limitStr := r.FormValue("limit")
+		limit := 5 // default
 		if limitStr != "" {
 			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 				limit = l
@@ -464,7 +471,7 @@ func HandleTimeline(s *services.PostService) http.HandlerFunc {
 
 		// Cursor parametresi (PublicID)
 		var cursor *int64
-		cursorStr := r.URL.Query().Get("cursor")
+		cursorStr := r.FormValue("cursor")
 		if cursorStr != "" {
 			if c, err := strconv.ParseInt(cursorStr, 10, 64); err == nil {
 				cursor = &c
