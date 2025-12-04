@@ -26,12 +26,6 @@ type CountryResponse struct {
 	Name string `json:"name"`
 }
 
-type LanguageResponse struct {
-	Code string `json:"code"`
-	Flag string `json:"flag"`
-	Name string `json:"name"`
-}
-
 type OrientationData struct {
 	ID           string            `json:"id"`
 	Key          string            `json:"key"`
@@ -45,13 +39,13 @@ type GroupedAttributes struct {
 
 // InitialData dönecek ana struct
 type InitialData struct {
-	VapidPubicKey string                      `json:"vapid_public_key"`
-	Preferences   models.PreferencesData      `json:"preferences"`
-	EventKinds    []eventkinds.EventKind      `json:"event_kinds"`
-	ReportKinds   []models.ReportKind         `json:"report_kinds"`
-	Countries     map[string]CountryResponse  `json:"countries"`
-	Languages     map[string]LanguageResponse `json:"languages"`
-	Status        string                      `json:"status"`
+	VapidPubicKey string                                `json:"vapid_public_key"`
+	Preferences   models.PreferencesData                `json:"preferences"`
+	EventKinds    []eventkinds.EventKind                `json:"event_kinds"`
+	ReportKinds   []models.ReportKind                   `json:"report_kinds"`
+	Countries     map[string]CountryResponse            `json:"countries"`
+	Languages     map[string]constants.LanguageResponse `json:"languages"`
+	Status        string                                `json:"status"`
 }
 
 type SystemHandler struct {
@@ -91,26 +85,6 @@ func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
 			// dilediğin kadar ekle
 		}
 
-		// Languages
-		languages := map[string]LanguageResponse{
-			"en": {Code: "en", Flag: "🇺🇸", Name: "English"},
-			"tr": {Code: "tr", Flag: "🇹🇷", Name: "Türkçe"},
-			"es": {Code: "es", Flag: "🇪🇸", Name: "Español"},
-			"he": {Code: "he", Flag: "🇮🇱", Name: "עברית"},
-			"ar": {Code: "ar", Flag: "🇸🇦", Name: "العربية"},
-			"zh": {Code: "zh", Flag: "🇨🇳", Name: "中文"},
-			"ja": {Code: "ja", Flag: "🇯🇵", Name: "日本語"},
-			"hi": {Code: "hi", Flag: "🇮🇳", Name: "हिन्दी"},
-			"de": {Code: "de", Flag: "🇩🇪", Name: "Deutsch"},
-			"th": {Code: "th", Flag: "🇹🇭", Name: "ไทย"},
-			"ru": {Code: "ru", Flag: "🇷🇺", Name: "Русский"},          // Rusça
-			"pl": {Code: "pl", Flag: "🇵🇱", Name: "Polski"},           // Lehçe
-			"fr": {Code: "fr", Flag: "🇫🇷", Name: "Français"},         // Fransızca
-			"pt": {Code: "pt", Flag: "🇵🇹", Name: "Português"},        // Portekizce
-			"id": {Code: "id", Flag: "🇮🇩", Name: "Bahasa Indonesia"}, // Endonezce
-			"bn": {Code: "bn", Flag: "🇧🇩", Name: "বাংলা"},            // Bengalce
-		}
-
 		key, err := helpers.CreateVapidKeys(db)
 		if err != nil {
 			http.Error(w, "Failed to get VAPID key", http.StatusInternalServerError)
@@ -121,7 +95,7 @@ func HandleInitialSync(db *gorm.DB) http.HandlerFunc {
 			VapidPubicKey: key.PublicKey,
 			Preferences:   preferences,
 			Countries:     countries,
-			Languages:     languages,
+			Languages:     constants.Languages,
 			EventKinds:    eventKinds,
 			ReportKinds:   reportKinds,
 			Status:        "ok",
