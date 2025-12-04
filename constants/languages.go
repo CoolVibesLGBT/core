@@ -33,4 +33,7 @@ var Languages = map[string]LanguageResponse{
 
 	// Iran – Persian (Farsi)
 	"fa": {Code: "fa", Flag: "/images/countries/1x1/ir.svg", Name: "فارسی"},
+
+	"kr": {Code: "kr", Flag: "/images/countries/1x1/kr.svg", Name: "한국어 (South Korea)"},
+	"kp": {Code: "kp", Flag: "/images/countries/1x1/kp.svg", Name: "조선말 (North Korea)"},
 }
