@@ -76,6 +76,7 @@ func Migrate(db *gorm.DB) error {
 		&models.VapidKey{},
 		&payment.PaymentMethod{},
 		&models.ReportKind{},
+		&models.Report{},
 		&notifications.Notification{},
 		&utils.FileMetadata{},
 

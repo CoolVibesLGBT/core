@@ -3,6 +3,8 @@ package models
 import (
 	"coolvibes/models/utils"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -52,4 +54,22 @@ type ReportKind struct {
 	Description  utils.LocalizedString `gorm:"type:jsonb" json:"description"`
 	CreatedAt    time.Time             `json:"created_at"`
 	UpdatedAt    time.Time             `json:"updated_at"`
+}
+
+type Report struct {
+	ID              uuid.UUID                 `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ContentableID   uuid.UUID                 `gorm:"type:uuid;not null;index" json:"contentable_id"`
+	ContentableType EngagementContentableType `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
+
+	ReporterID uuid.UUID `gorm:"type:uuid;not null;index" json:"reporter_id"`
+	Reporter   *User     `gorm:"foreignKey:ReporterID;references:ID" json:"reporter,omitempty"`
+
+	ReportKindKey string      `gorm:"type:varchar(64);not null;index" json:"report_kind_key"` // Rapor türü
+	ReportKind    *ReportKind `gorm:"foreignKey:ReportKindKey;references:Key" json:"report_kind,omitempty"`
+	Reason        string      `gorm:"type:text" json:"reason"` // Kullanıcı açıklaması
+
+	Status string
+
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

@@ -901,7 +901,31 @@ func (r *PostRepository) Banana(ctx context.Context, postId int64, authUser *mod
 	return nil
 }
 
-func (r *PostRepository) Report(ctx context.Context, postId int64, authUser *models.User) error {
+func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, description string, authUser *models.User) error {
+	post, err := r.FindPostByPublicID(postId)
+	if err != nil {
+		return err
+	}
+
+	if post != nil {
+		report := models.Report{
+			ContentableID:   post.ID,
+			ContentableType: models.EngagementContentableTypePost,
+			ReporterID:      authUser.ID,
+			ReportKindKey:   kind,
+			Reason:          description,
+			Status:          "pending",
+		}
+
+		err = r.userRepo.engagementRepo.AddEngagement(context.Background(), authUser.ID, post.AuthorID, models.EngagementKindReport, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+
+		if err := r.db.WithContext(ctx).Create(&report).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

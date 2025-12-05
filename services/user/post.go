@@ -133,8 +133,8 @@ func (s *PostService) Delete(ctx context.Context, postId int64, authUser *models
 	return s.postRepo.Delete(ctx, postId, authUser)
 }
 
-func (s *PostService) Report(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Report(ctx, postId, authUser)
+func (s *PostService) Report(ctx context.Context, postId int64, reason string, description string, authUser *models.User) error {
+	return s.postRepo.Report(ctx, postId, reason, description, authUser)
 }
 
 func (s *PostService) Bookmark(ctx context.Context, postId int64, authUser *models.User) error {

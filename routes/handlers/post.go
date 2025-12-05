@@ -318,7 +318,28 @@ func HandlePostReport(s *services.PostService) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("CODER", user.ID)
+		postIdStr := r.FormValue("post_id")
+		if postIdStr == "" {
+			http.Error(w, "post_id is required", http.StatusBadRequest)
+			return
+		}
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		reason := r.FormValue("reason")
+		description := r.FormValue("description")
+
+		err = s.Report(r.Context(), postId, reason, description, user)
+		if err != nil {
+			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
+			return
+		}
+		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+			"success": true,
+		})
 
 	}
 }
