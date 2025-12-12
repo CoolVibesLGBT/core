@@ -136,7 +136,9 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*models.User, error) {
 	err :=
 		r.db.
 			Preload("Avatar").
+			Preload("Avatar.File").
 			Preload("Cover").
+			Preload("Cover.File").
 			Preload("Location").
 			Preload("Engagements").
 			Preload("Engagements.EngagementDetails.Engager").
@@ -156,6 +158,8 @@ func (r *UserRepository) GetUsersStartingWith(letter string, limit int) ([]model
 	err := r.db.
 		Preload("Avatar").
 		Preload("Avatar.File").
+		Preload("Cover").
+		Preload("Cover.File").
 		Limit(limit).
 		Where("LOWER(user_name) LIKE ? OR LOWER(display_name) LIKE ?", pattern, pattern).
 		Find(&users).Error

@@ -92,6 +92,7 @@ type User struct {
 	Email       string                 `json:"email"`
 	Password    string                 `json:"-"` // gizli tutulmalı
 	Bio         *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
+	Domain      *string                `json:"domain"`
 
 	DateOfBirth *time.Time      `json:"date_of_birth,omitempty"`
 	Balance     decimal.Decimal `gorm:"type:numeric(38,18);default:0" json:"balance"`
