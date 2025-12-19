@@ -66,9 +66,12 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 	err := r.db.
 		Joins("JOIN chat_participants ON chat_participants.chat_id = chats.id").
 		Where("chat_participants.user_id = ?", userID).
-		Preload("Participants.User").
+		Preload("Participants.User.Avatar.File").
+		Preload("Participants.User.Cover.File").
 		Preload("LastMessage").
 		Preload("LastMessage.Author").
+		Preload("LastMessage.Author.Avatar.File").
+		Preload("LastMessage.Author.Cover.File").
 		Order("last_message_timestamp DESC").
 		Find(&chats).Error
 
@@ -91,6 +94,8 @@ func (r *ChatRepository) GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) 
 		Where("chats.deleted_at IS NULL").
 		Preload("Participants").
 		Preload("Participants.User").
+		Preload("Participants.User.Avatar.File").
+		Preload("Participants.User.Cover.File").
 		Preload("Participants.Chat").
 		Preload("Messages").
 		First(&chatObj).Error
