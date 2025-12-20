@@ -53,16 +53,21 @@ go mod download
 
 ### 5. Run database migrations
 ```bash
-go run main.go
+go run .
 ```
 
 ```bash
-go run main.go -migrate
+go run .  -migrate
 ```
 
 
 ```bash
-go run main.go -seed
+go run . -seed
+```
+
+
+```bash
+go run . -install
 ```
 
 ## Project Structure
