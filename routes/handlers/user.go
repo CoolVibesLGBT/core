@@ -65,20 +65,15 @@ func HandleLogin(s *services.UserService) http.HandlerFunc {
 
 func HandleFetchUserProfile(s *services.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		nicknames, ok := r.MultipartForm.Value["nickname"]
-		if !ok || len(nicknames) == 0 {
-			utils.SendError(w, http.StatusBadRequest, "nickname is required")
-			return
-		}
-		nickname := nicknames[0]
+		username := r.FormValue("nickname")
 
 		// Service çağrısı
-		userObj, err := s.FetchUserProfileByNickname(nickname)
+		userObj, err := s.FetchUserProfileByUsername(username)
 		if err != nil {
 			utils.SendError(w, http.StatusNotFound, "user not found")
 			return

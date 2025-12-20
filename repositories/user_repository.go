@@ -52,7 +52,7 @@ func (r *UserRepository) TestUser() error {
 	return r.db.Create(&user).Error
 }
 
-func (r *UserRepository) GetByUserNameOrEmailOrNickname(input string) (*models.User, error) {
+func (r *UserRepository) GetByUserNameOrEmailOrUsername(input string) (*models.User, error) {
 	var userObj models.User
 	err := r.db.
 		Preload("Engagements").

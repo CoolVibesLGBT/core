@@ -79,7 +79,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
 	}
 
-	existingUser, err := s.userRepo.GetByUserNameOrEmailOrNickname(formData.Nickname)
+	existingUser, err := s.userRepo.GetByUserNameOrEmailOrUsername(formData.Nickname)
 	if err == nil && existingUser != nil {
 		return nil, "", errors.New("username already exists")
 	}
@@ -134,7 +134,7 @@ func (s *UserService) Login(request map[string][]string) (*models.User, string, 
 	formData.UserName = strings.ToLower(formData.UserName)
 
 	// Kullanıcıyı username ile bul (repo'da buna uygun fonksiyon olmalı)
-	userObj, err := s.userRepo.GetByUserNameOrEmailOrNickname(formData.UserName)
+	userObj, err := s.userRepo.GetByUserNameOrEmailOrUsername(formData.UserName)
 	fmt.Println(err)
 	if err != nil {
 		return nil, "", errors.New("invalid username/email/nickname or password")
@@ -162,8 +162,8 @@ func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
 }
 
 // Kullanıcı ID ile getir
-func (s *UserService) FetchUserProfileByNickname(nickname string) (*models.User, error) {
-	return s.userRepo.GetByUserNameOrEmailOrNickname(nickname)
+func (s *UserService) FetchUserProfileByUsername(username string) (*models.User, error) {
+	return s.userRepo.GetByUserNameOrEmailOrUsername(username)
 }
 
 // Register işlemi
