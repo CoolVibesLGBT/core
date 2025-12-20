@@ -71,6 +71,9 @@ func HandleFetchUserProfile(s *services.UserService) http.HandlerFunc {
 		}
 
 		username := r.FormValue("nickname")
+		if username == "" {
+			username = r.FormValue("username")
+		}
 
 		// Service çağrısı
 		userObj, err := s.FetchUserProfileByUsername(username)
