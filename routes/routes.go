@@ -10,17 +10,16 @@ import (
 	"coolvibes/routes/handlers"
 	"coolvibes/services/socket"
 	services "coolvibes/services/user"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
+	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/gorm"
 )
 
 type Router struct {
-	mux           *mux.Router
+	fiber         *fiber.App
 	action        *router.ActionRouter
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
@@ -29,16 +28,23 @@ type Router struct {
 func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r := &Router{
-		mux:           mux.NewRouter(),
-		action:        router.NewActionRouter(db),
-		db:            db,
+		action: router.NewActionRouter(db),
+		db:     db,
+		fiber: fiber.New(fiber.Config{
+			ReadBufferSize:  8192,
+			WriteBufferSize: 8192,
+		}),
 		snowFlakeNode: snowFlakeNode,
 	}
 
-	r.mux.PathPrefix("/static/").
-		Handler(http.StripPrefix("/static/",
-			http.FileServer(http.Dir("./static")),
-		))
+	r.fiber.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowCredentials: false,
+		AllowMethods:     "POST,GET,OPTIONS,PUT,DELETE",
+		AllowHeaders:     "Accept,Authorization,authorization,Content-Type,Content-Length,X-CSRF-Token,Token,session,Origin,Host,Connection,Accept-Encoding,Accept-Language,X-Requested-With",
+	}))
+
+	r.fiber.Static("/static", "./static")
 
 	socketService := socket.NewSocketService(r.db)
 
@@ -315,76 +321,71 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		middleware.AuthMiddleware(userRepo),             // middleware
 	)
 
-	r.mux.HandleFunc("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
-	r.mux.HandleFunc("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))
+	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
+	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))
 
-	r.mux.HandleFunc("/", r.handlePacket)
-	r.mux.HandleFunc("/test", r.handlePacket)
+	// hepsi için packet handler
+	r.fiber.All("/", r.handlePacket)
 
-	// Tek packet endpoint
-	r.mux.HandleFunc("/packet", r.handlePacket)
+	r.fiber.All("/test", r.handlePacket)
+	r.fiber.All("/packet", r.handlePacket)
+
 	return r
 }
 
-func (r *Router) handlePacket(w http.ResponseWriter, req *http.Request) {
+func (r *Router) handlePacket(c *fiber.Ctx) error {
 	var action string
-	switch req.Method {
-	case http.MethodGet:
-		// GET query parametrelerinden al
-		action = req.URL.Query().Get("action")
+	c.Set("Access-Control-Allow-Origin", "*")
+	c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+	c.Set("Access-Control-Allow-Headers", "Accept,Authorization,Content-Type,X-CSRF-Token,Token,session,Origin,Host,Connection,Accept-Encoding,Accept-Language,X-Requested-With")
+	if c.Method() == fiber.MethodOptions {
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+	if c.Method() == fiber.MethodOptions {
+		return c.SendStatus(fiber.StatusNoContent)
+	}
 
-	case http.MethodPost:
-		contentType := req.Header.Get("Content-Type")
+	switch c.Method() {
+	case fiber.MethodGet:
+		action = c.Query("action")
+
+	case fiber.MethodPost:
+		contentType := c.Get("Content-Type")
 		if strings.Contains(contentType, "application/json") {
-			// JSON body
 			var packet struct {
 				Action string `json:"action"`
 			}
-			if err := json.NewDecoder(req.Body).Decode(&packet); err != nil {
-				http.Error(w, "invalid JSON body", http.StatusBadRequest)
-				return
+			if err := c.BodyParser(&packet); err != nil {
+				return c.Status(fiber.StatusBadRequest).SendString("invalid JSON body")
 			}
 			action = packet.Action
 		} else {
-			// Form / multipart
-			if err := req.ParseMultipartForm(8192 << 20); err != nil {
-				http.Error(w, "Could not parse form", http.StatusBadRequest)
-				return
-			}
-			action = req.FormValue("action")
+			action = c.FormValue("action")
 		}
 
 	default:
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
+		return c.Status(fiber.StatusMethodNotAllowed).SendString("method not allowed")
 	}
 
 	if action == "" {
 		fmt.Println("Default handler çalıştı")
-		w.Write([]byte("Default handler executed"))
-		return
+		return c.SendString("Default handler executed")
 	}
 
 	route, ok := r.action.GetHandler(action)
 	if !ok {
-		http.Error(w, "Unknown action", http.StatusBadRequest)
-		return
+		return c.Status(fiber.StatusBadRequest).SendString("Unknown action")
 	}
 
-	// Middleware zincirini uygula
+	// Middleware zincirini uygula (Fiber middleware olduğu varsayımıyla)
 	handler := route.Handler
 	for i := len(route.Middlewares) - 1; i >= 0; i-- {
 		handler = route.Middlewares[i](handler)
 	}
 
-	// Handler çalıştır
-	handler.ServeHTTP(w, req)
+	return handler(c)
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.mux.ServeHTTP(w, req)
-}
-
-func (r *Router) GetMux() *mux.Router {
-	return r.mux
+func (r *Router) GetFiber() *fiber.App {
+	return r.fiber
 }

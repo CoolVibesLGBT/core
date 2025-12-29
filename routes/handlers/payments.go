@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	services "coolvibes/services/user"
 	"fmt"
-	"net/http"
+
+	services "coolvibes/services/user"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type PaymentHandler struct {
@@ -14,17 +16,18 @@ func NewPaymentHandler(service *services.PaymentService) *PaymentHandler {
 	return &PaymentHandler{service: service}
 }
 
-func HandleStripeThin(s *services.PaymentService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// /stripe/thin
+func HandleStripeThin(s *services.PaymentService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		fmt.Println("STRIPE_THIN_EXECUTED")
-		w.WriteHeader(http.StatusOK)
-
+		return c.SendStatus(fiber.StatusOK)
 	}
 }
 
-func HandleStripeSnapshot(s *services.PaymentService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// /stripe/snapshot
+func HandleStripeSnapshot(s *services.PaymentService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		fmt.Println("STRIPE_SNAPSHOT_EXECUTED")
-		w.WriteHeader(http.StatusOK)
+		return c.SendStatus(fiber.StatusOK)
 	}
 }

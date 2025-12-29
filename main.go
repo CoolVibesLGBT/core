@@ -11,11 +11,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 	socketio "github.com/vchitai/go-socket.io/v4"
 	"gorm.io/gorm"
 )
@@ -23,7 +21,7 @@ import (
 // App struct'u, tüm uygulama bileşenlerini içerir
 type App struct {
 	DB            *gorm.DB
-	Router        routes.AppHandler
+	Router        *routes.Router
 	SnowFlakeNode *helpers.Node
 	SocketServer  *socketio.Server
 }
@@ -118,15 +116,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	applicationRouter := app.Router
-
-	httpCors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowCredentials: true,
-		AllowedMethods:   []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "authorization", "Content-Type", "Content-Length", "X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection", "Accept-Encoding", "Accept-Language", "X-Requested-With"},
-	})
-
+	fiberApp := app.Router.GetFiber()
 	vapidKeys, err := helpers.CreateVapidKeys(app.DB)
 	if err != nil {
 		log.Fatal("VAPID anahtarı alınamadı:", err)
@@ -138,7 +128,8 @@ func main() {
 	notificationRepo := repositories.NewNotificationRepository(app.DB, nil)
 	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
 	go socket.ListenServer(app.DB, notificationMgr)
-	httpHandler := httpCors.Handler(applicationRouter)
+
+	//httpHandler := httpCors.Handler(applicationRouter)
 	log.Println("App running on", os.Getenv("PORT"))
-	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), httpHandler))
+	log.Fatal(fiberApp.Listen(os.Getenv("PORT")))
 }

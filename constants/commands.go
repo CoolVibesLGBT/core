@@ -116,6 +116,14 @@ const (
 	CMD_DELETE_MESSAGE = "chat.delete_message" // Mesajı sil
 	CMD_FETCH_MESSAGES = "chat.fetch_messages" // Mesajları getir
 
+	//PLACE EKRANI
+	CMD_PLACE_CREATE         = "place.create"
+	CMD_PLACE_FETCH          = "place.fetch"
+	CMD_PLACE_VOTE           = "place.vote"
+	CMD_PLACE_DELETE         = "place.delete"
+	CMD_PLACE_UPDATE         = "place.update"
+	CMD_PLACE_COMMENT        = "place.comment"
+	CMD_PLACE_FETCH_COMMENTS = "place.fetch.comments"
 )
 
 /*

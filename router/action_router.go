@@ -2,19 +2,19 @@ package router
 
 import (
 	"coolvibes/middleware"
-	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type Route struct {
-	Handler     http.HandlerFunc
+	Handler     fiber.Handler
 	Middlewares []middleware.Middleware
 }
 
 type ActionRouter struct {
 	routes       map[string]Route
-	defaultRoute http.HandlerFunc
+	defaultRoute fiber.Handler
 	db           *gorm.DB
 }
 
@@ -26,7 +26,7 @@ func NewActionRouter(db *gorm.DB) *ActionRouter {
 }
 
 // Register
-func (ar *ActionRouter) Register(action string, handler http.HandlerFunc, mws ...middleware.Middleware) {
+func (ar *ActionRouter) Register(action string, handler fiber.Handler, mws ...middleware.Middleware) {
 	ar.routes[action] = Route{
 		Handler:     handler,
 		Middlewares: mws,
@@ -34,20 +34,18 @@ func (ar *ActionRouter) Register(action string, handler http.HandlerFunc, mws ..
 }
 
 // Resolve
-func (ar *ActionRouter) Resolve(w http.ResponseWriter, r *http.Request) {
-	action := r.FormValue("action")
+func (ar *ActionRouter) Resolve(c *fiber.Ctx) error {
+	action := c.FormValue("action")
 	if action == "" {
-		action = r.URL.Query().Get("action")
+		action = c.Query("action")
 	}
 
 	route, ok := ar.routes[action]
 	if !ok {
 		if ar.defaultRoute != nil {
-			ar.defaultRoute(w, r)
-			return
+			return ar.defaultRoute(c)
 		}
-		http.Error(w, "Unknown action", http.StatusBadRequest)
-		return
+		return c.Status(fiber.StatusBadRequest).SendString("Unknown action")
 	}
 
 	// Middleware zincirini uygula
@@ -56,7 +54,7 @@ func (ar *ActionRouter) Resolve(w http.ResponseWriter, r *http.Request) {
 		handler = route.Middlewares[i](handler)
 	}
 
-	handler(w, r)
+	return handler(c)
 }
 func (ar *ActionRouter) GetHandler(action string) (Route, bool) {
 	route, ok := ar.routes[action]

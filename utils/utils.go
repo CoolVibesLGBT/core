@@ -2,8 +2,8 @@ package utils
 
 import (
 	"coolvibes/constants"
-	"encoding/json"
-	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type ErrorResponse struct {
@@ -12,18 +12,14 @@ type ErrorResponse struct {
 	Message string              `json:"message"`
 }
 
-func SendError(w http.ResponseWriter, status int, code constants.ErrorCode) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(ErrorResponse{
+func SendError(c *fiber.Ctx, status int, code constants.ErrorCode) error {
+	return c.Status(status).JSON(ErrorResponse{
 		Success: false,
 		Code:    code,
 		Message: code.String(),
 	})
 }
 
-func SendJSON(w http.ResponseWriter, status int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
+func SendJSON(c *fiber.Ctx, status int, payload interface{}) error {
+	return c.Status(status).JSON(payload)
 }

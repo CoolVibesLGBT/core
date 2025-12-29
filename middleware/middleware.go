@@ -1,83 +1,86 @@
 package middleware
 
 import (
-	"context"
-	"net/http"
 	"strings"
 
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/repositories"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-type contextKey string
+const userContextKey = "authenticatedUser"
 
-const userContextKey = contextKey("authenticatedUser")
+type Middleware func(fiber.Handler) fiber.Handler
 
-type Middleware func(http.HandlerFunc) http.HandlerFunc
-
-func AuthMiddleware(userRepo *repositories.UserRepository) Middleware {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
+func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
+	return func(next fiber.Handler) fiber.Handler {
+		return func(c *fiber.Ctx) error {
+			authHeader := c.Get("Authorization")
 			if authHeader == "" {
-				http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
-				return
+				return c.Status(fiber.StatusUnauthorized).SendString("Missing Authorization header")
 			}
 
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
-				return
+				return c.Status(fiber.StatusUnauthorized).SendString("Invalid Authorization header")
 			}
 
 			tokenString := parts[1]
 
 			claims, err := helpers.DecodeUserJWT(tokenString)
 			if err != nil {
-				http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-				return
+				return c.Status(fiber.StatusUnauthorized).SendString("Invalid or expired token")
 			}
 
 			u, err := userRepo.GetUserByPublicId(claims.PublicID)
 			if err != nil {
-				http.Error(w, "User not found", http.StatusUnauthorized)
-				return
+				return c.Status(fiber.StatusUnauthorized).SendString("User not found")
 			}
 
-			ctx := context.WithValue(r.Context(), userContextKey, u)
-			next(w, r.WithContext(ctx))
+			c.Locals(userContextKey, u)
+
+			return next(c)
 		}
 	}
 }
 
-func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) Middleware {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
+func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
+	return func(next fiber.Handler) fiber.Handler {
+		return func(c *fiber.Ctx) error {
+			authHeader := c.Get("Authorization")
 
-			authHeader := r.Header.Get("Authorization")
 			if authHeader != "" {
 				parts := strings.SplitN(authHeader, " ", 2)
 				if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
 					tokenString := parts[1]
+
 					claims, err := helpers.DecodeUserJWT(tokenString)
 					if err == nil {
 						u, err := userRepo.GetUserByPublicId(claims.PublicID)
 						if err == nil {
-							ctx := context.WithValue(r.Context(), userContextKey, u)
-							next(w, r.WithContext(ctx))
-							return
+							c.Locals(userContextKey, u)
+							return next(c)
 						}
 					}
 				}
 			}
 
-			ctx := context.WithValue(r.Context(), userContextKey, nil)
-			next(w, r.WithContext(ctx))
+			// User yok → nil koyuyoruz
+			c.Locals(userContextKey, nil)
+
+			return next(c)
 		}
 	}
 }
-func GetAuthenticatedUser(r *http.Request) (*models.User, bool) {
-	u, ok := r.Context().Value(userContextKey).(*models.User)
-	return u, ok
+
+func GetAuthenticatedUser(c *fiber.Ctx) (*models.User, bool) {
+	u := c.Locals(userContextKey)
+	if u == nil {
+		return nil, false
+	}
+
+	user, ok := u.(*models.User)
+	return user, ok
 }

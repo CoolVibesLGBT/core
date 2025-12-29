@@ -1,18 +1,15 @@
 package handlers
 
 import (
-	"coolvibes/constants"
 	"coolvibes/middleware"
 	services "coolvibes/services/user"
-	"coolvibes/utils"
-	"encoding/json"
 	"fmt"
 	"math"
 	"mime/multipart"
-	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -25,464 +22,456 @@ func NewPostHandler(service *services.PostService) *PostHandler {
 	return &PostHandler{service: service}
 }
 
-func HandleCreate(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+func HandleCreate(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		form, err := c.MultipartForm()
 		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Could not parse multipart form: " + err.Error(),
+			})
 		}
 
-		formParams := r.MultipartForm.Value        // text fields
-		images := r.MultipartForm.File["images[]"] // images array
-		videos := r.MultipartForm.File["videos[]"] // videos array
+		formParams := form.Value
+		images := form.File["images[]"]
+		videos := form.File["videos[]"]
 
 		files := append([]*multipart.FileHeader{}, images...)
 		files = append(files, videos...)
 
-		user, ok := middleware.GetAuthenticatedUser(r)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
+
 		post, err := s.CreatePost(formParams, files, user)
 		if err != nil {
-			http.Error(w, "Failed to create post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create post: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(post)
-
+		return c.Status(fiber.StatusCreated).JSON(post)
 	}
 }
 
-func HandleVote(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleVote(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		choiceIdStr := r.FormValue("choice_id")
-		weightStr := r.FormValue("weight")
-		rankStr := r.FormValue("rank")
+		choiceIdStr := c.FormValue("choice_id")
+		weightStr := c.FormValue("weight")
+		rankStr := c.FormValue("rank")
 
 		choiceId, err := uuid.Parse(choiceIdStr)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, "invalid_choice_id")
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid_choice_id",
+			})
 		}
 
-		weight := 1 // default
+		weight := 1
 		if weightStr != "" {
 			weight, err = strconv.Atoi(weightStr)
 			if err != nil || weight <= 0 {
-				utils.SendError(w, http.StatusBadRequest, "invalid_weight")
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid_weight",
+				})
 			}
 		}
 
-		rank := 0 // default
+		rank := 0
 		if rankStr != "" {
 			rank, err = strconv.Atoi(rankStr)
 			if err != nil || rank < 0 {
-				utils.SendError(w, http.StatusBadRequest, "invalid_rank")
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid_rank",
+				})
 			}
 		}
 
-		err = s.Vote(r.Context(), choiceId, weight, rank, user.ID)
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		err = s.Vote(c.Context(), choiceId, weight, rank, user.ID)
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,
 			"error":   err,
 		})
-
 	}
 }
 
-func HandlePostDelete(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
+func HandlePostDelete(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		user, ok := middleware.GetAuthenticatedUser(r)
-		fmt.Println(ok)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		postIdStr := r.FormValue("post_id")
+		postIdStr := c.FormValue("post_id")
 		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
 		}
 
 		postId, err := strconv.ParseInt(postIdStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
 		}
 
-		err = s.Delete(r.Context(), postId, user)
-		if err != nil {
-			http.Error(w, "failed to delete post: "+err.Error(), http.StatusInternalServerError)
-			return
+		if err := s.Delete(c.Context(), postId, user); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to delete post: " + err.Error(),
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
-		})
-
-	}
-}
-
-func HandlePostLike(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		postIdStr := r.FormValue("post_id")
-		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
-		}
-
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = s.Like(r.Context(), postId, user)
-		if err != nil {
-			http.Error(w, "failed to like post: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
-		})
-
-	}
-}
-
-func HandlePostBanana(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		postIdStr := r.FormValue("post_id")
-		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
-		}
-
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = s.Banana(r.Context(), postId, user)
-		if err != nil {
-			http.Error(w, "failed to like post: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
-		})
-
-	}
-}
-
-func HandlePostDislike(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		postIdStr := r.FormValue("post_id")
-		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
-		}
-
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = s.Dislike(r.Context(), postId, user)
-		if err != nil {
-			http.Error(w, "failed to dislike post: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
-		})
-
-	}
-}
-
-func HandlePostBookmark(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		postIdStr := r.FormValue("post_id")
-		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
-		}
-
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = s.Bookmark(r.Context(), postId, user)
-		if err != nil {
-			http.Error(w, "failed to bookmark post: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
-		})
-
-	}
-}
-
-func HandlePostReport(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		postIdStr := r.FormValue("post_id")
-		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
-		}
-		postId, err := strconv.ParseInt(postIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		reason := r.FormValue("reason")
-		description := r.FormValue("description")
-
-		err = s.Report(r.Context(), postId, reason, description, user)
-		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
-		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": true,
 		})
-
 	}
 }
 
-func HandlePostView(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandlePostLike(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
+		// authenticated user
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		user, ok := middleware.GetAuthenticatedUser(r)
+		// read form value
+		postIdStr := c.FormValue("post_id")
+		if postIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
+		}
+
+		// do like
+		err = s.Like(c.Context(), postId, user)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to like post: " + err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandlePostBanana(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
+		}
+
+		// form param: post_id
+		postIdStr := c.FormValue("post_id")
+		if postIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
+		}
+
+		// call service
+		err = s.Banana(c.Context(), postId, user)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to banana post: " + err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandlePostDislike(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// get authenticated user
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
+		}
+
+		// read post_id from form
+		postIdStr := c.FormValue("post_id")
+		if postIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
+		}
+
+		// call service
+		err = s.Dislike(c.Context(), postId, user)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to dislike post: " + err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandlePostBookmark(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
+		}
+
+		postIdStr := c.FormValue("post_id")
+		if postIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
+		}
+
+		err = s.Bookmark(c.Context(), postId, user)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to bookmark post: " + err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandlePostReport(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
+		}
+
+		postIdStr := c.FormValue("post_id")
+		if postIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
+		}
+
+		postId, err := strconv.ParseInt(postIdStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
+		}
+
+		reason := c.FormValue("reason")
+		description := c.FormValue("description")
+
+		err = s.Report(c.Context(), postId, reason, description, user)
+		if err != nil {
+			// constants.ErrInvalidInput örnek hata, istersen kendi hata mesajını yazabilirsin
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid input",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandlePostView(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
 		fmt.Println("CODER", user.ID)
 
+		// Eğer response dönmek istersen örnek:
+		return c.SendStatus(fiber.StatusOK)
 	}
 }
 
-func HandlePostTip(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandlePostTip(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		postIdStr := r.FormValue("post_id")
+		postIdStr := c.FormValue("post_id")
 		if postIdStr == "" {
-			http.Error(w, "post_id is required", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "post_id is required",
+			})
 		}
 
 		postId, err := strconv.ParseInt(postIdStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid post_id: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post_id: " + err.Error(),
+			})
 		}
 
-		amountStr := r.FormValue("amount")
+		amountStr := c.FormValue("amount")
 		if amountStr == "" {
-			http.Error(w, "amount is required", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "amount is required",
+			})
 		}
 
 		amount, err := decimal.NewFromString(amountStr)
 		if err != nil {
-			http.Error(w, "invalid amount: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid amount: " + err.Error(),
+			})
 		}
 
-		balance, err := s.Tip(r.Context(), postId, user, amount)
+		balance, err := s.Tip(c.Context(), postId, user, amount)
 		if err != nil {
-			http.Error(w, "failed to tip post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to tip post: " + err.Error(),
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"success": err == nil,
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
 			"balance": balance,
 		})
-
 	}
 }
 
-func HandleGetByID(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
+func HandleGetByID(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.Query("id")
 		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "missing post id",
+			})
 		}
 
-		var postId int64 = 0
-
-		if idStr != "" {
-			val, err := strconv.ParseInt(idStr, 10, 64)
-			if err != nil {
-				http.Error(w, "invalid post", http.StatusBadRequest)
-				return
-			}
-			postId = val
+		postId, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid post id",
+			})
 		}
 
 		post, err := s.GetPostByPublicID(postId)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get post: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		return c.JSON(post)
 	}
 }
 
-func HandleGetByPublicID(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
+func HandleGetByPublicID(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.Query("id")
 		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "missing post id",
+			})
 		}
 
-		id, err := uuid.Parse(idStr)
+		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid id",
+			})
 		}
 
-		fmt.Println("%d", id)
+		// Örnek debug print (fmt.Printf kullanımı düzeltildi)
+		fmt.Printf("%v\n", id)
 
-		post, err := s.GetPostByPublicID(12)
+		// Burada 12 sabit değeri kullanılmaz, muhtemelen id kullanılacak
+		post, err := s.GetPostByPublicID(id)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get post: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		return c.JSON(post)
 	}
 }
 
-func HandleTimeline(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Limit parametresi
-
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		limitStr := r.FormValue("limit")
+func HandleTimeline(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// limit parametresi
+		limitStr := c.FormValue("limit")
 		limit := 5 // default
 		if limitStr != "" {
 			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
@@ -490,257 +479,253 @@ func HandleTimeline(s *services.PostService) http.HandlerFunc {
 			}
 		}
 
-		// Cursor parametresi (PublicID)
+		// cursor parametresi (int64 pointer)
 		var cursor *int64
-		cursorStr := r.FormValue("cursor")
+		cursorStr := c.FormValue("cursor")
 		if cursorStr != "" {
-			if c, err := strconv.ParseInt(cursorStr, 10, 64); err == nil {
-				cursor = &c
-			} else {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
+			cursor = &cVal
 		}
 
-		// Timeline verisini çek
+		// timeline verisini çek
 		result, err := s.GetTimeline(limit, cursor)
 		if err != nil {
-			http.Error(w, "failed to get timeline: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get timeline: " + err.Error(),
+			})
 		}
 
-		// JSON olarak döndür
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
+		// json olarak döndür
+		return c.JSON(result)
 	}
 }
 
-func HandleTimelineVibes(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Form verilerini parse et
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
+func HandleTimelineVibes(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		// Limit parametresi
 		limit := 10 // default
-		if limitStr := r.FormValue("limit"); limitStr != "" {
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 				limit = l
 			}
 		}
 
-		// Cursor parametresi (PublicID)
-
+		// Cursor parametresi (int64 pointer)
 		var cursor *int64
-		if cursorStr := r.FormValue("cursor"); cursorStr != "" {
-			c, err := strconv.ParseInt(cursorStr, 10, 64)
+		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
+			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
 			if err != nil {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
-			cursor = &c
+			cursor = &cVal
 		} else {
 			maxInt64 := int64(math.MaxInt64)
 			cursor = &maxInt64
 		}
 
-		limit = 10
+		// limit sabitlenmiş tekrar 10 yapılmış, bunu kaldırdım çünkü üstte limit ayarlanıyor
+		// limit = 10  // kaldırıldı
 
 		// Timeline verisini çek
 		result, err := s.GetTimelineVibes(limit, cursor)
 		if err != nil {
-			http.Error(w, "failed to get timeline: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get timeline: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
+		// JSON olarak dön
+		return c.JSON(result)
 	}
 }
 
-func HandleGetPostsByUser(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
+func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userIdStr := c.FormValue("user_id")
+		if userIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "user_id is required",
+			})
 		}
 
-		userIdStr := r.FormValue("user_id")
 		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			// utils.SendError yerine Fiber JSON
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid user_id",
+			})
 		}
 
-		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
-		limit := 10                      // default değer
-		if limitStr != "" {
+		limit := 10 // default
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		cursorStr := r.FormValue("cursor")
-		var cursor int64 = math.MaxInt64
-		if cursorStr != "" {
+		cursor := int64(math.MaxInt64)
+		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
 			val, err := strconv.ParseInt(cursorStr, 10, 64)
 			if err != nil {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
 			cursor = val
 		}
 
-		post, err := s.GetPostsByUserID(userId, limit, &cursor)
+		posts, err := s.GetPostsByUserID(userId, limit, &cursor)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get posts: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		return c.JSON(posts)
 	}
 }
 
-func HandleGetRepliesByUser(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
+func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userIdStr := c.FormValue("user_id")
+		if userIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "user_id is required",
+			})
 		}
 
-		userIdStr := r.FormValue("user_id")
 		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid user_id",
+			})
 		}
 
-		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
-		limit := 10                      // default değer
-		if limitStr != "" {
+		limit := 10 // default değer
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		cursorStr := r.FormValue("cursor")
-		var cursor int64 = math.MaxInt64
-		if cursorStr != "" {
+		cursor := int64(math.MaxInt64)
+		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
 			val, err := strconv.ParseInt(cursorStr, 10, 64)
 			if err != nil {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
 			cursor = val
 		}
 
-		post, err := s.GetUserPostReplies(userId, limit, &cursor)
+		posts, err := s.GetUserPostReplies(userId, limit, &cursor)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get posts: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		return c.JSON(posts)
 	}
 }
 
-func HandleGetAllMediasByUser(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
+func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userIdStr := c.FormValue("user_id")
+		if userIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "user_id is required",
+			})
 		}
 
-		userIdStr := r.FormValue("user_id")
 		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid user_id",
+			})
 		}
 
-		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
-		limit := 10                      // default değer
-		if limitStr != "" {
+		limit := 10 // default değer
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		cursorStr := r.FormValue("cursor")
-		var cursor int64 = math.MaxInt64
-		if cursorStr != "" {
+		cursor := int64(math.MaxInt64)
+		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
 			val, err := strconv.ParseInt(cursorStr, 10, 64)
 			if err != nil {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
 			cursor = val
 		}
 
 		medias, nextCursor, err := s.GetUserMedias(userId, limit, &cursor)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get medias: " + err.Error(),
+			})
 		}
 
 		var nextCursorStr string
 		if nextCursor != nil {
-			nextCursorStr = strconv.FormatInt(*nextCursor, 10) // 10 tabanında string yapar
+			nextCursorStr = strconv.FormatInt(*nextCursor, 10)
 		} else {
-			nextCursorStr = "0" // veya uygun başka bir default değer
+			nextCursorStr = "0"
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		response := map[string]interface{}{
+		response := fiber.Map{
 			"medias":      medias,
 			"next_cursor": nextCursorStr,
 			"has_more":    nextCursor != nil,
 		}
-		json.NewEncoder(w).Encode(response)
+
+		return c.JSON(response)
 	}
 }
 
-func HandleGetAllLikesByUser(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
+func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.FormValue("id")
 		if idStr == "" {
-			http.Error(w, "missing post id", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "missing post id",
+			})
 		}
 
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			http.Error(w, "invalid uuid", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid uuid",
+			})
 		}
 
 		post, err := s.GetPostByID(id)
 		if err != nil {
-			http.Error(w, "failed to get post: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get post: " + err.Error(),
+			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(post)
+		return c.JSON(post)
 	}
 }
 
-func HandleGetTrends(s *services.PostService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
+func HandleGetTrends(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		limit := 10 // default değer
-		if limitStr := r.FormValue("limit"); limitStr != "" {
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
 				limit = parsed
 			}
@@ -748,11 +733,12 @@ func HandleGetTrends(s *services.PostService) http.HandlerFunc {
 
 		hashtags, err := s.GetRecentHashtags(limit)
 		if err != nil {
-			http.Error(w, "failed to get trends: "+err.Error(), http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get trends: " + err.Error(),
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.JSON(fiber.Map{
 			"success":     true,
 			"trends":      hashtags,
 			"last_update": time.Now(),

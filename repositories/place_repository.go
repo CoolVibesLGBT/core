@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"coolvibes/helpers"
+	"coolvibes/models/post"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -41,4 +43,12 @@ func (r *PlaceRepository) PostRepo() *PostRepository {
 
 func NewPlaceRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository, notificationRepo *NotificationRepository, postRepo *PostRepository) *PlaceRepository {
 	return &PlaceRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo, postRepo: postRepo}
+}
+
+func (r *PlaceRepository) Create(place *post.Post) error {
+	return r.postRepo.CreatePost(place)
+}
+
+func (r *PlaceRepository) GetPlaceByID(id uuid.UUID) (*post.Post, error) {
+	return r.postRepo.GetPostByID(id)
 }

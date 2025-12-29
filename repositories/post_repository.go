@@ -249,7 +249,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type = ?", post.PostTypePost).
+		Where("contentable_type = ?", post.PostKindPost).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
@@ -544,12 +544,12 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 
 	defaultLanguage := author.DefaultLanguage
 
-	var postKindType post.PostType
+	var postKindType post.PostKind
 	switch contentableType {
 	case "chat":
-		postKindType = post.PostTypeChat
+		postKindType = post.PostKindChat
 	default:
-		postKindType = post.PostTypeStatus
+		postKindType = post.PostKindStatus
 	}
 
 	newPost := &post.Post{

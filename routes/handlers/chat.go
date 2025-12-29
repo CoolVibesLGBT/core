@@ -5,8 +5,8 @@ import (
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"mime/multipart"
-	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -18,174 +18,164 @@ func NewChatHandler(chatService *services.ChatService) *ChatHandler {
 	return &ChatHandler{chatService: chatService}
 }
 
-func HandleSendTypingEvent(s *services.ChatService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		chatIdStr := r.FormValue("chat_id")
+		// form parse -> Fiber otomatik yapar
+		chatIdStr := c.FormValue("chat_id")
 		if chatIdStr == "" {
-			http.Error(w, "Invalid chat type", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
 		}
 
-		chatId, err := uuid.Parse(chatIdStr) // Burada artık string var
+		chatId, err := uuid.Parse(chatIdStr)
 		if err != nil {
-			http.Error(w, "Failed to send typng event users", http.StatusInternalServerError)
-
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
 		}
 
-		err = s.SendTypingEvent(chatId, auth_user.ID, true)
+		// service call
+		err = s.SendTypingEvent(chatId, authUser.ID, true)
 		if err != nil {
-			http.Error(w, "Failed to send typng event users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to send typing event")
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.JSON(fiber.Map{
 			"success": true,
 		})
 	}
 }
 
-func HandleSendMessage(s *services.ChatService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := middleware.GetAuthenticatedUser(r)
+func HandleSendMessage(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+		form, err := c.MultipartForm()
 		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Could not parse multipart form: " + err.Error())
 		}
 
-		images := r.MultipartForm.File["images[]"] // images array
-		videos := r.MultipartForm.File["videos[]"] // images array
-
-		formParams := r.MultipartForm.Value // text fields
+		images := form.File["images[]"]
+		videos := form.File["videos[]"]
+		formParams := form.Value
 		files := append([]*multipart.FileHeader{}, images...)
 		files = append(files, videos...)
 
 		_post, err := s.AddMessageToChat(formParams, files, user)
 		if err != nil {
-			http.Error(w, "Send message failed", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).SendString("Send message failed")
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"success": true,
 			"message": _post,
 		})
 	}
 }
 
-func HandleCreateChat(s *services.ChatService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
+func HandleCreateChat(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
-		}
-
-		chatType := r.FormValue("type")
+		// form values read directly
+		chatType := c.FormValue("type")
 		if chatType == "" {
-			http.Error(w, "Invalid chat type", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat type")
 		}
 
-		participantIds := r.Form["participant_ids[]"] // Burada dizi alıyoruz
-		if len(participantIds) == 0 {
-			http.Error(w, "Invalid participants length", http.StatusUnauthorized)
-			return
+		// array form field: participant_ids[]
+		participantIds := c.FormValue("participant_ids[]")
+		if participantIds == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid participants length")
 		}
 
-		parsedParticipantId, err := uuid.Parse(participantIds[0]) // Burada artık string var
+		parsedParticipantId, err := uuid.Parse(participantIds)
 		if err != nil {
-			http.Error(w, "Invalid participant id", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid participant id")
 		}
 
-		chat, err := s.CreateChat(parsedParticipantId, auth_user.ID, chatType)
+		chat, err := s.CreateChat(parsedParticipantId, authUser.ID, chatType)
 		if err != nil {
-			http.Error(w, "Failed to create chat", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to create chat")
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.JSON(fiber.Map{
 			"success": true,
 			"chat":    chat,
 		})
 	}
 }
 
-func HandleGetChatsByUserID(s *services.ChatService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user alma
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		chats, err := s.GetChatsByUserID(auth_user.ID)
+		// servis çağrısı
+		chats, err := s.GetChatsByUserID(authUser.ID)
 		if err != nil {
-			http.Error(w, "Failed to fetch GetChatsByUserID", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch chats")
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		// json response
+		return c.JSON(fiber.Map{
 			"success": true,
 			"chats":   chats,
 		})
 	}
 }
 
-func HandleGetMessagesByChatID(s *services.ChatService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
-		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+		// multipart parse — Fiber kendisi yapar
+		form, err := c.MultipartForm()
 		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Could not parse multipart form: " + err.Error())
 		}
 
-		chatIdStr := r.FormValue("chat_id")
-		if chatIdStr == "" {
-			http.Error(w, "Invalid chat", http.StatusUnauthorized)
-			return
+		// read chat_id
+		values := form.Value["chat_id"]
+		if len(values) == 0 || values[0] == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat")
 		}
 
-		chatId, err := uuid.Parse(chatIdStr) // Burada artık string var
+		chatIdStr := values[0]
+
+		chatId, err := uuid.Parse(chatIdStr)
 		if err != nil {
-			http.Error(w, "Invalid chat", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
 		}
 
-		messages, err := s.GetMessagesByChatID(auth_user.ID, chatId)
+		// service call
+		messages, err := s.GetMessagesByChatID(authUser.ID, chatId)
 		if err != nil {
-			http.Error(w, "Failed to load messages", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to load messages")
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		// JSON response
+		return c.JSON(fiber.Map{
 			"success":  true,
 			"messages": messages,
 		})

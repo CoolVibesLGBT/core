@@ -5,10 +5,10 @@ import (
 	"coolvibes/middleware"
 	services "coolvibes/services/user"
 	"coolvibes/types"
-	"coolvibes/utils"
-	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type MatchHandler struct {
@@ -19,202 +19,237 @@ func NewMatchHandler(service *services.MatchesService) *MatchHandler {
 	return &MatchHandler{service: service}
 }
 
-func HandleGetUnseenUsers(s *services.MatchesService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := middleware.GetAuthenticatedUser(r)
+func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "User not authenticated",
+			})
 		}
-		users, err := s.GetUnseenUsers(r.Context(), user.ID, 10)
+
+		users, err := s.GetUnseenUsers(c.Context(), user.ID, 10)
 		if err != nil {
-			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Failed to get unseen users",
+			})
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
-			"users": users,
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+			"users":   users,
 		})
 	}
 }
 
-func HandleRecordView(s *services.MatchesService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleRecordView(s *services.MatchesService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "User not authenticated",
+			})
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
+		// form-data / x-www-form-urlencoded otomatik parse ediliyor
+		userIdStr := c.FormValue("public_id")
+		if userIdStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid form data",
+			})
 		}
 
-		userIdStr := r.FormValue("public_id")
 		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"code":    constants.ErrInvalidInput,
+			})
 		}
 
 		targetUserId, err := s.UserRepo().GetUserUUIDByPublicID(userId)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"code":    constants.ErrInvalidInput,
+			})
 		}
 
-		reactionStr := r.FormValue("reaction") //like dislike vs.
+		reactionStr := c.FormValue("reaction")
 
-		isMatched, err := s.RecordView(r.Context(), auth_user.ID, targetUserId, types.ReactionType(reactionStr))
+		isMatched, err := s.RecordView(
+			c.Context(),
+			auth_user.ID,
+			targetUserId,
+			types.ReactionType(reactionStr),
+		)
+
 		if err != nil {
-			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to get unseen users",
+			})
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"matched":     isMatched,
 			"target_user": userIdStr,
 		})
 	}
 }
 
-func HandleGetMatchesAfter(s *services.MatchesService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "User not authenticated",
+			})
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		cursorStr := r.FormValue("cursor")
+		// ---- cursor ----
+		cursorStr := c.FormValue("cursor")
 		var cursor *time.Time
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				http.Error(w, "invalid cursor format", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"message": "invalid cursor format",
+				})
 			}
 			cursor = &parsedTime
 		}
 
-		limitStr := r.FormValue("limit")
-		limit := 10 // default değer
-		if limitStr != "" {
+		// ---- limit ----
+		limit := 10
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		matches, err := s.GetMatchesAfter(r.Context(), auth_user.ID, cursor, int(limit))
+		matches, err := s.GetMatchesAfter(
+			c.Context(),
+			auth_user.ID,
+			cursor,
+			limit,
+		)
 		if err != nil {
-			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to get unseen users",
+			})
 		}
 
+		// ---- pagination cursor ----
 		nextCursor := ""
 		if len(matches) > 0 {
 			lastMatch := matches[len(matches)-1]
 			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"users":  matches,
 			"cursor": nextCursor,
 		})
 	}
 }
 
-func HandleGetPassesAfter(s *services.MatchesService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "User not authenticated",
+			})
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		cursorStr := r.FormValue("cursor")
+		// ---- cursor ----
+		cursorStr := c.FormValue("cursor")
 		var cursor *time.Time
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				http.Error(w, "invalid cursor format", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"message": "invalid cursor format",
+				})
 			}
 			cursor = &parsedTime
 		}
 
-		limitStr := r.FormValue("limit")
-		limit := 10 // default değer
-		if limitStr != "" {
+		// ---- limit ----
+		limit := 10
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		passes, err := s.GetPassesAfter(r.Context(), auth_user.ID, cursor, int(limit))
+		passes, err := s.GetPassesAfter(
+			c.Context(),
+			auth_user.ID,
+			cursor,
+			limit,
+		)
 		if err != nil {
-			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Failed to get unseen users",
+			})
 		}
 
+		// ---- pagination cursor ----
 		nextCursor := ""
 		if len(passes) > 0 {
-			lastMatch := passes[len(passes)-1]
-			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
+			last := passes[len(passes)-1]
+			nextCursor = last.CreatedAt.Format(time.RFC3339)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"users":  passes,
 			"cursor": nextCursor,
 		})
 	}
 }
 
-func HandleGetLikesAfter(s *services.MatchesService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			http.Error(w, "User not authenticated", http.StatusUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		cursorStr := r.FormValue("cursor")
+		cursorStr := c.Query("cursor", "")
 		var cursor *time.Time
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				http.Error(w, "invalid cursor format", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor format",
+				})
 			}
 			cursor = &parsedTime
 		}
 
-		limitStr := r.FormValue("limit")
-		limit := 10 // default değer
+		limitStr := c.Query("limit", "")
+		limit := 10
 		if limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		likes, err := s.GetLikesAfter(r.Context(), auth_user.ID, cursor, int(limit))
+		likes, err := s.GetLikesAfter(c.Context(), authUser.ID, cursor, limit)
 		if err != nil {
-			http.Error(w, "Failed to get unseen users", http.StatusInternalServerError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to get unseen users",
+			})
 		}
 
 		nextCursor := ""
@@ -223,7 +258,7 @@ func HandleGetLikesAfter(s *services.MatchesService) http.HandlerFunc {
 			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"users":  likes,
 			"cursor": nextCursor,
 		})

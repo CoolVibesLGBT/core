@@ -7,9 +7,10 @@ import (
 	services "coolvibes/services/user"
 	"coolvibes/utils"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type UserHandler struct {
@@ -20,496 +21,496 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-func HandleRegister(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		form := r.MultipartForm.Value
-		userObj, token, err := s.Register(form)
+func HandleRegister(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Multipart form'u al (error kontrolü ile)
+		form, err := c.MultipartForm()
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrUserExists)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid form data",
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		userObj, token, err := s.Register(form.Value)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "user already exists",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user":  userObj,
 			"token": token,
 		})
 	}
 }
 
-func HandleLogin(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		form := r.MultipartForm.Value
-
-		userObj, token, err := s.Login(form)
+func HandleLogin(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Multipart form verisini al
+		form, err := c.MultipartForm()
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid form data",
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		userObj, token, err := s.Login(form.Value)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "invalid credentials",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user":  userObj,
 			"token": token,
 		})
 	}
 }
 
-func HandleFetchUserProfile(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "failed to parse form: "+err.Error(), http.StatusBadRequest)
-			return
+func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Form verilerini al
+		if err := c.Request().PostArgs().Len(); err == 0 && c.Method() == fiber.MethodPost {
+			// Eğer POST ve form yoksa hata ver
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "failed to parse form",
+			})
 		}
 
-		username := r.FormValue("nickname")
+		username := c.FormValue("nickname")
 		if username == "" {
-			username = r.FormValue("username")
+			username = c.FormValue("username")
 		}
 
-		// Service çağrısı
+		if username == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "username or nickname is required",
+			})
+		}
+
 		userObj, err := s.FetchUserProfileByUsername(username)
 		if err != nil {
-			utils.SendError(w, http.StatusNotFound, "user not found")
-			return
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "user not found",
+			})
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user": userObj,
 		})
 	}
 }
 
-func HandleUploadAvatar(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
-		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUploadAvatar(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "User not authenticated",
+			})
 		}
 
-		file, _, err := r.FormFile("avatar")
+		fileHeader, err := c.FormFile("avatar")
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid avatar file",
+			})
 		}
-		defer file.Close()
 
-		fileHeader := r.MultipartForm.File["avatar"][0]
-
-		newAvatar, err := s.UpdateAvatar(r.Context(), fileHeader, user)
+		newAvatar, err := s.UpdateAvatar(c.Context(), fileHeader, user)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
 		}
+
 		user.AvatarID = &newAvatar.ID
 		user.Avatar = newAvatar
 
 		updatedUser, err := s.GetUserByID(user.ID)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user": updatedUser,
 		})
-
 	}
 }
 
-func HandleUploadCover(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+func HandleUploadCover(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Dosyayı al
+		fileHeader, err := c.FormFile("cover")
 		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "No cover file uploaded",
+			})
 		}
 
-		user, ok := middleware.GetAuthenticatedUser(r)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Unauthorized",
+			})
 		}
 
-		file, _, err := r.FormFile("cover")
+		// UpdateCover fonksiyonunu çağır
+		newCover, err := s.UpdateCover(c.Context(), fileHeader, user)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
 		}
-		defer file.Close()
 
-		fileHeader := r.MultipartForm.File["cover"][0]
-
-		newCover, err := s.UpdateCover(r.Context(), fileHeader, user)
-		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
-		}
-		user.AvatarID = &newCover.ID
-		user.Avatar = newCover
+		// user içindeki avatar yerine cover alanlarını güncelle
+		user.CoverID = &newCover.ID
+		user.Cover = newCover
 
 		updatedUser, err := s.GetUserByID(user.ID)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
 		}
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user": updatedUser,
 		})
-
 	}
 }
 
-func HandleUploadStory(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(5 * 1024 * 1024 * 1024)
+func HandleUploadStory(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Dosyayı al (multipart form otomatik parse edilir)
+		fileHeader, err := c.FormFile("story")
 		if err != nil {
-			http.Error(w, "Could not parse multipart form: "+err.Error(), http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrMediaInvalidFile,
+			})
 		}
 
-		user, ok := middleware.GetAuthenticatedUser(r)
+		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		file, _, err := r.FormFile("story")
+		newStory, err := s.AddStory(c.Context(), fileHeader, user)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrMediaInvalidFile)
-			return
-		}
-		defer file.Close()
-
-		fileHeader := r.MultipartForm.File["story"][0]
-
-		newStory, err := s.AddStory(r.Context(), fileHeader, user)
-		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"story": newStory,
 		})
-
 	}
 }
 
-func HandleUserInfo(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserInfo(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
 		userInfo, err := s.GetUserByID(auth_user.ID)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user": userInfo,
 		})
 	}
 }
 
-func HandleSetUserPreferences(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		// Form verisini parse et
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-
-		preferenceItemId := r.FormValue("id")
+		// Form verisini Fiber'dan al (multipart form parse'a gerek yok, Fiber zaten parse eder)
+		preferenceItemId := c.FormValue("id")
 		if len(preferenceItemId) == 0 {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		bitIndex := r.FormValue("bit_index")
+		bitIndex := c.FormValue("bit_index")
 		if len(bitIndex) == 0 {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		enabledStr := r.FormValue("enabled")
+		enabledStr := c.FormValue("enabled")
 		enabled, err := strconv.ParseBool(enabledStr)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		fmt.Println("BITINDEX", bitIndex, "Enabled", enabled)
 
-		err = s.UpsertUserPreference(r.Context(), *auth_user, preferenceItemId, bitIndex, enabled)
+		err = s.UpsertUserPreference(c.Context(), *auth_user, preferenceItemId, bitIndex, enabled)
 		if err != nil {
 			fmt.Println("ERROR", err)
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrUnknown)
-			return
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUnknown)
 		}
 
 		userInfo, err := s.GetUserByID(auth_user.ID)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"user": userInfo,
 		})
 	}
 }
 
-func HandleFetchStories(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleFetchStories(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		// limit parametresini query'den al, default 20 olsun
 		limit := 20
-		if l := r.URL.Query().Get("limit"); l != "" {
+		if l := c.Query("limit"); l != "" {
 			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		if limit > 20 { //maximum 20
+		if limit > 20 { // maximum 20
 			limit = 20
 		}
 
-		stories, err := s.GetAllStories(r.Context(), limit)
+		stories, err := s.GetAllStories(c.Context(), limit)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrInternalServer) // kendi error yapınıza göre ayarla
-			return
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer) // utils.SendError fiber uyumlu olmalı
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"stories": stories,
 		})
 	}
 }
 
-func HandleFetchNearbyUsers(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		fmt.Println("AuthMiddlewareWithoutCheck")
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		// form’dan limit değerini al
-		limitStr := r.FormValue("limit") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
-		limit := 10                      // default değer
-		if limitStr != "" {
+		// Fiber'de form parse işlemi otomatik olarak yapılır, elle ParseForm yok
+		limit := 10
+		if limitStr := c.FormValue("limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
 		}
 
-		distance := 10                         // kilometre
-		distanceStr := r.FormValue("distance") // hem application/x-www-form-urlencoded hem multipart/form-data destekler
-		if distanceStr != "" {
+		distance := 10
+		if distanceStr := c.FormValue("distance"); distanceStr != "" {
 			if parsedDistance, err := strconv.Atoi(distanceStr); err == nil && parsedDistance > 0 {
 				distance = parsedDistance
 			}
 		}
 
-		cursorStr := r.FormValue("cursor")
 		var cursor int64 = 0
-
-		if cursorStr != "" {
+		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
 			val, err := strconv.ParseInt(cursorStr, 10, 64)
 			if err != nil {
-				http.Error(w, "invalid cursor", http.StatusBadRequest)
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid cursor",
+				})
 			}
 			cursor = val
 		}
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			fmt.Println("LOCATIONLESSx")
-			//utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			//returnx
+			// Burada istersen kullanıcı yoksa hata dön veya boş liste dön
+			// return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+			// veya devam et
 		}
 
 		fmt.Println("distance", distance, cursor)
 
-		users, err := s.FetchNearbyUsers(r.Context(), auth_user, distance, &cursor, limit)
+		users, err := s.FetchNearbyUsers(c.Context(), auth_user, distance, &cursor, limit)
 		if err != nil {
-			utils.SendJSON(w, http.StatusInternalServerError, map[string]string{
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
-			return
 		}
-
-		nextCursor := func() *int64 {
-			if len(users) > 0 {
-				last := users[len(users)-1]
-				return &last.PublicID
-			}
-			return nil
-		}()
 
 		var nextCursorStr *string
-		if nextCursor != nil {
-			str := fmt.Sprintf("%d", *nextCursor)
+		if len(users) > 0 {
+			last := users[len(users)-1]
+			str := fmt.Sprintf("%d", last.PublicID)
 			nextCursorStr = &str
 		} else {
-			nextCursorStr = nil // JSON'da null olarak serialize edilir
+			nextCursorStr = nil
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"users":       users,
 			"next_cursor": nextCursorStr,
 		})
-
 	}
 }
 
-func HandleFollow(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleFollow(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		form := r.MultipartForm.Value
-		followerID := auth_user.PublicID
-		followeeIDStr := form["followee_id"][0]
+		// Form verisini Fiber'de c.FormValue ile alıyoruz
+		followeeIDStr := c.FormValue("followee_id")
+		if followeeIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
+		}
+
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
+		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
-		status, err := s.Follow(r.Context(), followerID, followeeID)
+		status, err := s.Follow(c.Context(), followerID, followeeID)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrDatabaseError,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "User followed successfully",
 			"status":  status,
 		})
 	}
 }
 
-func HandleUnfollow(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleUnfollow(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		form := r.MultipartForm.Value
-		followerID := auth_user.PublicID
-		followeeIDStr := form["followee_id"][0]
+		followeeIDStr := c.FormValue("followee_id")
+		if followeeIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
+		}
+
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
+		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
-		status, err := s.Unfollow(r.Context(), followerID, followeeID)
+		status, err := s.Unfollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrDatabaseError,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "User unfollowed successfully",
 			"status":  status,
 		})
-
 	}
 }
 
-func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleToggleFollow(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		followeeIDStr := r.FormValue("followee_id")
-		followerID := auth_user.PublicID
+		followeeIDStr := c.FormValue("followee_id")
+		if followeeIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
+		}
+
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
+		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
 		fmt.Println("FOLLOWER,FOLLOWEE", followerID, followeeID)
-		status, err := s.ToggleFollow(r.Context(), followerID, followeeID)
+
+		status, err := s.ToggleFollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrDatabaseError,
+			})
 		}
 
-		var message string
+		message := "User unfollowed successfully"
 		if status {
 			message = "User followed successfully"
-		} else {
-			message = "User unfollowed successfully"
 		}
 
 		user, err := s.GetUserByID(auth_user.ID)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrDatabaseError,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": message,
 			"status":  status,
 			"user":    user,
@@ -517,111 +518,104 @@ func HandleToggleFollow(s *services.UserService) http.HandlerFunc {
 	}
 }
 
-func HandleGetUsersStartingWith(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		searchStr := r.FormValue("query")
+func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		searchStr := c.FormValue("query")
 		limit := 15
 
 		users, err := s.GetUsersStartingWith(searchStr, limit)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrDatabaseError,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"users": users,
 		})
 	}
 }
 
-func HandleUpdateUserProfile(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-		form := r.MultipartForm.Value
-
-		// Formdan kullanıcı bilgilerini al
-
-		// Örnek: Kullanıcıyı güncelle
-		user, err := s.UpdateUserProfile(*auth_user, form)
+		form, err := c.MultipartForm()
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, "failed to update user profile")
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid form data",
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		formValues := form.Value // map[string][]string olarak direkt kullan
+
+		user, err := s.UpdateUserProfile(*auth_user, formValues)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to update user profile",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user":    user,
 			"success": true,
 		})
 	}
 }
 
-func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": constants.ErrUnauthorized,
+			})
 		}
 
-		//engagement_type
-		engagement_type := r.FormValue("engagement_type")
-		engageeIdStr := r.FormValue("user_id")
+		engagement_type := c.FormValue("engagement_type")
+		engageeIdStr := c.FormValue("user_id")
 		engageeId, err := strconv.ParseInt(engageeIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidInput,
+			})
 		}
 
 		var cursor *time.Time
-		if c := r.FormValue("cursor"); c != "" {
-			parsedTime, err := time.Parse(time.RFC3339, c)
+		cursorStr := c.FormValue("cursor")
+		if cursorStr != "" {
+			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				utils.SendError(w, http.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
-				return
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid cursor format. Use RFC3339 format.",
+				})
 			}
 			cursor = &parsedTime
 		}
 
 		limit := 100 // default limit
-		if l := r.FormValue("limit"); l != "" {
-			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			} else {
-				utils.SendError(w, http.StatusBadRequest, "Invalid limit value")
-				return
+		limitStr := c.FormValue("limit")
+		if limitStr != "" {
+			parsedLimit, err := strconv.Atoi(limitStr)
+			if err != nil || parsedLimit <= 0 {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid limit value",
+				})
 			}
+			limit = parsedLimit
 		}
 
 		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(engageeId)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrUserNotFound)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrUserNotFound,
+			})
 		}
-
-		fmt.Println("AuthUser", auth_user.ID)
-		fmt.Println("engagerId", auth_user.ID)
-		fmt.Println("engageeId", engageeId)
-		fmt.Println("EngagementType", engagement_type)
 
 		var engagementKind models.EngagementKind
 		switch engagement_type {
@@ -630,17 +624,19 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 		case "followers":
 			engagementKind = models.EngagementKindFollower
 		default:
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidEngagementKind)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrInvalidEngagementKind,
+			})
 		}
 
-		engagements, nextCursor, err := s.FetchUserEngagements(r.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
+		engagements, nextCursor, err := s.FetchUserEngagements(c.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrEngagementNotFound)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": constants.ErrEngagementNotFound,
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"engagements": engagements,
 			"next_cursor": nextCursor,
 			"prev_cursor": cursor,
@@ -649,243 +645,193 @@ func HandleFetchUserEngagements(s *services.UserService) http.HandlerFunc {
 	}
 }
 
-func HandleUserLike(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserLike(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		engagement_type := r.FormValue("engagement_type")
-		userIdStr := r.FormValue("user_id")
+		// Fiber'da ParseForm yok, doğrudan c.FormValue kullan
+		engagement_type := c.FormValue("engagement_type")
+		userIdStr := c.FormValue("user_id")
 
 		authUserId := auth_user.PublicID
 		requestUserId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		fmt.Println("engagement_type", engagement_type)
 		fmt.Println("authUserId", authUserId)
 		fmt.Println("requestUserId", requestUserId)
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User liked successfully",
 			"status":  true,
 		})
 	}
 }
 
-func HandleUserDislike(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserDislike(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		likeeIdStr := r.FormValue("likee_id")
+		// Fiber'da ParseForm yok, c.FormValue kullanılır
+		likeeIdStr := c.FormValue("likee_id")
 		likerId := auth_user.PublicID
 		likeeId, err := strconv.ParseInt(likeeIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		if likeeId == 0 || likerId == 0 || likeeId == likerId {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		_, status, err := s.Dislike(r.Context(), *auth_user, likerId, likeeId)
+		_, status, err := s.Dislike(c.Context(), *auth_user, likerId, likeeId)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User disliked successfully",
 			"status":  status,
 		})
-
 	}
 }
 
-func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		likeeIdStr := r.FormValue("likee_id")
+		likeeIdStr := c.FormValue("likee_id")
 		likerId := auth_user.PublicID
 		likeeId, err := strconv.ParseInt(likeeIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		if likerId == 0 || likeeId == 0 || likeeId == likerId {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		fmt.Println("FOLLOWER,FOLLOWEE", likerId, likeeId)
-		_, status, err := s.ToggleLike(r.Context(), *auth_user, likerId, likeeId, isLike)
+		fmt.Println("LIKER, LIKEE", likerId, likeeId)
+		_, status, err := s.ToggleLike(c.Context(), *auth_user, likerId, likeeId, isLike)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
 		var message string
 		if status {
-			message = "User unfollowed successfully"
+			if isLike {
+				message = "User liked successfully"
+			} else {
+				message = "User disliked successfully"
+			}
 		} else {
-			message = "User followed successfully"
-
+			if isLike {
+				message = "User unliked successfully"
+			} else {
+				message = "User undisliked successfully"
+			}
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]string{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]string{
 			"message": message,
 		})
 	}
 }
 
-func HandleUserBlock(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserBlock(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		blockedIdStr := r.FormValue("blocked_id")
+		blockedIdStr := c.FormValue("blocked_id")
 		blockerId := auth_user.PublicID
 		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
-		}
-		// Block işlemi
-		status, err := s.Block(r.Context(), *auth_user, blockerId, blockedId)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		status, err := s.Block(c.Context(), *auth_user, blockerId, blockedId)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+		}
+
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User blocked successfully",
 			"status":  status,
 		})
 	}
 }
 
-func HandleUserUnblock(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+func HandleUserUnblock(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		blockedIdStr := r.FormValue("blocked_id")
+		blockedIdStr := c.FormValue("blocked_id")
 		blockerId := auth_user.PublicID
 		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		status, err := s.Unblock(r.Context(), *auth_user, blockerId, blockedId)
+		status, err := s.Unblock(c.Context(), *auth_user, blockerId, blockedId)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User unblocked successfully",
 			"status":  status,
 		})
-
 	}
 }
 
-func HandleUserToggleBlock(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
-			return
-		}
-
-		blockedIdStr := r.FormValue("blocked_id")
+		blockedIdStr := c.FormValue("blocked_id")
 		blockerId := auth_user.PublicID
 		blockedId, err := strconv.ParseInt(blockedIdStr, 10, 64)
 		if err != nil {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		if blockerId == 0 || blockedId == 0 || blockerId == blockedId {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrInvalidInput)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		fmt.Println("BLOCK,", blockerId, blockedId)
-		status, err := s.ToggleBlock(r.Context(), *auth_user, blockerId, blockedId)
+		status, err := s.ToggleBlock(c.Context(), *auth_user, blockerId, blockedId)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, constants.ErrDatabaseError)
-			return
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
 		var message string
@@ -893,57 +839,48 @@ func HandleUserToggleBlock(s *services.UserService) http.HandlerFunc {
 			message = "User blocked successfully"
 		} else {
 			message = "User unblocked successfully"
-
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]string{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]string{
 			"message": message,
 		})
 	}
 }
 
-func HandleUserNotifications(s *services.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleUserNotifications(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(r)
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, constants.ErrUnauthorized)
-			return
-		}
-
-		// Form verilerini parse et
-		if err := r.ParseForm(); err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Failed to parse form data")
-			return
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		limit := 100 // default limit
-		if l := r.Form.Get("limit"); l != "" {
-			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			} else {
-				utils.SendError(w, http.StatusBadRequest, "Invalid limit value")
-				return
+		limitStr := c.FormValue("limit")
+		if limitStr != "" {
+			parsedLimit, err := strconv.Atoi(limitStr)
+			if err != nil || parsedLimit <= 0 {
+				return utils.SendError(c, fiber.StatusBadRequest, "Invalid limit value")
 			}
+			limit = parsedLimit
 		}
 
 		var cursor *time.Time
-		if c := r.Form.Get("cursor"); c != "" {
-			parsedTime, err := time.Parse(time.RFC3339, c)
+		cursorStr := c.FormValue("cursor")
+		if cursorStr != "" {
+			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				utils.SendError(w, http.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
-				return
+				return utils.SendError(c, fiber.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
 			}
 			cursor = &parsedTime
 		}
 
-		notifications, nextCursor, err := s.FetchUserNotifications(r.Context(), auth_user, cursor, limit)
+		notifications, nextCursor, err := s.FetchUserNotifications(c.Context(), auth_user, cursor, limit)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, "Failed to fetch notifications")
-			return
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to fetch notifications")
 		}
 
-		utils.SendJSON(w, http.StatusOK, map[string]interface{}{
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"notifications": notifications,
 			"prev_cursor":   cursor,
 			"next_cursor":   nextCursor,

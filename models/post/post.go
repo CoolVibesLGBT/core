@@ -15,19 +15,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type PostType string
+type PostKind string
 type ContentCategory string
 
 const (
-	PostTypeStatus     PostType = "status"
-	PostTypeTimeline   PostType = "timeline"
-	PostTypePlace      PostType = "place"
-	PostTypeClassified PostType = "classified"
-	PostTypeGeneric    PostType = "generic"
-	PostTypeNews       PostType = "news"
-	PostTypeStory      PostType = "story"
-	PostTypeChat       PostType = "chat"
-	PostTypePost       PostType = "post"
+	PostKindStatus     PostKind = "status"
+	PostKindTimeline   PostKind = "timeline"
+	PostKindPlace      PostKind = "place"
+	PostKindClassified PostKind = "classified"
+	PostKindGeneric    PostKind = "generic"
+	PostKindNews       PostKind = "news"
+	PostKindStory      PostKind = "story"
+	PostKindChat       PostKind = "chat"
+	PostKindPost       PostKind = "post"
 )
 
 const (
@@ -56,7 +56,7 @@ type Post struct {
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
 
 	// 🔸 PostType alanının yeni ismi
-	PostKind PostType `gorm:"size:50;not null;index;default:'status'" json:"post_kind"`
+	PostKind PostKind `gorm:"size:50;not null;index;default:'status'" json:"post_kind"`
 
 	// 🔹 İçerik kategorisi
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`

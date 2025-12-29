@@ -4,9 +4,8 @@ import (
 	"coolvibes/constants"
 	"coolvibes/models/media"
 	services "coolvibes/services/user"
-	"coolvibes/utils"
-	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -14,35 +13,40 @@ type UploadHandler struct {
 	service *services.MediaService
 }
 
-func HandleUploadMedia(s *services.MediaService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(8 << 30); err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Invalid form data")
-			return
-		}
-
-		ownerIDStr := r.FormValue("owner_id")
-		ownerTypeStr := r.FormValue("owner_type")
-		roleStr := r.FormValue("role")
+func HandleUploadMedia(s *services.MediaService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ownerIDStr := c.FormValue("owner_id")
+		ownerTypeStr := c.FormValue("owner_type")
+		roleStr := c.FormValue("role")
 
 		ownerID, err := uuid.Parse(ownerIDStr)
 		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Invalid owner_id")
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid owner_id",
+			})
 		}
 
-		fileHeader, ok := r.MultipartForm.File["file"]
-		if !ok || len(fileHeader) == 0 {
-			utils.SendError(w, http.StatusBadRequest, "No file uploaded")
-			return
-		}
-
-		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), fileHeader[0])
+		form, err := c.MultipartForm()
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, constants.ErrMediaUploadFailed)
-			return
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid form data or no file uploaded",
+			})
 		}
 
-		utils.SendJSON(w, http.StatusOK, media)
+		files := form.File["file"]
+		if len(files) == 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "No file uploaded",
+			})
+		}
+
+		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), files[0])
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": constants.ErrMediaUploadFailed,
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(media)
 	}
 }
