@@ -13,3 +13,7 @@ static/uploads
 ./static/samples/
 /static/samples
 static/samples
+
+/bot/
+bot
+bot

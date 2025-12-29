@@ -106,16 +106,16 @@ func (r *ChatRepository) GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) 
 	return &chatObj, nil
 }
 
-func (r *ChatRepository) CreatePrivateChat(userID1, userID2 uuid.UUID) (*chat.Chat, error) {
+func (r *ChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Chat, error) {
 	newChat := &chat.Chat{
 		ID:          uuid.New(),
 		Type:        chat.ChatTypePrivate,
-		CreatorID:   userID1,
+		CreatorID:   fromUser,
 		Title:       &utils.LocalizedString{"en": "Private Chat"},
 		Description: &utils.LocalizedString{"en": "A private chat is a secure, invite-only conversation between selected participants."},
 		Participants: []chat.ChatParticipant{
-			{ID: uuid.New(), UserID: userID1},
-			{ID: uuid.New(), UserID: userID2},
+			{ID: uuid.New(), UserID: fromUser},
+			{ID: uuid.New(), UserID: toUser},
 		},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

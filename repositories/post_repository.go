@@ -8,7 +8,6 @@ import (
 	"coolvibes/models"
 	"coolvibes/models/media"
 	"coolvibes/models/post"
-	"coolvibes/models/post/payloads"
 	"coolvibes/models/utils"
 	"errors"
 	"strconv"
@@ -607,9 +606,9 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 				maxSelectable = v
 			}
 		}
-		pollKind := payloads.PollKindSingle
+		pollKind := post_payloads.PollKindSingle
 		if len(pollInfo.Kind) > 0 {
-			pollKind = payloads.PollKind(pollInfo.Kind)
+			pollKind = post_payloads.PollKind(pollInfo.Kind)
 		}
 
 		if len(pollInfo.Question) == 0 {
@@ -617,10 +616,10 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			return nil, errors.New(constants.ErrPollTitleEmpty.String())
 		}
 
-		poll := &payloads.Poll{
+		poll := &post_payloads.Poll{
 			ID:              uuid.New(),
 			ContentableID:   newPost.ID,
-			ContentableType: payloads.ContentablePollPost,
+			ContentableType: post_payloads.ContentablePollPost,
 			Question:        *utils.MakeLocalizedString(defaultLanguage, pollInfo.Question),
 			Duration:        pollInfo.Duration,
 			Kind:            pollKind,
@@ -635,7 +634,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 				return nil, errors.New(constants.ErrPollOptionsEmpty.String())
 			}
 
-			poll.Choices = append(poll.Choices, payloads.PollChoice{
+			poll.Choices = append(poll.Choices, post_payloads.PollChoice{
 				ID:           uuid.New(),
 				DisplayOrder: index,
 				PollID:       poll.ID,
@@ -691,7 +690,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			pricePtr = &price
 		}
 
-		evt := &payloads.Event{
+		evt := &post_payloads.Event{
 			ID:          uuid.New(),
 			PostID:      newPost.ID,
 			Title:       *utils.MakeLocalizedString(defaultLanguage, postForm.EventTitle),
@@ -779,7 +778,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 	}
 
 	// 1) Choice mevcut mu kontrol et
-	var choice payloads.PollChoice
+	var choice post_payloads.PollChoice
 	if err := tx.WithContext(ctx).
 		First(&choice, "id = ?", choiceId).Error; err != nil {
 
@@ -788,7 +787,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 	}
 
 	// 2) Kullanıcının mevcut oyu var mı?
-	var existingVote payloads.PollVote
+	var existingVote post_payloads.PollVote
 	err := tx.WithContext(ctx).
 		Where("choice_id = ? AND user_id = ?", choiceId, userId).
 		First(&existingVote).Error
@@ -802,7 +801,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 
 		// VoteCount azalt
 		if err := tx.WithContext(ctx).
-			Model(&payloads.PollChoice{}).
+			Model(&post_payloads.PollChoice{}).
 			Where("id = ?", choiceId).
 			UpdateColumn("vote_count", gorm.Expr("vote_count - 1")).Error; err != nil {
 
@@ -820,7 +819,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 	}
 
 	// 3) Vote yoksa -> yeni oy ekle (toggle on)
-	newVote := payloads.PollVote{
+	newVote := post_payloads.PollVote{
 		ID:       uuid.New(),
 		ChoiceID: choiceId,
 		UserID:   userId,
@@ -835,7 +834,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 
 	// VoteCount artır
 	if err := tx.WithContext(ctx).
-		Model(&payloads.PollChoice{}).
+		Model(&post_payloads.PollChoice{}).
 		Where("id = ?", choiceId).
 		UpdateColumn("vote_count", gorm.Expr("vote_count + 1")).Error; err != nil {
 
