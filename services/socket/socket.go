@@ -74,7 +74,7 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 	return nil
 }
 
-func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) {
+func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) (*socketio.Server, error) {
 
 	Server = socketio.NewServer(&engineio.Options{
 		PingInterval: 25 * time.Second, // Sunucunun istemciye ping atma sıklığı
@@ -185,6 +185,8 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 
 	handler = c.Handler(handler)
 	log.Fatal(http.ListenAndServe(os.Getenv("SOCKET_PORT"), handler))
+
+	return Server, nil
 
 }
 
