@@ -71,32 +71,18 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 
 func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Form verilerini al
-		if err := c.Request().PostArgs().Len(); err == 0 && c.Method() == fiber.MethodPost {
-			// Eğer POST ve form yoksa hata ver
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "failed to parse form",
-			})
-		}
-
 		username := c.FormValue("nickname")
 		if username == "" {
 			username = c.FormValue("username")
 		}
 
 		if username == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "username or nickname is required",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUsernameRequired)
 		}
-
 		userObj, err := s.FetchUserProfileByUsername(username)
 		if err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "user not found",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
-
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"user": userObj,
 		})

@@ -24,8 +24,9 @@ const (
 	ErrMediaSaveFailed      ErrorCode = "MEDIA_SAVE_FAILED"
 
 	// User
-	ErrUserExists   ErrorCode = "USER_EXISTS"
-	ErrUserNotFound ErrorCode = "USER_NOT_FOUND"
+	ErrUserExists       ErrorCode = "USER_EXISTS"
+	ErrUserNotFound     ErrorCode = "USER_NOT_FOUND"
+	ErrUsernameRequired ErrorCode = "USERNAME_REQUIRED"
 
 	// Engagement
 	ErrEngagementNotFound    ErrorCode = "ENGAGEMENT_NOT_FOUND"
@@ -66,8 +67,9 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrMediaSaveFailed:      "Failed to save media.",
 
 	// User
-	ErrUserExists:   "User already exists.",
-	ErrUserNotFound: "User not found.",
+	ErrUserExists:       "User already exists.",
+	ErrUserNotFound:     "User not found.",
+	ErrUsernameRequired: "username or nickname is required",
 
 	// Engagement
 	ErrEngagementNotFound:    "Engagement record not found.",
