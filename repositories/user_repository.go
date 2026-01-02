@@ -143,6 +143,8 @@ func (r *UserRepository) GetUserByPublicId(userID int64) (*models.User, error) {
 			Preload("Engagements").
 			Preload("Engagements.EngagementDetails.Engager").
 			Preload("Engagements.EngagementDetails.Engagee").
+			Preload("Engagements.EngagementDetails.Engager.Avatar.File").
+			Preload("Engagements.EngagementDetails.Engagee.Cover.File").
 			First(&u, "public_id = ?", userID).Error
 
 	if err != nil {

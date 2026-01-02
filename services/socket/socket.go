@@ -104,11 +104,13 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 	Server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
 		authHeader := msg
 		if authHeader == "" {
+			fmt.Printf("Invalid Auth Header")
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			fmt.Printf("Invalid Auth Header")
 			return
 		}
 
@@ -116,6 +118,7 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 
 		claims, err := helpers.DecodeUserJWT(tokenString)
 		if err != nil {
+			fmt.Printf("Invalid JWT Token:")
 			return
 		}
 

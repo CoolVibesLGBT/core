@@ -49,6 +49,9 @@ const (
 	EngagementKindReport   EngagementKind = "report"
 	EngagementKindDeposit  EngagementKind = "deposit"
 	EngagementKindWithdraw EngagementKind = "withdraw"
+
+	EngagementKindDeletedForMe  EngagementKind = "deleted_for_me"
+	EngagementKindDeletedForAll EngagementKind = "deleted_for_all"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {

@@ -14,6 +14,9 @@ type Chat struct {
 	ID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	Type ChatType  `gorm:"index;not null" json:"type"` // private, group, channel
 
+	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"` // Üst chat ID (ülke için null, şehir için ülke ID gibi)
+	Parent   *Chat      `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+
 	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title"` // JSONB olarak sakla
 	Description *utils.LocalizedString `gorm:"type:jsonb" json:"description"`
 

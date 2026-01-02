@@ -104,11 +104,9 @@ func Migrate(db *gorm.DB) error {
 		&utils.Location{},
 
 		// önce Chat tablosu, sonra Message
-		&chat.Message{},
 		&chat.Chat{},
 
 		&chat.ChatParticipant{},
-		&chat.MessageRead{},
 	)
 
 	/*
