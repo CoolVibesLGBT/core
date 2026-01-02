@@ -112,6 +112,8 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 			Preload("Engagements.EngagementDetails").
 			Preload("Engagements.EngagementDetails.Engager").
 			Preload("Engagements.EngagementDetails.Engagee").
+			Preload("Engagements.EngagementDetails.Engager.Avatar.File").
+			Preload("Engagements.EngagementDetails.Engagee.Cover.File").
 			Preload("Cover.File").
 			Preload("Location").
 			First(&u, "id = ?", userID).Error
