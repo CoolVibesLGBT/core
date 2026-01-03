@@ -111,7 +111,9 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 			return c.
 				Status(fiber.StatusBadRequest).
 				JSON(fiber.Map{
-					"error": err.Error(),
+					"success": false,
+					"code":    constants.ErrUnknown,
+					"error":   err.Error(),
 				})
 		}
 
