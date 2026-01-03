@@ -62,11 +62,13 @@ func (s *ChatService) SendTypingEvent(chatID, userID uuid.UUID, typing bool) err
 func (s *ChatService) CreateChat(participantUserId, userID uuid.UUID, chatType string) (*chat.Chat, error) {
 	participantUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(participantUserId)
 	if err != nil {
-		return nil, errors.New("user does not exist")
+		return nil, errors.New(constants.ErrUserNotFound.String())
 	}
 
-	if participantUser.ID == userID {
-		return nil, errors.New("you cannot create a chat with yourself")
+	if participantUser != nil {
+		if participantUser.ID.String() == userID.String() {
+			return nil, errors.New(constants.ErrSelfChatNotAllowed.String())
+		}
 	}
 
 	if chatType == string(chat.ChatTypePrivate) {
@@ -75,7 +77,7 @@ func (s *ChatService) CreateChat(participantUserId, userID uuid.UUID, chatType s
 			// Eğer private chat bulunamazsa yeni oluştur
 			chat, err := s.chatRepo.CreatePrivateChat(userID, participantUserId)
 			if err != nil {
-				return nil, errors.New("failed to create chat")
+				return nil, err
 			}
 			return chat, nil
 		}
@@ -83,7 +85,7 @@ func (s *ChatService) CreateChat(participantUserId, userID uuid.UUID, chatType s
 	}
 
 	// Diğer chat tipleri için farklı işlemler olabilir (şimdilik hata döndürelim)
-	return nil, errors.New("unsupported chat type")
+	return nil, errors.New(constants.ErrUnsupportedChatType.String())
 }
 
 func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {

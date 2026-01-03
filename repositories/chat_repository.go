@@ -121,8 +121,10 @@ func (r *ChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Ch
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+
 	err := r.db.Create(newChat).Error
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return newChat, nil

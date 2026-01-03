@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"coolvibes/constants"
 	"coolvibes/middleware"
 	services "coolvibes/services/user"
 	"coolvibes/utils"
@@ -85,29 +86,33 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		// form values read directly
 		chatType := c.FormValue("type")
 		if chatType == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat type")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnsupportedChatType)
 		}
 
 		// array form field: participant_ids[]
 		participantIds := c.FormValue("participant_ids[]")
 		if participantIds == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid participants length")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantsLength)
 		}
 
 		parsedParticipantId, err := uuid.Parse(participantIds)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid participant id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantID)
 		}
 
 		chat, err := s.CreateChat(parsedParticipantId, authUser.ID, chatType)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to create chat")
+			return c.
+				Status(fiber.StatusBadRequest).
+				JSON(fiber.Map{
+					"error": err.Error(),
+				})
 		}
 
 		return c.JSON(fiber.Map{

@@ -13,7 +13,6 @@ const (
 	ErrInvalidAction     ErrorCode = "INVALID_ACTION"
 	ErrInvalidPassword   ErrorCode = "INVALID_PASSWORD"
 	ErrTokenGeneration   ErrorCode = "TOKEN_GENERATION_FAILED"
-	ErrUnauthorized      ErrorCode = "UNAUTHORIZED"
 	ErrDuplicateResource ErrorCode = "DUPLICATE_RESOURCE"
 	ErrInternalServer    ErrorCode = "INTERNAL_SERVER_ERROR"
 
@@ -27,6 +26,8 @@ const (
 	ErrUserExists       ErrorCode = "USER_EXISTS"
 	ErrUserNotFound     ErrorCode = "USER_NOT_FOUND"
 	ErrUsernameRequired ErrorCode = "USERNAME_REQUIRED"
+	ErrUnauthorized     ErrorCode = "UNAUTHORIZED"
+	ErrUserUnauthorized ErrorCode = "USER_UNAUTHORIZED"
 
 	// Engagement
 	ErrEngagementNotFound    ErrorCode = "ENGAGEMENT_NOT_FOUND"
@@ -43,6 +44,11 @@ const (
 	ErrInsufficientBalance ErrorCode = "INSUFFICIENT_BALANCE"
 	ErrInvalidAmount       ErrorCode = "INVALID_AMOUNT" // yeni hata kodu
 
+	// Chat
+	ErrSelfChatNotAllowed        ErrorCode = "SELF_CHAT_NOT_ALLOWED"
+	ErrUnsupportedChatType       ErrorCode = "UNSUPPORTED_CHAT_TYPE"
+	ErrInvalidParticipantID      ErrorCode = "INVALID_PARTICIPANT_ID"
+	ErrInvalidParticipantsLength ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -70,6 +76,7 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrUserExists:       "User already exists.",
 	ErrUserNotFound:     "User not found.",
 	ErrUsernameRequired: "username or nickname is required",
+	ErrUserUnauthorized: "User is not authorized to perform this action.",
 
 	// Engagement
 	ErrEngagementNotFound:    "Engagement record not found.",
@@ -86,6 +93,11 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrInsufficientBalance: "Insufficient balance.",    // yeni mesaj eklendi
 	ErrInvalidAmount:       "Invalid amount provided.", // yeni mesaj
 
+	// Chat
+	ErrSelfChatNotAllowed:        "You cannot create a chat with yourself.",
+	ErrUnsupportedChatType:       "Unsupported chat type.",
+	ErrInvalidParticipantID:      "Invalid participant ID.",
+	ErrInvalidParticipantsLength: "Invalid participants length.",
 }
 
 func (e ErrorCode) String() string {
