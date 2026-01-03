@@ -181,3 +181,289 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 		})
 	}
 }
+
+func HandlePinMessage(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		messageIDStr := c.FormValue("message_id")
+
+		if chatIDStr == "" || messageIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		messageID, err := uuid.Parse(messageIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+		}
+
+		// service call
+		err = s.PinMessage(c.Context(), authUser.ID, chatID, messageID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to pin message")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		messageIDStr := c.FormValue("message_id")
+
+		if chatIDStr == "" || messageIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		messageID, err := uuid.Parse(messageIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+		}
+
+		// service call
+		err = s.UnpinMessage(c.Context(), authUser.ID, chatID, messageID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to unpin message")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		messageIDStr := c.FormValue("message_id")
+
+		if chatIDStr == "" || messageIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		messageID, err := uuid.Parse(messageIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+		}
+
+		// service call
+		err = s.DeleteMessageForUser(c.Context(), chatID, authUser.ID, messageID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message for user")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+
+		if chatIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		// service call
+		err = s.DeleteChatForAll(c.Context(), chatID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+
+		if chatIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		// service call
+		err = s.DeleteChatForUser(c.Context(), chatID, authUser.ID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for user")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		if chatIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		// service call
+		err = s.DeleteChatForAll(c.Context(), chatID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteChat(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		if chatIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		// service call
+		err = s.DeleteChat(c.Context(), chatID, authUser.ID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		// authenticated user
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+		}
+
+		// form parse — Fiber kendisi yapar
+		chatIDStr := c.FormValue("chat_id")
+		messageIDStr := c.FormValue("message_id")
+
+		if chatIDStr == "" || messageIDStr == "" {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+		}
+
+		messageID, err := uuid.Parse(messageIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+		}
+
+		// service call
+		err = s.DeleteMessage(c.Context(), chatID, authUser.ID, messageID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message")
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}

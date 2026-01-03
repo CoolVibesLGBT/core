@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"coolvibes/models"
 	"coolvibes/models/media"
 	"coolvibes/models/post"
 	"coolvibes/models/utils"
@@ -26,6 +27,9 @@ type Chat struct {
 	CreatorID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"creator_id"` // UUID olmalı
 	PinnedMsgID *uuid.UUID `gorm:"type:uuid;index" json:"pinned_msg_id,omitempty"`
 	PinnedMsg   *post.Post `gorm:"foreignKey:PinnedMsgID;references:ID" json:"pinned_msg,omitempty"`
+
+	PinnedByID *uuid.UUID   `gorm:"type:uuid;index" json:"pinned_by_id,omitempty"`
+	PinnedBy   *models.User `gorm:"foreignKey:PinnedByID;references:ID" json:"pinned_by,omitempty"`
 
 	LastMessageID        *uuid.UUID `gorm:"type:uuid;index" json:"last_message_id,omitempty"`
 	LastMessage          *post.Post `gorm:"foreignKey:LastMessageID;references:ID" json:"last_message,omitempty"`

@@ -321,6 +321,15 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		middleware.AuthMiddleware(userRepo),             // middleware
 	)
 
+	r.action.Register(constants.CMD_DELETE_CHAT, handlers.HandleDeleteChat(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_DELETE_MESSAGE, handlers.HandleDeleteMessage(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_DELETE_MESSAGE_FOR_USER, handlers.HandleDeleteMessageForUser(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_DELETE_MESSAGE_FOR_ALL, handlers.HandleDeleteMessageForAll(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_DELETE_CHAT_FOR_USER, handlers.HandleDeleteChatForUser(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_DELETE_CHAT_FOR_ALL, handlers.HandleDeleteChatForAll(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_PIN_MESSAGE, handlers.HandlePinMessage(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_UNPIN_MESSAGE, handlers.HandleUnpinMessage(chatService), middleware.AuthMiddleware(userRepo))
+
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
 	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))
 

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"coolvibes/constants"
 	"coolvibes/models"
 	"coolvibes/models/chat"
@@ -9,7 +10,6 @@ import (
 	"coolvibes/services/socket"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"mime/multipart"
 
@@ -92,8 +92,6 @@ func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
 
 func (s *ChatService) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 	_post, err := s.chatRepo.AddMessageToChat(request, files, author)
-	fmt.Println("CODER", "CHAT1")
-
 	if err != nil {
 		return nil, err
 	}
@@ -113,4 +111,36 @@ func (s *ChatService) AddMessageToChat(request map[string][]string, files []*mul
 
 func (s *ChatService) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
 	return s.chatRepo.GetMessagesByChatID(userID, chatID)
+}
+
+func (s *ChatService) PinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.PinMessage(ctx, chatID, userID, messageID)
+}
+
+func (s *ChatService) UnpinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.UnpinMessage(ctx, chatID, userID, messageID)
+}
+
+func (s *ChatService) DeleteMessageForUser(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessageForUser(ctx, chatID, userID, messageID)
+}
+
+func (s *ChatService) DeleteMessageForAll(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessageForAll(ctx, chatID, userID, messageID)
+}
+
+func (s *ChatService) DeleteChatForUser(ctx context.Context, chatID, userID uuid.UUID) error {
+	return s.chatRepo.DeleteChatForUser(ctx, chatID, userID)
+}
+
+func (s *ChatService) DeleteChatForAll(ctx context.Context, chatID uuid.UUID) error {
+	return s.chatRepo.DeleteChatForAll(ctx, chatID)
+}
+
+func (s *ChatService) DeleteChat(ctx context.Context, chatID, userID uuid.UUID) error {
+	return s.chatRepo.DeleteChat(ctx, chatID, userID)
+}
+
+func (s *ChatService) DeleteMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessage(ctx, chatID, userID, messageID)
 }

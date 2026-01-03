@@ -108,13 +108,19 @@ const (
 	CMD_SEARCH_LOOKUP_USER = "search.user.lookup"
 	CMD_SEARCH_TRENDS      = "search.trends"
 
-	CMD_CHAT_CREATE    = "chat.create" // Chat olustur
-	CMD_TYPING         = "chat.typing"
-	CMD_SEND_MESSAGE   = "chat.send_message"   // Mesaj gönder
-	CMD_DELETE_CHAT    = "chat.delete_chat"    // Sohbeti sil
-	CMD_FETCH_CHATS    = "chat.fetch_chats"    // Sohbetleri getir
-	CMD_DELETE_MESSAGE = "chat.delete_message" // Mesajı sil
-	CMD_FETCH_MESSAGES = "chat.fetch_messages" // Mesajları getir
+	CMD_CHAT_CREATE             = "chat.create" // Chat olustur
+	CMD_TYPING                  = "chat.typing"
+	CMD_SEND_MESSAGE            = "chat.send_message" // Mesaj gönder
+	CMD_DELETE_CHAT             = "chat.delete_chat"
+	CMD_FETCH_CHATS             = "chat.fetch_chats"    // Sohbetleri getir
+	CMD_DELETE_MESSAGE          = "chat.delete_message" // Mesajı sil
+	CMD_FETCH_MESSAGES          = "chat.fetch_messages" // Mesajları getir
+	CMD_DELETE_MESSAGE_FOR_USER = "chat.delete_message_for_user"
+	CMD_DELETE_CHAT_FOR_USER    = "chat.delete_chat_for_user"
+	CMD_DELETE_CHAT_FOR_ALL     = "chat.delete_chat_for_all"
+	CMD_DELETE_MESSAGE_FOR_ALL  = "chat.delete_message_for_all"
+	CMD_PIN_MESSAGE             = "chat.pin_message"
+	CMD_UNPIN_MESSAGE           = "chat.unpin_message"
 
 	//PLACE EKRANI
 	CMD_PLACE_CREATE         = "place.create"

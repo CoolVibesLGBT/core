@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"coolvibes/constants"
 	"coolvibes/helpers"
 	"coolvibes/models"
@@ -244,6 +245,62 @@ func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
 	r.NotifyChatParticipants(chatObj.ID, *author, "New Message", newMessageNotification)
 	return chatPost, err
+}
+
+func (r *ChatRepository) PinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	chat, err := r.GetChatByIDWithoutRelations(chatID)
+	if err != nil {
+		return err
+	}
+	message, err := r.postRepo.GetPostByID(messageID)
+	if err != nil {
+		return err
+	}
+	chat.PinnedMsgID = &message.ID
+	chat.PinnedByID = &userID
+	err = r.db.Save(chat).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ChatRepository) UnpinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	chat, err := r.GetChatByIDWithoutRelations(chatID)
+	if err != nil {
+		return err
+	}
+	chat.PinnedMsgID = nil
+	chat.PinnedByID = nil
+	err = r.db.Save(chat).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return nil
+}
+
+func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return nil
+}
+
+func (r *ChatRepository) DeleteChatForUser(ctx context.Context, chatID, userID uuid.UUID) error {
+	return nil
+}
+
+func (r *ChatRepository) DeleteChatForAll(ctx context.Context, chatID uuid.UUID) error {
+	return nil
+}
+
+func (r *ChatRepository) DeleteChat(ctx context.Context, chatID, userID uuid.UUID) error {
+	return r.db.Delete(&chat.Chat{}, "id = ? AND user_id = ?", chatID).Error
+}
+
+func (r *ChatRepository) DeleteMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+	return r.db.Delete(&post.Post{}, "id = ? AND contentable_type = ? AND contentable_id = ?", messageID, post.PostKindChat, chatID).Error
 }
 
 func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.User, messageTitle, messageText string) error {
