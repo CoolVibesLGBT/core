@@ -90,7 +90,7 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 	})
 
 	Server.OnConnect("/", func(s socketio.Conn, m map[string]interface{}) error {
-		log.Println("connected:", s.ID())
+		fmt.Println("connected:", s.ID())
 		userConnections[s.ID()] = s
 		s.Emit("auth", s.ID())
 		return nil
