@@ -345,6 +345,11 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 		Where("contentable_type = ? AND contentable_id = ?", "chat", chatID).
 		Order("created_at ASC").
 		Preload("Author").
+		Preload("Parent").
+		Preload("Parent.Author.Avatar.File").
+		Preload("Parent.Author.Cover.File").
+		Preload("Parent.Attachments").
+		Preload("Parent.Attachments.File").
 		Preload("Author.Avatar.File").
 		Preload("Author.Cover.File").
 		Preload("Attachments").

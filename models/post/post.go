@@ -51,6 +51,7 @@ const (
 type Post struct {
 	ID       uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"`
+	Parent   *Post      `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
 	Children []Post     `gorm:"foreignKey:ParentID" json:"children,omitempty"`
 
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
