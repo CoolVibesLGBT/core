@@ -441,10 +441,11 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 func (r *ChatRepository) GetMessagesByChatIDWithCursor(userID uuid.UUID, chatID uuid.UUID, limit int, cursor *int64) ([]post.Post, error) {
 	var messages []post.Post
 	err := r.db.
-		Where("contentable_type = ? AND contentable_id = ?", "chat", chatID).
+		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID).
 		Order("created_at ASC").
 		Preload("Author").
 		Preload("Parent").
+		Preload("Location").
 		Preload("Parent.Author.Avatar.File").
 		Preload("Parent.Author.Cover.File").
 		Preload("Parent.Attachments").
@@ -453,6 +454,7 @@ func (r *ChatRepository) GetMessagesByChatIDWithCursor(userID uuid.UUID, chatID 
 		Preload("Author.Cover.File").
 		Preload("Attachments").
 		Preload("Attachments.File").
+		Limit(limit).
 		Find(&messages).Error
 
 	if err != nil {

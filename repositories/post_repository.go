@@ -355,7 +355,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, "post").
+		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, post.PostKindPost).
 		Order("public_id DESC").
 		Limit(limit)
 
