@@ -11,8 +11,10 @@ import (
 type EngagementContentableType string
 
 const (
-	EngagementContentableTypeUser EngagementContentableType = "user"
-	EngagementContentableTypePost EngagementContentableType = "post"
+	EngagementContentableTypeUser    EngagementContentableType = "user"
+	EngagementContentableTypePost    EngagementContentableType = "post"
+	EngagementContentableTypeChat    EngagementContentableType = "chat"
+	EngagementContentableTypeMessage EngagementContentableType = "message"
 )
 
 // EngagementKind enumu

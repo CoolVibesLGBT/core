@@ -111,6 +111,7 @@ const (
 	CMD_CHAT_CREATE             = "chat.create" // Chat olustur
 	CMD_TYPING                  = "chat.typing"
 	CMD_SEND_MESSAGE            = "chat.send_message" // Mesaj gönder
+	CMD_EDIT_MESSAGE            = "chat.edit_message" // Mesaj düzenle
 	CMD_DELETE_CHAT             = "chat.delete_chat"
 	CMD_FETCH_CHATS             = "chat.fetch_chats"    // Sohbetleri getir
 	CMD_DELETE_MESSAGE          = "chat.delete_message" // Mesajı sil

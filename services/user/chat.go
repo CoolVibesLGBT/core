@@ -115,34 +115,34 @@ func (s *ChatService) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([
 	return s.chatRepo.GetMessagesByChatID(userID, chatID)
 }
 
-func (s *ChatService) PinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.PinMessage(ctx, chatID, userID, messageID)
+func (s *ChatService) PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.PinMessage(ctx, authUser, chatID, userID, messageID)
 }
 
-func (s *ChatService) UnpinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.UnpinMessage(ctx, chatID, userID, messageID)
+func (s *ChatService) UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.UnpinMessage(ctx, authUser, chatID, userID, messageID)
 }
 
-func (s *ChatService) DeleteMessageForUser(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.DeleteMessageForUser(ctx, chatID, userID, messageID)
+func (s *ChatService) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessageForUser(ctx, authUser, chatID, userID, messageID)
 }
 
-func (s *ChatService) DeleteMessageForAll(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.DeleteMessageForAll(ctx, chatID, userID, messageID)
+func (s *ChatService) DeleteMessageForAll(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessageForAll(ctx, authUser, chatID, userID, messageID)
 }
 
-func (s *ChatService) DeleteChatForUser(ctx context.Context, chatID, userID uuid.UUID) error {
-	return s.chatRepo.DeleteChatForUser(ctx, chatID, userID)
+func (s *ChatService) DeleteChatForUser(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
+	return s.chatRepo.DeleteChatForUser(ctx, authUser, chatID, userID)
 }
 
-func (s *ChatService) DeleteChatForAll(ctx context.Context, chatID uuid.UUID) error {
-	return s.chatRepo.DeleteChatForAll(ctx, chatID)
+func (s *ChatService) DeleteChatForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+	return s.chatRepo.DeleteChatForAll(ctx, authUser, chatID)
 }
 
-func (s *ChatService) DeleteChat(ctx context.Context, chatID, userID uuid.UUID) error {
-	return s.chatRepo.DeleteChat(ctx, chatID, userID)
+func (s *ChatService) DeleteChat(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
+	return s.chatRepo.DeleteChat(ctx, authUser, chatID, userID)
 }
 
-func (s *ChatService) DeleteMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.DeleteMessage(ctx, chatID, userID, messageID)
+func (s *ChatService) DeleteMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	return s.chatRepo.DeleteMessage(ctx, authUser, chatID, userID, messageID)
 }

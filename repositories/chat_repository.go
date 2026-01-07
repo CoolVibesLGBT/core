@@ -24,6 +24,7 @@ type ChatRepository struct {
 	db               *gorm.DB
 	snowFlakeNode    *helpers.Node
 	postRepo         *PostRepository
+	userRepo         *UserRepository
 	notificationRepo *NotificationRepository
 }
 
@@ -35,8 +36,8 @@ func (r *ChatRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, notificationRepo *NotificationRepository) *ChatRepository {
-	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, notificationRepo: notificationRepo}
+func NewChatRepository(db *gorm.DB, snowFlakeNode *helpers.Node, postRepo *PostRepository, userRepo *UserRepository, notificationRepo *NotificationRepository) *ChatRepository {
+	return &ChatRepository{db: db, snowFlakeNode: snowFlakeNode, postRepo: postRepo, userRepo: userRepo, notificationRepo: notificationRepo}
 }
 
 func (r *ChatRepository) CreateChat(chat *chat.Chat) error {
@@ -76,6 +77,34 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 		Order("last_message_timestamp DESC").
 		Find(&chats).Error
 
+	if err != nil {
+		return nil, err
+	}
+
+	return chats, nil
+}
+
+func (r *ChatRepository) GetChatsByUserIDWithCursor(userID uuid.UUID, cursor *time.Time, limit int) ([]chat.Chat, error) {
+	var chats []chat.Chat
+
+	db := r.db.
+		Joins("JOIN chat_participants ON chat_participants.chat_id = chats.id").
+		Where("chat_participants.user_id = ?", userID).
+		Preload("Participants.User.Avatar.File").
+		Preload("Participants.User.Cover.File").
+		Preload("LastMessage").
+		Preload("LastMessage.Author").
+		Preload("LastMessage.Author.Avatar.File").
+		Preload("LastMessage.Author.Cover.File").
+		Order("last_message_timestamp DESC").
+		Limit(limit)
+
+	if cursor != nil {
+		// Cursor varsa, last_message_timestamp değeri cursor'dan küçük olanları getir (eski mesajlar)
+		db = db.Where("last_message_timestamp < ?", *cursor)
+	}
+
+	err := db.Find(&chats).Error
 	if err != nil {
 		return nil, err
 	}
@@ -148,12 +177,7 @@ func (r *ChatRepository) GetParticipants(chatID uuid.UUID) ([]chat.ChatParticipa
 	return participants, err
 }
 
-func (r *ChatRepository) CreateGroupChat(
-	creatorID uuid.UUID,
-	participantIDs []uuid.UUID,
-	title *utils.LocalizedString,
-	description *utils.LocalizedString,
-) (*chat.Chat, error) {
+func (r *ChatRepository) CreateGroupChat(creatorID uuid.UUID, participantIDs []uuid.UUID, title *utils.LocalizedString, description *utils.LocalizedString) (*chat.Chat, error) {
 	// Katılımcılar içine creatorID mutlaka eklenmeli, eklenmemişse ekle
 	hasCreator := false
 	for _, id := range participantIDs {
@@ -249,7 +273,7 @@ func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*
 	return chatPost, err
 }
 
-func (r *ChatRepository) PinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+func (r *ChatRepository) PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
 	chat, err := r.GetChatByIDWithoutRelations(chatID)
 	if err != nil {
 		return err
@@ -267,7 +291,7 @@ func (r *ChatRepository) PinMessage(ctx context.Context, chatID, userID, message
 	return nil
 }
 
-func (r *ChatRepository) UnpinMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+func (r *ChatRepository) UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
 	chat, err := r.GetChatByIDWithoutRelations(chatID)
 	if err != nil {
 		return err
@@ -281,27 +305,67 @@ func (r *ChatRepository) UnpinMessage(ctx context.Context, chatID, userID, messa
 	return nil
 }
 
-func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	post, err := r.postRepo.GetPostByID(messageID)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDeletedForMe, post.ID, models.EngagementContentableTypeMessage)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	post, err := r.postRepo.GetPostByID(messageID)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDeletedForAll, post.ID, models.EngagementContentableTypeMessage)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (r *ChatRepository) DeleteChatForUser(ctx context.Context, chatID, userID uuid.UUID) error {
+func (r *ChatRepository) DeleteChatForUser(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
+	chat, err := r.GetChatByID(chatID)
+	if err != nil {
+		return err
+	}
+	if chat != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindDeletedForMe, chat.ID, models.EngagementContentableTypeChat)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (r *ChatRepository) DeleteChatForAll(ctx context.Context, chatID uuid.UUID) error {
+func (r *ChatRepository) DeleteChatForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+	chat, err := r.GetChatByID(chatID)
+	if err != nil {
+		return err
+	}
+	if chat != nil {
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindDeletedForAll, chat.ID, models.EngagementContentableTypeChat)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (r *ChatRepository) DeleteChat(ctx context.Context, chatID, userID uuid.UUID) error {
+func (r *ChatRepository) DeleteChat(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
 	return r.db.Delete(&chat.Chat{}, "id = ? AND user_id = ?", chatID).Error
 }
 
-func (r *ChatRepository) DeleteMessage(ctx context.Context, chatID, userID, messageID uuid.UUID) error {
+func (r *ChatRepository) DeleteMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
 	return r.db.Delete(&post.Post{}, "id = ? AND contentable_type = ? AND contentable_id = ?", messageID, post.PostKindChat, chatID).Error
 }
 
@@ -340,6 +404,41 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 }
 
 func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
+	var messages []post.Post
+	err := r.db.
+		Where("contentable_type = ? AND contentable_id = ?", "chat", chatID).
+		Order("created_at ASC").
+		Preload("Author").
+		Preload("Parent").
+		Preload("Parent.Author.Avatar.File").
+		Preload("Parent.Author.Cover.File").
+		Preload("Parent.Attachments").
+		Preload("Parent.Attachments.File").
+		Preload("Author.Avatar.File").
+		Preload("Author.Cover.File").
+		Preload("Attachments").
+		Preload("Attachments.File").
+		Find(&messages).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	err = r.db.Model(&chat.ChatParticipant{}).
+		Where("chat_id = ? AND user_id = ?", chatID, userID).
+		Updates(map[string]interface{}{
+			"unread_count": 0,
+			"last_read_at": now,
+		}).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
+
+func (r *ChatRepository) GetMessagesByChatIDWithCursor(userID uuid.UUID, chatID uuid.UUID, limit int, cursor *int64) ([]post.Post, error) {
 	var messages []post.Post
 	err := r.db.
 		Where("contentable_type = ? AND contentable_id = ?", "chat", chatID).

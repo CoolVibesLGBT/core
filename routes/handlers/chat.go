@@ -22,7 +22,6 @@ func NewChatHandler(chatService *services.ChatService) *ChatHandler {
 func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
@@ -83,7 +82,6 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 func HandleCreateChat(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -126,8 +124,6 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 
 func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
-		// authenticated user alma
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
@@ -150,7 +146,6 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
@@ -192,13 +187,11 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 func HandlePinMessage(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		messageIDStr := c.FormValue("message_id")
 
@@ -217,7 +210,7 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.PinMessage(c.Context(), authUser.ID, chatID, messageID)
+		err = s.PinMessage(c.Context(), authUser, authUser.ID, chatID, messageID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to pin message")
 		}
@@ -231,13 +224,11 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		messageIDStr := c.FormValue("message_id")
 
@@ -256,7 +247,7 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.UnpinMessage(c.Context(), authUser.ID, chatID, messageID)
+		err = s.UnpinMessage(c.Context(), authUser, authUser.ID, chatID, messageID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to unpin message")
 		}
@@ -270,13 +261,11 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		messageIDStr := c.FormValue("message_id")
 
@@ -295,7 +284,7 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.DeleteMessageForUser(c.Context(), chatID, authUser.ID, messageID)
+		err = s.DeleteMessageForUser(c.Context(), authUser, chatID, authUser.ID, messageID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message for user")
 		}
@@ -309,13 +298,11 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 
 		if chatIDStr == "" {
@@ -328,7 +315,7 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.DeleteChatForAll(c.Context(), chatID)
+		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
 		}
@@ -342,13 +329,11 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 
 		if chatIDStr == "" {
@@ -361,7 +346,7 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.DeleteChatForUser(c.Context(), chatID, authUser.ID)
+		err = s.DeleteChatForUser(c.Context(), authUser, chatID, authUser.ID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for user")
 		}
@@ -375,13 +360,11 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		if chatIDStr == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
@@ -393,7 +376,7 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.DeleteChatForAll(c.Context(), chatID)
+		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
 		}
@@ -407,13 +390,11 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		if chatIDStr == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
@@ -425,7 +406,7 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 		}
 
 		// service call
-		err = s.DeleteChat(c.Context(), chatID, authUser.ID)
+		err = s.DeleteChat(c.Context(), authUser, chatID, authUser.ID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat")
 		}
@@ -438,14 +419,11 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 
 func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
-		// authenticated user
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
 		}
 
-		// form parse — Fiber kendisi yapar
 		chatIDStr := c.FormValue("chat_id")
 		messageIDStr := c.FormValue("message_id")
 
@@ -463,8 +441,7 @@ func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
 		}
 
-		// service call
-		err = s.DeleteMessage(c.Context(), chatID, authUser.ID, messageID)
+		err = s.DeleteMessage(c.Context(), authUser, chatID, authUser.ID, messageID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message")
 		}
