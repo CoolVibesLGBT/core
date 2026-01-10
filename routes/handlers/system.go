@@ -44,6 +44,7 @@ type InitialData struct {
 	ReportKinds   []models.ReportKind                   `json:"report_kinds"`
 	Countries     map[string]CountryResponse            `json:"countries"`
 	Languages     map[string]constants.LanguageResponse `json:"languages"`
+	CheckInTags   []models.CheckInTag                   `json:"checkin_tag_types"`
 	Status        string                                `json:"status"`
 }
 
@@ -101,6 +102,7 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 			Languages:     constants.Languages,
 			EventKinds:    eventKinds,
 			ReportKinds:   reportKinds,
+			CheckInTags:   models.GetAllCheckInTagTypes(),
 			Status:        "ok",
 		}
 
