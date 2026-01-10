@@ -332,6 +332,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
 	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))
+	r.fiber.All("/signin-oidc", r.handlePacket)
+	r.fiber.All("/signout-callback-oidc", r.handlePacket)
 
 	// hepsi için packet handler
 	r.fiber.All("/", r.handlePacket)

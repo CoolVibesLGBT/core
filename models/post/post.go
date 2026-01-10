@@ -27,7 +27,9 @@ const (
 	PostKindNews       PostKind = "news"
 	PostKindStory      PostKind = "story"
 	PostKindChat       PostKind = "chat"
+	PostKindMessage    PostKind = "message"
 	PostKindPost       PostKind = "post"
+	PostKindEvent      PostKind = "event"
 )
 
 const (

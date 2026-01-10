@@ -547,7 +547,19 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	var postKindType post.PostKind
 	switch contentableType {
 	case "chat":
-		postKindType = post.PostKindChat
+		postKindType = post.PostKindMessage
+	case "post":
+		postKindType = post.PostKindPost
+	case "event":
+		postKindType = post.PostKindEvent
+	case "status":
+		postKindType = post.PostKindStatus
+	case "classified":
+		postKindType = post.PostKindClassified
+	case "news":
+		postKindType = post.PostKindNews
+	case "place":
+		postKindType = post.PostKindPlace
 	default:
 		postKindType = post.PostKindStatus
 	}
