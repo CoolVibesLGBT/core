@@ -66,7 +66,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		}
 
 		var lat *float64
-		latStr := c.FormValue("lat")
+		latStr := c.FormValue("latitude")
 		if latStr != "" {
 			if v, err := strconv.ParseFloat(latStr, 64); err == nil {
 				lat = &v
@@ -74,7 +74,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		}
 
 		var lon *float64
-		lonStr := c.FormValue("lon")
+		lonStr := c.FormValue("longitude")
 		if lonStr != "" {
 			if v, err := strconv.ParseFloat(lonStr, 64); err == nil {
 				lon = &v
@@ -98,7 +98,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,
 			"error":   err,
-			"posts":   posts,
+			"places":  posts,
 			"cursor":  cursorInfo,
 		})
 	}

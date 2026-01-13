@@ -81,9 +81,9 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
 func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, lat *float64, lon *float64, cursor *int64, limit int) ([]*post.Post, types.Cursor, error) {
 	var posts []*post.Post
 
+	fmt.Println("Latitude", *lat, "-- Longitude", *lon)
 	query := r.db.Model(&post.Post{}).
-		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
+		Where("posts.contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
@@ -117,21 +117,21 @@ func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.
 	}
 
 	if lat != nil && lon != nil {
-		userPoint := fmt.Sprintf("SRID=4326;POINT(%f %f)", *lon, *lat)
+		userPoint := fmt.Sprintf("POINT(%f %f)", *lon, *lat)
 
 		query = query.
 			Joins(`
-				LEFT JOIN locations 
-				ON locations.contentable_id = posts.id
-				AND locations.contentable_type = ?
-			`, utils.LocationOwnerPost).
+            LEFT JOIN locations 
+            ON locations.contentable_id = posts.id
+            AND locations.contentable_type = ?
+        `, utils.LocationOwnerPost).
 			Order(fmt.Sprintf(`
-				ST_Distance(
-					locations.location_point,
-					ST_GeogFromText('%s')
-				) ASC,
-				posts.public_id DESC
-			`, userPoint))
+            ST_Distance(
+                locations.location_point,
+                ST_SetSRID(ST_GeomFromText('%s'), 4326)
+            ) ASC,
+            posts.public_id DESC
+        `, userPoint))
 	} else {
 		query = query.Order("posts.public_id DESC")
 	}
