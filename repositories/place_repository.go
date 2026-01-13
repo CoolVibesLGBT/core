@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"coolvibes/constants"
 	"coolvibes/helpers"
 	"coolvibes/models"
 	"coolvibes/models/post"
@@ -80,8 +81,16 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
 
 func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, lat *float64, lon *float64, cursor *int64, limit int) ([]*post.Post, types.Cursor, error) {
 	var posts []*post.Post
+	if limit <= 0 {
+		limit = constants.DEFAULT_LIMIT
+	}
 
-	fmt.Println("Latitude", *lat, "-- Longitude", *lon)
+	if lat != nil && lon != nil {
+		fmt.Println("Latitude", *lat, "-- Longitude", *lon)
+	} else {
+		fmt.Println("Latitude or Longitude is nil")
+	}
+
 	query := r.db.Model(&post.Post{}).
 		Where("posts.contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
 		Where("parent_id IS NULL").

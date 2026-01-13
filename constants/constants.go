@@ -1,5 +1,7 @@
 package constants
 
+const DEFAULT_LIMIT = 20
+
 type FollowStatus string
 type GenderIdentity string
 type UserRole string
