@@ -9,6 +9,7 @@ import (
 	"coolvibes/models/media"
 	"coolvibes/models/post"
 	"coolvibes/models/utils"
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -23,6 +24,7 @@ import (
 	"github.com/go-playground/form/v4"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -72,7 +74,6 @@ func (r *PostRepository) CreatePost(post *post.Post) error {
 // CreatePoll polls ve seçeneklerini kaydeder
 func (r *PostRepository) CreatePoll(poll *post_payloads.Poll) error {
 	// Transaction başlat
-	fmt.Println("CREATE POLL")
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// Poll kaydet
 		if err := tx.Create(poll).Error; err != nil {
@@ -249,7 +250,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type = ?", post.PostKindPost).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
@@ -485,6 +486,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	type PostForm struct {
 		ParentId string     `form:"parentPostId"`
 		Title    string     `form:"title"`
+		Slug     string     `form:"slug"`
 		Summary  string     `form:"summary"`
 		Content  string     `form:"content"`
 		Audience string     `form:"audience"`
@@ -504,9 +506,18 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		EventIsOnline    string `form:"event[is_online]"`
 		EventIsOnlineURL string `form:"event[online_url]"`
 
-		LocationAddress string  `form:"location[address]"`
-		LocationLat     float64 `form:"location[lat]"`
-		LocationLng     float64 `form:"location[lng]"`
+		LocationAddress string            `form:"location[address]"`
+		LocationLat     float64           `form:"location[lat]"`
+		LocationLng     float64           `form:"location[lng]"`
+		CountryCode     string            `form:"location[country_code]"`
+		Region          string            `form:"location[region]"`
+		City            string            `form:"location[city]"`
+		ZipCode         string            `form:"location[zip_code]"`
+		Province        string            `form:"location[province]"`
+		Town            string            `form:"location[town]"`
+		Postcode        string            `form:"location[postcode]"`
+		Country         string            `form:"location[country]"`
+		Extras          map[string]string `form:"extras"`
 	}
 
 	decoder := form.NewDecoder()
@@ -575,6 +586,8 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		Title:           utils.MakeLocalizedString(defaultLanguage, postForm.Title),
 		Content:         utils.MakeLocalizedString(defaultLanguage, postForm.Content),
 		Summary:         utils.MakeLocalizedString(defaultLanguage, postForm.Summary),
+		Slug:            &postForm.Slug,
+		Audience:        &postForm.Audience,
 
 		// Burada contentable bilgisi de tutuluyor
 		ContentableType: &contentableType,
@@ -675,6 +688,14 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 			Address:         &postForm.LocationAddress,
 			Latitude:        &postForm.LocationLat,
 			Longitude:       &postForm.LocationLng,
+			CountryCode:     &postForm.CountryCode,
+			Region:          &postForm.Region,
+			City:            &postForm.City,
+			ZipCode:         &postForm.ZipCode,
+			Province:        &postForm.Province,
+			Town:            &postForm.Town,
+			Postcode:        &postForm.Postcode,
+			Country:         &postForm.Country,
 			LocationPoint:   locationPoint,
 			CreatedAt:       time.Now(),
 			UpdatedAt:       time.Now(),
@@ -758,9 +779,26 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	for _, hashtagStr := range postForm.Hashtags {
 		hashtagItem := models.Hashtag{
 			ID:  uuid.New(),
-			Tag: hashtagStr,
+			Tag: helpers.SlugifyStrict(hashtagStr),
 		}
 		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+	}
+
+	//Extra
+	if len(postForm.Extras) > 0 {
+		extras := make(map[string]any)
+
+		for key, val := range postForm.Extras {
+			var parsed any
+			if err := json.Unmarshal([]byte(val), &parsed); err == nil {
+				extras[key] = parsed
+			}
+		}
+
+		extrasBytes, err := json.Marshal(extras)
+		if err == nil {
+			newPost.Extras = datatypes.JSON(extrasBytes)
+		}
 	}
 
 	if err := tx.Save(newPost).Error; err != nil {

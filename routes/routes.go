@@ -55,12 +55,14 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
 	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
+	placesRepo := repositories.NewPlaceRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
 
 	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, userRepo, notificationRepo)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
+	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
@@ -329,6 +331,13 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.action.Register(constants.CMD_DELETE_CHAT_FOR_ALL, handlers.HandleDeleteChatForAll(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_PIN_MESSAGE, handlers.HandlePinMessage(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_UNPIN_MESSAGE, handlers.HandleUnpinMessage(chatService), middleware.AuthMiddleware(userRepo))
+
+	//PLACE EKRANI ICIN
+	r.action.Register(
+		constants.CMD_PLACE_FETCH,
+		handlers.HandleGetNearByPlaces(placeService),    // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
 
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
 	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))

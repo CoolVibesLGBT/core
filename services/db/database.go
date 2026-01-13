@@ -1,6 +1,7 @@
 package db
 
 import (
+	"coolvibes/application"
 	"coolvibes/models"
 	"coolvibes/models/chat"
 	"coolvibes/models/media"
@@ -130,9 +131,9 @@ func Migrate(db *gorm.DB) error {
 	return err
 }
 
-func Seed(db *gorm.DB) error {
+func Seed(app *application.App) error {
 	fmt.Println("Seed Begin")
-	seed.Seed(db)
+	seed.Seed(app)
 	fmt.Println("Seed End")
 	return nil
 }

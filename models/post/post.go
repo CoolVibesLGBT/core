@@ -12,6 +12,7 @@ import (
 	"coolvibes/models/post/payloads"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -69,20 +70,20 @@ type Post struct {
 
 	AuthorID uuid.UUID `gorm:"type:uuid;index;not null" json:"author_id"`
 
-	Title   *utils.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
-	Slug    *string                `gorm:"size:255;uniqueIndex" json:"slug,omitempty"`
-	Content *utils.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
-	Summary *utils.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
+	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
+	Slug        *string                `gorm:"size:255;index" json:"slug,omitempty"`
+	Content     *utils.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
+	Summary     *utils.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
+	Audience    *string                `gorm:"size:50;index;default:'public'" json:"audience,omitempty"`
+	Published   bool                   `gorm:"default:false;index" json:"published"`
+	PublishedAt *time.Time             `gorm:"index" json:"published_at,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
 
-	Published   bool           `gorm:"default:false;index" json:"published"`
-	PublishedAt *time.Time     `gorm:"index" json:"published_at,omitempty"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-
-	Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
-
-	Author models.User `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
+	//Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
+	Extras datatypes.JSON `gorm:"type:jsonb" json:"extras,omitempty"`
+	Author models.User    `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
 
 	Attachments []*media.Media    `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
 	Mentions    []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`

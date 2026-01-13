@@ -24,7 +24,11 @@ type Location struct {
 	City            *string                  `gorm:"size:512" json:"city,omitempty"`
 	Country         *string                  `gorm:"size:512" json:"country,omitempty"`
 	Postal          *string                  `gorm:"size:128" json:"postal,omitempty"`
-	Region          *string                  `json:"region,omitempty"`   // Örn: "Marmara"
+	Region          *string                  `json:"region,omitempty"` // Örn: "Marmara"
+	Postcode        *string                  `gorm:"size:64" json:"postcode,omitempty"`
+	ZipCode         *string                  `json:"zip_code,omitempty"` // Örn: "34000"
+	Province        *string                  `json:"province,omitempty"` // Örn: "İstanbul"
+	Town            *string                  `json:"town,omitempty"`     // Örn: "Kadıköy"
 	Timezone        *string                  `json:"timezone,omitempty"` // Örn: "Europe/Istanbul"
 	Display         *string                  `json:"display"`            // "İstanbul, Türkiye"
 	Latitude        *float64                 `gorm:"type:numeric(10,6)" json:"latitude,omitempty"`

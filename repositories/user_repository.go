@@ -72,11 +72,26 @@ func (r *UserRepository) GetByUserNameOrEmailOrUsername(input string) (*models.U
 func (r *UserRepository) GetUserByNameOrEmailOrNickname(input string) (*models.User, error) {
 	var userObj models.User
 	err := r.db.
-		Where("user_name = ? OR email = ? OR display_name", input, input, input).First(&userObj).Error
+		Where("user_name = ? OR email = ? OR display_name = ?", input, input, input).First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}
 	return &userObj, nil
+}
+
+func (r *UserRepository) ExistsByNameOrMail(input string) (bool, error) {
+	var exists bool
+
+	err := r.db.Raw(`
+		SELECT EXISTS (
+			SELECT 1
+			FROM users
+			WHERE LOWER(user_name) = LOWER(?)
+		   OR LOWER(email) = LOWER(?)
+		)
+	`, input, input).Scan(&exists).Error
+
+	return exists, err
 }
 
 func (r *UserRepository) Create(user *models.User) error {

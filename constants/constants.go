@@ -15,6 +15,28 @@ type DrinkingHabit string
 type TravelPurpose string
 
 const (
+	SystemUserSystem    = "system"
+	SystemUserAdmin     = "admin"
+	SystemUserModerator = "moderator"
+	SystemUserSupport   = "support"
+	SystemUserBot       = "bot"
+	SystemUserNews      = "news"
+	SystemUserCoolVibes = "coolvibes"
+	SystemUserExplorer  = "explorer"
+)
+
+var DefaultSystemUsers = []string{
+	SystemUserSystem,
+	SystemUserAdmin,
+	SystemUserModerator,
+	SystemUserSupport,
+	SystemUserBot,
+	SystemUserNews,
+	SystemUserExplorer,
+	SystemUserCoolVibes,
+}
+
+const (
 	ZodiacAries       ZodiacSign = "aries"       // Koç
 	ZodiacTaurus      ZodiacSign = "taurus"      // Boğa
 	ZodiacGemini      ZodiacSign = "gemini"      // İkizler

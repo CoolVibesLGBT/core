@@ -1,6 +1,7 @@
 package main
 
 import (
+	app "coolvibes/application"
 	"coolvibes/helpers"
 	"coolvibes/repositories"
 	"coolvibes/routes"
@@ -14,22 +15,12 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	socketio "github.com/vchitai/go-socket.io/v4"
-	"gorm.io/gorm"
 )
 
-// App struct'u, tüm uygulama bileşenlerini içerir
-type App struct {
-	DB            *gorm.DB
-	Router        *routes.Router
-	SnowFlakeNode *helpers.Node
-	SocketServer  *socketio.Server
-}
-
-var instance *App // Singleton App instance
+var instance *app.App // Singleton App instance
 
 // NewApp, yeni bir App instance'ı oluşturur
-func NewApp() (*App, error) {
+func NewApp() (*app.App, error) {
 	if instance == nil {
 		snowFlakeNode, err := helpers.NewNode(1) // Node ID, genelde 0-1023 arası
 		if err != nil {
@@ -42,7 +33,7 @@ func NewApp() (*App, error) {
 			return nil, err
 		}
 
-		instance = &App{
+		instance = &app.App{
 			DB:            db.DB,
 			Router:        routes.NewRouter(db.DB, snowFlakeNode),
 			SnowFlakeNode: snowFlakeNode,
@@ -70,7 +61,7 @@ func NewApp() (*App, error) {
 		}
 
 		if *seedFlag {
-			err = db.Seed(instance.DB)
+			err = db.Seed(instance)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -89,18 +80,8 @@ func NewApp() (*App, error) {
 	return instance, nil
 }
 
-func GetApp() (*App, error) {
+func GetApp() (*app.App, error) {
 	return NewApp()
-}
-
-// Close, uygulamayı kapatır ve kaynakları temizler
-func (a *App) Close() {
-	// Database bağlantısını kapatma ve diğer bileşenleri temizleme
-
-	// Örneğin:
-	//a.DB.Close()
-
-	// Diğer bileşenler için de kapatma işlemleri yapılabilir.
 }
 
 func main() {
