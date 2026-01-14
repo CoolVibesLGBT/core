@@ -3,7 +3,7 @@ package handlers
 import (
 	"coolvibes/middleware"
 	services "coolvibes/services/user"
-	"fmt"
+	"coolvibes/types"
 	"mime/multipart"
 	"strconv"
 
@@ -82,8 +82,6 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 			}
 		}
 
-		fmt.Println("LAT", latStr, "LOING", lonStr, "LIM", limitStr)
-
 		var cursor *int64
 		cursorStr := c.FormValue("cursor")
 		if cursorStr != "" {
@@ -96,12 +94,28 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 			cursor = &cVal
 		}
 
-		posts, cursorInfo, err := s.GetNearByPlaces(c.Context(), authUser, lat, lon, cursor, limit)
+		category := c.FormValue("category")
+		name := c.FormValue("name")
+		city := c.FormValue("city")
+		country := c.FormValue("country")
+
+		filters := types.PlaceFilters{
+			Latitude:  lat,
+			Longitude: lon,
+			Cursor:    cursor,
+			Limit:     limit,
+			Category:  &category,
+			Name:      &name,
+			City:      &city,
+			Country:   &country,
+		}
+
+		places, cursorInfo, err := s.GetNearByPlaces(c.Context(), authUser, filters)
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,
 			"error":   err,
-			"places":  posts,
+			"places":  places,
 			"cursor":  cursorInfo,
 		})
 	}

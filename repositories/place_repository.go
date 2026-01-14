@@ -79,22 +79,21 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
 	return exists, err
 }
 
-func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, lat *float64, lon *float64, cursor *int64, limit int) ([]*post.Post, types.Cursor, error) {
+func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.PlaceFilters) ([]*post.Post, types.Cursor, error) {
 	var posts []*post.Post
+
+	limit := filters.Limit
 	if limit <= 0 {
 		limit = constants.DEFAULT_LIMIT
 	}
 
-	if lat != nil && lon != nil {
-		fmt.Println("Latitude", *lat, "-- Longitude", *lon)
-	} else {
-		fmt.Println("Latitude or Longitude is nil")
-	}
+	cursor := filters.Cursor
+	lat := filters.Latitude
+	lon := filters.Longitude
 
 	query := r.db.Model(&post.Post{}).
 		Where("posts.contentable_type = ?", string(post.PostKindPlace)).
 		Where("parent_id IS NULL").
-		Order("public_id DESC").
 		Limit(limit).
 		Preload("Location").
 		Preload("Poll").
@@ -121,9 +120,12 @@ func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.
 		Preload("Attachments").
 		Preload("Attachments.File")
 
+	// Cursor varsa filtrele
 	if cursor != nil {
 		query = query.Where("public_id < ?", *cursor)
 	}
+
+	// Filtreler içinden diğer filtreleri uygula (kategori, isim vb.) istersen burada ekle
 
 	if lat != nil && lon != nil {
 		userPoint := fmt.Sprintf("POINT(%f %f)", *lon, *lat)
@@ -142,13 +144,16 @@ func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.
             posts.public_id DESC
         `, userPoint))
 	} else {
+		// Koordinat yoksa sadece public_id ile sırala
 		query = query.Order("posts.public_id DESC")
 	}
 
+	// Sorguyu çalıştır
 	if err := query.Find(&posts).Error; err != nil {
 		return nil, types.Cursor{}, err
 	}
 
+	// Cursor bilgilerini oluştur
 	var prevCursor *string
 	if cursor != nil {
 		s := strconv.FormatInt(*cursor, 10)
@@ -157,7 +162,8 @@ func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.
 
 	var nextCursor *string
 	if len(posts) > 0 {
-		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
+		lastID := posts[len(posts)-1].PublicID
+		s := strconv.FormatInt(int64(lastID), 10)
 		nextCursor = &s
 	}
 
