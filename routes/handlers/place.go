@@ -3,6 +3,7 @@ package handlers
 import (
 	"coolvibes/middleware"
 	services "coolvibes/services/user"
+	"fmt"
 	"mime/multipart"
 	"strconv"
 
@@ -80,6 +81,8 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 				lon = &v
 			}
 		}
+
+		fmt.Println("LAT", latStr, "LOING", lonStr, "LIM", limitStr)
 
 		var cursor *int64
 		cursorStr := c.FormValue("cursor")
