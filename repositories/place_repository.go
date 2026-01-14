@@ -92,7 +92,7 @@ func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.
 	}
 
 	query := r.db.Model(&post.Post{}).
-		Where("posts.contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
+		Where("posts.contentable_type = ?", string(post.PostKindPlace)).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
