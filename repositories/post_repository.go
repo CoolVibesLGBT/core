@@ -250,7 +250,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace)}).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace), string(post.PostKindNews)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
@@ -602,6 +602,8 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	// Media ekleme
 	for _, f := range files {
 
+		fmt.Println("SAVE:FILES", f.Filename, "SIZE", f.Size)
+
 		var ownerType media.OwnerType
 		var role media.MediaRole
 
@@ -616,6 +618,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 
 		mediaModel, err := r.mediaRepo.AddMedia(newPost.ID, ownerType, author.ID, role, f)
 		if err != nil {
+			fmt.Println("ERROR:mediaModel", err)
 			tx.Rollback()
 			return nil, err
 		}

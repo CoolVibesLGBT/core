@@ -155,3 +155,48 @@ func ResizePortraitKeepAspect(srcPath, dstPath string, width, height int) error 
 	// Landscape ile aynı, isimlendirme amaçlı ayrı fonksiyon
 	return ResizeLandscapeKeepAspect(srcPath, dstPath, width, height)
 }
+
+func ResizePortraitKeepAspectCropCenter(srcPath, dstPath string, width, height int) error {
+	fmt.Println("ResizePortraitKeepAspectCropCenter")
+	img, err := imaging.Open(srcPath)
+	if err != nil {
+		return err
+	}
+
+	// Kare crop için kısa kenar (örneğin ortadan crop yapmak istiyorsan)
+	cropWidth := img.Bounds().Dx()
+	cropHeight := img.Bounds().Dy()
+
+	// Aspect ratio hedef için
+	targetRatio := float64(width) / float64(height)
+	currentRatio := float64(cropWidth) / float64(cropHeight)
+
+	var cropRect image.Rectangle
+
+	if currentRatio > targetRatio {
+		// Resim geniş, yatay crop yap
+		newWidth := int(float64(cropHeight) * targetRatio)
+		x0 := (cropWidth - newWidth) / 2
+		cropRect = image.Rect(x0, 0, x0+newWidth, cropHeight)
+	} else {
+		// Resim uzun, dikey crop yap
+		newHeight := int(float64(cropWidth) / targetRatio)
+		y0 := (cropHeight - newHeight) / 2
+		cropRect = image.Rect(0, y0, cropWidth, y0+newHeight)
+	}
+
+	cropped := imaging.Crop(img, cropRect)
+	resized := imaging.Resize(cropped, width, height, imaging.Lanczos)
+
+	if err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm); err != nil {
+		return err
+	}
+
+	f, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return webp.Encode(f, resized, &webp.Options{Lossless: true, Quality: 100})
+}

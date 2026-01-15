@@ -233,8 +233,8 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 		aspect = "portrait"
 		resizeFunc = helpers.ResizePortraitKeepAspect
 	default:
-		aspect = "portrait"
-		resizeFunc = helpers.ResizePortraitKeepAspect
+		aspect = "landscape"
+		resizeFunc = helpers.ResizeLandscapeKeepAspect
 	}
 
 	// ICON: Avatar ise square crop, diğerleri için square fit

@@ -15,3 +15,14 @@ type PlaceFilters struct {
 	Cursor    *int64
 	Limit     int
 }
+
+type Filters struct {
+	Category  *string
+	Name      *string
+	City      *string
+	Country   *string
+	Latitude  *float64
+	Longitude *float64
+	Cursor    *int64
+	Limit     int
+}

@@ -23,6 +23,14 @@ type Router struct {
 	action        *router.ActionRouter
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
+
+	NewsService         *services.NewsService
+	PostService         *services.PostService
+	UserService         *services.UserService
+	NotificationService *services.NotificationsService
+	PlaceService        *services.PlaceService
+	ChatService         *services.ChatService
+	PaymentService      *services.PaymentService
 }
 
 func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
@@ -57,16 +65,25 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
 	placesRepo := repositories.NewPlaceRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
 	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
+	newsRepo := repositories.NewNewsRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
 
 	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, userRepo, notificationRepo)
 
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
 	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
 	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
+	newsService := services.NewNewsService(userRepo, postRepo, mediaRepo, placesRepo, newsRepo)
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
 	paymentsRepo := repositories.NewPaymentRepositoryy(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
+
+	r.NewsService = newsService
+	r.PostService = postService
+	r.UserService = userService
+	r.NotificationService = notificationService
+	r.PlaceService = placeService
+	r.ChatService = chatService
 
 	paymentService := services.NewPaymentService(paymentsRepo, userRepo, postRepo, mediaRepo)
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
@@ -338,6 +355,15 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 		handlers.HandleGetNearByPlaces(placeService),    // handler
 		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
 	)
+
+	//NEWS EKRANI
+	r.action.Register(
+		constants.CMD_NEWS_FETCH,
+		handlers.HandleFetchNews(newsService),           // handler
+		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
+
+	//WEBHOOK
 
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
 	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))

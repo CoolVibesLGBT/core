@@ -131,6 +131,15 @@ const (
 	CMD_PLACE_UPDATE         = "place.update"
 	CMD_PLACE_COMMENT        = "place.comment"
 	CMD_PLACE_FETCH_COMMENTS = "place.fetch.comments"
+
+	//NEWS EKRANI
+	CMD_NEWS_CREATE         = "news.create"
+	CMD_NEWS_FETCH          = "news.fetch"
+	CMD_NEWS_VOTE           = "news.vote"
+	CMD_NEWS_DELETE         = "news.delete"
+	CMD_NEWS_UPDATE         = "news.update"
+	CMD_NEWS_COMMENT        = "news.comment"
+	CMD_NEWS_FETCH_COMMENTS = "news.fetch.comments"
 )
 
 /*

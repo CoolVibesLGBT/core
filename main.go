@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	app "coolvibes/application"
 	"coolvibes/helpers"
 	"coolvibes/repositories"
@@ -9,10 +10,13 @@ import (
 	"coolvibes/services/socket"
 	"coolvibes/services/socket/managers"
 	"coolvibes/test"
+	"coolvibes/workers"
+	news "coolvibes/workers/news"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -102,6 +106,33 @@ func main() {
 	if err != nil {
 		log.Fatal("VAPID anahtarı alınamadı:", err)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	maxWorkers := 10
+	queueSize := 100
+
+	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
+	dispatcher.Run()
+
+	news.SubmitRSSFetchTasks(dispatcher, app)
+
+	ticker := time.NewTicker(5 * time.Hour)
+
+	go func() {
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				news.SubmitRSSFetchTasks(dispatcher, app)
+
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	fmt.Println("PublicKey:", vapidKeys.PublicKey)
 	fmt.Println("PrivateKey:", vapidKeys.PrivateKey)

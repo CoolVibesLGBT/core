@@ -17,3 +17,6 @@ static/samples
 /bot/
 bot
 bot
+
+./workers/temp
+workers/temp

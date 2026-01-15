@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -125,4 +126,29 @@ func splitDescription(desc string) []string {
 
 func SplitDescription(desc string) []string {
 	return splitDescription(desc)
+}
+
+func splitToParagraphs(text string) []string {
+	raw := strings.Split(text, "\n\n")
+
+	var out []string
+	for _, p := range raw {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func SplitToParagraphs(text string) []string {
+	return splitToParagraphs(text)
+}
+
+func LexicalToJSON(wrapper LexicalWrapper) (string, error) {
+	b, err := json.MarshalIndent(wrapper, "", "")
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
