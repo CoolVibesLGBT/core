@@ -60,7 +60,10 @@ type Post struct {
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
 
 	// 🔸 PostType alanının yeni ismi
-	PostKind PostKind `gorm:"size:50;not null;index;default:'status'" json:"post_kind"`
+	PostKind PostKind          `gorm:"size:50;not null;index;default:'post'" json:"post_kind"`
+	Domain   models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes.lgbt'" json:"domain"`
+
+	//PostKind `gorm:"size:50;not null;index;default:'post'" json:"post_kind"`
 
 	// 🔹 İçerik kategorisi
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`

@@ -84,22 +84,20 @@ type Subscription struct {
 }
 
 type User struct {
-	ID          uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	PublicID    int64                  `gorm:"uniqueIndex;not null" json:"public_id"`
-	SocketID    *string                `json:"socket_id,omitempty"`
-	UserName    string                 `json:"username"`
-	DisplayName string                 `json:"displayname"`
-	Email       string                 `json:"email"`
-	Password    string                 `json:"-"` // gizli tutulmalı
-	Bio         *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
-	Domain      *string                `json:"domain,omitempty"`
-	DateOfBirth *time.Time             `json:"date_of_birth,omitempty"`
-	Balance     decimal.Decimal        `gorm:"type:numeric(38,18);default:0" json:"balance"`
-	IsOnline    bool                   `gorm:"default:false" json:"is_online"`
-	IsBot       bool                   `gorm:"default:false" json:"-"`
-
+	ID           uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	PublicID     int64                  `gorm:"uniqueIndex;not null" json:"public_id"`
+	SocketID     *string                `json:"socket_id,omitempty"`
+	Domain       DomainKind             `gorm:"type:varchar(50);not null;index" json:"domain"`
+	UserName     string                 `json:"username"`
+	DisplayName  string                 `json:"displayname"`
+	Email        string                 `json:"email"`
+	Password     string                 `json:"-"` // gizli tutulmalı
+	Bio          *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
+	DateOfBirth  *time.Time             `json:"date_of_birth,omitempty"`
+	Balance      decimal.Decimal        `gorm:"type:numeric(38,18);default:0" json:"balance"`
+	IsOnline     bool                   `gorm:"default:false" json:"is_online"`
+	IsBot        bool                   `gorm:"default:false" json:"-"`
 	PrivacyLevel constants.PrivacyLevel `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
-
 	//PreferencesFlags int64 `gorm:"column:preferences_flags" json:"preferences_flags"`
 	PreferencesFlags string `gorm:"column:preferences_flags" json:"preferences_flags"` // hex string representation of bits
 

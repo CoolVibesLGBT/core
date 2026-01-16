@@ -51,6 +51,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		Name     string `form:"name"`
 		Nickname string `form:"nickname"`
 		Password string `form:"password"`
+		Domain   string `form:"domain"`
 		Captcha  string `form:"recaptchaToken"` // string veya time.Time
 	}
 	decoder := form.NewDecoder()
@@ -94,6 +95,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 
 		ID:          UserID,
 		PublicID:    s.userRepo.Node().Generate().Int64(),
+		Domain:      models.ParseDomainName(formData.Domain),
 		UserName:    formData.Name,
 		DisplayName: formData.Nickname,
 		Password:    hash,
