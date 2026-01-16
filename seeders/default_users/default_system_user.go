@@ -41,6 +41,7 @@ func SeedDefaultSystemUsers(application *application.App) error {
 			DisplayName: defaultUserName,
 			Email:       defaultUserEmail,
 			Password:    password,
+			Domain:      models.CoolVibes,
 			UserRole:    constants.UserRoleUser,
 		}
 

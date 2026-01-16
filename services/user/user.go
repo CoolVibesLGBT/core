@@ -95,7 +95,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 
 		ID:          UserID,
 		PublicID:    s.userRepo.Node().Generate().Int64(),
-		Domain:      models.ParseDomainName(formData.Domain),
+		Domain:      models.GetDomainKind(formData.Domain),
 		UserName:    formData.Name,
 		DisplayName: formData.Nickname,
 		Password:    hash,

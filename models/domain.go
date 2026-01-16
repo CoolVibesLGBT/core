@@ -1,60 +1,65 @@
 package models
 
-import "strings"
-
-type DomainName string
-
-const (
-	CoolVibesLGBT    DomainName = "coolvibes.lgbt"
-	CoolVibesAPP     DomainName = "coolvibes.app"
-	CoolVibesIO      DomainName = "coolvibes.io"
-	CoolVibesLGBTAPI DomainName = "api.coolvibes.lgbt"
-	CoolVibesAPPAPI  DomainName = "api.coolvibes.app"
-	CoolVibesIOAPI   DomainName = "api.coolvibes.io"
-
-	KEWLSWAPCOM    DomainName = "kewlswap.com"
-	KEWLSWAPIO     DomainName = "kewlswap.io"
-	KEWLSWAPAPP    DomainName = "kewlswap.app"
-	APIKEWLSWAPCOM DomainName = "api.kewlswap.com"
-	APIKEWLSWAPIO  DomainName = "api.kewlswap.io"
-	APIKEWLSWAPAPP DomainName = "api.kewlswap.app"
+import (
+	"net/url"
+	"strings"
 )
 
 type DomainKind string
 
 const (
-	CoolVibes DomainKind = "coolvibes"
-	KewlSwap  DomainKind = "kewlswap"
+	CoolVibes     DomainKind = "coolvibes"
+	KewlSwap      DomainKind = "kewlswap"
+	UnknownDomain DomainKind = "unknown"
+	AllDomains    DomainKind = "all"
 )
 
-var DomainMap = map[DomainName]DomainKind{
+// Tüm domain adlarının canonical hali küçük harf, api. prefix’li ve www. prefix’siz haliyle burada tutulur
+var domainToKind = map[string]DomainKind{
 	// CoolVibes
-	CoolVibesLGBT:    CoolVibes,
-	CoolVibesAPP:     CoolVibes,
-	CoolVibesIO:      CoolVibes,
-	CoolVibesLGBTAPI: CoolVibes,
-	CoolVibesAPPAPI:  CoolVibes,
-	CoolVibesIOAPI:   CoolVibes,
+	"coolvibes.lgbt":     CoolVibes,
+	"coolvibes.app":      CoolVibes,
+	"coolvibes.io":       CoolVibes,
+	"api.coolvibes.lgbt": CoolVibes,
+	"api.coolvibes.app":  CoolVibes,
+	"api.coolvibes.io":   CoolVibes,
 
 	// KewlSwap
-	KEWLSWAPCOM:    KewlSwap,
-	KEWLSWAPIO:     KewlSwap,
-	KEWLSWAPAPP:    KewlSwap,
-	APIKEWLSWAPCOM: KewlSwap,
-	APIKEWLSWAPIO:  KewlSwap,
-	APIKEWLSWAPAPP: KewlSwap,
+	"kewlswap.com":     KewlSwap,
+	"kewlswap.io":      KewlSwap,
+	"kewlswap.app":     KewlSwap,
+	"api.kewlswap.com": KewlSwap,
+	"api.kewlswap.io":  KewlSwap,
+	"api.kewlswap.app": KewlSwap,
 }
 
-func HostToDomain(domain DomainName) (DomainKind, bool) {
-	p, ok := DomainMap[domain]
-	return p, ok
-}
-
-func ParseDomainName(s string) DomainKind {
-	domainStr := DomainName(strings.ToLower(s))
-	domain, ok := DomainMap[domainStr]
-	if !ok {
-		return CoolVibes
+func NormalizeDomain(input string) string {
+	input = strings.TrimSpace(input)
+	input = strings.TrimRight(input, "/")
+	u, err := url.Parse(input)
+	if err == nil && u.Host != "" {
+		input = u.Host
+	} else {
+		u, err = url.Parse("https://" + input)
+		if err == nil {
+			input = u.Host
+		}
 	}
-	return domain
+
+	input = strings.ToLower(input)
+	input = strings.TrimPrefix(input, "www.")
+	return input
+}
+
+func GetDomainKind(raw string) DomainKind {
+	normalized := NormalizeDomain(raw)
+	if kind, ok := domainToKind[normalized]; ok {
+		return kind
+	}
+	return UnknownDomain
+}
+
+// IsValidDomain returns true if domain belongs to any known domain groups
+func IsValidDomain(raw string) bool {
+	return GetDomainKind(raw) != UnknownDomain
 }
