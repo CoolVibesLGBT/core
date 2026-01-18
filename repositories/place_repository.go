@@ -79,7 +79,7 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
 	return exists, err
 }
 
-func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.PlaceFilters) ([]*post.Post, types.Cursor, error) {
+func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.Filters) ([]*post.Post, types.Cursor, error) {
 	var posts []*post.Post
 
 	limit := filters.Limit

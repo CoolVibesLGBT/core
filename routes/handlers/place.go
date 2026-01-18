@@ -99,7 +99,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		city := c.FormValue("city")
 		country := c.FormValue("country")
 
-		filters := types.PlaceFilters{
+		filters := types.Filters{
 			Latitude:  lat,
 			Longitude: lon,
 			Cursor:    cursor,

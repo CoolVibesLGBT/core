@@ -48,6 +48,6 @@ func (s *PlaceService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return postData, nil
 }
 
-func (s *PlaceService) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.PlaceFilters) ([]*post.Post, types.Cursor, error) {
+func (s *PlaceService) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.Filters) ([]*post.Post, types.Cursor, error) {
 	return s.placeRepo.GetNearByPlaces(ctx, authUser, filters)
 }

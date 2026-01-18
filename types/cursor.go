@@ -5,18 +5,8 @@ type Cursor struct {
 	Next *string `json:"next,omitempty"`
 }
 
-type PlaceFilters struct {
-	Category  *string
-	Name      *string
-	City      *string
-	Country   *string
-	Latitude  *float64
-	Longitude *float64
-	Cursor    *int64
-	Limit     int
-}
-
 type Filters struct {
+	Search    *string
 	Category  *string
 	Name      *string
 	City      *string
