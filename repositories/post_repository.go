@@ -581,6 +581,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		PublicID:        node.Generate().Int64(),
 		AuthorID:        author.ID,
 		Published:       true,
+		Domain:          author.Domain,
 		PostKind:        postKindType,
 		ContentCategory: post.ContentNormal,
 		Title:           utils.MakeLocalizedString(defaultLanguage, postForm.Title),
