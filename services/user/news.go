@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"coolvibes/models"
 	"coolvibes/models/post"
 	"coolvibes/types"
@@ -50,6 +49,6 @@ func (s *NewsService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return postData, nil
 }
 
-func (s *NewsService) GetNews(ctx context.Context, authUser *models.User, filters types.Filters) ([]*post.Post, types.Cursor, error) {
-	return s.newsRepo.GetNews(ctx, authUser, filters)
+func (s *NewsService) GetNews(filters types.Filter) ([]*post.Post, types.Cursor, error) {
+	return s.newsRepo.GetNews(filters)
 }

@@ -52,6 +52,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		Nickname string `form:"nickname"`
 		Password string `form:"password"`
 		Domain   string `form:"domain"`
+		Email    string `form:"email"`
 		Captcha  string `form:"recaptchaToken"` // string veya time.Time
 	}
 	decoder := form.NewDecoder()
@@ -73,6 +74,13 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 
 	formData.Nickname = strings.ToLower(formData.Nickname)
 	formData.Password = strings.ToLower(formData.Password)
+	formData.Email = strings.ToLower(formData.Email)
+
+	if len(formData.Email) > 0 {
+		if !helpers.IsValidEmail(formData.Email) {
+			return nil, "", errors.New("invalid email")
+		}
+	}
 
 	// Hashle
 	hash, err := helpers.HashPasswordArgon2id(formData.Password)
@@ -98,6 +106,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		Domain:      models.GetDomainKind(formData.Domain),
 		UserName:    formData.Name,
 		DisplayName: formData.Nickname,
+		Email:       formData.Email,
 		Password:    hash,
 		UserRole:    constants.UserRoleUser,
 	}

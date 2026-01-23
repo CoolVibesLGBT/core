@@ -99,7 +99,9 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		city := c.FormValue("city")
 		country := c.FormValue("country")
 
-		filters := types.Filters{
+		filters := types.Filter{
+			AuthUser:  authUser,
+			Context:   c.Context(),
 			Latitude:  lat,
 			Longitude: lon,
 			Cursor:    cursor,
@@ -110,7 +112,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 			Country:   &country,
 		}
 
-		places, cursorInfo, err := s.GetNearByPlaces(c.Context(), authUser, filters)
+		places, cursorInfo, err := s.GetNearByPlaces(filters)
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,

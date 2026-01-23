@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"context"
 	"coolvibes/helpers"
-	"coolvibes/models"
 	"coolvibes/models/post"
 	"coolvibes/types"
 	"strconv"
@@ -52,7 +50,7 @@ func (r *NewsRepository) Create(news *post.Post) error {
 	return r.postRepo.CreatePost(news)
 }
 
-func (r *NewsRepository) GetNews(ctx context.Context, authUser *models.User, filters types.Filters) ([]*post.Post, types.Cursor, error) {
+func (r *NewsRepository) GetNews(filters types.Filter) ([]*post.Post, types.Cursor, error) {
 
 	var prevCursor *string
 	if filters.Cursor != nil {

@@ -7,7 +7,6 @@ import (
 	"github.com/cridenour/go-postgis"
 )
 
-// PostGISPoint yapısı
 type PostGISPoint struct {
 	Lng float64 `json:"lng"`
 	Lat float64 `json:"lat"`

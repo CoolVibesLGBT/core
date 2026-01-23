@@ -28,7 +28,7 @@ type Poll struct {
 	Question        utils.LocalizedString `gorm:"type:jsonb" json:"question"`
 	Duration        string                `gorm:"default:0" json:"duration"`
 	Kind            PollKind              `gorm:"type:varchar(16);default:'single'" json:"kind"`
-	MaxSelectable   int                   `gorm:"default:1" json:"max_selectable"` // 🔥 Pro seçim sistemi
+	MaxSelectable   int                   `gorm:"default:1" json:"max_selectable"` // seçim sistemi
 	CreatedAt       time.Time             `json:"created_at"`
 	UpdatedAt       time.Time             `json:"updated_at"`
 

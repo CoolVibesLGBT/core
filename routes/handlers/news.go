@@ -99,7 +99,9 @@ func HandleFetchNews(s *services.NewsService) fiber.Handler {
 		city := c.FormValue("city")
 		country := c.FormValue("country")
 
-		filters := types.Filters{
+		filters := types.Filter{
+			Context:   c.Context(),
+			AuthUser:  authUser,
 			Latitude:  lat,
 			Longitude: lon,
 			Cursor:    cursor,
@@ -110,7 +112,7 @@ func HandleFetchNews(s *services.NewsService) fiber.Handler {
 			Country:   &country,
 		}
 
-		news, cursorInfo, err := s.GetNews(c.Context(), authUser, filters)
+		news, cursorInfo, err := s.GetNews(filters)
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,

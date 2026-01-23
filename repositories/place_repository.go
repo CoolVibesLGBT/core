@@ -1,10 +1,8 @@
 package repositories
 
 import (
-	"context"
 	"coolvibes/constants"
 	"coolvibes/helpers"
-	"coolvibes/models"
 	"coolvibes/models/post"
 	"coolvibes/models/utils"
 	"coolvibes/types"
@@ -79,7 +77,7 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
 	return exists, err
 }
 
-func (r *PlaceRepository) GetNearByPlaces(ctx context.Context, authUser *models.User, filters types.Filters) ([]*post.Post, types.Cursor, error) {
+func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error) {
 	var posts []*post.Post
 
 	limit := filters.Limit
