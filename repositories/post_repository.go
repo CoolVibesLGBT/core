@@ -455,17 +455,17 @@ func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit in
 	return results, lastCursor, nil
 }
 
-func (r *PostRepository) GetRecentHashtags(limit int) ([]types.HashtagStats, error) {
+func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error) {
 	var results []types.HashtagStats
 	cutoff := time.Now().Add(-48 * time.Hour)
 
-	err := r.db.Model(&models.Hashtag{}). // gerçek tablo struct'ı buraya
-						Select("tag, COUNT(*) as count").
-						Where("created_at >= ?", cutoff).
-						Group("tag").
-						Order("count DESC").
-						Limit(limit).
-						Scan(&results).Error
+	err := r.db.Model(&models.Hashtag{}).
+		Select("tag, COUNT(*) as count").
+		Where("created_at >= ?", cutoff).
+		Group("tag").
+		Order("count DESC").
+		Limit(filters.Limit).
+		Scan(&results).Error
 
 	return results, err
 }

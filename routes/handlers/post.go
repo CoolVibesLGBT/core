@@ -673,14 +673,15 @@ func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
 
 func HandleGetTrends(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		limit := 10 // default değer
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
-				limit = parsed
-			}
+
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
-		hashtags, err := s.GetRecentHashtags(limit)
+		hashtags, err := s.GetRecentHashtags(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get trends: " + err.Error(),

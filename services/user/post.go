@@ -100,8 +100,8 @@ func (s *PostService) GetUserMedias(id int64, limit int, cursor *int64) ([]types
 	return medias, lastCursor, nil
 }
 
-func (s *PostService) GetRecentHashtags(limit int) ([]types.HashtagStats, error) {
-	hashtags, err := s.postRepo.GetRecentHashtags(limit)
+func (s *PostService) GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error) {
+	hashtags, err := s.postRepo.GetRecentHashtags(filters)
 	if err != nil {
 		return nil, fmt.Errorf("GetRecentHashtags error: %w", err)
 	}
