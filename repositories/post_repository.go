@@ -245,7 +245,7 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	return r.GetPostByID(p.ID)
 }
 
-func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineResult, error) {
+func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult, error) {
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
@@ -253,7 +253,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace), string(post.PostKindNews)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
-		Limit(limit).
+		Limit(filters.Limit).
 		Preload("Location").
 		Preload("Poll").
 		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
@@ -279,8 +279,8 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 		Preload("Attachments").
 		Preload("Attachments.File")
 
-	if cursor != nil {
-		query = query.Where("public_id < ?", *cursor)
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
@@ -299,7 +299,7 @@ func (r *PostRepository) GetTimeline(limit int, cursor *int64) (types.TimelineRe
 	}, nil
 }
 
-func (r *PostRepository) GetTimelineVibes(limit int, cursor *int64) (types.TimelineResult, error) {
+func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineResult, error) {
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
@@ -317,11 +317,11 @@ func (r *PostRepository) GetTimelineVibes(limit int, cursor *int64) (types.Timel
 		Preload("Attachments.File").
 		Where("published = ?", true).
 		Order("posts.public_id DESC").
-		Limit(limit).
+		Limit(filters.Limit).
 		Group("posts.id")
 
-	if cursor != nil {
-		query = query.Where("posts.public_id < ?", *cursor)
+	if filters.Cursor != nil {
+		query = query.Where("posts.public_id < ?", &filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {

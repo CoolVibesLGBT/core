@@ -470,78 +470,38 @@ func HandleGetByPublicID(s *services.PostService) fiber.Handler {
 
 func HandleTimeline(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// limit parametresi
-		limitStr := c.FormValue("limit")
-		limit := 5 // default
-		if limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
-			}
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
-
-		// cursor parametresi (int64 pointer)
-		var cursor *int64
-		cursorStr := c.FormValue("cursor")
-		if cursorStr != "" {
-			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = &cVal
-		}
-
-		// timeline verisini çek
-		result, err := s.GetTimeline(limit, cursor)
+		result, err := s.GetTimeline(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get timeline: " + err.Error(),
 			})
 		}
-
-		// json olarak döndür
 		return c.JSON(result)
 	}
 }
 
 func HandleTimelineVibes(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Limit parametresi
-		limit := 10 // default
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
-			}
+
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
-		// Cursor parametresi (int64 pointer)
-		var cursor *int64
-		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = &cVal
-		} else {
-			maxInt64 := int64(math.MaxInt64)
-			cursor = &maxInt64
-		}
-
-		// limit sabitlenmiş tekrar 10 yapılmış, bunu kaldırdım çünkü üstte limit ayarlanıyor
-		// limit = 10  // kaldırıldı
-
-		// Timeline verisini çek
-		result, err := s.GetTimelineVibes(limit, cursor)
+		result, err := s.GetTimelineVibes(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get timeline: " + err.Error(),
 			})
 		}
-
-		// JSON olarak dön
 		return c.JSON(result)
 	}
 }

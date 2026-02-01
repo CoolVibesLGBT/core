@@ -55,9 +55,9 @@ func (s *PostService) GetPostByPublicID(id int64) (*post.Post, error) {
 	return postData, nil
 }
 
-func (s *PostService) GetTimeline(limit int, cursor *int64) (types.TimelineResult, error) {
+func (s *PostService) GetTimeline(filters types.Filter) (types.TimelineResult, error) {
 	// Repo fonksiyonunu çağırıyoruz
-	posts, err := s.postRepo.GetTimeline(limit, cursor)
+	posts, err := s.postRepo.GetTimeline(filters)
 	if err != nil {
 		return types.TimelineResult{}, err
 	}
@@ -108,9 +108,9 @@ func (s *PostService) GetRecentHashtags(limit int) ([]types.HashtagStats, error)
 	return hashtags, nil
 }
 
-func (s *PostService) GetTimelineVibes(limit int, cursor *int64) (types.TimelineResult, error) {
+func (s *PostService) GetTimelineVibes(filters types.Filter) (types.TimelineResult, error) {
 	// Repo fonksiyonunu çağırıyoruz
-	posts, err := s.postRepo.GetTimelineVibes(limit, cursor)
+	posts, err := s.postRepo.GetTimelineVibes(filters)
 	if err != nil {
 		return types.TimelineResult{}, err
 	}
