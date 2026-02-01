@@ -340,7 +340,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 	}, nil
 }
 
-func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int) ([]post.Post, error) {
+func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([]post.Post, error) {
 	var posts []post.Post
 
 	query := r.db.
@@ -358,11 +358,10 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, cursor *int64, limit int
 		Preload("Attachments.File").
 		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, post.PostKindPost).
 		Order("public_id DESC").
-		Limit(limit)
+		Limit(filters.Limit)
 
-	// Eğer cursor verilmişse, sadece daha önceki postları al
-	if cursor != nil {
-		query = query.Where("public_id < ?", *cursor)
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {

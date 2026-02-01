@@ -523,25 +523,14 @@ func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
 			})
 		}
 
-		limit := 10 // default
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			}
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
-		cursor := int64(math.MaxInt64)
-		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-			val, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = val
-		}
-
-		posts, err := s.GetPostsByUserID(userId, limit, &cursor)
+		posts, err := s.GetPostsByUserID(userId, filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get posts: " + err.Error(),

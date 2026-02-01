@@ -64,12 +64,12 @@ func (s *PostService) GetTimeline(filters types.Filter) (types.TimelineResult, e
 	return posts, nil
 }
 
-func (s *PostService) GetPostsByUserID(id int64, limit int, cursor *int64) ([]post.Post, error) {
+func (s *PostService) GetPostsByUserID(id int64, filters types.Filter) ([]post.Post, error) {
 	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
 	if err != nil {
 		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
 	}
-	posts, err := s.postRepo.GetUserPosts(userId, cursor, limit)
+	posts, err := s.postRepo.GetUserPosts(userId, filters)
 	if err != nil {
 		return nil, fmt.Errorf("GetPostByID error: %w", err)
 	}

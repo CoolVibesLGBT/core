@@ -85,10 +85,6 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID
 	return isMatched, nil
 }
 
-// -----------------------------------------------
-// 🔥 2) Match = iki taraf da LIKE göndermişse
-// -----------------------------------------------
-
 func (m *MatchesRepository) IsMatched(ctx context.Context, fromUserId, toUserId uuid.UUID) (bool, error) {
 
 	a, err := m.engagementRepo.HasUserEngaged(ctx, fromUserId, toUserId, models.EngagementKindLikeGiven)
@@ -104,11 +100,6 @@ func (m *MatchesRepository) IsMatched(ctx context.Context, fromUserId, toUserId 
 	return a && b, nil
 }
 
-// -----------------------------------------------
-// 🔥 Engagement çiftlerini ekler
-// userID → targetID
-// -----------------------------------------------
-
 func (m *MatchesRepository) addEngagementPair(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error) {
 	status, err := m.engagementRepo.ToggleEngagement(ctx, engageeID, engagerID, kind, engagerID, "user")
 	if err != nil {
@@ -117,10 +108,6 @@ func (m *MatchesRepository) addEngagementPair(ctx context.Context, engagerID uui
 
 	return true, err
 }
-
-// -----------------------------------------------
-// 🔥 Engagement çiftlerini siler (toggle off)
-// -----------------------------------------------
 
 func (m *MatchesRepository) removeEngagementPair(
 	ctx context.Context,
@@ -145,10 +132,6 @@ func (m *MatchesRepository) removeEngagementPair(
 	return err
 }
 
-// -----------------------------------------------
-// 🔍 Son X saat içinde target’ı gördü mü?
-// -----------------------------------------------
-
 func (m *MatchesRepository) WasSeenRecently(
 	ctx context.Context,
 	userID, targetID uuid.UUID,
@@ -169,10 +152,6 @@ func (m *MatchesRepository) WasSeenRecently(
 
 	return count > 0, err
 }
-
-// -----------------------------------------------
-// 🔍 Beğendiği kullanıcılar (cursor destekli)
-// -----------------------------------------------
 
 func (m *MatchesRepository) GetLikesAfter(
 	ctx context.Context,
@@ -203,10 +182,6 @@ func (m *MatchesRepository) GetLikesAfter(
 
 	return users, err
 }
-
-// -----------------------------------------------
-// 🔍 MATCH olmuş kullanıcılar
-// -----------------------------------------------
 
 func (m *MatchesRepository) GetMatchesAfter(
 	ctx context.Context,
