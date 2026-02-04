@@ -65,3 +65,7 @@ func (r *NewsRepository) GetNews(filters types.Filter) ([]*post.Post, types.Curs
 
 	return nil, cursorInfo, nil
 }
+
+func (r *NewsRepository) IsNewsExists(filters types.Filter) (bool, error) {
+	return r.PostRepo().ExistsBySlug(filters)
+}

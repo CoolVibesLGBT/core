@@ -52,3 +52,7 @@ func (s *NewsService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 func (s *NewsService) GetNews(filters types.Filter) ([]*post.Post, types.Cursor, error) {
 	return s.newsRepo.GetNews(filters)
 }
+
+func (s *NewsService) IsNewsExists(filters types.Filter) (bool, error) {
+	return s.newsRepo.IsNewsExists(filters)
+}

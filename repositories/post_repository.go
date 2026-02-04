@@ -905,6 +905,17 @@ func (r *PostRepository) FindPostByPublicID(id int64) (*post.Post, error) {
 	return &p, nil
 }
 
+func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
+	var count int64
+	err := r.db.Model(&post.Post{}).
+		Where("slug = ?", filters.Search).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *PostRepository) Like(ctx context.Context, postId int64, authUser *models.User) error {
 	post, err := r.FindPostByPublicID(postId)
 	if err != nil {

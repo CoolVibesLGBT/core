@@ -208,7 +208,7 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 
 		articleContent, err := extractArticle(item.Link)
 		if err != nil {
-			helpers.Println("extractArticle", err.Error())
+			helpers.Error("extractArticle :%s", err.Error())
 			continue
 		}
 
@@ -224,13 +224,13 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 		// articleContent zaten ArticleResult
 		articleJSON, err := json.MarshalIndent(articleContent, "", "  ")
 		if err != nil {
-			fmt.Println("articleJSON", err.Error())
+			helpers.Error("articleJSON", err.Error())
 			continue
 		}
 
 		err = os.WriteFile(articleFileFolder+"article.json", articleJSON, 0644)
 		if err != nil {
-			fmt.Println("WriteFileArtJSON", err.Error())
+			helpers.Error("WriteFileArtJSON:%s", err.Error())
 			continue
 		}
 
@@ -241,7 +241,7 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 
 			parsed, err := url.Parse(imgURL)
 			if err != nil {
-				helpers.Println("invalid image url:", imgURL, err)
+				helpers.Error("invalid image url: %s %s", imgURL, err.Error())
 				continue
 			}
 			ext := filepath.Ext(parsed.Path)
@@ -254,7 +254,7 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 
 			err = downloadImage(imgURL, savePath)
 			if err != nil {
-				helpers.Println("failed to download:", imgURL, err.Error())
+				helpers.Error("failed to download: %s %s", imgURL, err.Error())
 				continue
 			}
 
@@ -270,14 +270,14 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 		helpers.Println("Kayit Ediliyor : %s", articleContent.Title)
 		post, err := CreateNew(articleContent, app)
 		if err != nil {
-			helpers.Println("CreateNew : %s", err.Error())
+			helpers.Error("CreateNew : %s", err.Error())
 			continue
 		}
 
 		telegramErr := app.Router.TelegramService.SendNews(post)
 		if telegramErr != nil {
 			fmt.Println("TELEGRAM ERROR", telegramErr)
-			helpers.Println("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
+			helpers.Error("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
 			continue
 		}
 

@@ -5,6 +5,7 @@ import (
 	"coolvibes/constants"
 	"coolvibes/helpers"
 	"coolvibes/models/post"
+	"coolvibes/types"
 	"coolvibes/utils"
 	"fmt"
 	"strings"
@@ -118,5 +119,18 @@ func CreateNew(article *ArticleResult, app *application.App) (*post.Post, error)
 
 	fmt.Println("ImageLen", len(article.LocalImages), "FILELEN", len(files))
 
-	return app.Router.NewsService.CreateNews(request, files, authUser)
+	filters := types.Filter{Search: &article.Slug}
+	isExists, err := app.Router.NewsService.IsNewsExists(filters)
+	if err != nil {
+		helpers.Println("CheckExistsError", err.Error())
+		return nil, err
+	}
+
+	if !isExists {
+		return app.Router.NewsService.CreateNews(request, files, authUser)
+	} else {
+		helpers.Println("AlreadyExists: %s", *filters.Search)
+	}
+
+	return nil, nil
 }
