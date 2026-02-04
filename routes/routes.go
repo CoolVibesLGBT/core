@@ -8,6 +8,8 @@ import (
 	"coolvibes/repositories"
 	"coolvibes/router"
 	"coolvibes/routes/handlers"
+	"coolvibes/services/bot/telegram"
+	telegramService "coolvibes/services/bot/telegram"
 	"coolvibes/services/socket"
 	services "coolvibes/services/user"
 	"fmt"
@@ -24,6 +26,8 @@ type Router struct {
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
 
+	TelegramService *telegramService.Service
+
 	NewsService         *services.NewsService
 	PostService         *services.PostService
 	UserService         *services.UserService
@@ -35,9 +39,15 @@ type Router struct {
 
 func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
+	tg, err := telegram.New()
+	if err != nil {
+		return nil
+	}
+
 	r := &Router{
-		action: router.NewActionRouter(db),
-		db:     db,
+		action:          router.NewActionRouter(db),
+		db:              db,
+		TelegramService: tg,
 		fiber: fiber.New(fiber.Config{
 			ReadBufferSize:  8192,
 			WriteBufferSize: 8192,
@@ -364,6 +374,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 
 	//WEBHOOK
+
+	r.fiber.All("/webhook/bot/telegram/", handlers.HandleTelegramUpdates(tg))
 
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))
 	r.fiber.Post("/webhook/gateway/stripe/snapshot", handlers.HandleStripeSnapshot(paymentService))

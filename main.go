@@ -101,6 +101,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = app.Router.TelegramService.RegisterWebhook()
+
+	if err == nil {
+		go app.Router.TelegramService.Start()
+	} else {
+		fmt.Println("TELEGRAM SERVISI BASLATILAMADI!")
+	}
+
+	app.Router.TelegramService.TestMessage()
+
 	fiberApp := app.Router.GetFiber()
 	vapidKeys, err := helpers.CreateVapidKeys(app.DB)
 	if err != nil {
@@ -118,21 +128,24 @@ func main() {
 
 	news.SubmitRSSFetchTasks(dispatcher, app)
 
-	ticker := time.NewTicker(5 * time.Hour)
+	ticker := time.NewTicker(5000 * time.Hour)
 
-	go func() {
-		defer ticker.Stop()
+	fmt.Println("TICKEr", ticker, ctx)
 
-		for {
-			select {
-			case <-ticker.C:
-				news.SubmitRSSFetchTasks(dispatcher, app)
+	/*
+		go func() {
+			defer ticker.Stop()
 
-			case <-ctx.Done():
-				return
+			for {
+				select {
+				case <-ticker.C:
+					news.SubmitRSSFetchTasks(dispatcher, app)
+
+				case <-ctx.Done():
+					return
+				}
 			}
-		}
-	}()
+		}()*/
 
 	fmt.Println("PublicKey:", vapidKeys.PublicKey)
 	fmt.Println("PrivateKey:", vapidKeys.PrivateKey)

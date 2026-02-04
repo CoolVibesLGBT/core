@@ -533,12 +533,6 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		}
 	}()
 
-	node, err := helpers.NewNode(1)
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to create snowflake node: %w", err)
-	}
-
 	var parentUUID *uuid.UUID
 	var parentPost *post.Post
 	if len(postForm.ParentId) > 0 {
@@ -577,7 +571,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	newPost := &post.Post{
 		ID:              uuid.New(),
 		ParentID:        parentUUID,
-		PublicID:        node.Generate().Int64(),
+		PublicID:        r.Node().Generate().Int64(),
 		AuthorID:        author.ID,
 		Published:       true,
 		Domain:          author.Domain,
@@ -815,7 +809,7 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 	}
 
 	if parentPost != nil {
-		err = r.userRepo.engagementRepo.AddEngagement(context.Background(), author.ID, parentPost.AuthorID, models.EngagementKindComment, parentPost.ID, models.EngagementContentableTypePost)
+		err := r.userRepo.engagementRepo.AddEngagement(context.Background(), author.ID, parentPost.AuthorID, models.EngagementKindComment, parentPost.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return nil, err
 		}

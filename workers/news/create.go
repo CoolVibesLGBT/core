@@ -3,6 +3,8 @@ package news
 import (
 	"coolvibes/application"
 	"coolvibes/constants"
+	"coolvibes/helpers"
+	"coolvibes/models/post"
 	"coolvibes/utils"
 	"fmt"
 	"strings"
@@ -88,26 +90,26 @@ func ArticleToNewsRequest(article *ArticleResult) (map[string][]string, error) {
 	}, nil
 }
 
-func CreateNew(article *ArticleResult, app *application.App) error {
+func CreateNew(article *ArticleResult, app *application.App) (*post.Post, error) {
 	request, err := ArticleToNewsRequest(article)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	authUser, err := app.Router.UserService.FetchUserProfileByUsername(constants.SystemUserNews)
 	if err != nil {
-		fmt.Println("PLACES:AuthUserNotFound", err)
-		return err
+		helpers.Error("PLACES:AuthUserNotFound", err)
+		return nil, err
 	}
 
 	for _, img := range article.LocalImages {
-		fmt.Println("Image", img)
+		helpers.Println("Image", img)
 	}
 
 	files, err := utils.FilesFromDisk(article.LocalImages)
 	if err != nil {
 		fmt.Println("FilesFromDisk", err)
-		return err
+		return nil, err
 	}
 
 	for _, file := range files {
@@ -115,7 +117,6 @@ func CreateNew(article *ArticleResult, app *application.App) error {
 	}
 
 	fmt.Println("ImageLen", len(article.LocalImages), "FILELEN", len(files))
-	app.Router.NewsService.CreateNews(request, files, authUser)
 
-	return nil
+	return app.Router.NewsService.CreateNews(request, files, authUser)
 }

@@ -203,12 +203,12 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 		articleFileFolder := "./workers/temp/" + articleSlug + "/"
 		err := MakeSureDirectoryPathExists(articleFileFolder)
 		if err != nil {
-			fmt.Println("MakeSureDirectoryPathExists", err)
+			helpers.Println("MakeSureDirectoryPathExists", err)
 		}
 
 		articleContent, err := extractArticle(item.Link)
 		if err != nil {
-			fmt.Println("extractArticle", err)
+			helpers.Println("extractArticle", err.Error())
 			continue
 		}
 
@@ -224,20 +224,24 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 		// articleContent zaten ArticleResult
 		articleJSON, err := json.MarshalIndent(articleContent, "", "  ")
 		if err != nil {
-			fmt.Println("articleJSON", err)
+			fmt.Println("articleJSON", err.Error())
 			continue
 		}
 
 		err = os.WriteFile(articleFileFolder+"article.json", articleJSON, 0644)
 		if err != nil {
-			fmt.Println("WriteFileArtJSON", err)
+			fmt.Println("WriteFileArtJSON", err.Error())
 			continue
 		}
 
 		for i, imgURL := range articleContent.Images {
+			if strings.HasPrefix(imgURL, "data:") {
+				continue
+			}
+
 			parsed, err := url.Parse(imgURL)
 			if err != nil {
-				log.Println("invalid image url:", imgURL, err)
+				helpers.Println("invalid image url:", imgURL, err)
 				continue
 			}
 			ext := filepath.Ext(parsed.Path)
@@ -250,7 +254,7 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 
 			err = downloadImage(imgURL, savePath)
 			if err != nil {
-				log.Println("failed to download:", imgURL, err)
+				helpers.Println("failed to download:", imgURL, err.Error())
 				continue
 			}
 
@@ -263,8 +267,19 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 
 		}
 
-		fmt.Println("Kayit Ediliyor", articleContent.Title)
-		CreateNew(articleContent, app)
+		helpers.Println("Kayit Ediliyor : %s", articleContent.Title)
+		post, err := CreateNew(articleContent, app)
+		if err != nil {
+			helpers.Println("CreateNew : %s", err.Error())
+			continue
+		}
+
+		telegramErr := app.Router.TelegramService.SendNews(post)
+		if telegramErr != nil {
+			fmt.Println("TELEGRAM ERROR", telegramErr)
+			helpers.Println("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
+			continue
+		}
 
 	}
 

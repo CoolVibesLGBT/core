@@ -406,7 +406,7 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
 	var messages []post.Post
 	err := r.db.
-		Where("contentable_type = ? AND contentable_id = ?", "chat", chatID).
+		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID).
 		Order("created_at ASC").
 		Preload("Author").
 		Preload("Parent").
