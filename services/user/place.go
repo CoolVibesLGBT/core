@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"coolvibes/models"
 	"coolvibes/models/post"
 	"coolvibes/types"
@@ -31,8 +32,8 @@ func (s *PlaceService) ServiceName() string {
 	return "PlaceService"
 }
 
-func (s *PlaceService) CreatePlace(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(request, files, author, string(post.PostKindPlace), nil)
+func (s *PlaceService) CreatePlace(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindPlace), nil)
 	if err != nil {
 		return nil, err
 	}

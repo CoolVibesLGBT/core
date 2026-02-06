@@ -92,8 +92,8 @@ func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
 	return s.chatRepo.GetChatsByUserID(userID)
 }
 
-func (s *ChatService) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.chatRepo.AddMessageToChat(request, files, author)
+func (s *ChatService) AddMessageToChat(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+	_post, err := s.chatRepo.AddMessageToChat(context, request, files, author)
 	if err != nil {
 		return nil, err
 	}

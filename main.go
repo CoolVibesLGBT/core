@@ -11,7 +11,7 @@ import (
 	"coolvibes/services/socket/managers"
 	"coolvibes/test"
 	"coolvibes/workers"
-	news "coolvibes/workers/news"
+	"coolvibes/workers/news"
 	"flag"
 	"fmt"
 	"log"
@@ -109,8 +109,6 @@ func main() {
 		fmt.Println("TELEGRAM SERVISI BASLATILAMADI!")
 	}
 
-	app.Router.TelegramService.TestMessage()
-
 	fiberApp := app.Router.GetFiber()
 	vapidKeys, err := helpers.CreateVapidKeys(app.DB)
 	if err != nil {
@@ -126,7 +124,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
 	dispatcher.Run()
 
-	news.SubmitRSSFetchTasks(dispatcher, app)
+	go news.SubmitRSSFetchTasks(dispatcher, app)
 
 	ticker := time.NewTicker(5000 * time.Hour)
 

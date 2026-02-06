@@ -31,8 +31,8 @@ func (s *PostService) ServiceName() string {
 	return "PostService"
 }
 
-func (s *PostService) CreatePost(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(request, files, author, string(post.PostKindPost), nil)
+func (s *PostService) CreatePost(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindPost), nil)
 	if err != nil {
 		return nil, err
 	}

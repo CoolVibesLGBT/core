@@ -1,6 +1,7 @@
 package places
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -445,7 +446,7 @@ func SeedPlaces(application *application.App) error {
 		}
 
 		authUser.DefaultLanguage = constants.CountryToLanguage[strings.ToUpper(p.CountryCode)]
-		placeService.CreatePlace(request, nil, authUser)
+		placeService.CreatePlace(context.Background(), request, nil, authUser)
 	}
 	return nil
 }

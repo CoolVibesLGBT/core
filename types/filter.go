@@ -3,13 +3,16 @@ package types
 import (
 	"context"
 	"coolvibes/models"
+	"coolvibes/models/post"
 
 	"github.com/google/uuid"
 )
 
 type Filter struct {
-	AuthUser  *models.User
-	Context   context.Context
+	AuthUser *models.User
+	Context  context.Context
+	PostKind post.PostKind
+
 	UserUUID  uuid.UUID
 	UserID    int64
 	Search    *string

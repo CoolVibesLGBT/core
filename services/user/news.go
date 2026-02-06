@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"coolvibes/models"
 	"coolvibes/models/post"
 	"coolvibes/types"
@@ -33,8 +34,8 @@ func (s *NewsService) ServiceName() string {
 	return "NewsService"
 }
 
-func (s *NewsService) CreateNews(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(request, files, author, string(post.PostKindNews), nil)
+func (s *NewsService) CreateNews(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindNews), nil)
 	if err != nil {
 		return nil, err
 	}

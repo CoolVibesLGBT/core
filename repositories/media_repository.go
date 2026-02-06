@@ -55,6 +55,8 @@ func (r *MediaRepository) GenerateStoragePath(userId uuid.UUID, ownerID uuid.UUI
 		}
 	case media.OwnerPost:
 		return fmt.Sprintf("%s/users/%s/posts/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
+	case media.OwnerNews:
+		return fmt.Sprintf("%s/users/%s/news/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
 	case media.OwnerChat:
 		return fmt.Sprintf("%s/users/%s/chat/%s/%s/%s%s", baseDir, userId.String(), date, ownerID.String(), id, ext)
 	default:

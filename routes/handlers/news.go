@@ -42,7 +42,7 @@ func HandleCreateNews(s *services.NewsService) fiber.Handler {
 			})
 		}
 
-		post, err := s.CreateNews(formParams, files, user)
+		post, err := s.CreateNews(c.Context(), formParams, files, user)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to create post: " + err.Error(),

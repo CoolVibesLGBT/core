@@ -223,7 +223,7 @@ func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) 
 	return message, nil
 }
 
-func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+func (r *ChatRepository) AddMessageToChat(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
 
 	type PostForm struct {
 		ChatID string `form:"chat_id"`
@@ -246,7 +246,7 @@ func (r *ChatRepository) AddMessageToChat(request map[string][]string, files []*
 		return nil, err
 	}
 
-	_createdPost, err := r.postRepo.CreateContentablePost(request, files, author, "chat", &chatObj.ID)
+	_createdPost, err := r.postRepo.CreateContentablePost(context, request, files, author, "chat", &chatObj.ID)
 	if err != nil {
 		return nil, err
 	}

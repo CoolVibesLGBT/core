@@ -38,3 +38,15 @@ func StringValue(s *string) string {
 	}
 	return *s
 }
+func (ls LocalizedString) DefaultValue() string {
+	if len(ls) == 0 {
+		return ""
+	}
+
+	for _, v := range ls {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}

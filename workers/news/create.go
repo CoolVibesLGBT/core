@@ -1,12 +1,14 @@
 package news
 
 import (
+	"context"
 	"coolvibes/application"
 	"coolvibes/constants"
 	"coolvibes/helpers"
 	"coolvibes/models/post"
 	"coolvibes/types"
 	"coolvibes/utils"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -25,7 +27,6 @@ func ArticleToLexical(article ArticleResult) utils.LexicalWrapper {
 		children = append(children, titleNode)
 	}
 
-	// 2️⃣ Metin → paragraflar
 	paragraphs := utils.SplitToParagraphs(article.Text)
 
 	for _, p := range paragraphs {
@@ -37,7 +38,6 @@ func ArticleToLexical(article ArticleResult) utils.LexicalWrapper {
 		children = append(children, paragraph)
 	}
 
-	// 3️⃣ Kaynak bilgisi (Source) büyük harfli başlık ve URL
 	sourceHeading := utils.MakeHeading(
 		[]utils.LexicalText{
 			utils.MakeLexicalText("SOURCE", true),
@@ -119,15 +119,21 @@ func CreateNew(article *ArticleResult, app *application.App) (*post.Post, error)
 
 	fmt.Println("ImageLen", len(article.LocalImages), "FILELEN", len(files))
 
-	filters := types.Filter{Search: &article.Slug}
+	filters := types.Filter{Search: &article.Slug, PostKind: post.PostKindNews}
 	isExists, err := app.Router.NewsService.IsNewsExists(filters)
 	if err != nil {
 		helpers.Println("CheckExistsError", err.Error())
 		return nil, err
 	}
 
+	articleJSON, err := json.Marshal(article)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal article to JSON: %w", err)
+	}
+
+	request["extras[source]"] = []string{string(articleJSON)}
 	if !isExists {
-		return app.Router.NewsService.CreateNews(request, files, authUser)
+		return app.Router.NewsService.CreateNews(context.Background(), request, files, authUser)
 	} else {
 		helpers.Println("AlreadyExists: %s", *filters.Search)
 	}

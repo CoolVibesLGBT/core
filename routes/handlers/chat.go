@@ -68,7 +68,7 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 		files := append([]*multipart.FileHeader{}, images...)
 		files = append(files, videos...)
 
-		_post, err := s.AddMessageToChat(formParams, files, user)
+		_post, err := s.AddMessageToChat(c.Context(), formParams, files, user)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Send message failed")
 		}

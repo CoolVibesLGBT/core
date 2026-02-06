@@ -20,6 +20,7 @@ const (
 	// Owner Type
 	OwnerUser OwnerType = "user"
 	OwnerPost OwnerType = "post"
+	OwnerNews OwnerType = "news"
 	OwnerBlog OwnerType = "blog"
 	OwnerChat OwnerType = "chat"
 	OwnerPage OwnerType = "page"

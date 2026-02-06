@@ -307,14 +307,14 @@ func (r *UserRepository) UpsertUserPreferenceEx(ctx context.Context, user models
 
 }
 
-func (s *UserRepository) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
+func (r *UserRepository) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
 	bitIndex, err := strconv.ParseInt(bitIndexStr, 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid bitIndex: %w", err)
 	}
 
 	var pref models.PreferencesData
-	if err := s.db.Model(&models.Preferences{}).Select("data").First(&pref).Error; err != nil {
+	if err := r.db.Model(&models.Preferences{}).Select("data").First(&pref).Error; err != nil {
 		return err
 	}
 
@@ -361,7 +361,7 @@ func (s *UserRepository) UpsertUserPreference(ctx context.Context, user models.U
 	}
 
 	user.PreferencesFlags = hex.EncodeToString(flags.Bytes())
-	updateError := s.db.Model(&user).Update("preferences_flags", user.PreferencesFlags).Error
+	updateError := r.db.Model(&user).Update("preferences_flags", user.PreferencesFlags).Error
 	if updateError != nil {
 		return updateError
 	}

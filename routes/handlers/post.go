@@ -46,7 +46,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 			})
 		}
 
-		post, err := s.CreatePost(formParams, files, user)
+		post, err := s.CreatePost(c.Context(), formParams, files, user)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to create post: " + err.Error(),

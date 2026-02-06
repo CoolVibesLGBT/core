@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -175,6 +176,42 @@ func extractImages(n *html.Node, images *[]string) {
 	}
 }
 
+func cleanContextText(contextText string) string {
+	toRemove := []string{
+		"Haberin Devamı",
+		"Detaylar burada.",
+		"Yazı Boyutu",
+		"Haber Videoları",
+		"Haberler",
+		"PAYLAŞ",
+		"ETİKETLER",
+		"ABONE OL",
+		"Abone ol",
+		"Sıradaki Haber",
+		"DETAYLI BİLGİ",
+		"STORY CONTINUES BELOW",
+		"İLGİLİ HABER",
+		"Spor Videoları",
+		"ATV CANLI YAYIN",
+		"Sonraki haber",
+		"Detaylar geliyor...",
+		"Share this article",
+		"REKLAM",
+		"SUBSCRIBE NOW",
+	}
+
+	for _, phrase := range toRemove {
+		pattern := `(?m)(\n*\s*` + regexp.QuoteMeta(phrase) + `\s*\n*)`
+		re := regexp.MustCompile(pattern)
+		contextText = re.ReplaceAllString(contextText, "")
+	}
+
+	slashPattern := regexp.MustCompile(`(?m)\s*\n+/+\n+\s*`)
+	contextText = slashPattern.ReplaceAllString(contextText, "")
+
+	return strings.TrimSpace(contextText)
+}
+
 func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 	fp := gofeed.NewParser()
 
@@ -211,6 +248,20 @@ func fetchAndProcessRSS(source RSSSource, app *application.App) error {
 			helpers.Error("extractArticle :%s", err.Error())
 			continue
 		}
+
+		if strings.Contains(articleContent.Text, "automated queries") ||
+			strings.Contains(articleContent.Text, "unusual traffic") ||
+			strings.Contains(articleContent.Text, "SQL command or malformed data.") ||
+			strings.Contains(articleContent.Text, "Skip to content") ||
+			strings.Contains(articleContent.Text, "SUBSCRIBE NOW") ||
+			strings.Contains(articleContent.Text, "Manage Products and Account Information") ||
+			strings.Contains(articleContent.Text, "We've detected unusual activity from your computer network") ||
+			strings.Contains(articleContent.Text, "Please enable JS and disable any ad blocker") {
+			helpers.Println("Otomatik sorgu engelleme mesajı bulundu, atlanıyor: ", item.Link)
+			continue
+		}
+
+		articleContent.Text = cleanContextText(articleContent.Text)
 
 		articleContent.SourceName = source.Name
 		articleContent.SourceURL = item.Link

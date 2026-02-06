@@ -42,7 +42,7 @@ func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
 			})
 		}
 
-		post, err := s.CreatePlace(formParams, files, user)
+		post, err := s.CreatePlace(c.Context(), formParams, files, user)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to create post: " + err.Error(),

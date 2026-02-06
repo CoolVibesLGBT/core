@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 
 	post_payloads "coolvibes/models/post/payloads"
 	"coolvibes/types"
@@ -460,6 +461,7 @@ func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.Hashta
 	cutoff := time.Now().Add(-48 * time.Hour)
 
 	err := r.db.Model(&models.Hashtag{}).
+		Preload("RelatedHashtags").
 		Select("tag, COUNT(*) as count").
 		Where("created_at >= ?", cutoff).
 		Group("tag").
@@ -470,7 +472,7 @@ func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.Hashta
 	return results, err
 }
 
-func (r *PostRepository) CreateContentablePost(request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	type PollForm struct {
 		ID            string   `form:"id"`
 		Question      string   `form:"question"`
@@ -604,7 +606,13 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		switch contentableType {
 		case "chat":
 			ownerType = media.OwnerChat
-			role = media.RoleChatMedia // burada istersen MIME type’a göre video da yapabiliriz
+			role = media.RoleChatMedia
+		case "post":
+			ownerType = media.OwnerPost
+			role = media.RolePost
+		case "news":
+			ownerType = media.OwnerNews
+			role = media.RolePost
 		default:
 			ownerType = media.OwnerPost
 			role = media.RolePost
@@ -772,16 +780,41 @@ func (r *PostRepository) CreateContentablePost(request map[string][]string, file
 		}
 	}
 
-	// Hashtags
+	var hashtagItems []*models.Hashtag
+
 	for _, hashtagStr := range postForm.Hashtags {
-		hashtagItem := models.Hashtag{
-			ID:  uuid.New(),
-			Tag: helpers.SlugifyStrict(hashtagStr),
+		hashtagStr = strings.TrimPrefix(hashtagStr, "#")
+		slug := helpers.GenerateSlug(helpers.SlugifyStrict(hashtagStr))
+		hashtagItem := &models.Hashtag{
+			ID:   uuid.New(),
+			Tag:  hashtagStr,
+			Slug: slug,
 		}
-		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+		hashtagItems = append(hashtagItems, hashtagItem)
 	}
 
-	//Extra
+	// RelatedHashtags olarak tüm diğer hashtagleri ekle (kendisi hariç)
+	for i := range hashtagItems {
+		for j := range hashtagItems {
+			if i != j {
+				hashtagItems[i].RelatedHashtags = append(hashtagItems[i].RelatedHashtags, hashtagItems[j])
+			}
+		}
+	}
+	newPost.Hashtags = hashtagItems
+
+	/*
+		for _, hashtagStr := range postForm.Hashtags {
+			hashtagStr := helpers.SlugifyStrict(hashtagStr)
+			hashtagItem := models.Hashtag{
+				ID:   uuid.New(),
+				Tag:  hashtagStr,
+				Slug: helpers.GenerateSlug(hashtagStr),
+			}
+			newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+		}
+	*/
+
 	if len(postForm.Extras) > 0 {
 		extras := make(map[string]any)
 
@@ -909,6 +942,7 @@ func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
 	var count int64
 	err := r.db.Model(&post.Post{}).
 		Where("slug = ?", filters.Search).
+		Where("post_kind = ?", filters.PostKind).
 		Count(&count).Error
 	if err != nil {
 		return false, err
