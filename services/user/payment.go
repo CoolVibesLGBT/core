@@ -1,9 +1,9 @@
 package services
 
 import (
-	"coolvibes/models"
+	"core/models"
 
-	"coolvibes/repositories"
+	"core/repositories"
 )
 
 type PaymentService struct {

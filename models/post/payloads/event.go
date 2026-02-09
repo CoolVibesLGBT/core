@@ -3,7 +3,7 @@ package payloads
 import (
 	"time"
 
-	"coolvibes/models/utils"
+	"core/models/utils"
 
 	"github.com/google/uuid"
 )

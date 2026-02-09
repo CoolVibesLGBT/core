@@ -2,12 +2,12 @@ package news
 
 import (
 	"context"
-	"coolvibes/application"
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/models/post"
-	"coolvibes/types"
-	"coolvibes/utils"
+	"core/application"
+	"core/constants"
+	"core/helpers"
+	"core/models/post"
+	"core/types"
+	"core/utils"
 	"encoding/json"
 	"fmt"
 	"strings"

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	telegramServices "coolvibes/services/bot/telegram"
+	telegramServices "core/services/bot/telegram"
 	"fmt"
 
 	tele "gopkg.in/telebot.v4"

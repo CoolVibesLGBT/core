@@ -1,8 +1,8 @@
 package listings
 
 import (
-	"coolvibes/models/media"
-	"coolvibes/models/utils"
+	"core/models/media"
+	"core/models/utils"
 	"time"
 
 	"github.com/google/uuid"

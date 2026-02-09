@@ -1,7 +1,7 @@
 package preferences
 
 import (
-	lgbt "coolvibes/seeders/preferences/lgbt"
+	lgbt "core/seeders/preferences/lgbt"
 
 	"gorm.io/gorm"
 )

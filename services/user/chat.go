@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"coolvibes/constants"
-	"coolvibes/models"
-	"coolvibes/models/chat"
-	"coolvibes/models/post"
-	"coolvibes/repositories"
-	"coolvibes/services/socket"
+	"core/constants"
+	"core/models"
+	"core/models/chat"
+	"core/models/post"
+	"core/repositories"
+	"core/services/socket"
 	"encoding/json"
 	"errors"
 	"log"

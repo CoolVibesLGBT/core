@@ -1,9 +1,9 @@
 package types
 
 import (
-	"coolvibes/models"
-	"coolvibes/models/media"
-	"coolvibes/models/post"
+	"core/models"
+	"core/models/media"
+	"core/models/post"
 	"strconv"
 )
 

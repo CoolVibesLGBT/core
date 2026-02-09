@@ -3,9 +3,9 @@ package test
 import (
 	"bytes"
 	"context"
-	"coolvibes/helpers"
-	"coolvibes/repositories"
-	services "coolvibes/services/user"
+	"core/helpers"
+	"core/repositories"
+	services "core/services/user"
 	"fmt"
 	"io"
 	"mime/multipart"

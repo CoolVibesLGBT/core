@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"coolvibes/models"
+	"core/models"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"

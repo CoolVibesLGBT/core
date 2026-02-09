@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	services "coolvibes/services/user"
+	services "core/services/user"
 
 	"github.com/gofiber/fiber/v2"
 )

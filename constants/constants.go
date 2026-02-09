@@ -25,7 +25,7 @@ const (
 	SystemUserSupport   = "support"
 	SystemUserBot       = "bot"
 	SystemUserNews      = "news"
-	SystemUserCoolVibes = "coolvibes"
+	SystemUserCore      = "core"
 	SystemUserExplorer  = "explorer"
 )
 
@@ -37,7 +37,7 @@ var DefaultSystemUsers = []string{
 	SystemUserBot,
 	SystemUserNews,
 	SystemUserExplorer,
-	SystemUserCoolVibes,
+	SystemUserCore,
 }
 
 const (

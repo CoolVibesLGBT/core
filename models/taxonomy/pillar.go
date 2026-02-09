@@ -1,7 +1,7 @@
 package taxonomy
 
 import (
-	"coolvibes/models/utils"
+	"core/models/utils"
 	"time"
 
 	"github.com/google/uuid"

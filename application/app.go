@@ -1,8 +1,8 @@
 package application
 
 import (
-	"coolvibes/helpers"
-	"coolvibes/routes"
+	"core/helpers"
+	"core/routes"
 
 	socketio "github.com/vchitai/go-socket.io/v4"
 	"gorm.io/gorm"

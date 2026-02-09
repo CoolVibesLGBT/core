@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/utils"
+	"core/helpers"
+	"core/models"
+	"core/models/utils"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"

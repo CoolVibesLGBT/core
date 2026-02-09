@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"coolvibes/models"
+	"core/models"
 	"time"
 
 	"github.com/google/uuid"

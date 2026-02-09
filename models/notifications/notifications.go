@@ -1,7 +1,7 @@
 package notifications
 
 import (
-	"coolvibes/models"
+	"core/models"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"

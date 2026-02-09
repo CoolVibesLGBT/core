@@ -1,7 +1,7 @@
 package media
 
 import (
-	"coolvibes/models/utils"
+	"core/models/utils"
 	"encoding/json"
 	"strconv"
 	"time"

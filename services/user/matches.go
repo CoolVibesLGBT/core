@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"coolvibes/models"
-	"coolvibes/repositories"
-	"coolvibes/types"
+	"core/models"
+	"core/repositories"
+	"core/types"
 	"time"
 
 	"github.com/google/uuid"

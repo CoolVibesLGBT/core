@@ -9,13 +9,13 @@ import (
 	"os"
 	"strings"
 
-	"coolvibes/application"
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/repositories"
-	services "coolvibes/services/user"
-	"coolvibes/utils"
-	globalUtils "coolvibes/utils"
+	"core/application"
+	"core/constants"
+	"core/helpers"
+	"core/repositories"
+	services "core/services/user"
+	"core/utils"
+	globalUtils "core/utils"
 )
 
 type Place struct {

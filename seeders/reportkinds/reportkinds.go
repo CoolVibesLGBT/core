@@ -1,8 +1,8 @@
 package reportkinds
 
 import (
-	report "coolvibes/models"
-	"coolvibes/models/utils"
+	report "core/models"
+	"core/models/utils"
 
 	"gorm.io/gorm"
 )

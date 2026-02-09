@@ -1,9 +1,9 @@
 package models
 
 import (
-	"coolvibes/constants"
-	"coolvibes/models/media"
-	"coolvibes/models/utils"
+	"core/constants"
+	"core/models/media"
+	"core/models/utils"
 	"errors"
 	"math/big"
 

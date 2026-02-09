@@ -3,7 +3,7 @@
 package managers
 
 import (
-	"coolvibes/repositories"
+	"core/repositories"
 
 	"gorm.io/gorm"
 )

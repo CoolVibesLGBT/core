@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/middleware"
-	services "coolvibes/services/user"
-	"coolvibes/types"
+	"core/constants"
+	"core/middleware"
+	services "core/services/user"
+	"core/types"
 	"strconv"
 	"time"
 

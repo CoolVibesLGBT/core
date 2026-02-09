@@ -1,8 +1,8 @@
 package EventKinds
 
 import (
-	payloads "coolvibes/models/post/payloads"
-	"coolvibes/models/utils"
+	payloads "core/models/post/payloads"
+	"core/models/utils"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

@@ -2,11 +2,11 @@ package test
 
 import (
 	"context"
-	"coolvibes/faker"
-	"coolvibes/helpers"
-	"coolvibes/repositories"
-	"coolvibes/services/socket"
-	"coolvibes/types"
+	"core/faker"
+	"core/helpers"
+	"core/repositories"
+	"core/services/socket"
+	"core/types"
 	"fmt"
 
 	"gorm.io/gorm"

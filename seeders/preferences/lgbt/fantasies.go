@@ -1,10 +1,10 @@
 package lgbt
 
 import (
-	payloads "coolvibes/constants"
-	helpers "coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/utils"
+	payloads "core/constants"
+	helpers "core/helpers"
+	"core/models"
+	"core/models/utils"
 	"encoding/json"
 	"fmt"
 	"os"

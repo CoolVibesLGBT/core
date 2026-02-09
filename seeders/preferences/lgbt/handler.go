@@ -1,7 +1,7 @@
 package lgbt
 
 import (
-	"coolvibes/models"
+	"core/models"
 	"errors"
 	"fmt"
 

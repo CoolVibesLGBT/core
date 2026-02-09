@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/models/jwtclaims"
+	"core/constants"
+	"core/models/jwtclaims"
 	"errors"
 	"fmt"
 	"os"

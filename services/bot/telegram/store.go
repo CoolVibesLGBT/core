@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"coolvibes/helpers"
+	"core/helpers"
 	"encoding/json"
 	"errors"
 	"os"

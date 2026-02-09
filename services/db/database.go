@@ -2,20 +2,20 @@ package db
 
 import (
 	"context"
-	"coolvibes/application"
-	"coolvibes/models"
-	"coolvibes/models/chat"
-	"coolvibes/models/media"
-	"coolvibes/models/notifications"
-	"coolvibes/models/payment"
-	"coolvibes/models/post"
-	"coolvibes/models/taxonomy"
-	"coolvibes/models/utils"
+	"core/application"
+	"core/models"
+	"core/models/chat"
+	"core/models/media"
+	"core/models/notifications"
+	"core/models/payment"
+	"core/models/post"
+	"core/models/taxonomy"
+	"core/models/utils"
 	"strings"
 
-	post_payloads "coolvibes/models/post/payloads"
+	post_payloads "core/models/post/payloads"
 
-	seed "coolvibes/seeders"
+	seed "core/seeders"
 
 	"fmt"
 	"log"

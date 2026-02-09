@@ -1,8 +1,8 @@
 package payloads
 
 import (
-	"coolvibes/models"
-	"coolvibes/models/utils"
+	"core/models"
+	"core/models/utils"
 	"time"
 
 	"github.com/google/uuid"

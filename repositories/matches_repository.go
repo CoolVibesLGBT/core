@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"coolvibes/models"
-	"coolvibes/types"
+	"core/models"
+	"core/types"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

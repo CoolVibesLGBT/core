@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"coolvibes/models"
-	"coolvibes/types"
+	"core/models"
+	"core/types"
 	"fmt"
 	"math"
 	"strconv"

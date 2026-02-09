@@ -1,10 +1,10 @@
 package socket
 
 import (
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	userModel "coolvibes/models"
-	"coolvibes/services/socket/managers"
+	"core/constants"
+	"core/helpers"
+	userModel "core/models"
+	"core/services/socket/managers"
 	"encoding/json"
 	"fmt"
 	"log"

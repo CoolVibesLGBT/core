@@ -2,15 +2,15 @@ package repositories
 
 import (
 	"context"
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/chat"
-	"coolvibes/models/notifications"
-	"coolvibes/models/utils"
+	"core/constants"
+	"core/helpers"
+	"core/models"
+	"core/models/chat"
+	"core/models/notifications"
+	"core/models/utils"
 	"fmt"
 
-	"coolvibes/models/post"
+	"core/models/post"
 	"log"
 	"mime/multipart"
 	"time"

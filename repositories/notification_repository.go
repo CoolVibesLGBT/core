@@ -1,15 +1,15 @@
 package repositories
 
 import (
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/notifications"
+	"core/helpers"
+	"core/models"
+	"core/models/notifications"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
-	push "coolvibes/push"
+	push "core/push"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

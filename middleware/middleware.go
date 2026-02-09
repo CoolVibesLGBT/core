@@ -3,9 +3,9 @@ package middleware
 import (
 	"strings"
 
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/repositories"
+	"core/helpers"
+	"core/models"
+	"core/repositories"
 
 	"github.com/gofiber/fiber/v2"
 )

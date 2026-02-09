@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/middleware"
-	"coolvibes/models"
-	services "coolvibes/services/user"
-	"coolvibes/utils"
+	"core/constants"
+	"core/middleware"
+	"core/models"
+	services "core/services/user"
+	"core/utils"
 	"fmt"
 	"strconv"
 	"time"

@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"coolvibes/middleware"
-	services "coolvibes/services/user"
-	"coolvibes/types"
+	"core/middleware"
+	services "core/services/user"
+	"core/types"
 	"mime/multipart"
 	"strconv"
 

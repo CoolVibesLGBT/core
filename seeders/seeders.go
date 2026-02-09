@@ -1,13 +1,13 @@
 package seeders
 
 import (
-	"coolvibes/application"
-	default_users "coolvibes/seeders/default_users"
-	eventkinds "coolvibes/seeders/eventkinds"
-	payments "coolvibes/seeders/payments"
-	places "coolvibes/seeders/places"
-	preferences "coolvibes/seeders/preferences"
-	reportkinds "coolvibes/seeders/reportkinds"
+	"core/application"
+	default_users "core/seeders/default_users"
+	eventkinds "core/seeders/eventkinds"
+	payments "core/seeders/payments"
+	places "core/seeders/places"
+	preferences "core/seeders/preferences"
+	reportkinds "core/seeders/reportkinds"
 )
 
 func Seed(app *application.App) error {

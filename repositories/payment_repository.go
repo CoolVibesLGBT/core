@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/payment"
+	"core/helpers"
+	"core/models"
+	"core/models/payment"
 
 	"gorm.io/gorm"
 )

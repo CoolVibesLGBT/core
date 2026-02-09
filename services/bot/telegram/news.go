@@ -1,10 +1,10 @@
 package telegram
 
 import (
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/models/post"
-	"coolvibes/utils"
+	"core/constants"
+	"core/helpers"
+	"core/models/post"
+	"core/utils"
 	"encoding/json"
 	"errors"
 	"fmt"

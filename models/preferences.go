@@ -1,7 +1,7 @@
 package models
 
 import (
-	"coolvibes/models/utils"
+	"core/models/utils"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"

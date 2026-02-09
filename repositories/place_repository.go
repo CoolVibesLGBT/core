@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/models/post"
-	"coolvibes/models/utils"
-	"coolvibes/types"
+	"core/constants"
+	"core/helpers"
+	"core/models/post"
+	"core/models/utils"
+	"core/types"
 	"fmt"
 	"strconv"
 

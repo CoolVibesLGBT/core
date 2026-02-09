@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
-	"coolvibes/models"
-	"coolvibes/models/post"
+	"core/models"
+	"core/models/post"
 
-	"coolvibes/repositories"
-	"coolvibes/types"
+	"core/repositories"
+	"core/types"
 	"fmt"
 	"mime/multipart"
 

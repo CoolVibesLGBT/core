@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"coolvibes/constants"
+	"core/constants"
 
 	"github.com/gofiber/fiber/v2"
 )

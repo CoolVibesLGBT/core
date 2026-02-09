@@ -1,7 +1,7 @@
 package router
 
 import (
-	"coolvibes/middleware"
+	"core/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"

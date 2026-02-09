@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"coolvibes/helpers"
-	"coolvibes/models/post"
-	"coolvibes/types"
+	"core/helpers"
+	"core/models/post"
+	"core/types"
 	"strconv"
 
 	"gorm.io/gorm"

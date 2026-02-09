@@ -1,8 +1,8 @@
 package services
 
 import (
-	"coolvibes/models/media"
-	"coolvibes/repositories"
+	"core/models/media"
+	"core/repositories"
 	"mime/multipart"
 
 	"github.com/google/uuid"

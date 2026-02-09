@@ -1,10 +1,10 @@
 package chat
 
 import (
-	"coolvibes/models"
-	"coolvibes/models/media"
-	"coolvibes/models/post"
-	"coolvibes/models/utils"
+	"core/models"
+	"core/models/media"
+	"core/models/post"
+	"core/models/utils"
 	"time"
 
 	"github.com/google/uuid"

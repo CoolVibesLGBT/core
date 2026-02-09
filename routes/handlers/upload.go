@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/models/media"
-	services "coolvibes/services/user"
+	"core/constants"
+	"core/models/media"
+	services "core/services/user"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"

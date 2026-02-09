@@ -2,8 +2,8 @@ package types
 
 import (
 	"context"
-	"coolvibes/models"
-	"coolvibes/models/post"
+	"core/models"
+	"core/models/post"
 
 	"github.com/google/uuid"
 )

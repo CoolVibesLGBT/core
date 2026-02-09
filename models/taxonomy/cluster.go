@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"coolvibes/models/utils"
+	"core/models/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

@@ -1,9 +1,9 @@
 package news
 
 import (
-	"coolvibes/application"
-	"coolvibes/helpers"
-	"coolvibes/workers"
+	"core/application"
+	"core/helpers"
+	"core/workers"
 	"encoding/json"
 	"fmt"
 	"io"

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"coolvibes/extensions"
+	"core/extensions"
 	"time"
 
 	"github.com/google/uuid"

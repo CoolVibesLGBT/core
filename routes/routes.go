@@ -2,16 +2,16 @@
 package routes
 
 import (
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/middleware"
-	"coolvibes/repositories"
-	"coolvibes/router"
-	"coolvibes/routes/handlers"
-	"coolvibes/services/bot/telegram"
-	telegramService "coolvibes/services/bot/telegram"
-	"coolvibes/services/socket"
-	services "coolvibes/services/user"
+	"core/constants"
+	"core/helpers"
+	"core/middleware"
+	"core/repositories"
+	"core/router"
+	"core/routes/handlers"
+	"core/services/bot/telegram"
+	telegramService "core/services/bot/telegram"
+	"core/services/socket"
+	services "core/services/user"
 	"fmt"
 	"strings"
 

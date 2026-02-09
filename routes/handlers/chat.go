@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/middleware"
-	services "coolvibes/services/user"
-	"coolvibes/utils"
+	"core/constants"
+	"core/middleware"
+	services "core/services/user"
+	"core/utils"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"

@@ -2,9 +2,9 @@ package repositories
 
 import (
 	"bytes"
-	"coolvibes/helpers"
-	"coolvibes/models/media"
-	"coolvibes/models/utils"
+	"core/helpers"
+	"core/models/media"
+	"core/models/utils"
 	"fmt"
 	"mime/multipart"
 	"os"

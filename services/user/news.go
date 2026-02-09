@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"coolvibes/models"
-	"coolvibes/models/post"
-	"coolvibes/types"
+	"core/models"
+	"core/models/post"
+	"core/types"
 	"fmt"
 
-	"coolvibes/repositories"
+	"core/repositories"
 	"mime/multipart"
 
 	"github.com/google/uuid"

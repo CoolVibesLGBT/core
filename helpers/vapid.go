@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"coolvibes/models"
-	"coolvibes/push"
+	"core/models"
+	"core/push"
 
 	"gorm.io/gorm"
 )

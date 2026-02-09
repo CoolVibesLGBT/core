@@ -36,7 +36,7 @@ func ReverseGeocode(lat, lon float64) (Address, error) {
 		return address, err
 	}
 
-	req.Header.Set("User-Agent", "CoolVibes/1.0 (info@coolvibes.lgbt)")
+	req.Header.Set("User-Agent", "core/1.0 (info@coolvibes.lgbt)")
 
 	resp, err := client.Do(req)
 	if err != nil {

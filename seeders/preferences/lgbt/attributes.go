@@ -1,11 +1,11 @@
 package lgbt
 
 import (
-	helpers "coolvibes/helpers"
-	utils "coolvibes/models/utils"
+	helpers "core/helpers"
+	utils "core/models/utils"
 
-	payloads "coolvibes/constants"
-	"coolvibes/models"
+	payloads "core/constants"
+	"core/models"
 	"fmt"
 
 	"github.com/google/uuid"

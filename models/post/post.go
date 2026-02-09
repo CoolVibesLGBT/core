@@ -1,16 +1,16 @@
 package post
 
 import (
-	"coolvibes/models"
-	"coolvibes/models/media"
-	"coolvibes/models/taxonomy"
-	"coolvibes/models/utils"
+	"core/models"
+	"core/models/media"
+	"core/models/taxonomy"
+	"core/models/utils"
 
 	"encoding/json"
 	"strconv"
 	"time"
 
-	"coolvibes/models/post/payloads"
+	"core/models/post/payloads"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"

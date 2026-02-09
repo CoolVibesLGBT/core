@@ -1,7 +1,7 @@
 package payments
 
 import (
-	payment "coolvibes/models/payment"
+	payment "core/models/payment"
 	"encoding/json"
 	"errors"
 	"fmt"

@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"coolvibes/constants"
-	"coolvibes/helpers"
-	"coolvibes/middleware"
-	"coolvibes/models"
-	"coolvibes/models/payment"
-	eventkinds "coolvibes/models/post/payloads"
-	services "coolvibes/services/user"
+	"core/constants"
+	"core/helpers"
+	"core/middleware"
+	"core/models"
+	"core/models/payment"
+	eventkinds "core/models/post/payloads"
+	services "core/services/user"
 	"encoding/json"
 	"errors"
 	"fmt"

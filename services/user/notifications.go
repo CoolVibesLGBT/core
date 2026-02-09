@@ -1,8 +1,8 @@
 package services
 
 import (
-	"coolvibes/models/notifications"
-	"coolvibes/repositories"
+	"core/models/notifications"
+	"core/repositories"
 
 	"github.com/google/uuid"
 )

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"coolvibes/middleware"
-	services "coolvibes/services/user"
+	"core/middleware"
+	services "core/services/user"
 	"fmt"
 	"math"
 	"mime/multipart"

@@ -2,10 +2,10 @@ package repositories
 
 import (
 	"context"
-	"coolvibes/helpers"
-	"coolvibes/models"
-	"coolvibes/models/notifications"
-	"coolvibes/models/utils"
+	"core/helpers"
+	"core/models"
+	"core/models/notifications"
+	"core/models/utils"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
