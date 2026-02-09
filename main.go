@@ -11,6 +11,7 @@ import (
 	"core/services/socket/managers"
 	"core/test"
 	"core/workers"
+	"core/workers/news"
 	"flag"
 	"fmt"
 	"log"
@@ -129,7 +130,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
 	dispatcher.Run()
 
-	//go news.SubmitRSSFetchTasks(dispatcher, app)
+	go news.FetchAllFeedsSequentiallyAndProcess(dispatcher, app)
 
 	ticker := time.NewTicker(5000 * time.Hour)
 

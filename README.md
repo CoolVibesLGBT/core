@@ -174,3 +174,8 @@ server {
 }
 
 sudo systemctl reload nginx
+
+
+Test:
+
+go test ./...

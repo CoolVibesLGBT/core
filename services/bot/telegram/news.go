@@ -145,8 +145,8 @@ func (s *Service) SendNews(post *post.Post) error {
 
 	title := post.Title.DefaultValue()
 	content := post.Summary.DefaultValue()
-	if len([]rune(content)) > 1024 {
-		content = string([]rune(content)[:1024]) + "..."
+	if len([]rune(content)) > 512 {
+		content = string([]rune(content)[:512]) + "..."
 	}
 	sourceURL := extras.Source.URL
 

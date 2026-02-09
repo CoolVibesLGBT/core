@@ -11,9 +11,15 @@ import (
 )
 
 type Cluster struct {
-	ID           uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
-	PillarID     uuid.UUID              `gorm:"type:uuid;not null;index" json:"pillar_id"`
-	Pillar       Pillar                 `gorm:"-" json:"-"`
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	PillarID uuid.UUID `gorm:"type:uuid;not null;index" json:"pillar_id"`
+	Pillar   Pillar    `gorm:"-" json:"-"`
+
+	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"` // subcluster için parent
+	Parent   *Cluster   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+
+	Children []Cluster `gorm:"foreignKey:ParentID" json:"children,omitempty"` // alt clusterlar
+
 	Name         utils.LocalizedString  `gorm:"type:jsonb;not null" json:"name"`
 	Slug         string                 `gorm:"size:150;not null;index" json:"slug"`
 	SearchVector string                 `gorm:"type:text;index" json:"-"`
