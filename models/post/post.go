@@ -3,6 +3,7 @@ package post
 import (
 	"coolvibes/models"
 	"coolvibes/models/media"
+	"coolvibes/models/taxonomy"
 	"coolvibes/models/utils"
 
 	"encoding/json"
@@ -59,13 +60,9 @@ type Post struct {
 
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
 
-	// 🔸 PostType alanının yeni ismi
 	PostKind PostKind          `gorm:"size:50;not null;index;default:'post'" json:"post_kind"`
 	Domain   models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes.lgbt'" json:"domain"`
 
-	//PostKind `gorm:"size:50;not null;index;default:'post'" json:"post_kind"`
-
-	// 🔹 İçerik kategorisi
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`
 
 	ContentableID   *uuid.UUID `gorm:"type:uuid;index" json:"contentable_id,omitempty"`
@@ -88,9 +85,10 @@ type Post struct {
 	Extras datatypes.JSON `gorm:"type:jsonb" json:"extras,omitempty"`
 	Author models.User    `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
 
-	Attachments []*media.Media    `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
-	Mentions    []*models.Mention `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
-	Hashtags    []*models.Hashtag `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
+	Clusters    []taxonomy.Cluster `gorm:"many2many:post_clusters;" json:"clusters,omitempty"`
+	Attachments []*media.Media     `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
+	Mentions    []*models.Mention  `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`
+	Hashtags    []*models.Hashtag  `gorm:"polymorphic:Taggable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"hashtags,omitempty"`
 
 	Poll  []*payloads.Poll `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"poll,omitempty"`
 	Event *payloads.Event  `gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE" json:"event,omitempty"`

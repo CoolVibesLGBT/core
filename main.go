@@ -11,6 +11,7 @@ import (
 	"coolvibes/services/socket/managers"
 	"coolvibes/test"
 	"coolvibes/workers"
+	"coolvibes/workers/news"
 	"flag"
 	"fmt"
 	"log"
@@ -123,7 +124,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
 	dispatcher.Run()
 
-	//go news.SubmitRSSFetchTasks(dispatcher, app)
+	go news.SubmitRSSFetchTasks(dispatcher, app)
 
 	ticker := time.NewTicker(5000 * time.Hour)
 
