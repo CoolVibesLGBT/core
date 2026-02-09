@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"coolvibes/application"
 	"coolvibes/models"
 	"coolvibes/models/chat"
@@ -8,7 +9,9 @@ import (
 	"coolvibes/models/notifications"
 	"coolvibes/models/payment"
 	"coolvibes/models/post"
+	"coolvibes/models/taxonomy"
 	"coolvibes/models/utils"
+	"strings"
 
 	post_payloads "coolvibes/models/post/payloads"
 
@@ -66,13 +69,111 @@ func InitDB() error {
 	return nil
 }
 
-func Migrate(db *gorm.DB) error {
+func EnableExtension(db *gorm.DB, name string) error {
+	return db.Exec(fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS "%s";`, name)).Error
+}
+
+func EnableUUID(db *gorm.DB) error {
+	return EnableExtension(db, "uuid-ossp")
+}
+
+func EnablePostGIS(db *gorm.DB) error {
+	return EnableExtension(db, "postgis")
+}
+
+func EnableTrigram(db *gorm.DB) error {
+	return EnableExtension(db, "pg_trgm")
+}
+
+func EnableExtensions(ctx context.Context, db *gorm.DB, extensions map[string]string) error {
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+
+		for name, schema := range extensions {
+
+			query := fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS "%s"`, name)
+
+			if schema != "" {
+				query += fmt.Sprintf(` WITH SCHEMA "%s"`, schema)
+			}
+
+			query += ";"
+
+			if err := tx.Exec(query).Error; err != nil {
+				return fmt.Errorf("failed to enable extension %s: %w", name, err)
+			}
+		}
+
+		return nil
+	})
+}
+
+type IndexDefinition struct {
+	Name      string
+	Table     string
+	Using     string // gin, btree vs
+	Columns   []string
+	Condition string // optional (partial index)
+}
+
+func MigrateIndexes(app *application.App) error {
+
+	indexes := []IndexDefinition{
+		{
+			Name:    "idx_clusters_search_vector_trgm",
+			Table:   "clusters",
+			Using:   "gin",
+			Columns: []string{"search_vector gin_trgm_ops"},
+		},
+		{
+			Name:    "idx_clusters_slug",
+			Table:   "clusters",
+			Using:   "btree",
+			Columns: []string{"slug"},
+		},
+	}
+
+	for _, idx := range indexes {
+
+		using := ""
+		if idx.Using != "" {
+			using = "USING " + idx.Using
+		}
+
+		columns := strings.Join(idx.Columns, ", ")
+
+		query := fmt.Sprintf(`
+			CREATE INDEX IF NOT EXISTS %s
+			ON %s
+			%s (%s);
+		`, idx.Name, idx.Table, using, columns)
+
+		if err := app.DB.Exec(query).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Migrate(app *application.App) error {
 	fmt.Println("Migration:Begin")
 	//db.Logger = db.Logger.LogMode(logger.Silent)
-	db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`)
-	db.Exec(`CREATE EXTENSION IF NOT EXISTS postgis;`)
 
-	err := db.AutoMigrate(
+	extensions := map[string]string{
+		"uuid-ossp": "public",
+		"postgis":   "public",
+		"pg_trgm":   "public",
+	}
+
+	if err := EnableExtensions(context.Background(), app.DB, extensions); err != nil {
+		return err
+	}
+
+	err := app.DB.AutoMigrate(
+
+		&taxonomy.Pillar{},
+		&taxonomy.Cluster{},
+		&taxonomy.Synonym{},
 
 		&models.VapidKey{},
 		&payment.PaymentMethod{},
@@ -109,24 +210,6 @@ func Migrate(db *gorm.DB) error {
 
 		&chat.ChatParticipant{},
 	)
-
-	/*
-		db.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS (
-				SELECT 1
-				FROM pg_constraint
-				WHERE conname = 'fk_chats_pinned_msg'
-			) THEN
-				ALTER TABLE chats
-				ADD CONSTRAINT fk_chats_pinned_msg
-				FOREIGN KEY (pinned_msg_id) REFERENCES messages(id);
-			END IF;
-		END
-		$$;
-		`)
-	*/
 
 	return err
 }

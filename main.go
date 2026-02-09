@@ -56,10 +56,16 @@ func NewApp() (*app.App, error) {
 
 		if *migrateFlag {
 			fmt.Println("Migration:BEGIN")
-			err = db.Migrate(instance.DB)
+			err = db.Migrate(instance)
 			if err != nil {
 				fmt.Println(err)
 			}
+
+			err = db.MigrateIndexes(instance)
+			if err != nil {
+				fmt.Println(err)
+			}
+
 			fmt.Println("Migration:END")
 		}
 

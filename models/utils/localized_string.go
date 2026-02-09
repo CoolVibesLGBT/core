@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type LocalizedString map[string]string // key: dil kodu (en, tr, es), value: içerik
@@ -49,4 +50,19 @@ func (ls LocalizedString) DefaultValue() string {
 		}
 	}
 	return ""
+}
+
+func (ls LocalizedString) ToString() string {
+	if len(ls) == 0 {
+		return ""
+	}
+
+	var result string
+	for _, v := range ls {
+		if v != "" {
+			result += v + " "
+		}
+	}
+
+	return strings.ToLower(strings.TrimSpace(result))
 }
