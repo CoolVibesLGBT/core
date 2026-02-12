@@ -107,10 +107,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = app.Router.TelegramService.RegisterWebhook()
-
-	if err == nil {
-		go app.Router.TelegramService.Start()
+	if app.Router.TelegramService != nil {
+		err = app.Router.TelegramService.RegisterWebhook()
+		if err == nil {
+			go app.Router.TelegramService.Start()
+		} else {
+			fmt.Println("TELEGRAM SERVISI BASLATILAMADI!")
+		}
 	} else {
 		fmt.Println("TELEGRAM SERVISI BASLATILAMADI!")
 	}

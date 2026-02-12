@@ -41,7 +41,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	tg, err := telegram.New()
 	if err != nil {
-		return nil
+		helpers.Error("Telegram disabled: %v", err)
+		tg = nil
 	}
 
 	r := &Router{

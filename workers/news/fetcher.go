@@ -362,7 +362,7 @@ func fetchAndSaveRSS(source RSSSource) error {
 	MakeSureDirectoryPathExists(FEED_DIRECTORY)
 	MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
 
-	fileName := fmt.Sprintf("%s%s.json", FEED_DIRECTORY, source.Name)
+	fileName := fmt.Sprintf("%s%s_%s.json", FEED_DIRECTORY, source.ID, source.Name)
 	// Dosya varsa tekrar indirme
 	if _, err := os.Stat(fileName); err == nil {
 		helpers.Println("FILE EXISTS %s", fileName)
@@ -609,6 +609,9 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *ap
 
 	for _, source := range sources {
 		s := source
+
+		fullId := fmt.Sprintf("%s%s%s", s.ID, s.Name, s.URL)
+		s.ID = helpers.MD5Hash(fullId)
 		dispatcher.Submit(func() {
 			defer wg.Done()
 			fmt.Printf("Fetching feed: %s\n", s.Name)
@@ -619,8 +622,6 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *ap
 		})
 		feedFiles = append(feedFiles, fmt.Sprintf("%s%s.json", FEED_DIRECTORY, s.Name))
 	}
-
-	// Tüm indirme görevleri bitene kadar bekle
 	wg.Wait()
 
 	fmt.Println("FEEDS COUNT", len(feedFiles))

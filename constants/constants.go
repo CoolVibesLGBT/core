@@ -17,7 +17,7 @@ type DrinkingHabit string
 type TravelPurpose string
 
 const TELEGRAM_NEWS_GROUP_ID = -1003818830543
-const TELEGRAM_WEBHOOK_PUBLIC_URL = "https://7133-46-197-60-90.ngrok-free.app/webhook/bot/telegram/"
+const TELEGRAM_WEBHOOK_PUBLIC_URL = "https://6fbd-46-197-60-41.ngrok-free.app/webhook/bot/telegram/"
 const (
 	SystemUserSystem    = "system"
 	SystemUserAdmin     = "admin"

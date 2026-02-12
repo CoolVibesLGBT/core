@@ -23,6 +23,7 @@ type Service struct {
 }
 
 func New() (*Service, error) {
+
 	pref := telegramPackage.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
 		Poller: &telegramPackage.LongPoller{Timeout: 10 * time.Second},
@@ -30,14 +31,15 @@ func New() (*Service, error) {
 
 	bot, err := telegramPackage.NewBot(pref)
 	if err != nil {
+		helpers.Error("Error:telegramPackage: %s", err.Error())
 		return nil, err
 	}
 
 	topicStore, err := NewTopicStore("topics.json")
 	if err != nil {
+		helpers.Error("Error:NewTopicStore : %s", err.Error())
 		return nil, err
 	}
-
 	s := &Service{
 		Bot:        bot,
 		TopicStore: topicStore,
@@ -49,10 +51,13 @@ func New() (*Service, error) {
 }
 
 func (s *Service) RegisterWebhook() error {
+	if s.Bot == nil {
+		return errors.New("Error:RegisterWebhook:Telegram service cannot be started")
+	}
 	if err := s.Bot.RemoveWebhook(); err != nil {
+		helpers.Error("Error:RemoveWebhook : %s", err.Error())
 		return err
 	}
-
 	err := s.Bot.SetWebhook(&telegramPackage.Webhook{
 		Endpoint: &telegramPackage.WebhookEndpoint{
 			PublicURL: constants.TELEGRAM_WEBHOOK_PUBLIC_URL,
@@ -240,6 +245,11 @@ _, err := s.Bot.Send(chat, photo)
 */
 
 func (s *Service) Start() {
-	log.Println("Telegram service started")
-	s.Bot.Start()
+	if s.Bot != nil {
+		s.Bot.Start()
+		helpers.Info("Start:Telegram service started.")
+	} else {
+		helpers.Info("Start:Telegram service cannot be started.")
+
+	}
 }

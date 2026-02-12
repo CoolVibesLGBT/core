@@ -803,17 +803,15 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	}
 	newPost.Hashtags = hashtagItems
 
-	/*
-		for _, hashtagStr := range postForm.Hashtags {
-			hashtagStr := helpers.SlugifyStrict(hashtagStr)
-			hashtagItem := models.Hashtag{
-				ID:   uuid.New(),
-				Tag:  hashtagStr,
-				Slug: helpers.GenerateSlug(hashtagStr),
-			}
-			newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+	for _, hashtagStr := range postForm.Hashtags {
+		hashtagStr := helpers.SlugifyStrict(hashtagStr)
+		hashtagItem := models.Hashtag{
+			ID:   uuid.New(),
+			Tag:  hashtagStr,
+			Slug: helpers.GenerateSlug(hashtagStr),
 		}
-	*/
+		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
+	}
 
 	if len(postForm.Extras) > 0 {
 		extras := make(map[string]any)

@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -63,7 +64,8 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		return nil, "", err
 	}
 
-	captchaValid, captchaErr := s.userRepo.VerifyCaptcha("6LecaQIsAAAAAE2vz3YKi5jFOWIOzXEpMX4675ox", formData.Captcha)
+	captchaSecret := os.Getenv("CAPTCHA_SECRET_KEY")
+	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, formData.Captcha)
 	if captchaErr != nil {
 		return nil, "", errors.New("invalid  captcha")
 	}

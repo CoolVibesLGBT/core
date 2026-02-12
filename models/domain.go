@@ -14,7 +14,6 @@ const (
 	AllDomains    DomainKind = "all"
 )
 
-// Tüm domain adlarının canonical hali küçük harf, api. prefix’li ve www. prefix’siz haliyle burada tutulur
 var domainToKind = map[string]DomainKind{
 	// CoolVibes
 	"coolvibes.lgbt":     CoolVibes,
