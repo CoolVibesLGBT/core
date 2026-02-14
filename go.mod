@@ -17,7 +17,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
-	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -61,6 +60,7 @@ require (
 
 require (
 	codeberg.org/readeck/go-readability/v2 v2.1.0
+	github.com/andybalholm/brotli v1.2.0
 	github.com/boxes-ltd/imaging v1.7.2
 	github.com/gofiber/fiber/v2 v2.52.11
 	github.com/golang-jwt/jwt/v5 v5.3.0
