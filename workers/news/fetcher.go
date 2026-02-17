@@ -82,7 +82,7 @@ func extractArticle(feedURI string) (*ArticleResult, error) {
 	}
 	applyBrowserHeaders(req)
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; RSSReader/1.0)")
+	req.Header.Set("User-Agent", randomUserAgent())
 
 	resp, err := client.Do(req)
 	if err != nil {
