@@ -70,16 +70,11 @@ type Post struct {
 
 	AuthorID uuid.UUID `gorm:"type:uuid;index;not null" json:"author_id"`
 
-	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
-	Slug        *string                `gorm:"size:255;index" json:"slug,omitempty"`
-	Content     *utils.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
-	Summary     *utils.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
-	Audience    *string                `gorm:"size:50;index;default:'public'" json:"audience,omitempty"`
-	Published   bool                   `gorm:"default:false;index" json:"published"`
-	PublishedAt *time.Time             `gorm:"index" json:"published_at,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
+	Title    *utils.LocalizedString `gorm:"type:jsonb" json:"title,omitempty"`
+	Slug     *string                `gorm:"size:255;index" json:"slug,omitempty"`
+	Content  *utils.LocalizedString `gorm:"type:jsonb" json:"content,omitempty"`
+	Summary  *utils.LocalizedString `gorm:"type:jsonb" json:"summary,omitempty"`
+	Audience *string                `gorm:"size:50;index;default:'public'" json:"audience,omitempty"`
 
 	//Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
 	Extras datatypes.JSON `gorm:"type:jsonb" json:"extras,omitempty"`
@@ -98,6 +93,13 @@ type Post struct {
 
 	//	Engagements *models.Engagement `gorm:"polymorphic:Contentable;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 	Engagements *models.Engagement `gorm:"polymorphic:Contentable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
+
+	Processed   bool           `gorm:"default:false;index" json:"processed"`
+	Published   bool           `gorm:"default:false;index" json:"published"`
+	PublishedAt *time.Time     `gorm:"index" json:"published_at,omitempty"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 func (Post) TableName() string {

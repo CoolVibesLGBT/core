@@ -358,7 +358,7 @@ func (h headerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 	return h.rt.RoundTrip(req)
 }
 
-func fetchAndSaveRSS(source RSSSource) error {
+func fetchAndSaveRSS(source RSSSource) (string, error) {
 	MakeSureDirectoryPathExists(FEED_DIRECTORY)
 	MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
 
@@ -366,9 +366,9 @@ func fetchAndSaveRSS(source RSSSource) error {
 	// Dosya varsa tekrar indirme
 	if _, err := os.Stat(fileName); err == nil {
 		helpers.Println("FILE EXISTS %s", fileName)
-		return nil
+		return fileName, nil
 	} else if !os.IsNotExist(err) {
-		return err
+		return "", err
 	}
 	fp := gofeed.NewParser()
 
@@ -379,20 +379,20 @@ func fetchAndSaveRSS(source RSSSource) error {
 
 	feed, err := fp.ParseURL(source.URL)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	data, err := json.MarshalIndent(feed, "", "  ")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = os.WriteFile(fileName, data, 0644)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return fileName, nil
 }
 
 func extractSubAndDomainWithoutTLD(rawurl string) (string, error) {
@@ -416,11 +416,11 @@ func extractSubAndDomainWithoutTLD(rawurl string) (string, error) {
 
 func fetchAllFeeds(sources []RSSSource) error {
 	for _, src := range sources {
-		err := fetchAndSaveRSS(src)
+		filePath, err := fetchAndSaveRSS(src)
 		if err != nil {
 			log.Printf("Failed to fetch feed %s: %v", src.Name, err)
 		} else {
-			log.Printf("Feed %s saved successfully", src.Name)
+			log.Printf("Feed %s saved successfully", filePath)
 		}
 	}
 	return nil
@@ -548,6 +548,8 @@ func processFeedsRoundRobin(feedFiles []string, app *application.App) error {
 	maxLen := 0
 
 	for _, file := range feedFiles {
+
+		fmt.Println("ERSAN", file)
 		data, err := os.ReadFile(file)
 		if err != nil {
 			fmt.Printf("Error reading feed file %s: %v\n", file, err)
@@ -606,6 +608,7 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *ap
 	// 1. Tüm feedleri dispatcher ile indir (paralel olabilir)
 	var wg sync.WaitGroup
 	wg.Add(len(sources))
+	var mu sync.Mutex
 
 	for _, source := range sources {
 		s := source
@@ -615,12 +618,18 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *ap
 		dispatcher.Submit(func() {
 			defer wg.Done()
 			fmt.Printf("Fetching feed: %s\n", s.Name)
-			err := fetchAndSaveRSS(s)
+			filepath, err := fetchAndSaveRSS(s)
+			mu.Lock()
+
 			if err != nil {
 				fmt.Printf("Error fetching feed %s: %v\n", s.Name, err)
+			} else {
+				feedFiles = append(feedFiles, filepath)
 			}
+			mu.Unlock()
+
 		})
-		feedFiles = append(feedFiles, fmt.Sprintf("%s%s.json", FEED_DIRECTORY, s.Name))
+
 	}
 	wg.Wait()
 
