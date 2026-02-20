@@ -490,6 +490,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		Title    string     `form:"title"`
 		Slug     string     `form:"slug"`
 		Summary  string     `form:"summary"`
+		Language string     `form:"language"`
 		Content  string     `form:"content"`
 		Audience string     `form:"audience"`
 		Hashtags []string   `form:"hashtags[]"`
@@ -549,7 +550,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		}
 	}
 
-	defaultLanguage := author.DefaultLanguage
+	defaultLanguage := helpers.DefaultIfEmpty(postForm.Language, author.DefaultLanguage)
 
 	var postKindType post.PostKind
 	switch contentableType {
@@ -785,11 +786,16 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 
 	for _, hashtagStr := range postForm.Hashtags {
 		hashtagStr = strings.TrimPrefix(hashtagStr, "#")
+		if len(hashtagStr) == 0 {
+			continue
+		}
+
 		slug := helpers.GenerateSlug(helpers.SlugifyStrict(hashtagStr))
 		hashtagItem := &models.Hashtag{
-			ID:   uuid.New(),
-			Tag:  hashtagStr,
-			Slug: slug,
+			Domain: author.Domain,
+			ID:     uuid.New(),
+			Tag:    hashtagStr,
+			Slug:   slug,
 		}
 		hashtagItems = append(hashtagItems, hashtagItem)
 	}
@@ -807,9 +813,10 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	for _, hashtagStr := range postForm.Hashtags {
 		hashtagStr := helpers.SlugifyStrict(hashtagStr)
 		hashtagItem := models.Hashtag{
-			ID:   uuid.New(),
-			Tag:  hashtagStr,
-			Slug: helpers.GenerateSlug(hashtagStr),
+			Domain: author.Domain,
+			ID:     uuid.New(),
+			Tag:    hashtagStr,
+			Slug:   helpers.GenerateSlug(hashtagStr),
 		}
 		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
 	}
@@ -1283,10 +1290,7 @@ func (r *PostRepository) GetOrCreateCluster(ctx context.Context, pillarID uuid.U
 	return &cluster, nil
 }
 
-func (r *PostRepository) SynonymExists(
-	ctx context.Context,
-	slug string,
-) (bool, error) {
+func (r *PostRepository) SynonymExists(ctx context.Context, slug string) (bool, error) {
 
 	var count int64
 
@@ -1313,14 +1317,7 @@ func (r *PostRepository) GetSynonym(ctx context.Context, slug string) (*taxonomy
 	return &synonym, nil
 }
 
-func (r *PostRepository) GetOrCreateSynonym(
-	ctx context.Context,
-	clusterID uuid.UUID,
-	slug string,
-	word utils.LocalizedString,
-	isPrimary bool,
-	weight int,
-) (*taxonomy.Synonym, error) {
+func (r *PostRepository) GetOrCreateSynonym(ctx context.Context, clusterID uuid.UUID, slug string, word utils.LocalizedString, isPrimary bool, weight int) (*taxonomy.Synonym, error) {
 
 	var synonym taxonomy.Synonym
 
@@ -1350,4 +1347,42 @@ func (r *PostRepository) GetOrCreateSynonym(
 	}
 
 	return &synonym, nil
+}
+
+func (r *PostRepository) GetPillars(ctx context.Context) ([]taxonomy.Pillar, error) {
+	var pillars []taxonomy.Pillar
+
+	err := r.db.WithContext(ctx).
+		Where("deleted_at IS NULL").
+		Order("updated_at DESC").
+		Find(&pillars).Error
+
+	return pillars, err
+}
+
+func (r *PostRepository) GetClusters(ctx context.Context) ([]taxonomy.Cluster, error) {
+	var clusters []taxonomy.Cluster
+
+	err := r.db.WithContext(ctx).
+		Where("deleted_at IS NULL").
+		Order("updated_at DESC").
+		Find(&clusters).Error
+
+	return clusters, err
+}
+func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
+	var pillars []taxonomy.Pillar
+
+	err := r.db.WithContext(ctx).
+		Preload("Clusters.Synonyms").          // Cluster -> Synonyms
+		Preload("Clusters.Children.Synonyms"). // Alt clusterlar -> Synonyms
+		Where("is_active = ?", true).
+		Where("deleted_at IS NULL").
+		Find(&pillars).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return pillars, nil
 }

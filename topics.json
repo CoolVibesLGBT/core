@@ -3259,6 +3259,76 @@
       "name": "ilyas-sabanci",
       "thread_id": 14402,
       "icon_color": 9376287
+    },
+    {
+      "name": "labor-and-jobs",
+      "thread_id": 14468,
+      "icon_color": 5324212
+    },
+    {
+      "name": "obituary-ally",
+      "thread_id": 14484,
+      "icon_color": 14929293
+    },
+    {
+      "name": "belediyeler",
+      "thread_id": 14499,
+      "icon_color": 345470
+    },
+    {
+      "name": "isparta",
+      "thread_id": 14531,
+      "icon_color": 5957317
+    },
+    {
+      "name": "book-trade-and-publishing",
+      "thread_id": 14550,
+      "icon_color": 3999833
+    },
+    {
+      "name": "isci-sendika",
+      "thread_id": 14579,
+      "icon_color": 6566321
+    },
+    {
+      "name": "kurumsal",
+      "thread_id": 14586,
+      "icon_color": 14839232
+    },
+    {
+      "name": "kadirli",
+      "thread_id": 14597,
+      "icon_color": 3520182
+    },
+    {
+      "name": "antalya",
+      "thread_id": 14603,
+      "icon_color": 16512350
+    },
+    {
+      "name": "kilimli",
+      "thread_id": 14608,
+      "icon_color": 5073776
+    },
+    {
+      "name": "anamur",
+      "thread_id": 14621,
+      "icon_color": 53095
+    },
+    {
+      "name": "denizli",
+      "thread_id": 14637,
+      "icon_color": 9292312
+    },
+    {
+      "name": "agri",
+      "thread_id": 14646,
+      "icon_color": 9147220
+    },
+    {
+      "name": "hizmet",
+      "thread_id": 14656,
+      "icon_color": 14303124
     }
   ]
 }

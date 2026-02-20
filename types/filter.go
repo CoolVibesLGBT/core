@@ -11,8 +11,9 @@ import (
 type Filter struct {
 	AuthUser *models.User
 	Context  context.Context
-	PostKind post.PostKind
+	Domain   *string
 
+	PostKind  post.PostKind
 	UserUUID  uuid.UUID
 	UserID    int64
 	Search    *string

@@ -262,19 +262,10 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 
 	// POST
-	//	r.action.Register(constants.CMD_POST_CREATE, middleware.AuthMiddleware(userRepo) handlers.HandleCreate(postService))
-	r.action.Register(
-		constants.CMD_POST_CREATE,
-		handlers.HandleCreate(postService),  // handler
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
 
-	r.action.Register(
-		constants.CMD_POST_VOTE,
-		handlers.HandleVote(postService),    // handler
-		middleware.AuthMiddleware(userRepo), // middleware
-	)
-
+	r.action.Register(constants.CMD_POST_CATEGORIES, handlers.HandleGetCategories(postService))
+	r.action.Register(constants.CMD_POST_CREATE, handlers.HandleCreate(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_VOTE, handlers.HandleVote(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_BANANA, handlers.HandlePostBanana(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_LIKE, handlers.HandlePostLike(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_DISLIKE, handlers.HandlePostDislike(postService), middleware.AuthMiddleware(userRepo))

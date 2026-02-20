@@ -4,6 +4,7 @@ import (
 	"context"
 	"core/models"
 	"core/models/post"
+	"core/models/taxonomy"
 
 	"core/repositories"
 	"core/types"
@@ -151,4 +152,8 @@ func (s *PostService) View(ctx context.Context, postId int64, authUser *models.U
 
 func (s *PostService) Tip(ctx context.Context, postId int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error) {
 	return s.postRepo.Tip(ctx, postId, authUser, amount)
+}
+
+func (s *PostService) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
+	return s.postRepo.GetPillarsWithClusters(ctx)
 }

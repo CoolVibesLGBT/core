@@ -8,6 +8,7 @@ import (
 
 type Hashtag struct {
 	ID              uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	Domain          DomainKind `gorm:"type:varchar(50);not null;index" json:"domain"`
 	TaggableID      uuid.UUID  `gorm:"type:uuid;index;not null" json:"taggable_id"`
 	TaggableType    string     `gorm:"size:255;index;not null" json:"taggable_type"`
 	Tag             string     `gorm:"size:100;index;not null" json:"tag"`

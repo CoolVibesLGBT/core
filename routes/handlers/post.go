@@ -695,3 +695,23 @@ func HandleGetTrends(s *services.PostService) fiber.Handler {
 		})
 	}
 }
+
+func HandleGetCategories(s *services.PostService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		//
+
+		categories, err := s.GetPillarsWithClusters(c.Context())
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to get trends: " + err.Error(),
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"categories":  categories,
+			"last_update": time.Now(),
+		})
+	}
+}
