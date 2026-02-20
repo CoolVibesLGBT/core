@@ -543,39 +543,14 @@ func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
 
 func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userIdStr := c.FormValue("user_id")
-		if userIdStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "user_id is required",
-			})
-		}
-
-		userId, err := strconv.ParseInt(userIdStr, 10, 64)
+		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid user_id",
+				"error": err.Error(),
 			})
 		}
 
-		limit := 10 // default değer
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			}
-		}
-
-		cursor := int64(math.MaxInt64)
-		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-			val, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = val
-		}
-
-		posts, err := s.GetUserPostReplies(userId, limit, &cursor)
+		posts, err := s.GetUserPostReplies(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get posts: " + err.Error(),

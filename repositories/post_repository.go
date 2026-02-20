@@ -373,7 +373,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([
 	return posts, nil
 }
 
-func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, limit int) ([]post.Post, error) {
+func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, error) {
 	var posts []post.Post
 
 	query := r.db.
@@ -389,13 +389,13 @@ func (r *PostRepository) GetUserPostReplies(userID uuid.UUID, cursor *int64, lim
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", userID, "post").
+		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", filters.UserUUID, "post").
 		Order("public_id DESC").
-		Limit(limit)
+		Limit(filters.Limit)
 
 	// Cursor varsa sadece daha eski postlar
-	if cursor != nil {
-		query = query.Where("public_id < ?", *cursor)
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {

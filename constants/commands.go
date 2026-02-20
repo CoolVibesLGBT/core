@@ -13,7 +13,10 @@ type CommandEnvelope struct {
 type TCommandTypes int
 
 const (
+
+	//AI AGENT - MCP SERVER
 	CMD_AGENTS_INVOKE = "agents.invoke"
+
 	//SYSTEM
 	CMD_INITIAL_SYNC    = "system.initial_sync"
 	CMD_PAYMENT_METHODS = "system.payment_methods"

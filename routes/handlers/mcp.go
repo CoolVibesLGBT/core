@@ -14,7 +14,7 @@ func HandleMCP(s *services.AIService) fiber.Handler {
 
 		if c.Method() != fiber.MethodGet {
 			if err := c.BodyParser(&payload); err != nil {
-				return c.Status(400).JSON(fiber.Map{
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 					"error": "invalid body",
 				})
 			}
@@ -33,7 +33,7 @@ func HandleMCP(s *services.AIService) fiber.Handler {
 
 		response, err := s.MCPServer().Router().Route(msg)
 		if err != nil {
-			return c.Status(500).JSON(fiber.Map{
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		}

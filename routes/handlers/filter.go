@@ -17,6 +17,15 @@ func ParseFilters(c *fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		Limit:    20, // default
 	}
 
+	// user_id
+	if userIdStr := c.FormValue("user_id"); userIdStr != "" {
+		if userId, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
+			filter.UserID = userId
+		} else {
+			return filter, fmt.Errorf("invalid user id")
+		}
+	}
+
 	// limit
 	if limitStr := c.FormValue("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {

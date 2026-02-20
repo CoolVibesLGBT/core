@@ -77,12 +77,13 @@ func (s *PostService) GetPostsByUserID(id int64, filters types.Filter) ([]post.P
 	return posts, nil
 }
 
-func (s *PostService) GetUserPostReplies(id int64, limit int, cursor *int64) ([]post.Post, error) {
-	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+func (s *PostService) GetUserPostReplies(filters types.Filter) ([]post.Post, error) {
+	userUUID, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
 	}
-	posts, err := s.postRepo.GetUserPostReplies(userId, cursor, limit)
+	filters.UserUUID = userUUID
+	posts, err := s.postRepo.GetUserPostReplies(filters)
 	if err != nil {
 		return nil, fmt.Errorf("GetPostByID error: %w", err)
 	}
