@@ -28,8 +28,8 @@ jobs:
     env:
       DATABASE_URL: host=localhost port=5432 user=postgres password=password dbname=databasename sslmode=disable
       ENV: test
-      TELEGRAM_BOT_TOKEN=1234567890:ABCDEFGHIJ-KLMNOPQRSTUVYZX0axSdqKYQ
-      TELEGRAM_SECRET_TOKEN=abcdefghijklmnopqrstuvwxwzabceeefghead4aca7994db0dd0c5f0fde8d696
+      TELEGRAM_BOT_TOKEN:1234567890:ABCDEFGHIJ-KLMNOPQRSTUVYZX0axSdqKYQ
+      TELEGRAM_SECRET_TOKEN:abcdefghijklmnopqrstuvwxwzabceeefghead4aca7994db0dd0c5f0fde8d696
     steps:
       - uses: actions/checkout@v4
 
