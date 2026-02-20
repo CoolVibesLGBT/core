@@ -13,6 +13,9 @@ type Filter struct {
 	Context  context.Context
 	Domain   *string
 
+	PostUUID uuid.UUID
+	PostID   int64 // snowflakeid
+
 	PostKind  post.PostKind
 	UserUUID  uuid.UUID
 	UserID    int64

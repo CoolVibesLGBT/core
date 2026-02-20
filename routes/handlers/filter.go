@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func ParseFilters(c *fiber.Ctx, authUser *models.User) (types.Filter, error) {
@@ -19,10 +20,24 @@ func ParseFilters(c *fiber.Ctx, authUser *models.User) (types.Filter, error) {
 
 	// user_id
 	if userIdStr := c.FormValue("user_id"); userIdStr != "" {
-		if userId, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
+		if userUUID, err := uuid.Parse(userIdStr); err == nil {
+			filter.UserUUID = userUUID
+		} else if userId, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
 			filter.UserID = userId
 		} else {
-			return filter, fmt.Errorf("invalid user id")
+			return filter, fmt.Errorf("invalid user id: %s", userIdStr)
+		}
+	}
+
+	// post_id
+	postIdStr := c.FormValue("post_id")
+	if postIdStr != "" {
+		if postUUID, err := uuid.Parse(postIdStr); err == nil {
+			filter.PostUUID = postUUID
+		} else if postId, err := strconv.ParseInt(postIdStr, 10, 64); err == nil {
+			filter.PostID = postId
+		} else {
+			return filter, fmt.Errorf("invalid post id: %s", postIdStr)
 		}
 	}
 

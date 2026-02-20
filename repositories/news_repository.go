@@ -56,8 +56,7 @@ func (r *NewsRepository) GetNews(filters types.Filter) (types.PostsResult, error
 }
 
 func (r *NewsRepository) Get(filters types.Filter) (*post.Post, error) {
-
-	return nil, nil
+	return r.postRepo.GetPostByID(filters.PostUUID)
 }
 
 func (r *NewsRepository) IsNewsExists(filters types.Filter) (bool, error) {

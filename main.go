@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	app "core/application"
+	"core/constants"
 	"core/helpers"
 	"core/repositories"
 	"core/routes"
@@ -97,7 +98,7 @@ func GetApp() (*app.App, error) {
 }
 
 func main() {
-	fmt.Println("Merhaba, Dünya!")
+	fmt.Printf("%s Started \n", constants.APPLICATION_NAME)
 
 	err := godotenv.Load()
 	if err != nil {
@@ -124,6 +125,8 @@ func main() {
 	vapidKeys, err := helpers.CreateVapidKeys(app.DB)
 	if err != nil {
 		log.Fatal("VAPID anahtarı alınamadı:", err)
+	} else {
+		fmt.Println("VAPIDKEY", vapidKeys.PublicKey)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -156,14 +159,9 @@ func main() {
 			}
 		}()*/
 
-	fmt.Println("PublicKey:", vapidKeys.PublicKey)
-	fmt.Println("PrivateKey:", vapidKeys.PrivateKey)
-
 	notificationRepo := repositories.NewNotificationRepository(app.DB, nil)
 	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
 	go socket.ListenServer(app.DB, notificationMgr)
-
-	//httpHandler := httpCors.Handler(applicationRouter)
 	log.Println("App running on", os.Getenv("PORT"))
 	log.Fatal(fiberApp.Listen(os.Getenv("PORT")))
 }

@@ -65,8 +65,8 @@ func (s *PostService) GetTimeline(filters types.Filter) (types.TimelineResult, e
 	return posts, nil
 }
 
-func (s *PostService) GetPostsByUserID(id int64, filters types.Filter) ([]post.Post, error) {
-	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+func (s *PostService) GetPostsByUserID(filters types.Filter) ([]post.Post, error) {
+	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
 	}
@@ -123,32 +123,32 @@ func (s *PostService) Vote(ctx context.Context, choiceId uuid.UUID, weight int, 
 	return s.postRepo.Vote(ctx, choiceId, weight, rank, userId)
 }
 
-func (s *PostService) Like(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Like(ctx, postId, authUser)
+func (s *PostService) Like(filters types.Filter) error {
+	return s.postRepo.Like(filters)
 }
 
-func (s *PostService) Dislike(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Dislike(ctx, postId, authUser)
+func (s *PostService) Dislike(filters types.Filter) error {
+	return s.postRepo.Dislike(filters)
 }
 
-func (s *PostService) Banana(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Banana(ctx, postId, authUser)
+func (s *PostService) Banana(filters types.Filter) error {
+	return s.postRepo.Banana(filters)
 }
 
-func (s *PostService) Delete(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Delete(ctx, postId, authUser)
+func (s *PostService) Delete(filters types.Filter) error {
+	return s.postRepo.Delete(filters)
 }
 
 func (s *PostService) Report(ctx context.Context, postId int64, reason string, description string, authUser *models.User) error {
 	return s.postRepo.Report(ctx, postId, reason, description, authUser)
 }
 
-func (s *PostService) Bookmark(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.Bookmark(ctx, postId, authUser)
+func (s *PostService) Bookmark(filters types.Filter) error {
+	return s.postRepo.Bookmark(filters)
 }
 
-func (s *PostService) View(ctx context.Context, postId int64, authUser *models.User) error {
-	return s.postRepo.View(ctx, postId, authUser)
+func (s *PostService) View(filters types.Filter) error {
+	return s.postRepo.View(filters)
 }
 
 func (s *PostService) Tip(ctx context.Context, postId int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error) {

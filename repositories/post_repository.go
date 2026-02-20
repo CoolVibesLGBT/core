@@ -1010,13 +1010,13 @@ func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *PostRepository) Like(ctx context.Context, postId int64, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+func (r *PostRepository) Like(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
 		}
@@ -1024,13 +1024,13 @@ func (r *PostRepository) Like(ctx context.Context, postId int64, authUser *model
 	return nil
 }
 
-func (r *PostRepository) Dislike(ctx context.Context, postId int64, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+func (r *PostRepository) Dislike(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
 		}
@@ -1038,13 +1038,13 @@ func (r *PostRepository) Dislike(ctx context.Context, postId int64, authUser *mo
 	return nil
 }
 
-func (r *PostRepository) Banana(ctx context.Context, postId int64, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+func (r *PostRepository) Banana(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
 		}
@@ -1080,13 +1080,13 @@ func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, 
 	return nil
 }
 
-func (r *PostRepository) Bookmark(ctx context.Context, postId int64, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+func (r *PostRepository) Bookmark(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
 		}
@@ -1094,12 +1094,13 @@ func (r *PostRepository) Bookmark(ctx context.Context, postId int64, authUser *m
 	return nil
 }
 
-func (r *PostRepository) View(ctx context.Context, postId int64, authUser *models.User) error {
+func (r *PostRepository) View(filters types.Filter) error {
+	//todo: engagementView
 	return nil
 }
 
-func (r *PostRepository) Delete(ctx context.Context, postId int64, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+func (r *PostRepository) Delete(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
@@ -1108,21 +1109,21 @@ func (r *PostRepository) Delete(ctx context.Context, postId int64, authUser *mod
 		return errors.New(constants.ErrPostNotFound.String())
 	}
 
-	if post.AuthorID != authUser.ID {
+	if post.AuthorID != filters.AuthUser.ID {
 		return errors.New(constants.ErrPostDeleteDenied.String())
 	}
 
-	allowed := post.AuthorID == authUser.ID ||
-		authUser.UserRole == constants.UserRoleModerator ||
-		authUser.UserRole == constants.UserRoleAdmin ||
-		authUser.UserRole == constants.UserRoleSuperAdmin
+	allowed := post.AuthorID == filters.AuthUser.ID ||
+		filters.AuthUser.UserRole == constants.UserRoleModerator ||
+		filters.AuthUser.UserRole == constants.UserRoleAdmin ||
+		filters.AuthUser.UserRole == constants.UserRoleSuperAdmin
 
 	if !allowed {
 		return errors.New(constants.ErrPostDeleteDenied.String())
 	}
 
 	// 3. Soft delete
-	if err := r.db.WithContext(ctx).Delete(&post).Error; err != nil {
+	if err := r.db.WithContext(filters.Context).Delete(&post).Error; err != nil {
 		return errors.New(constants.ErrPostDeleteFailed.String())
 	}
 	return nil
