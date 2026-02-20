@@ -143,11 +143,6 @@ func SeedPlaces(application *application.App) error {
 		log.Fatalf("JSON parse edilemedi: %v", err)
 	}
 
-	// Örnek çıktı
-	for i, p := range places {
-		fmt.Printf("%d: %s (%s), Lat: %f, Lon: %f\n", i+1, p.Name, p.Address, p.Latitude, p.Longitude)
-	}
-
 	notificationRepo := repositories.NewNotificationRepository(application.DB, application.SnowFlakeNode)
 	// repository ve service oluştur
 	engagementRepo := repositories.NewEngagementRepository(application.DB)
@@ -163,8 +158,6 @@ func SeedPlaces(application *application.App) error {
 		return err
 	}
 	fmt.Println("AuthUser", authUser.UserName)
-
-	fmt.Println(placeService.ServiceName())
 
 	type SurveyQuestion struct {
 		Question string
@@ -358,8 +351,6 @@ func SeedPlaces(application *application.App) error {
 	}
 
 	for _, p := range places {
-		fmt.Println(p.Name)
-
 		lexicalJSON, err := placeToLexical(p)
 		if err != nil {
 			panic(err)

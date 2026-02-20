@@ -68,6 +68,8 @@ func NewApp() (*app.App, error) {
 			}
 
 			fmt.Println("Migration:END")
+
+			os.Exit(0)
 		}
 
 		if *seedFlag {
@@ -75,6 +77,7 @@ func NewApp() (*app.App, error) {
 			if err != nil {
 				fmt.Println(err)
 			}
+			os.Exit(0)
 		}
 
 		if *testFlag {
