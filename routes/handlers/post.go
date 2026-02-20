@@ -3,7 +3,6 @@ package handlers
 import (
 	"core/middleware"
 	services "core/services/user"
-	"fmt"
 	"math"
 	"mime/multipart"
 	"strconv"
@@ -310,7 +309,7 @@ func HandlePostView(s *services.PostService) fiber.Handler {
 		err = s.View(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to increase view " + err.Error(),
+				"error": err.Error(),
 			})
 		}
 
@@ -374,21 +373,14 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 
 func HandleGetByID(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		idStr := c.Query("id")
-		if idStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "missing post id",
-			})
-		}
 
-		postId, err := strconv.ParseInt(idStr, 10, 64)
+		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid post id",
+				"error": err.Error(),
 			})
 		}
-
-		post, err := s.GetPostByPublicID(postId)
+		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get post: " + err.Error(),
@@ -401,31 +393,18 @@ func HandleGetByID(s *services.PostService) fiber.Handler {
 
 func HandleGetByPublicID(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		idStr := c.Query("id")
-		if idStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "missing post id",
-			})
-		}
-
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid id",
+				"error": err.Error(),
 			})
 		}
-
-		// Örnek debug print (fmt.Printf kullanımı düzeltildi)
-		fmt.Printf("%v\n", id)
-
-		// Burada 12 sabit değeri kullanılmaz, muhtemelen id kullanılacak
-		post, err := s.GetPostByPublicID(id)
+		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get post: " + err.Error(),
+				"error": err.Error(),
 			})
 		}
-
 		return c.JSON(post)
 	}
 }

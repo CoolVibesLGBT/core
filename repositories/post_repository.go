@@ -1095,7 +1095,16 @@ func (r *PostRepository) Bookmark(filters types.Filter) error {
 }
 
 func (r *PostRepository) View(filters types.Filter) error {
-	//todo: engagementView
+	post, err := r.FindPostByPublicID(filters.PostID)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		err = r.userRepo.engagementRepo.AddEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindView, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
