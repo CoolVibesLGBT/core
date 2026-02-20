@@ -5,6 +5,7 @@ import (
 	"core/middleware"
 	services "core/services/user"
 	"core/types"
+	"core/utils"
 	"strconv"
 	"time"
 
@@ -24,10 +25,7 @@ func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		users, err := s.GetUnseenUsers(c.Context(), user.ID, 10)
@@ -50,9 +48,7 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// form-data / x-www-form-urlencoded otomatik parse ediliyor
@@ -106,9 +102,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// ---- cursor ----
@@ -163,9 +157,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// ---- cursor ----
@@ -220,9 +212,7 @@ func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		cursorStr := c.Query("cursor", "")

@@ -38,9 +38,11 @@ const (
 	ErrPollOptionsEmpty ErrorCode = "POLL_OPTIONS_EMPTY"
 
 	// Post
-	ErrPostNotFound        ErrorCode = "POST_NOT_FOUND"
-	ErrPostDeleteDenied    ErrorCode = "POST_DELETE_DENIED"
-	ErrPostDeleteFailed    ErrorCode = "POST_DELETE_FAILED"
+	ErrPostNotFound     ErrorCode = "POST_NOT_FOUND"
+	ErrPostDeleteDenied ErrorCode = "POST_DELETE_DENIED"
+	ErrPostDeleteFailed ErrorCode = "POST_DELETE_FAILED"
+	ErrPostCreateFailed ErrorCode = "POST_CREATE_FAILED"
+
 	ErrInsufficientBalance ErrorCode = "INSUFFICIENT_BALANCE"
 	ErrInvalidAmount       ErrorCode = "INVALID_AMOUNT" // yeni hata kodu
 
@@ -92,6 +94,7 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrPostDeleteFailed:    "Failed to delete the post.",
 	ErrInsufficientBalance: "Insufficient balance.",    // yeni mesaj eklendi
 	ErrInvalidAmount:       "Invalid amount provided.", // yeni mesaj
+	ErrPostCreateFailed:    "Failed to create post",
 
 	// Chat
 	ErrSelfChatNotAllowed:        "You cannot create a chat with yourself.",

@@ -3,9 +3,7 @@ package handlers
 import (
 	"core/middleware"
 	services "core/services/user"
-	"core/types"
 	"mime/multipart"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -58,58 +56,11 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
 
-		limitStr := c.FormValue("limit")
-		limit := 10
-		if limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
-			}
-		}
-
-		var lat *float64
-		latStr := c.FormValue("latitude")
-		if latStr != "" {
-			if v, err := strconv.ParseFloat(latStr, 64); err == nil {
-				lat = &v
-			}
-		}
-
-		var lon *float64
-		lonStr := c.FormValue("longitude")
-		if lonStr != "" {
-			if v, err := strconv.ParseFloat(lonStr, 64); err == nil {
-				lon = &v
-			}
-		}
-
-		var cursor *int64
-		cursorStr := c.FormValue("cursor")
-		if cursorStr != "" {
-			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = &cVal
-		}
-
-		category := c.FormValue("category")
-		name := c.FormValue("name")
-		city := c.FormValue("city")
-		country := c.FormValue("country")
-
-		filters := types.Filter{
-			AuthUser:  authUser,
-			Context:   c.Context(),
-			Latitude:  lat,
-			Longitude: lon,
-			Cursor:    cursor,
-			Limit:     limit,
-			Category:  &category,
-			Name:      &name,
-			City:      &city,
-			Country:   &country,
+		filters, err := ParseFilters(c, authUser)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		}
 
 		places, cursorInfo, err := s.GetNearByPlaces(filters)

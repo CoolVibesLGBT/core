@@ -126,7 +126,7 @@ func main() {
 	if err != nil {
 		log.Fatal("VAPID anahtarı alınamadı:", err)
 	} else {
-		fmt.Println("VAPIDKEY", vapidKeys.PublicKey)
+		fmt.Printf("VAPIDKEY : %s \n", vapidKeys.PublicKey)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

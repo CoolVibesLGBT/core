@@ -90,12 +90,13 @@ func (s *PostService) GetUserPostReplies(filters types.Filter) ([]post.Post, err
 	return posts, nil
 }
 
-func (s *PostService) GetUserMedias(id int64, limit int, cursor *int64) ([]types.MediaWithUser, *int64, error) {
-	userId, err := s.userRepo.GetUserUUIDByPublicID(id)
+func (s *PostService) GetUserMedias(filters types.Filter) ([]types.MediaWithUser, *int64, error) {
+	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
 	}
-	medias, lastCursor, err := s.postRepo.GetUserMedias(userId, cursor, limit)
+	filters.UserUUID = userId
+	medias, lastCursor, err := s.postRepo.GetUserMedias(filters)
 	if err != nil {
 		return nil, nil, fmt.Errorf("GetUserMedias error: %w", err)
 	}

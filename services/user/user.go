@@ -601,3 +601,7 @@ func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *mode
 func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
 	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
 }
+
+func (s *UserService) CheckIn(ctx context.Context) error {
+	return s.userRepo.CheckIn(ctx)
+}

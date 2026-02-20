@@ -2511,6 +2511,8 @@ var StaticRSSSources = []RSSSource{
 	{ID: "theguardian", Name: "theguardian", URL: "https://www.theguardian.com/world/hungary/rss", Enabled: true},
 	{ID: "theguardian", Name: "theguardian", URL: "https://www.theguardian.com/world/argentina/rss", Enabled: true},
 	{ID: "theguardian", Name: "theguardian", URL: "https://www.theguardian.com/world/kosovo/rss", Enabled: true},
+	{ID: "dailynewsegypt", Name: "dailynewsegypt", URL: "http://dailynewsegypt.com/feed/", Enabled: true},
+	{ID: "egyptianstreets", Name: "egyptianstreets", URL: "https://egyptianstreets.com/feed/", Enabled: true},
 }
 
 func GenerateGoogleNewsRSSURL(lang Language) string {

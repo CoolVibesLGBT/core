@@ -41,11 +41,11 @@ const (
 	// USER
 	CMD_USER_UPDATE_PREFERENCES = "user.update_preferences"
 	CMD_USER_UPDATE_IDENTIFY    = "user.update_identify"
-
-	CMD_USER_UPLOAD_AVATAR  = "user.upload_avatar"
-	CMD_USER_UPLOAD_COVER   = "user.upload_cover"
-	CMD_USER_UPLOAD_STORY   = "user.upload_story"
-	CMD_UPDATE_USER_PROFILE = "user.update_profile"
+	CMD_USER_CHECK_IN           = "user.check_in"
+	CMD_USER_UPLOAD_AVATAR      = "user.upload_avatar"
+	CMD_USER_UPLOAD_COVER       = "user.upload_cover"
+	CMD_USER_UPLOAD_STORY       = "user.upload_story"
+	CMD_UPDATE_USER_PROFILE     = "user.update_profile"
 
 	CMD_USER_FETCH_STORIES     = "user.fetch.stories"
 	CMD_USER_FETCH_PROFILE     = "user.fetch_profile"

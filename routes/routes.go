@@ -167,6 +167,12 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	)
 
 	r.action.Register(
+		constants.CMD_USER_CHECK_IN,
+		handlers.HandleUserCheckIn(userService),
+		middleware.AuthMiddleware(userRepo),
+	)
+
+	r.action.Register(
 		constants.CMD_USER_UPLOAD_COVER,
 		handlers.HandleUploadCover(userService), // handler
 		middleware.AuthMiddleware(userRepo),     // middleware

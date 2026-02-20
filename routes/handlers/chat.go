@@ -126,7 +126,7 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// servis çağrısı
@@ -148,7 +148,7 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// multipart parse — Fiber kendisi yapar
@@ -189,7 +189,7 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -226,7 +226,7 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -263,7 +263,7 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -300,7 +300,7 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -331,7 +331,7 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -362,7 +362,7 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -392,7 +392,7 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")
@@ -421,7 +421,7 @@ func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		chatIDStr := c.FormValue("chat_id")

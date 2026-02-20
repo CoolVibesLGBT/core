@@ -601,3 +601,7 @@ func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *
 
 	return items, nextCursor, nil
 }
+
+func (r *UserRepository) CheckIn(ctx context.Context) error {
+	return nil
+}

@@ -93,9 +93,7 @@ func HandleUploadAvatar(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		fileHeader, err := c.FormFile("avatar")
@@ -204,9 +202,7 @@ func HandleUserInfo(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		userInfo, err := s.GetUserByID(auth_user.ID)
@@ -358,9 +354,7 @@ func HandleFollow(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// Form verisini Fiber'de c.FormValue ile alıyoruz
@@ -404,9 +398,7 @@ func HandleUnfollow(s *services.UserService) fiber.Handler {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		followeeIDStr := c.FormValue("followee_id")
@@ -449,9 +441,7 @@ func HandleToggleFollow(s *services.UserService) fiber.Handler {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		followeeIDStr := c.FormValue("followee_id")
@@ -526,9 +516,8 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+
 		}
 
 		form, err := c.MultipartForm()
@@ -558,9 +547,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		engagement_type := c.FormValue("engagement_type")
@@ -598,9 +585,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 
 		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(engageeId)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrUserNotFound,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
 
 		var engagementKind models.EngagementKind
@@ -617,9 +602,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 
 		engagements, nextCursor, err := s.FetchUserEngagements(c.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrEngagementNotFound,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrEngagementNotFound)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -651,6 +634,9 @@ func HandleUserLike(s *services.UserService) fiber.Handler {
 		fmt.Println("engagement_type", engagement_type)
 		fmt.Println("authUserId", authUserId)
 		fmt.Println("requestUserId", requestUserId)
+
+		//todo: not implemented
+		return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMethodNotImplemented)
 
 		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User liked successfully",
@@ -871,6 +857,36 @@ func HandleUserNotifications(s *services.UserService) fiber.Handler {
 			"prev_cursor":   cursor,
 			"next_cursor":   nextCursor,
 			"success":       true,
+		})
+	}
+}
+
+func HandleUserCheckIn(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+
+		if auth_user == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		checkInKind := c.Params("check_in")
+
+		fmt.Println("CheckIn", checkInKind)
+
+		err := s.CheckIn(c.Context())
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+			"success": true,
 		})
 	}
 }

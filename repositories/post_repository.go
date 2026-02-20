@@ -459,17 +459,17 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 	return posts, nil
 }
 
-func (r *PostRepository) GetUserMedias(userID uuid.UUID, cursor *int64, limit int) ([]types.MediaWithUser, *int64, error) {
+func (r *PostRepository) GetUserMedias(filters types.Filter) ([]types.MediaWithUser, *int64, error) {
 	var medias []media.Media
 
 	query := r.db.Unscoped().
 		Preload("File").
-		Where("user_id = ?", userID).
+		Where("user_id = ?", filters.UserUUID).
 		Order("public_id DESC").
-		Limit(limit)
+		Limit(filters.Limit)
 
-	if cursor != nil {
-		query = query.Where("public_id < ?", *cursor)
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&medias).Error; err != nil {
@@ -607,21 +607,29 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	defaultLanguage := helpers.DefaultIfEmpty(postForm.Language, author.DefaultLanguage)
 
 	var postKindType post.PostKind
+	var isPublished = false
 	switch contentableType {
 	case "chat":
 		postKindType = post.PostKindMessage
+		isPublished = true
 	case "post":
 		postKindType = post.PostKindPost
+		isPublished = true
 	case "event":
 		postKindType = post.PostKindEvent
+		isPublished = true
 	case "status":
 		postKindType = post.PostKindStatus
+		isPublished = true
 	case "classified":
 		postKindType = post.PostKindClassified
+		isPublished = true
 	case "news":
 		postKindType = post.PostKindNews
+		isPublished = false
 	case "place":
 		postKindType = post.PostKindPlace
+		isPublished = true
 	default:
 		postKindType = post.PostKindStatus
 	}
@@ -631,7 +639,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		ParentID:        parentUUID,
 		PublicID:        r.Node().Generate().Int64(),
 		AuthorID:        author.ID,
-		Published:       true,
+		Published:       isPublished,
 		Domain:          author.Domain,
 		PostKind:        postKindType,
 		ContentCategory: post.ContentNormal,
@@ -640,8 +648,6 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		Summary:         utils.MakeLocalizedString(defaultLanguage, postForm.Summary),
 		Slug:            &postForm.Slug,
 		Audience:        &postForm.Audience,
-
-		// Burada contentable bilgisi de tutuluyor
 		ContentableType: &contentableType,
 		ContentableID:   contentableID,
 	}
@@ -653,9 +659,6 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 
 	// Media ekleme
 	for _, f := range files {
-
-		fmt.Println("SAVE:FILES", f.Filename, "SIZE", f.Size)
-
 		var ownerType media.OwnerType
 		var role media.MediaRole
 
@@ -676,7 +679,6 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 
 		mediaModel, err := r.mediaRepo.AddMedia(newPost.ID, ownerType, author.ID, role, f)
 		if err != nil {
-			fmt.Println("ERROR:mediaModel", err)
 			tx.Rollback()
 			return nil, err
 		}
@@ -1434,6 +1436,7 @@ func (r *PostRepository) GetClusters(ctx context.Context) ([]taxonomy.Cluster, e
 
 	return clusters, err
 }
+
 func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
 	var pillars []taxonomy.Pillar
 

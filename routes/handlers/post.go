@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/middleware"
 	services "core/services/user"
-	"math"
+	"core/utils"
 	"mime/multipart"
 	"strconv"
 	"time"
@@ -40,16 +41,12 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		post, err := s.CreatePost(c.Context(), formParams, files, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create post: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostCreateFailed)
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(post)
@@ -61,9 +58,7 @@ func HandleVote(s *services.PostService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		choiceIdStr := c.FormValue("choice_id")
@@ -111,9 +106,7 @@ func HandlePostDelete(s *services.PostService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		filters, err := ParseFilters(c, user)
@@ -124,9 +117,7 @@ func HandlePostDelete(s *services.PostService) fiber.Handler {
 		}
 
 		if err := s.Delete(filters); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to delete post: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrPostDeleteFailed)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -141,9 +132,7 @@ func HandlePostLike(s *services.PostService) fiber.Handler {
 		// authenticated user
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		filters, err := ParseFilters(c, user)
@@ -171,9 +160,7 @@ func HandlePostBanana(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 		filters, err := ParseFilters(c, user)
 		if err != nil {
@@ -197,9 +184,7 @@ func HandlePostDislike(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 		filters, err := ParseFilters(c, user)
 		if err != nil {
@@ -223,9 +208,7 @@ func HandlePostBookmark(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		filters, err := ParseFilters(c, user)
@@ -253,9 +236,7 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		postIdStr := c.FormValue("post_id")
@@ -291,12 +272,10 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 
 func HandlePostView(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
+		//todo:without middleware
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		filters, err := ParseFilters(c, user)
@@ -324,9 +303,7 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		postIdStr := c.FormValue("post_id")
@@ -489,39 +466,15 @@ func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
 
 func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userIdStr := c.FormValue("user_id")
-		if userIdStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "user_id is required",
-			})
-		}
 
-		userId, err := strconv.ParseInt(userIdStr, 10, 64)
+		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid user_id",
+				"error": err.Error(),
 			})
 		}
 
-		limit := 10 // default değer
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			}
-		}
-
-		cursor := int64(math.MaxInt64)
-		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-			val, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = val
-		}
-
-		medias, nextCursor, err := s.GetUserMedias(userId, limit, &cursor)
+		medias, nextCursor, err := s.GetUserMedias(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "failed to get medias: " + err.Error(),
