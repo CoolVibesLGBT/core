@@ -96,6 +96,15 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 			"decimals":         "18",
 			"logo":             "/images/payments/avax.svg",
 		},
+		{
+			"kind":             string(payment.PaymentKind_CRYPTO),
+			"chain_id":         "999999",
+			"contract_address": "0x0000000000000000000000000000000000000000",
+			"name":             "Solana",
+			"symbol":           "SOL",
+			"decimals":         "9",
+			"logo":             "/images/payments/solana.svg",
+		},
 	}
 
 	googlePays := []map[string]interface{}{
