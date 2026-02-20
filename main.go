@@ -135,7 +135,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
 	dispatcher.Run()
 
-	//go news.FetchAllFeedsSequentiallyAndProcess(dispatcher, app)
+	//	go news.FetchAllFeedsSequentiallyAndProcess(dispatcher, app)
 
 	ticker := time.NewTicker(5000 * time.Hour)
 

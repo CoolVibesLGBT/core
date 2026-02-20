@@ -112,13 +112,13 @@ func HandleFetchNews(s *services.NewsService) fiber.Handler {
 			Country:   &country,
 		}
 
-		news, cursorInfo, err := s.GetNews(filters)
+		postResult, err := s.GetNews(filters)
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"success": err == nil,
 			"error":   err,
-			"news":    news,
-			"cursor":  cursorInfo,
+			"news":    postResult.Posts,
+			"cursor":  postResult.Cursor,
 		})
 	}
 }

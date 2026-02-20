@@ -5,7 +5,6 @@ import (
 	"core/models/post"
 	"core/models/taxonomy"
 	"core/types"
-	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -51,20 +50,9 @@ func (r *NewsRepository) Create(news *post.Post) error {
 	return r.postRepo.CreatePost(news)
 }
 
-func (r *NewsRepository) GetNews(filters types.Filter) ([]*post.Post, types.Cursor, error) {
-
-	var prevCursor *string
-	if filters.Cursor != nil {
-		s := strconv.FormatInt(*filters.Cursor, 10)
-		prevCursor = &s
-	}
-
-	cursorInfo := types.Cursor{
-		Prev: prevCursor,
-		Next: nil,
-	}
-
-	return nil, cursorInfo, nil
+func (r *NewsRepository) GetNews(filters types.Filter) (types.PostsResult, error) {
+	filters.PostKind = post.PostKindNews
+	return r.postRepo.GetPostsByKind(filters)
 }
 
 func (r *NewsRepository) Get(filters types.Filter) (*post.Post, error) {

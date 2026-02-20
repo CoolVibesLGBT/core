@@ -252,7 +252,7 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindPlace), string(post.PostKindNews)}).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).
@@ -339,6 +339,60 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 	return types.TimelineResult{
 		Posts:      posts,
 		NextCursor: nextCursor,
+	}, nil
+}
+
+func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult, error) {
+	var posts []post.Post
+
+	query := r.db.Model(&post.Post{}).
+		//Where("published = ?", true).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
+		Where("parent_id IS NULL").
+		Order("public_id DESC").
+		Limit(filters.Limit).
+		Preload("Location").
+		Preload("Poll").
+		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("Poll.Choices.Votes").
+		Preload("Poll.Choices.Votes.User").
+		Preload("Poll.Choices.Votes.User.Avatar").
+		Preload("Poll.Choices.Votes.User.Avatar.File").
+		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
+		Preload("Event").
+		Preload("Event.Location").
+		Preload("Event.Attendees").
+		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
+		Preload("Author.Cover").
+		Preload("Author.Cover.File").
+		Preload("Hashtags").
+		Preload("Mentions").
+		Preload("Attachments").
+		Preload("Attachments.File")
+
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
+	}
+
+	if err := query.Find(&posts).Error; err != nil {
+		return types.PostsResult{}, err
+	}
+
+	var nextCursor *string
+	if len(posts) > 0 {
+		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
+		nextCursor = &s
+	}
+
+	return types.PostsResult{
+		Posts:  posts,
+		Cursor: nextCursor,
 	}, nil
 }
 

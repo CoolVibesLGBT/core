@@ -13,6 +13,12 @@ type TimelineResult struct {
 	Posts      []post.Post `json:"posts"`
 	NextCursor *string     `json:"next_cursor"`
 }
+
+type PostsResult struct {
+	Posts  []post.Post `json:"posts"`
+	Cursor *string     `json:"cursor"`
+}
+
 type MediaWithUser struct {
 	media.Media `json:",inline"` // embedded struct, alanları direkt üstte olacak
 	User        models.User      `gorm:"embedded;embeddedPrefix:user_" json:"user"`

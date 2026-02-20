@@ -3,6 +3,7 @@ package agents
 import (
 	"core/constants"
 	"core/mcp"
+	"core/models/post"
 	services "core/services/user"
 	"core/types"
 	"errors"
@@ -48,16 +49,21 @@ func (a *NewsAgent) Handle(msg mcp.Envelope) (mcp.Envelope, error) {
 }
 
 func (a *NewsAgent) handleList(msg mcp.Envelope) (mcp.Envelope, error) {
-	return mcp.Envelope{}, errors.New(constants.ErrMethodNotImplemented.String())
-	/*
-		return mcp.NewMessage(
-			"news",
-			msg.Source,
-			"news.list",
-			news,
-			mcp.TypeResponse,
-		), nil
-	*/
+	filters := types.Filter{
+		PostKind: post.PostKindNews,
+	}
+	posts, err := a.aiService.NewsRepo().GetNews(filters)
+	if err != nil {
+		return mcp.Envelope{}, errors.New(constants.ErrMethodNotImplemented.String())
+	}
+	return mcp.NewMessage(
+		a.Name(),
+		msg.Source,
+		"news.list",
+		posts,
+		mcp.TypeResponse,
+	), nil
+
 }
 
 func (a *NewsAgent) handleGet(msg mcp.Envelope) (mcp.Envelope, error) {
