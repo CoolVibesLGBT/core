@@ -99,7 +99,7 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println(".env not found, using system env")
 	}
 
 	app, err := NewApp()

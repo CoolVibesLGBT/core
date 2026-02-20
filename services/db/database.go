@@ -34,7 +34,7 @@ func InitDB() error {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("Error loading .env file", err)
+		log.Println(".env not found, using system env")
 	}
 
 	dsn := os.Getenv("DATABASE_URL")
