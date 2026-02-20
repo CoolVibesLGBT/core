@@ -4,6 +4,7 @@ package routes
 import (
 	"core/constants"
 	"core/helpers"
+	"core/mcp"
 	"core/middleware"
 	"core/repositories"
 	"core/router"
@@ -25,9 +26,11 @@ type Router struct {
 	action        *router.ActionRouter
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
+	MCPServer     *mcp.MCPServer
 
 	TelegramService *telegramService.Service
 
+	AIService           *services.AIService
 	NewsService         *services.NewsService
 	PostService         *services.PostService
 	UserService         *services.UserService
@@ -53,6 +56,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 			ReadBufferSize:  8192,
 			WriteBufferSize: 8192,
 		}),
+		MCPServer:     mcp.NewMCPServer(),
 		snowFlakeNode: snowFlakeNode,
 	}
 
@@ -69,7 +73,7 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
 	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
 	notificationService := services.NewNotificationsService(notificationRepo)
-	// repository ve service oluştur
+
 	engagementRepo := repositories.NewEngagementRepository(r.db)
 	sitemapRepo := repositories.NewSitemapRepository(r.db)
 	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
@@ -88,8 +92,10 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
 	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
 
-	paymentsRepo := repositories.NewPaymentRepositoryy(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
+	paymentsRepo := repositories.NewPaymentRepository(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
 
+	aiService := services.NewAIService(r.MCPServer, userRepo, postRepo, mediaRepo, placesRepo, newsRepo)
+	r.AIService = aiService
 	r.NewsService = newsService
 	r.PostService = postService
 	r.UserService = userService
@@ -98,6 +104,8 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	r.ChatService = chatService
 
 	paymentService := services.NewPaymentService(paymentsRepo, userRepo, postRepo, mediaRepo)
+
+	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
 	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))

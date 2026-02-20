@@ -3329,6 +3329,16 @@
       "name": "hizmet",
       "thread_id": 14656,
       "icon_color": 14303124
+    },
+    {
+      "name": "space-and-astronomy",
+      "thread_id": 14686,
+      "icon_color": 3084719
+    },
+    {
+      "name": "genc-kivilcim",
+      "thread_id": 14712,
+      "icon_color": 13505001
     }
   ]
 }

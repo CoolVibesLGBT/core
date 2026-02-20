@@ -3,6 +3,7 @@ package repositories
 import (
 	"core/helpers"
 	"core/models/post"
+	"core/models/taxonomy"
 	"core/types"
 	"strconv"
 
@@ -66,6 +67,19 @@ func (r *NewsRepository) GetNews(filters types.Filter) ([]*post.Post, types.Curs
 	return nil, cursorInfo, nil
 }
 
+func (r *NewsRepository) Get(filters types.Filter) (*post.Post, error) {
+
+	return nil, nil
+}
+
 func (r *NewsRepository) IsNewsExists(filters types.Filter) (bool, error) {
 	return r.PostRepo().ExistsBySlug(filters)
+}
+
+func (r *NewsRepository) Categories(filters types.Filter) ([]*taxonomy.Pillar, error) {
+	return nil, nil
+}
+
+func (r *NewsRepository) Category(filters types.Filter) (*taxonomy.Pillar, error) {
+	return nil, nil
 }

@@ -13,6 +13,7 @@ type CommandEnvelope struct {
 type TCommandTypes int
 
 const (
+	CMD_AGENTS_INVOKE = "agents.invoke"
 	//SYSTEM
 	CMD_INITIAL_SYNC    = "system.initial_sync"
 	CMD_PAYMENT_METHODS = "system.payment_methods"
@@ -136,6 +137,8 @@ const (
 	//NEWS EKRANI
 	CMD_NEWS_CREATE         = "news.create"
 	CMD_NEWS_FETCH          = "news.fetch"
+	CMD_NEWS_GET            = "news.get"
+	CMD_NEWS_CATEGORIES     = "news.categories"
 	CMD_NEWS_VOTE           = "news.vote"
 	CMD_NEWS_DELETE         = "news.delete"
 	CMD_NEWS_UPDATE         = "news.update"

@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: coolvibes-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: databasename
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: coolvibes-app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: host=db port=5432 user=postgres password=password dbname=databasename sslmode=disable
+      SITE_URI: https://api.coolvibes.lgbt
+      APP_BASE_URL: http://localhost:3001
+      RIG_JWT_SECRET: hzpCaBhUx..CINk2Rklm
+      USER_JWT_SECRET: abda8HxBa74f_.CINk2Rklm
+      STREAM_FOLDER: ./.streams
+      DEBUG_MODE: "true"
+      API_URL: http://localhost:1337
+      WSS_URL: http://localhost:1337
+      PORT: :3001
+      SOCKET_PORT: :3002
+      AUTH_TOKEN: Bareer eyJhbGciOiJIUzI1Ni...
+
+    ports:
+      - "3001:3001"
+
+volumes:
+  postgres_data:

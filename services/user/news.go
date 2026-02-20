@@ -4,6 +4,7 @@ import (
 	"context"
 	"core/models"
 	"core/models/post"
+	"core/models/taxonomy"
 	"core/types"
 	"fmt"
 
@@ -54,6 +55,18 @@ func (s *NewsService) GetNews(filters types.Filter) ([]*post.Post, types.Cursor,
 	return s.newsRepo.GetNews(filters)
 }
 
+func (s *NewsService) Get(filters types.Filter) (*post.Post, error) {
+	return s.newsRepo.Get(filters)
+}
+
 func (s *NewsService) IsNewsExists(filters types.Filter) (bool, error) {
 	return s.newsRepo.IsNewsExists(filters)
+}
+
+func (s *NewsService) Categories(filters types.Filter) ([]*taxonomy.Pillar, error) {
+	return s.newsRepo.Categories(filters)
+}
+
+func (s *NewsService) Category(filters types.Filter) (*taxonomy.Pillar, error) {
+	return s.newsRepo.Category(filters)
 }

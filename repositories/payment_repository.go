@@ -24,7 +24,7 @@ func (r *PaymentRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewPaymentRepositoryy(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository, notificationRepo *NotificationRepository) *PaymentRepository {
+func NewPaymentRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository, notificationRepo *NotificationRepository) *PaymentRepository {
 	return &PaymentRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo}
 }
 
