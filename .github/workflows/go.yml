@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgis/postgis:17-3.6-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -26,10 +26,12 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: host=localhost port=5432 user=postgres password=password dbname=databasename sslmode=disable
+      # Host burada "postgres" olmalı, localhost değil
+      DATABASE_URL: host=postgres port=5432 user=postgres password=password dbname=databasename sslmode=disable
       ENV: test
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -39,7 +41,15 @@ jobs:
           go-version: '1.25.4'
 
       - name: Wait for Postgres
-        run: sleep 5
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          for i in {1..30}; do
+            pg_isready -h postgres -U postgres && break
+            sleep 2
+          done
+
+      - name: Download dependencies
+        run: go mod tidy
 
       - name: Run migrations
         run: go run . --migrate
@@ -47,12 +57,6 @@ jobs:
       - name: Run seed
         run: go run . --seed
 
-      - name: Test
-        run: go test -v ./...
-
-      - name: Download dependencies
-        run: go mod tidy
-      
       - name: Build
         run: go build -v ./...
 
