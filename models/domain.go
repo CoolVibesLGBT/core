@@ -62,3 +62,7 @@ func GetDomainKind(raw string) DomainKind {
 func IsValidDomain(raw string) bool {
 	return GetDomainKind(raw) != UnknownDomain
 }
+
+func IsValidDomainByKind(domain DomainKind) bool {
+	return domain != UnknownDomain
+}

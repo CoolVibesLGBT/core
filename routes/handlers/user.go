@@ -33,9 +33,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 
 		userObj, token, err := s.Register(form.Value)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "user already exists",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserExists)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{

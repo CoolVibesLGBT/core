@@ -67,7 +67,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	captchaSecret := os.Getenv("CAPTCHA_SECRET_KEY")
 	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, formData.Captcha)
 	if captchaErr != nil {
-		return nil, "", errors.New("invalid  captcha")
+		return nil, "", errors.New(captchaErr.Error())
 	}
 
 	if !captchaValid {
@@ -84,6 +84,11 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		}
 	}
 
+	domain := models.GetDomainKind(formData.Domain)
+	if !models.IsValidDomainByKind(domain) {
+		return nil, "", errors.New("invalid domain")
+	}
+
 	// Hashle
 	hash, err := helpers.HashPasswordArgon2id(formData.Password)
 	if err != nil {
@@ -95,7 +100,6 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		return nil, "", errors.New("username already exists")
 	}
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		// başka bir hata varsa onu da döndür
 		return nil, "", err
 	}
 
@@ -174,18 +178,8 @@ func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
 	return s.userRepo.GetByID(id)
 }
 
-// Kullanıcı ID ile getir
 func (s *UserService) FetchUserProfileByUsername(username string) (*models.User, error) {
 	return s.userRepo.GetByUserNameOrEmailOrUsername(username)
-}
-
-// Register işlemi
-func (s *UserService) Test() {
-
-	if err := s.userRepo.TestUser(); err != nil {
-		return
-	}
-
 }
 
 func (s *UserService) UpdateAvatar(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
