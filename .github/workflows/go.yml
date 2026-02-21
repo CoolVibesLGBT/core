@@ -1,4 +1,4 @@
-name: Go
+name: Go CI
 
 on:
   push:
@@ -12,13 +12,11 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:17-3.6-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: databasename
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
@@ -26,8 +24,7 @@ jobs:
           --health-retries=5
 
     env:
-      # Runner üzerinde çalıştığı için localhost olmak zorunda
-      DATABASE_URL: host=localhost port=5432 user=postgres password=password dbname=databasename sslmode=disable
+      DATABASE_URL: host=postgres port=5432 user=postgres password=password dbname=databasename sslmode=disable
       ENV: test
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
@@ -44,8 +41,11 @@ jobs:
         run: |
           echo "Waiting for Postgres to be ready..."
           for i in {1..30}; do
-            # Burada da host olarak localhost kullanılmalı
-            pg_isready -h localhost -U postgres && break
+            if pg_isready -h postgres -U postgres; then
+              echo "Postgres is ready!"
+              break
+            fi
+            echo "Waiting for Postgres..."
             sleep 2
           done
 
