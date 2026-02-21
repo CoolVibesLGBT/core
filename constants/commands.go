@@ -5,9 +5,9 @@ import "encoding/json"
 const APPLICATION_NAME = "COOLVIBES"
 
 type CommandEnvelope struct {
-	Version string          `json:"version"` // "v1", "v2" gibi
-	Code    string          `json:"code"`    // "chat.send_gif" gibi
-	Payload json.RawMessage `json:"payload"` // tip bilinmiyor, sonra parse edilir
+	Version string          `json:"version"`
+	Code    string          `json:"code"`
+	Payload json.RawMessage `json:"payload"`
 }
 
 type TCommandTypes int

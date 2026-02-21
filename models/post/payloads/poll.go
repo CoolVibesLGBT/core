@@ -50,7 +50,7 @@ type PollVote struct {
 	ChoiceID  uuid.UUID   `gorm:"type:uuid;index;not null" json:"choice_id"`
 	UserID    uuid.UUID   `gorm:"type:uuid;index;not null" json:"user_id"`
 	User      models.User `gorm:"foreignKey:UserID;references:ID" json:"user"`
-	Weight    int         `gorm:"default:1" json:"weight"` // weighted için
-	Rank      int         `gorm:"default:0" json:"rank"`   // ranked için
+	Weight    int         `gorm:"default:1" json:"weight"`
+	Rank      int         `gorm:"default:0" json:"rank"`
 	CreatedAt time.Time   `json:"created_at"`
 }

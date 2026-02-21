@@ -18,12 +18,11 @@ var rainbowRankGradients = []RankGradient{
 	{Colors: [2]string{"#AF52DE", "#FF2D55"}, TextColor: "#fff"},
 }
 
-// Hash string to int (same logic as TS, simple hash)
 func hashStringToNumber(str string) int {
 	hash := 0
 	for _, c := range str {
 		hash = (hash << 5) - hash + int(c)
-		hash &= 0xFFFFFFFF // int32 sınırı gibi davranması için (32 bit)
+		hash &= 0xFFFFFFFF
 	}
 	if hash < 0 {
 		hash = -hash
@@ -31,7 +30,6 @@ func hashStringToNumber(str string) int {
 	return hash
 }
 
-// GetRankGradient seçimi
 func GetRankGradient(tag interface{}) RankGradient {
 	switch v := tag.(type) {
 	case int:
@@ -47,7 +45,6 @@ func GetRankGradient(tag interface{}) RankGradient {
 		return rainbowRankGradients[index]
 
 	default:
-		// default ilk renk
 		return rainbowRankGradients[0]
 	}
 }

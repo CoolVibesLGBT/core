@@ -18,7 +18,6 @@ func SlugifyStrict(input string) string {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			builder.WriteRune(r)
 		}
-		// Tire, alt tire, boşluk gibi karakterleri atla
 	}
 	return builder.String()
 }

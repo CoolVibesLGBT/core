@@ -58,7 +58,6 @@ func GetDomainKind(raw string) DomainKind {
 	return UnknownDomain
 }
 
-// IsValidDomain returns true if domain belongs to any known domain groups
 func IsValidDomain(raw string) bool {
 	return GetDomainKind(raw) != UnknownDomain
 }

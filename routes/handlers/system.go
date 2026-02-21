@@ -36,7 +36,6 @@ type GroupedAttributes struct {
 	Attributes json.RawMessage `json:"attributes"` // JSON array olarak döner
 }
 
-// InitialData dönecek ana struct
 type InitialData struct {
 	VapidPubicKey string                                `json:"vapid_public_key"`
 	Preferences   models.PreferencesData                `json:"preferences"`
@@ -58,7 +57,6 @@ func NewSystemHandler(service *services.NotificationsService) *SystemHandler {
 
 func HandleInitialSync(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// 1. Tüm fantezileri çek
 		var preferences models.PreferencesData
 		if err := db.Model(&models.Preferences{}).Select("data").First(&preferences).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -80,8 +78,6 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 			})
 		}
 
-		// 3. Ülkeleri çek
-		// Örneğin countries tablosu veya sabit listeden
 		countries := map[string]CountryResponse{
 			"TR": {Code: "TR", Name: "Turkey"},
 			"US": {Code: "US", Name: "United States"},
@@ -94,7 +90,6 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 				"error": "Failed to get VAPID key",
 			})
 		}
-		// 5. InitialData hazırla
 		initialData := InitialData{
 			VapidPubicKey: key.PublicKey,
 			Preferences:   preferences,
@@ -162,7 +157,6 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 			})
 		}
 
-		// Kullanıcıyı veritabanından çek
 		var user models.User
 		if err := db.First(&user, "id = ?", authUser.ID).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -170,7 +164,6 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 			})
 		}
 
-		// Mevcut subscriptionları ayıkla
 		var subscriptions []models.Subscription
 		if len(user.Subscriptions) > 0 {
 			if err := json.Unmarshal(user.Subscriptions, &subscriptions); err != nil {
@@ -178,7 +171,6 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 			}
 		}
 
-		// Yeni abonelik mevcutsa ekleme
 		exists := false
 		for _, sub := range subscriptions {
 			if sub.Endpoint == newSub.Endpoint {
@@ -251,7 +243,6 @@ func HandleFetchPaymentMethods(db *gorm.DB) fiber.Handler {
 				})
 			}
 
-			// Beklenmeyen DB hatası
 			log.Printf("db error fetching payment method: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "internal server error",

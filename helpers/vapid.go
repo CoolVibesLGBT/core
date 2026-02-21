@@ -11,15 +11,11 @@ func CreateVapidKeys(db *gorm.DB) (*models.VapidKey, error) {
 	var key models.VapidKey
 	result := db.First(&key)
 	if result.Error == nil {
-		// Zaten var, döndür
 		return &key, nil
 	}
 	if result.Error != gorm.ErrRecordNotFound {
-		// Başka hata varsa onu döndür
 		return nil, result.Error
 	}
-
-	// Kayıt yoksa yeni üret
 	privateKey, publicKey, err := push.GenerateVAPIDKeys()
 	if err != nil {
 		return nil, err

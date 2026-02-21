@@ -31,11 +31,6 @@ func (b *SitemapBuilder) FormatTime(t time.Time) string {
 	return t.UTC().Format(time.RFC3339)
 }
 
-/*
-Optional advanced scoring hook
-Eğer ileride views, internal links vs eklersen
-buraya dokunursun
-*/
 func (b *SitemapBuilder) calculatePriority(published *time.Time) (string, string) {
 
 	if published == nil {
@@ -88,10 +83,6 @@ func (b *SitemapBuilder) BuildURLSitemap(items []SitemapItem) ([]byte, error) {
 
 	return append([]byte(xml.Header), output...), nil
 }
-
-/////////////////////////////////////////////////////////
-// 50K SPLIT ENGINE (Google hard limit)
-/////////////////////////////////////////////////////////
 
 func (b *SitemapBuilder) BuildSplitSitemaps(items []SitemapItem) ([][]byte, error) {
 

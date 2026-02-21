@@ -43,7 +43,6 @@ jobs:
         run: |
           echo "Waiting for Postgres to be ready..."
           for i in {1..30}; do
-            # Burada da host olarak localhost kullanılmalı
             pg_isready -h localhost -U postgres && break
             sleep 2
           done

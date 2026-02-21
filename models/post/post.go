@@ -107,7 +107,7 @@ func (Post) TableName() string {
 }
 
 func (u Post) MarshalJSON() ([]byte, error) {
-	type Alias Post // recursive çağrıyı önlemek için alias
+	type Alias Post
 	aux := struct {
 		PublicID string `json:"public_id"`
 		Alias

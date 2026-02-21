@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type LocalizedString map[string]string // key: dil kodu (en, tr, es), value: içerik
+type LocalizedString map[string]string
 
 func (ls *LocalizedString) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)

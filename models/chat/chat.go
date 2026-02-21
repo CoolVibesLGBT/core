@@ -13,18 +13,18 @@ import (
 
 type Chat struct {
 	ID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Type ChatType  `gorm:"index;not null" json:"type"` // private, group, channel
+	Type ChatType  `gorm:"index;not null" json:"type"`
 
-	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"` // Üst chat ID (ülke için null, şehir için ülke ID gibi)
+	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"`
 	Parent   *Chat      `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
 
-	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title"` // JSONB olarak sakla
+	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title"`
 	Description *utils.LocalizedString `gorm:"type:jsonb" json:"description"`
 
 	AvatarID *uuid.UUID   `json:"avatar_id,omitempty"`
 	Avatar   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
 
-	CreatorID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"creator_id"` // UUID olmalı
+	CreatorID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"creator_id"`
 	PinnedMsgID *uuid.UUID `gorm:"type:uuid;index" json:"pinned_msg_id,omitempty"`
 	PinnedMsg   *post.Post `gorm:"foreignKey:PinnedMsgID;references:ID" json:"pinned_msg,omitempty"`
 

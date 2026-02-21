@@ -16,7 +16,6 @@ import (
 func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 	gofakeit.Seed(time.Now().UnixNano())
 
-	// Opsiyonel pointer alanlar için helper fonksiyon
 	stringPtr := func(s string) *string {
 		return &s
 	}
@@ -25,7 +24,6 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 		return &t
 	}
 
-	// Rastgele doğum tarihi (18-60 yaş arası)
 	password := "denemetest"
 	hash, err := helpers.HashPasswordArgon2id(password)
 	if err != nil {
@@ -44,8 +42,6 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 		SocketID:    stringPtr(gofakeit.UUID()),
 		Bio:         utils.MakeLocalizedString("en", gofakeit.Sentence(10)),
 		DateOfBirth: timePtr(dob),
-
-		// Burada ilişkisel alanları elle doldurabilirsin veya boş bırakabilirsin.
 
 		IsActive:   true,
 		CreatedAt:  time.Now(),
@@ -72,9 +68,7 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 		ArtInterests:  []string{"painting", "sculpture"},
 		Entertainment: []string{"music", "concerts"},
 
-		Travel: models.TravelData{}, // Gerekirse doldurabilirsin
-
-		// jwt.StandardClaims içindeki alanları istersen ekle ya da boş bırak
+		Travel: models.TravelData{},
 	}
 
 	db.Create(&user)

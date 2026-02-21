@@ -23,5 +23,5 @@ type Pillar struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 
-	Clusters []Cluster `gorm:"foreignKey:PillarID;constraint:OnDelete:SET NULL" json:"clusters,omitempty"` // opsiyonel: pillar silinirse cluster'lar null olur
+	Clusters []Cluster `gorm:"foreignKey:PillarID;constraint:OnDelete:SET NULL" json:"clusters,omitempty"`
 }
