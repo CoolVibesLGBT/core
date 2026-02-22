@@ -21,6 +21,16 @@ func (ls LocalizedString) Value() (driver.Value, error) {
 	return json.Marshal(ls)
 }
 
+func (ls *LocalizedString) GetLocalizedString(lang string) string {
+	if ls == nil {
+		return ""
+	}
+	if val, ok := (*ls)[lang]; ok && val != "" {
+		return val
+	}
+	return ls.DefaultValue()
+}
+
 func MakeLocalizedString(lang string, text string) *LocalizedString {
 	if text == "" {
 		return nil

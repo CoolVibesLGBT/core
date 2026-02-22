@@ -443,9 +443,11 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		}
 	}
 
-	userInfo.UserName = formData.UserName
-	userInfo.DisplayName = formData.DisplayName
-	userInfo.Bio = utils.MakeLocalizedString("en", formData.Bio)
+	userInfo.UserName = helpers.DefaultIfEmpty(formData.UserName, userInfo.UserName)
+	userInfo.DisplayName = helpers.DefaultIfEmpty(formData.DisplayName, userInfo.DisplayName)
+
+	userInfo.Bio = utils.MakeLocalizedString(userInfo.DefaultLanguage, helpers.DefaultIfEmpty(formData.Bio, userInfo.Bio.GetLocalizedString(userInfo.DefaultLanguage)))
+
 	//userObj.Website = formData.Website
 
 	userInfo.PrivacyLevel = constants.PrivacyLevel(formData.PrivacyLevel)
