@@ -71,6 +71,9 @@ go run . -install
 ```
 
 ```bash
+golangci-lint run ./...
+```
+```bash
 go run github.com/google/wire/cmd/wire ./application
 ```
 

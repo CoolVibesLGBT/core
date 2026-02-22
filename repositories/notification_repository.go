@@ -6,7 +6,6 @@ import (
 	"core/models/notifications"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
 	push "core/push"
@@ -105,39 +104,27 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 	fmt.Println("VAPID KEY", vapidKeyInfo.PrivateKey)
 	fmt.Println("VAPID KEY", vapidKeyInfo.PublicKey)
 
+	opts := push.NewOptions().ApplyKeys(vapidKeyInfo.PublicKey, vapidKeyInfo.PrivateKey)
+
+	pb, err := push.NewService(opts)
+	if err != nil {
+		panic(err)
+	}
+
 	// Her subscription için push notification gönder
 	for _, sub := range subscriptions {
-		// subscription'dan push.Subscription yapısına dönüştür
-		pushSub := &push.Subscription{
-			Endpoint: sub.Endpoint,
-			Keys: push.Keys{
-				P256dh: sub.Keys.P256dh, // küçük d ile
-				Auth:   sub.Keys.Auth,
-			},
-		}
 
-		// push.Options oluştur
-		options := &push.Options{
-			Subscriber:      "mailto:ersanyakit@gmail.com", // İstersen helpers'dan da çekebilirsin
-			VAPIDPublicKey:  vapidKeyInfo.PublicKey,
-			VAPIDPrivateKey: vapidKeyInfo.PrivateKey,
-			TTL:             60,
-		}
+		err = pb.Send(&push.Push{
+			Endpoint:  sub.Endpoint,
+			Auth:      sub.Keys.Auth,
+			P256DH:    sub.Keys.P256dh,
+			Plaintext: payloadBytes,
+		})
 
-		// Push bildirimi gönder
-		resp, err := push.SendNotification(payloadBytes, pushSub, options)
 		if err != nil {
-			fmt.Printf("Failed to send notification to %s: %v\n", sub.Endpoint, err)
-			continue
+			fmt.Println("Error", err)
 		}
-		defer func() {
-			if cerr := resp.Body.Close(); cerr != nil && err == nil {
-				err = cerr
-			}
-		}()
-		if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
-			fmt.Printf("Unexpected status code %d when sending to %s\n", resp.StatusCode, sub.Endpoint)
-		}
+
 	}
 
 	return nil
