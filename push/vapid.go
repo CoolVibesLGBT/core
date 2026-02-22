@@ -1,11 +1,13 @@
 package push
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/url"
 	"strings"
@@ -50,20 +52,28 @@ func leftPad(b []byte, size int) []byte {
 	return out
 }
 
-func parseVAPIDPrivateKey(raw []byte) (*ecdsa.PrivateKey, error) {
+func parseVAPIDPrivateKeyString(key string) (*ecdsa.PrivateKey, error) {
+	key = strings.TrimSpace(key)
+
+	raw, err := base64.RawURLEncoding.DecodeString(key)
+	if err != nil {
+		// fallback
+		raw, err = base64.URLEncoding.DecodeString(key)
+		if err != nil {
+			return nil, errors.New("failed to decode VAPID private key")
+		}
+	}
+
 	if len(raw) != 32 {
-		return nil, errors.New("invalid vapid private key length")
+		return nil, errors.New("VAPID private key must be 32 bytes")
+	}
+
+	d := new(big.Int).SetBytes(raw)
+	if d.Sign() == 0 {
+		return nil, errors.New("VAPID private key is zero")
 	}
 
 	curve := elliptic.P256()
-
-	d := new(big.Int).SetBytes(raw)
-
-	if d.Sign() <= 0 || d.Cmp(curve.Params().N) >= 0 {
-		return nil, errors.New("invalid vapid private key value")
-	}
-
-	// Construct private key
 	priv := &ecdsa.PrivateKey{
 		D: d,
 		PublicKey: ecdsa.PublicKey{
@@ -71,14 +81,25 @@ func parseVAPIDPrivateKey(raw []byte) (*ecdsa.PrivateKey, error) {
 		},
 	}
 
-	// Derive public key using Public() (no ScalarBaseMult call here)
-	pub := priv.Public().(*ecdsa.PublicKey)
-	priv.PublicKey = *pub
+	// Public key’i artık güvenli şekilde derive et
+	ecdhCurve := ecdh.P256()
+	privECDH, err := ecdhCurve.NewPrivateKey(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	pub := privECDH.PublicKey().Bytes()
+	if len(pub) != 65 {
+		return nil, errors.New("invalid public key length from ECDH")
+	}
+
+	// x ve y’yi ayır
+	priv.PublicKey.X = new(big.Int).SetBytes(pub[1:33])
+	priv.PublicKey.Y = new(big.Int).SetBytes(pub[33:])
 
 	return priv, nil
 }
 
-// getVAPIDAuthorizationHeader builds Authorization header for Web Push
 func getVAPIDAuthorizationHeader(
 	endpoint string,
 	subscriber string,
@@ -104,26 +125,26 @@ func getVAPIDAuthorizationHeader(
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 
-	decodedPriv, err := decodeVapidKey(vapidPrivateKey)
+	fmt.Println("CODER22 CODER CODER23434222")
+
+	privKey, err := parseVAPIDPrivateKeyString(vapidPrivateKey)
 	if err != nil {
 		return "", err
 	}
 
-	privKey, err := parseVAPIDPrivateKey(decodedPriv)
-	if err != nil {
-		return "", err
-	}
+	fmt.Println("CODER CODER CODER23434222")
 
 	jwtString, err := token.SignedString(privKey)
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("CODER CODER CODER2222")
 
-	// Public key must already be raw 65-byte uncompressed
 	decodedPub, err := decodeVapidKey(vapidPublicKey)
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("CODER CODER CODER333")
 
 	return "vapid t=" + jwtString +
 		", k=" + base64.RawURLEncoding.EncodeToString(decodedPub), nil

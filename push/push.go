@@ -61,6 +61,7 @@ func SendNotification(message []byte, s *Subscription, options *Options) (*http.
 }
 
 func SendNotificationWithContext(ctx context.Context, message []byte, s *Subscription, options *Options) (*http.Response, error) {
+
 	authSecret, err := decodeSubscriptionKey(s.Keys.Auth)
 	if err != nil {
 		return nil, err

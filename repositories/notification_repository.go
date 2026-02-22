@@ -103,6 +103,8 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 	if err != nil {
 		return fmt.Errorf("failed to get vapid key: %w", err)
 	}
+	fmt.Println("VAPID KEY", vapidKeyInfo.PrivateKey)
+	fmt.Println("VAPID KEY", vapidKeyInfo.PublicKey)
 
 	// Her subscription için push notification gönder
 	for _, sub := range subscriptions {
