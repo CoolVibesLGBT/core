@@ -21,16 +21,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var instance *app.App // Singleton App instance
+var instance *app.App
 
-// NewApp, yeni bir App instance'ı oluşturur
 func NewApp() (*app.App, error) {
 	if instance == nil {
-		snowFlakeNode, err := helpers.NewNode(1) // Node ID, genelde 0-1023 arası
+		snowFlakeNode, err := helpers.NewNode(1)
 		if err != nil {
 			log.Fatalf("Failed to initialize snowflake node: %v", err)
 		}
-		// Database başlatma ve bağlantı
 		err = db.InitDB()
 		if err != nil {
 			fmt.Println(err)
