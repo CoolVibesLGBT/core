@@ -18,9 +18,13 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 	// JSON dosyasını aç
 	file, err := os.Open("static/data/interests.json")
 	if err != nil {
-		return nil, fmt.Errorf("Cannot open JSON file: %w", err)
+		return nil, fmt.Errorf("cannot open JSON file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// JSON yapısını Go struct'larıyla eşliyoruz
 
@@ -47,7 +51,7 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 
 	var data Data
 	if err := json.NewDecoder(file).Decode(&data); err != nil {
-		return nil, fmt.Errorf("Cannot decode JSON: %w", err)
+		return nil, fmt.Errorf("cannot decode JSON: %w", err)
 	}
 
 	for _, group := range data.Groups {

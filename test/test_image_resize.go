@@ -14,27 +14,31 @@ import (
 	"net/textproto"
 	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func detectMimeType(path string) (string, error) {
+func detectMimeType(path string, t *testing.T) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
 
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Fatalf("file close error: %v", err)
+		}
+	}()
 	buf := make([]byte, 512)
 	n, _ := f.Read(buf)
-
 	return http.DetectContentType(buf[:n]), nil
 }
 
-func testFileHeader(path string) (*multipart.FileHeader, error) {
+func testFileHeader(path string, t *testing.T) (*multipart.FileHeader, error) {
 	// MIME tespit et
-	mime, err := detectMimeType(path)
+	mime, err := detectMimeType(path, t)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +57,20 @@ func testFileHeader(path string) (*multipart.FileHeader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
-	io.Copy(fileWriter, file)
+	_, err = io.Copy(fileWriter, file)
+	if err != nil {
+		return nil, err
+	}
 
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
 
 	// Test request oluştur
 	req := httptest.NewRequest("POST", "/", body)
@@ -76,7 +89,7 @@ func testFileHeader(path string) (*multipart.FileHeader, error) {
 	return header, nil
 }
 
-func testImage(db *gorm.DB, snowFlakeNode *helpers.Node) {
+func testImage(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
 
 	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
 	// repository ve service oluştur
@@ -100,7 +113,7 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node) {
 
 	testAvatarFile := currentDirectory + "/static/samples/test2.jpeg"
 	fmt.Println("FULL_FILE_PATH", testAvatarFile)
-	testAvatarFileHader, err := testFileHeader(testAvatarFile)
+	testAvatarFileHader, err := testFileHeader(testAvatarFile, t)
 	if err != nil {
 		fmt.Println("TEST:AVATAR_FILE_ERR", err)
 		return
@@ -122,6 +135,6 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node) {
 	fmt.Println("Test Excuted")
 }
 
-func StartImageTest(db *gorm.DB, snowFlakeNode *helpers.Node) {
-	testImage(db, snowFlakeNode)
+func StartImageTest(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
+	testImage(db, snowFlakeNode, t)
 }

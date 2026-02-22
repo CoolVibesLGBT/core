@@ -176,18 +176,18 @@ func (s *Service) SendNews(post *post.Post) error {
 			tag := post.Hashtags[0]
 			topic, err := s.EnsureTopic(chat, tag.Tag)
 			if err == nil {
-
-				_, err = s.Bot.Send(chat, text, &telegramPackage.SendOptions{
+				_, errBot := s.Bot.Send(chat, text, &telegramPackage.SendOptions{
 					ParseMode:   telegramPackage.ModeHTML,
 					ReplyMarkup: menu,
 					ThreadID:    topic.ThreadID, // Burada topic ID ile topic içinde gönder
 				})
+				if errBot != nil {
+					fmt.Println("Error sending news:", errBot)
+				}
 			}
 
 		}
 	} else {
-
-		rand.Seed(time.Now().UnixNano()) // Rastgelelik için seed ataması
 
 		randomIndex := rand.Intn(len(post.Attachments)) // 0 ile len-1 arasında sayı
 
@@ -224,6 +224,9 @@ func (s *Service) SendNews(post *post.Post) error {
 					ReplyMarkup: menu,
 					ThreadID:    topic.ThreadID,
 				})
+				if err != nil {
+					fmt.Println("Fotoğraf gönderilemedi:", err)
+				}
 
 			}
 

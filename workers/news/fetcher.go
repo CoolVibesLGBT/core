@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -88,7 +87,11 @@ func extractArticle(feedURI string) (*ArticleResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); err == nil {
+			err = cerr
+		}
+	}()
 
 	reader, err := charset.NewReader(resp.Body, resp.Header.Get("Content-Type"))
 	if err != nil {
@@ -154,7 +157,11 @@ func downloadImage(imgURL, path string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("bad status: %s", resp.Status)
@@ -164,8 +171,11 @@ func downloadImage(imgURL, path string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	_, err = io.Copy(file, resp.Body)
 	return err
 }
@@ -224,131 +234,6 @@ func cleanContextText(contextText string) string {
 	return strings.TrimSpace(contextText)
 }
 
-func fetchAndProcessRSS(source RSSSource, app *application.App) error {
-	fp := gofeed.NewParser()
-
-	feed, err := fp.ParseURL(source.URL)
-	if err != nil {
-		return err
-	}
-
-	// Tüm feed objesini JSON'a çeviriyoruz
-	data, err := json.MarshalIndent(feed, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fileName := "./workers/temp/" + source.Name + ".json"
-	// Dosyaya yaz
-	err = os.WriteFile(fileName, data, 0644)
-	if err != nil {
-		return err
-	}
-
-	// Burada istediğin şekilde feed.Items üzerinde işlem yapabilirsin.
-	for _, item := range feed.Items {
-
-		articleSlug := helpers.GenerateSlug(item.Title)
-		articleFileFolder := fmt.Sprintf("%s%s/", FEED_NEWS_DIRECTORY, articleSlug)
-		err := MakeSureDirectoryPathExists(articleFileFolder)
-		if err != nil {
-			helpers.Println("MakeSureDirectoryPathExists", err)
-		}
-
-		articleContent, err := extractArticle(item.Link)
-		if err != nil {
-			helpers.Error("extractArticle :%s", err.Error())
-			continue
-		}
-
-		if strings.Contains(articleContent.Text, "automated queries") ||
-			strings.Contains(articleContent.Text, "unusual traffic") ||
-			strings.Contains(articleContent.Text, "SQL command or malformed data.") ||
-			strings.Contains(articleContent.Text, "Skip to content") ||
-			strings.Contains(articleContent.Text, "SUBSCRIBE NOW") ||
-			strings.Contains(articleContent.Text, "Manage Products and Account Information") ||
-			strings.Contains(articleContent.Text, "We've detected unusual activity from your computer network") ||
-			strings.Contains(articleContent.Text, "Please enable JS and disable any ad blocker") {
-			helpers.Println("Otomatik sorgu engelleme mesajı bulundu, atlanıyor: ", item.Link)
-			continue
-		}
-
-		articleContent.Text = cleanContextText(articleContent.Text)
-
-		articleContent.SourceName = source.Name
-		articleContent.SourceURL = item.Link
-
-		articleContent.Title = item.Title
-		articleContent.Slug = articleSlug
-		for _, category := range item.Categories {
-			articleContent.Categories = append(articleContent.Categories, category)
-		}
-
-		// articleContent zaten ArticleResult
-		articleJSON, err := json.MarshalIndent(articleContent, "", "  ")
-		if err != nil {
-			helpers.Error("articleJSON", err.Error())
-			continue
-		}
-
-		err = os.WriteFile(articleFileFolder+"article.json", articleJSON, 0644)
-		if err != nil {
-			helpers.Error("WriteFileArtJSON:%s", err.Error())
-			continue
-		}
-
-		for i, imgURL := range articleContent.Images {
-			if strings.HasPrefix(imgURL, "data:") {
-				continue
-			}
-
-			parsed, err := url.Parse(imgURL)
-			if err != nil {
-				helpers.Error("invalid image url: %s %s", imgURL, err.Error())
-				continue
-			}
-			ext := filepath.Ext(parsed.Path)
-			if ext == "" {
-				ext = ".jpg"
-			}
-
-			fileName := fmt.Sprintf("img_%d%s", i+1, ext)
-			savePath := filepath.Join(articleFileFolder, fileName)
-
-			err = downloadImage(imgURL, savePath)
-			if err != nil {
-				helpers.Error("failed to download: %s %s", imgURL, err.Error())
-				continue
-			}
-
-			cwd, err := os.Getwd()
-			if err != nil {
-				return err // ya da logla, handle et
-			}
-
-			articleContent.LocalImages = append(articleContent.LocalImages, filepath.Join(cwd, savePath))
-
-		}
-
-		helpers.Println("Kayit Ediliyor : %s", articleContent.Title)
-		post, err := CreateNew(articleContent, app)
-		if err != nil {
-			helpers.Error("CreateNew : %s", err.Error())
-			continue
-		}
-
-		telegramErr := app.Router.TelegramService.SendNews(post)
-		if telegramErr != nil {
-			fmt.Println("TELEGRAM ERROR", telegramErr)
-			helpers.Error("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
-			continue
-		}
-
-	}
-
-	return nil
-}
-
 type headerRoundTripper struct {
 	rt http.RoundTripper
 }
@@ -359,8 +244,14 @@ func (h headerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func fetchAndSaveRSS(source RSSSource) (string, error) {
-	MakeSureDirectoryPathExists(FEED_DIRECTORY)
-	MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
+	err := MakeSureDirectoryPathExists(FEED_DIRECTORY)
+	if err != nil {
+		return "", err
+	}
+	err = MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
+	if err != nil {
+		return "", err
+	}
 
 	fileName := fmt.Sprintf("%s%s_%s.json", FEED_DIRECTORY, source.ID, source.Name)
 	// Dosya varsa tekrar indirme
@@ -414,18 +305,6 @@ func extractSubAndDomainWithoutTLD(rawurl string) (string, error) {
 	return hostWithoutTLD, nil
 }
 
-func fetchAllFeeds(sources []RSSSource) error {
-	for _, src := range sources {
-		filePath, err := fetchAndSaveRSS(src)
-		if err != nil {
-			log.Printf("Failed to fetch feed %s: %v", src.Name, err)
-		} else {
-			log.Printf("Feed %s saved successfully", filePath)
-		}
-	}
-	return nil
-}
-
 func processFeedItem(item *gofeed.Item, app *application.App) error {
 	// Burada senin extractArticle vb. işlemler olabilir.
 	fmt.Printf("Processing: %s - %s\n", item.Title, item.Link)
@@ -475,11 +354,13 @@ func processFeedItem(item *gofeed.Item, app *application.App) error {
 
 	articleContent.Title = item.Title
 	articleContent.Slug = articleSlug
-	for _, category := range item.Categories {
-		articleContent.Categories = append(articleContent.Categories, category)
-	}
+	articleContent.Categories = append(articleContent.Categories, item.Categories...)
+	/*
+		for _, category := range item.Categories {
+			articleContent.Categories = append(articleContent.Categories, category	)
+		}
+	*/
 
-	// articleContent zaten ArticleResult
 	articleJSON, err := json.MarshalIndent(articleContent, "", "  ")
 	if err != nil {
 		helpers.Error("articleJSON", err.Error())
@@ -635,7 +516,5 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *ap
 
 	fmt.Println("FEEDS COUNT", len(feedFiles))
 
-	processFeedsRoundRobin(feedFiles, app)
-
-	return nil
+	return processFeedsRoundRobin(feedFiles, app)
 }

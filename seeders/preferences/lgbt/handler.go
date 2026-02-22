@@ -14,7 +14,7 @@ func SeedLGBTPreferences(db *gorm.DB) error {
 	_interests, errInterests := FetchInterests()
 	_fantasies, errFantasies := FetchFantasies()
 
-	var tag string = "LGBT"
+	var tag = "LGBT"
 
 	if errAttributes != nil || errInterests != nil || errFantasies != nil {
 		return fmt.Errorf("error fetching preferences data: %v %v %v", errAttributes, errInterests, errFantasies)

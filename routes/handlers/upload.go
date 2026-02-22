@@ -13,7 +13,11 @@ type UploadHandler struct {
 	service *services.MediaService
 }
 
-func HandleUploadMedia(s *services.MediaService) fiber.Handler {
+func NewUploadHandler(service *services.MediaService) *UploadHandler {
+	return &UploadHandler{service: service}
+}
+
+func (h *UploadHandler) HandleUploadMedia(s *services.MediaService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ownerIDStr := c.FormValue("owner_id")
 		ownerTypeStr := c.FormValue("owner_type")

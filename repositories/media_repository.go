@@ -185,13 +185,21 @@ func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path stri
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() {
+		if cerr := src.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	dst, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
+	defer func() {
+		if cerr := dst.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	_, err = dst.ReadFrom(src)
 	return err
@@ -295,12 +303,10 @@ func (r *MediaRepository) generateVideoVariants(originalPath string, ext string,
 		return nil, nil, nil, fmt.Errorf("probe video dimensions: %w", err)
 	}
 
+	fmt.Println("ROLE", role)
 	// helper to create output filenames in same dir
 	baseDir := filepath.Dir(originalPath)
 	baseName := strings.TrimSuffix(filepath.Base(originalPath), ext)
-	if ext == "" {
-		ext = filepath.Ext(originalPath)
-	}
 
 	// Ensure directory exists
 	if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
@@ -453,8 +459,7 @@ func makeImageVariantInfo(path string) *utils.VariantInfo {
 	}
 }
 
-// makeVideoVariant - video için VariantInfo
-func makeVideoVariant(path string) *utils.VariantInfo {
+func (r *MediaRepository) MakeVideoVariant(path string) *utils.VariantInfo {
 	if _, err := os.Stat(path); err != nil {
 		return nil
 	}
@@ -481,7 +486,6 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 	storagePath := r.GenerateStoragePath(userId, ownerID, ownerType, role, newFileName)
 
-	// Dosyayı kaydet
 	if err := r.SaveUploadedFile(file, storagePath); err != nil {
 		return nil, err
 	}

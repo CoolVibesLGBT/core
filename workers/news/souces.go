@@ -2544,26 +2544,25 @@ func GenerateAllRSSSources() []RSSSource {
 
 	// Önce statik kaynakları ekle
 	rssSources = append(rssSources, StaticRSSSources...)
-
 	return rssSources
-	// Sonra dillerin Google News kaynaklarını ekle
-	for _, lang := range Languages {
-		rssSources = append(rssSources, RSSSource{
-			ID:      "gnews-" + lang.Code + "-" + strings.ToLower(lang.CountryCode),
-			Name:    fmt.Sprintf("Google News (%s, %s)", lang.CountryCode, lang.Code),
-			URL:     GenerateGoogleNewsRSSURL(lang),
-			Enabled: true,
-		})
+	//lint:ignore SA4006 bu blok intentional olarak kullanılmıyor
+	/*
+		for _, lang := range Languages {
+			rssSources = append(rssSources, RSSSource{
+				ID:      "gnews-" + lang.Code + "-" + strings.ToLower(lang.CountryCode),
+				Name:    fmt.Sprintf("Google News (%s, %s)", lang.CountryCode, lang.Code),
+				URL:     GenerateGoogleNewsRSSURL(lang),
+				Enabled: true,
+			})
 
-		rssSources = append(rssSources, RSSSource{
-			ID:      "bingnews-" + lang.Code + "-" + strings.ToLower(lang.CountryCode),
-			Name:    fmt.Sprintf("Bing News (%s, %s)", lang.CountryCode, lang.Code),
-			URL:     GenerateBingNewsRSSURL(lang),
-			Enabled: false,
-		})
-	}
-
-	return rssSources
+			rssSources = append(rssSources, RSSSource{
+				ID:      "bingnews-" + lang.Code + "-" + strings.ToLower(lang.CountryCode),
+				Name:    fmt.Sprintf("Bing News (%s, %s)", lang.CountryCode, lang.Code),
+				URL:     GenerateBingNewsRSSURL(lang),
+				Enabled: false,
+			})
+		}
+	*/
 }
 
 var DefaultRSSSources = GenerateAllRSSSources()

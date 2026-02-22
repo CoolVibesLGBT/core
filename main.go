@@ -10,7 +10,6 @@ import (
 	"core/services/db"
 	"core/services/socket"
 	"core/services/socket/managers"
-	"core/test"
 	"core/workers"
 	"flag"
 	"fmt"
@@ -44,7 +43,6 @@ func NewApp() (*app.App, error) {
 		migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
 		seedFlag := flag.Bool("seed", false, "Run DB seed")
 		installFlag := flag.Bool("install", false, "Run DB migrate & seed")
-		testFlag := flag.Bool("test", false, "Test")
 
 		flag.Parse()
 
@@ -75,12 +73,6 @@ func NewApp() (*app.App, error) {
 			if err != nil {
 				fmt.Println(err)
 			}
-			os.Exit(0)
-		}
-
-		if *testFlag {
-			test.StartImageTest(db.DB, snowFlakeNode)
-			//test.StartTest(db.DB, snowFlakeNode)
 			os.Exit(0)
 		}
 
@@ -159,7 +151,11 @@ func main() {
 
 	notificationRepo := repositories.NewNotificationRepository(app.DB, nil)
 	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
-	go socket.ListenServer(app.DB, notificationMgr)
+	go func() {
+		if _, err := socket.ListenServer(app.DB, notificationMgr); err != nil {
+			log.Printf("socket server error: %v", err)
+		}
+	}()
 	log.Println("App running on", os.Getenv("PORT"))
 	log.Fatal(fiberApp.Listen(os.Getenv("PORT")))
 }

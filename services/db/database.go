@@ -58,7 +58,7 @@ func InitDB() error {
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		// Hata işleme
+		panic("failed to get sql db")
 	}
 
 	sqlDB.SetMaxIdleConns(10)           // Boşta bekleyen bağlantıların maksimum sayısı
@@ -215,8 +215,5 @@ func Migrate(app *application.App) error {
 }
 
 func Seed(app *application.App) error {
-	fmt.Println("Seed Begin")
-	seed.Seed(app)
-	fmt.Println("Seed End")
-	return nil
+	return seed.Seed(app)
 }

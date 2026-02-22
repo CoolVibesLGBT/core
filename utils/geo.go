@@ -42,7 +42,11 @@ func ReverseGeocode(lat, lon float64) (Address, error) {
 	if err != nil {
 		return address, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {

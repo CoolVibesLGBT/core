@@ -69,7 +69,8 @@ go run . -seed
 ```bash
 go run . -install
 ```
-
+go test -race -cover
+brew install golangci-lint
 ## Project Structure
 
 ```

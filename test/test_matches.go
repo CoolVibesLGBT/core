@@ -85,5 +85,6 @@ func testMatchesDetails(db *gorm.DB, snowFlakeNode *helpers.Node) {
 }
 
 func StartTest(db *gorm.DB, snowFlakeNode *helpers.Node) {
+	testMatches(db, snowFlakeNode, nil)
 	testMatchesDetails(db, snowFlakeNode)
 }

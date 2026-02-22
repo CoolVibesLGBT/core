@@ -9,7 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -295,9 +295,15 @@ func (r *UserRepository) UpsertUserPreferenceEx(ctx context.Context, user models
 	}
 
 	if enabled {
-		user.SetPreference(int(bitIndex))
+		err := user.SetPreference(int(bitIndex))
+		if err != nil {
+			return err
+		}
 	} else {
-		user.UnsetPreference(int(bitIndex))
+		err := user.UnsetPreference(int(bitIndex))
+		if err != nil {
+			return err
+		}
 	}
 
 	updateError := r.db.Model(&user).Update("preferences_flags", user.PreferencesFlags).Error
@@ -543,9 +549,13 @@ func (r *UserRepository) VerifyCaptcha(secret string, response string) (bool, er
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); err == nil {
+			err = cerr
+		}
+	}()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return false, err
 	}

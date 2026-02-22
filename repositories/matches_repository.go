@@ -109,31 +109,16 @@ func (m *MatchesRepository) addEngagementPair(ctx context.Context, engagerID uui
 	return true, err
 }
 
-func (m *MatchesRepository) removeEngagementPair(
-	ctx context.Context,
-	userID, targetID uuid.UUID,
-	kindGiven, kindReceived models.EngagementKind,
-) error {
-
-	// GIVEN sil
-	_, err := m.engagementRepo.ToggleEngagement(ctx,
-		targetID, userID, kindGiven,
-		targetID, "user",
-	)
+func (m *MatchesRepository) RemoveEngagementPair(ctx context.Context, userID, targetID uuid.UUID, kindGiven, kindReceived models.EngagementKind) error {
+	_, err := m.engagementRepo.ToggleEngagement(ctx, targetID, userID, kindGiven, targetID, "user")
 	if err != nil {
 		return err
 	}
-
-	// RECEIVED sil
-	_, err = m.engagementRepo.ToggleEngagement(ctx,
-		userID, targetID, kindReceived,
-		userID, "user",
-	)
+	_, err = m.engagementRepo.ToggleEngagement(ctx, userID, targetID, kindReceived, userID, "user")
 	return err
 }
 
-func (m *MatchesRepository) WasSeenRecently(
-	ctx context.Context,
+func (m *MatchesRepository) WasSeenRecently(ctx context.Context,
 	userID, targetID uuid.UUID,
 	hours int,
 ) (bool, error) {

@@ -9,7 +9,6 @@ import (
 	"core/repositories"
 	"core/router"
 	"core/routes/handlers"
-	"core/services/bot/telegram"
 	telegramService "core/services/bot/telegram"
 	"core/services/socket"
 	services "core/services/user"
@@ -42,7 +41,7 @@ type Router struct {
 
 func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 
-	tg, err := telegram.New()
+	tg, err := telegramService.New()
 	if err != nil {
 		helpers.Error("Telegram disabled: %v", err)
 		tg = nil

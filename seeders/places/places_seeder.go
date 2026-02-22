@@ -14,7 +14,6 @@ import (
 	"core/helpers"
 	"core/repositories"
 	services "core/services/user"
-	"core/utils"
 	globalUtils "core/utils"
 )
 
@@ -67,7 +66,7 @@ func placeToLexical(place Place) ([]byte, error) {
 
 	// Öncelikle bar ismi h1 olarak
 	if place.Name != "" {
-		heading := utils.MakeHeading([]globalUtils.LexicalText{
+		heading := globalUtils.MakeHeading([]globalUtils.LexicalText{
 			globalUtils.MakeLexicalText(place.Name, true), // bold
 		}, "h1")
 		children = append(children, heading)
@@ -77,7 +76,7 @@ func placeToLexical(place Place) ([]byte, error) {
 		if value == "" {
 			return
 		}
-		children = append(children, utils.MakeParagraph([]globalUtils.LexicalText{
+		children = append(children, globalUtils.MakeParagraph([]globalUtils.LexicalText{
 			globalUtils.MakeLexicalTextWithFormat(label+": ", 1),
 			globalUtils.MakeLexicalText(value, false),
 		}))
@@ -102,7 +101,7 @@ func placeToLexical(place Place) ([]byte, error) {
 
 	// Description, URLs gibi diğer alanlar...
 
-	root := utils.LexicalRoot{
+	root := globalUtils.LexicalRoot{
 		Children:   children,
 		Direction:  nil,
 		Format:     "",
@@ -113,7 +112,7 @@ func placeToLexical(place Place) ([]byte, error) {
 	}
 
 	wrapper := struct {
-		Root utils.LexicalRoot `json:"root"`
+		Root globalUtils.LexicalRoot `json:"root"`
 	}{Root: root}
 
 	return json.MarshalIndent(wrapper, "", "")
@@ -130,7 +129,11 @@ func SeedPlaces(application *application.App) error {
 	if err != nil {
 		log.Fatalf("Dosya açılamadı: %v", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Dosya içeriğini oku
 	bytes, err := io.ReadAll(file)
@@ -365,27 +368,7 @@ func SeedPlaces(application *application.App) error {
 			}
 		*/
 
-		newP := PlaceDB{
-			Name:        p.Name,
-			Tag:         p.Tag,
-			Address:     p.Address,
-			Latitude:    p.Latitude,
-			Longitude:   p.Longitude,
-			Town:        p.Town,
-			Province:    p.Province,
-			Region:      p.Region,
-			Postcode:    p.Postcode,
-			Country:     p.Country,
-			CountryCode: p.CountryCode,
-			Telephone:   p.Telephone,
-			Email:       p.Email,
-			Website:     p.Website,
-			Description: p.Description,
-			URLs:        p.URLs,
-			Image:       p.Image,
-			Source:      p.Source,
-			SourceID:    p.SourceID,
-		}
+		newP := PlaceDB(p)
 
 		jsonPlaceBytes, _ := json.Marshal(newP)
 		jsonPlaceString := string(jsonPlaceBytes)
@@ -437,7 +420,9 @@ func SeedPlaces(application *application.App) error {
 		}
 
 		authUser.DefaultLanguage = constants.CountryToLanguage[strings.ToUpper(p.CountryCode)]
-		placeService.CreatePlace(context.Background(), request, nil, authUser)
+		if _, err := placeService.CreatePlace(context.Background(), request, nil, authUser); err != nil {
+			return err
+		}
 	}
 	return nil
 }

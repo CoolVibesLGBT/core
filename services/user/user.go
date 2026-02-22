@@ -434,8 +434,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		dateOfBirth, err := time.Parse("2006-01-02", formData.DateOfBirth)
 		if err == nil {
 			userInfo.DateOfBirth = &dateOfBirth
-		} else {
-			// İstersen hata dönebilirsin, ya da ignore et
 		}
 	}
 

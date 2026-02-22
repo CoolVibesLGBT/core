@@ -39,7 +39,12 @@ func ResizeSquareCrop(srcPath, dstPath string, width, height int) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		cerr := f.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 
 	return webp.Encode(f, resized, &webp.Options{Lossless: true, Quality: 100})
 }
@@ -70,7 +75,11 @@ func ResizeSquareKeepAspect(srcPath, dstPath string, width, height int) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	return webp.Encode(f, final, &webp.Options{Lossless: true, Quality: 100})
 }
@@ -120,12 +129,8 @@ func ResizeLandscapeKeepAspect(srcPath, dstPath string, width, height int) error
 	}
 
 	fmt.Println("WIDTH", width, "HEIGHT", height)
-	img, err := imaging.Open(srcPath)
-	if err != nil {
-		return err
-	}
 
-	img, err = imaging.Decode(bytes.NewReader(data))
+	img, err := imaging.Decode(bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -145,9 +150,14 @@ func ResizeLandscapeKeepAspect(srcPath, dstPath string, width, height int) error
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
-	return webp.Encode(f, final, &webp.Options{Lossless: true, Quality: 100})
+	return webp.Encode(f, final, &webp.Options{
+		Lossless: true,
+		Quality:  100,
+	})
 }
 
 // ResizePortraitKeepAspect WebP formatında portrait için aspect koruyarak resize eder
@@ -196,7 +206,11 @@ func ResizePortraitKeepAspectCropCenter(srcPath, dstPath string, width, height i
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	return webp.Encode(f, resized, &webp.Options{Lossless: true, Quality: 100})
 }

@@ -123,7 +123,10 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 		}
 
 		userPublicIDs[s.ID()] = claims.PublicID
-		updateUserRooms(s, db, claims.PublicID, true)
+		err = updateUserRooms(s, db, claims.PublicID, true)
+		if err != nil {
+			fmt.Printf("Error updating user rooms: %v\n", err)
+		}
 
 	})
 
@@ -155,7 +158,10 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 			return
 		}
 		if notificationMsg.Action == constants.CMD_USER_MARK_NOTIFICATIONS_SEEN {
-			notificationManager.MarkNotificationAsRead(notificationMsg.NotificationID)
+			err := notificationManager.MarkNotificationAsRead(notificationMsg.NotificationID)
+			if err != nil {
+				fmt.Println("Error marking notification as read:", err)
+			}
 		}
 
 	})
@@ -163,7 +169,10 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
 		publicID, ok := userPublicIDs[s.ID()]
 		if ok {
-			updateUserRooms(s, db, publicID, false) // false = leave rooms
+			err := updateUserRooms(s, db, publicID, false) // false = leave rooms
+			if err != nil {
+				fmt.Printf("Error updating user rooms: %v\n", err)
+			}
 			delete(userPublicIDs, s.ID())
 		}
 		fmt.Println("Disconnected:", s.ID())
@@ -174,7 +183,11 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 			log.Fatalf("socketio listen error: %s\n", err)
 		}
 	}()
-	defer Server.Close()
+	defer func() {
+		if err := Server.Close(); err != nil {
+			log.Printf("socketio close error: %v\n", err)
+		}
+	}()
 
 	mux := http.NewServeMux()
 

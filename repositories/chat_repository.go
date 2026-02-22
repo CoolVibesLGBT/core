@@ -269,7 +269,11 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, request map[s
 	}
 
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
-	r.NotifyChatParticipants(chatObj.ID, *author, "New Message", newMessageNotification)
+	err = r.NotifyChatParticipants(chatObj.ID, *author, "New Message", newMessageNotification)
+	if err != nil {
+		fmt.Println("Error notifying chat participants:", err)
+		//return nil, err
+	}
 	return chatPost, err
 }
 

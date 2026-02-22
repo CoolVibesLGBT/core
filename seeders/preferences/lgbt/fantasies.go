@@ -55,13 +55,15 @@ func FetchFantasies() ([]models.PreferenceCategory, error) {
 
 	var fantasies []models.PreferenceCategory
 
-	// JSON dosyasını aç
 	file, err := os.Open("static/data/sexual_preferences.json")
 	if err != nil {
 		return nil, fmt.Errorf("cannot open JSON file: %w", err)
 	}
-	defer file.Close()
-
+	defer func() {
+		if cerr := file.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("file close error: %w", cerr)
+		}
+	}()
 	var data []struct {
 		Label       map[string]string `json:"label"`
 		Description map[string]string `json:"description"`

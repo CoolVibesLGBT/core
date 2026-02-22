@@ -2,7 +2,6 @@ package handlers
 
 import (
 	telegramServices "core/services/bot/telegram"
-	"fmt"
 
 	tele "gopkg.in/telebot.v4"
 
@@ -14,9 +13,8 @@ import (
 func HandleTelegramUpdates(s *telegramServices.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		secret := c.Get("X-Telegram-Bot-Api-Secret-Token")
-		fmt.Println("SECRET TOKEN", secret)
 		if secret != os.Getenv("TELEGRAM_WEBHOOK_SECRET") {
-			//return c.SendStatus(403)
+			return c.SendStatus(403)
 		}
 
 		var update tele.Update

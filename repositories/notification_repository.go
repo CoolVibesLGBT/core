@@ -129,7 +129,11 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 			fmt.Printf("Failed to send notification to %s: %v\n", sub.Endpoint, err)
 			continue
 		}
-		resp.Body.Close()
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 		if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 			fmt.Printf("Unexpected status code %d when sending to %s\n", resp.StatusCode, sub.Endpoint)
 		}

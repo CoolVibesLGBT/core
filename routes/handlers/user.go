@@ -628,18 +628,18 @@ func HandleUserLike(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
+		//todo: not implemented
 
 		fmt.Println("engagement_type", engagement_type)
 		fmt.Println("authUserId", authUserId)
 		fmt.Println("requestUserId", requestUserId)
 
-		//todo: not implemented
-		return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMethodNotImplemented)
-
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+		/*utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"message": "User liked successfully",
 			"status":  true,
-		})
+		})*/
+		return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMethodNotImplemented)
+
 	}
 }
 
