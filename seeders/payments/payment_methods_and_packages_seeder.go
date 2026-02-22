@@ -316,7 +316,7 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// Yok → Insert
-		if err := db.Create(paymentMethod).Error; err != nil {
+		if err := db.Create(&paymentMethod).Error; err != nil {
 			return fmt.Errorf("failed to insert payment method: %w", err)
 		}
 		return nil
@@ -327,7 +327,7 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 	}
 
 	// Var → Update
-	if err := db.Model(&existing).Updates(paymentMethod).Error; err != nil {
+	if err := db.Model(&existing).Updates(&paymentMethod).Error; err != nil {
 		return fmt.Errorf("failed to update payment method: %w", err)
 	}
 
