@@ -12,6 +12,7 @@ import (
 	"core/repositories"
 	"errors"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"os"
 	"strconv"
@@ -65,6 +66,11 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	}
 
 	captchaSecret := os.Getenv("CAPTCHA_SECRET_KEY")
+
+	if len(captchaSecret) == 0 {
+		log.Println("ENV CAPTCHA_SECRET_KEY is not set")
+	}
+
 	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, formData.Captcha)
 	if captchaErr != nil {
 		return nil, "", errors.New(captchaErr.Error())
