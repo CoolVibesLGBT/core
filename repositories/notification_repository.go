@@ -74,7 +74,6 @@ func (r *NotificationRepository) CreateNotification(senderUser uuid.UUID, receiv
 }
 
 func (r *NotificationRepository) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
-	// Kullanıcının kayıtlı subscriptionlarını json'dan ayıkla
 
 	notification, err := r.CreateNotification(sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
 	if err != nil {
