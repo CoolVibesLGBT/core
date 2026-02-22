@@ -9,12 +9,13 @@ import (
 	"os"
 	"strings"
 
-	"core/application"
 	"core/constants"
 	"core/helpers"
 	"core/repositories"
 	services "core/services/user"
 	globalUtils "core/utils"
+
+	"gorm.io/gorm"
 )
 
 type Place struct {
@@ -118,7 +119,7 @@ func placeToLexical(place Place) ([]byte, error) {
 	return json.MarshalIndent(wrapper, "", "")
 }
 
-func SeedPlaces(application *application.App) error {
+func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 
 	var places []Place
 
@@ -146,13 +147,13 @@ func SeedPlaces(application *application.App) error {
 		log.Fatalf("JSON parse edilemedi: %v", err)
 	}
 
-	notificationRepo := repositories.NewNotificationRepository(application.DB, application.SnowFlakeNode)
+	notificationRepo := repositories.NewNotificationRepository(db, node)
 	// repository ve service oluştur
-	engagementRepo := repositories.NewEngagementRepository(application.DB)
-	userRepo := repositories.NewUserRepository(application.DB, application.SnowFlakeNode, engagementRepo)
-	mediaRepo := repositories.NewMediaRepository(application.DB, application.SnowFlakeNode)
-	postRepo := repositories.NewPostRepository(application.DB, application.SnowFlakeNode, mediaRepo, userRepo, notificationRepo)
-	placesRepo := repositories.NewPlaceRepository(application.DB, application.SnowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
+	engagementRepo := repositories.NewEngagementRepository(db)
+	userRepo := repositories.NewUserRepository(db, node, engagementRepo)
+	mediaRepo := repositories.NewMediaRepository(db, node)
+	postRepo := repositories.NewPostRepository(db, node, mediaRepo, userRepo, notificationRepo)
+	placesRepo := repositories.NewPlaceRepository(db, node, mediaRepo, userRepo, notificationRepo, postRepo)
 	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
 
 	authUser, err := userRepo.GetUserByNameOrEmailOrNickname(constants.SystemUserExplorer)

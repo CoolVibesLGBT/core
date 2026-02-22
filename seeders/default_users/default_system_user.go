@@ -1,7 +1,6 @@
 package default_users
 
 import (
-	"core/application"
 	"core/constants"
 	"core/helpers"
 	"core/models"
@@ -9,11 +8,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-func SeedDefaultSystemUsers(application *application.App) error {
-	engagementRepo := repositories.NewEngagementRepository(application.DB)
-	userRepo := repositories.NewUserRepository(application.DB, application.SnowFlakeNode, engagementRepo)
+func SeedDefaultSystemUsers(db *gorm.DB, node *helpers.Node) error {
+	engagementRepo := repositories.NewEngagementRepository(db)
+	userRepo := repositories.NewUserRepository(db, node, engagementRepo)
 
 	for _, defaultUserName := range constants.DefaultSystemUsers {
 		defaultUserEmail := fmt.Sprintf("%s@coolvibes.lgbt", defaultUserName) // Email'i uygun şekilde ayarla
@@ -36,7 +36,7 @@ func SeedDefaultSystemUsers(application *application.App) error {
 
 		userObj := &models.User{
 			ID:          userID,
-			PublicID:    application.SnowFlakeNode.Generate().Int64(),
+			PublicID:    node.Generate().Int64(),
 			UserName:    defaultUserName,
 			DisplayName: defaultUserName,
 			Email:       defaultUserEmail,

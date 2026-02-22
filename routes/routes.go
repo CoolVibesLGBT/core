@@ -10,15 +10,17 @@ import (
 	"core/router"
 	"core/routes/handlers"
 	telegramService "core/services/bot/telegram"
-	"core/services/socket"
 	services "core/services/user"
 	"fmt"
 	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/google/wire"
 	"gorm.io/gorm"
 )
+
+var ProviderSet = wire.NewSet(NewRouter)
 
 type Router struct {
 	fiber         *fiber.App
@@ -39,7 +41,22 @@ type Router struct {
 	PaymentService      *services.PaymentService
 }
 
-func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
+func NewRouter(
+	db *gorm.DB,
+	snowFlakeNode *helpers.Node,
+	userService *services.UserService,
+	postService *services.PostService,
+	placeService *services.PlaceService,
+	newsService *services.NewsService,
+	matchesService *services.MatchesService,
+	chatService *services.ChatService,
+	notificationService *services.NotificationsService,
+	paymentService *services.PaymentService,
+	aiService *services.AIService,
+	userRepo *repositories.UserRepository,
+	notificationRepo *repositories.NotificationRepository,
+	sitemapRepo *repositories.SitemapRepository,
+) *Router {
 
 	tg, err := telegramService.New()
 	if err != nil {
@@ -55,8 +72,16 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 			ReadBufferSize:  8192,
 			WriteBufferSize: 8192,
 		}),
-		MCPServer:     mcp.NewMCPServer(),
-		snowFlakeNode: snowFlakeNode,
+		MCPServer:           mcp.NewMCPServer(),
+		snowFlakeNode:       snowFlakeNode,
+		AIService:           aiService,
+		NewsService:         newsService,
+		PostService:         postService,
+		UserService:         userService,
+		NotificationService: notificationService,
+		PlaceService:        placeService,
+		ChatService:         chatService,
+		PaymentService:      paymentService,
 	}
 
 	r.fiber.Use(cors.New(cors.Config{
@@ -67,42 +92,6 @@ func NewRouter(db *gorm.DB, snowFlakeNode *helpers.Node) *Router {
 	}))
 
 	r.fiber.Static("/static", "./static")
-
-	socketService := socket.NewSocketService(r.db)
-
-	notificationRepo := repositories.NewNotificationRepository(r.db, snowFlakeNode)
-	notificationService := services.NewNotificationsService(notificationRepo)
-
-	engagementRepo := repositories.NewEngagementRepository(r.db)
-	sitemapRepo := repositories.NewSitemapRepository(r.db)
-	userRepo := repositories.NewUserRepository(r.db, snowFlakeNode, engagementRepo)
-	mediaRepo := repositories.NewMediaRepository(r.db, snowFlakeNode)
-	postRepo := repositories.NewPostRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
-	placesRepo := repositories.NewPlaceRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
-	matchesRepo := repositories.NewMatchesRepository(r.db, engagementRepo)
-	newsRepo := repositories.NewNewsRepository(r.db, snowFlakeNode, mediaRepo, userRepo, notificationRepo, postRepo)
-
-	chatRepo := repositories.NewChatRepository(r.db, snowFlakeNode, postRepo, userRepo, notificationRepo)
-
-	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
-	postService := services.NewPostService(userRepo, postRepo, mediaRepo)
-	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
-	newsService := services.NewNewsService(userRepo, postRepo, mediaRepo, placesRepo, newsRepo)
-	matchesService := services.NewMatchService(userRepo, postRepo, mediaRepo, matchesRepo)
-	chatService := services.NewChatService(socketService, userRepo, postRepo, mediaRepo, matchesRepo, chatRepo, notificationRepo)
-
-	paymentsRepo := repositories.NewPaymentRepository(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
-
-	aiService := services.NewAIService(r.MCPServer, userRepo, postRepo, mediaRepo, placesRepo, newsRepo)
-	r.AIService = aiService
-	r.NewsService = newsService
-	r.PostService = postService
-	r.UserService = userService
-	r.NotificationService = notificationService
-	r.PlaceService = placeService
-	r.ChatService = chatService
-
-	paymentService := services.NewPaymentService(paymentsRepo, userRepo, postRepo, mediaRepo)
 
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok

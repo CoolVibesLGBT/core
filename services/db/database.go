@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"core/application"
+	"core/helpers"
 	"core/models"
 	"core/models/chat"
 	"core/models/media"
@@ -22,13 +22,26 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/wire"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+var ProviderSet = wire.NewSet(NewDatabase)
+
 var DB *gorm.DB // Global değişken olarak veritabanı bağlantısı
+
+func NewDatabase() (*gorm.DB, error) {
+	if DB == nil {
+		err := InitDB()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return DB, nil
+}
 
 func InitDB() error {
 	err := godotenv.Load()
@@ -115,7 +128,7 @@ type IndexDefinition struct {
 	Condition string // optional (partial index)
 }
 
-func MigrateIndexes(app *application.App) error {
+func MigrateIndexes(db *gorm.DB) error {
 
 	indexes := []IndexDefinition{
 		{
@@ -147,7 +160,7 @@ func MigrateIndexes(app *application.App) error {
 			%s (%s);
 		`, idx.Name, idx.Table, using, columns)
 
-		if err := app.DB.Exec(query).Error; err != nil {
+		if err := db.Exec(query).Error; err != nil {
 			return err
 		}
 	}
@@ -155,7 +168,7 @@ func MigrateIndexes(app *application.App) error {
 	return nil
 }
 
-func Migrate(app *application.App) error {
+func Migrate(db *gorm.DB) error {
 	fmt.Println("Migration:Begin")
 	//db.Logger = db.Logger.LogMode(logger.Silent)
 
@@ -165,11 +178,11 @@ func Migrate(app *application.App) error {
 		"pg_trgm":   "public",
 	}
 
-	if err := EnableExtensions(context.Background(), app.DB, extensions); err != nil {
+	if err := EnableExtensions(context.Background(), db, extensions); err != nil {
 		return err
 	}
 
-	err := app.DB.AutoMigrate(
+	err := db.AutoMigrate(
 
 		&taxonomy.Pillar{},
 		&taxonomy.Cluster{},
@@ -214,6 +227,6 @@ func Migrate(app *application.App) error {
 	return err
 }
 
-func Seed(app *application.App) error {
-	return seed.Seed(app)
+func Seed(db *gorm.DB, node *helpers.Node) error {
+	return seed.Seed(db, node)
 }

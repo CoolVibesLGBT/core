@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/google/wire"
 	"github.com/rs/cors"
 	socketio "github.com/vchitai/go-socket.io/v4"
 	"github.com/vchitai/go-socket.io/v4/engineio"
@@ -21,6 +22,11 @@ import (
 	"github.com/vchitai/go-socket.io/v4/engineio/transport/polling"
 	"github.com/vchitai/go-socket.io/v4/engineio/transport/websocket"
 	"gorm.io/gorm"
+)
+
+var ProviderSet = wire.NewSet(
+	NewSocketService,
+	managers.NewNotificationManager,
 )
 
 var Server *socketio.Server

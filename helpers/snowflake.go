@@ -9,7 +9,15 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/google/wire"
 )
+
+var ProviderSet = wire.NewSet(NewDefaultNode)
+
+func NewDefaultNode() (*Node, error) {
+	return NewNode(1)
+}
 
 var (
 	// Epoch is set to the twitter snowflake epoch of Nov 04 2010 01:42:54 UTC in milliseconds

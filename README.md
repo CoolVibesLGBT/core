@@ -69,6 +69,12 @@ go run . -seed
 ```bash
 go run . -install
 ```
+
+```bash
+go run github.com/google/wire/cmd/wire ./application
+```
+
+
 go test -race -cover
 brew install golangci-lint
 ## Project Structure

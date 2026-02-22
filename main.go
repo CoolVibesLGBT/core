@@ -6,7 +6,6 @@ import (
 	"core/constants"
 	"core/helpers"
 	"core/repositories"
-	"core/routes"
 	"core/services/db"
 	"core/services/socket"
 	"core/services/socket/managers"
@@ -20,67 +19,58 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var instance *app.App
+var appInstance *app.App
 
 func NewApp() (*app.App, error) {
-	if instance == nil {
-		snowFlakeNode, err := helpers.NewNode(1)
-		if err != nil {
-			log.Fatalf("Failed to initialize snowflake node: %v", err)
-		}
-		err = db.InitDB()
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-
-		instance = &app.App{
-			DB:            db.DB,
-			Router:        routes.NewRouter(db.DB, snowFlakeNode),
-			SnowFlakeNode: snowFlakeNode,
-		}
-
-		migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
-		seedFlag := flag.Bool("seed", false, "Run DB seed")
-		installFlag := flag.Bool("install", false, "Run DB migrate & seed")
-
-		flag.Parse()
-
-		if *installFlag {
-			*seedFlag = true
-			*migrateFlag = true
-		}
-
-		if *migrateFlag {
-			fmt.Println("Migration:BEGIN")
-			err = db.Migrate(instance)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			err = db.MigrateIndexes(instance)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			fmt.Println("Migration:END")
-
-			os.Exit(0)
-		}
-
-		if *seedFlag {
-			err = db.Seed(instance)
-			if err != nil {
-				fmt.Println(err)
-			}
-			os.Exit(0)
-		}
-
-		//faker.FakeUser(instance.DB, snowFlakeNode)
-
+	if appInstance != nil {
+		return appInstance, nil
 	}
 
-	return instance, nil
+	application, err := app.InitializeApp()
+	if err != nil {
+		return nil, err
+	}
+
+	migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
+	seedFlag := flag.Bool("seed", false, "Run DB seed")
+	installFlag := flag.Bool("install", false, "Run DB migrate & seed")
+
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	if *installFlag {
+		*seedFlag = true
+		*migrateFlag = true
+	}
+
+	if *migrateFlag {
+		fmt.Println("Migration:BEGIN")
+		err = db.Migrate(application.DB)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = db.MigrateIndexes(application.DB)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println("Migration:END")
+
+		os.Exit(0)
+	}
+
+	if *seedFlag {
+		err = db.Seed(application.DB, application.SnowFlakeNode)
+		if err != nil {
+			fmt.Println(err)
+		}
+		os.Exit(0)
+	}
+
+	appInstance = application
+	return appInstance, nil
 }
 
 func GetApp() (*app.App, error) {
@@ -149,7 +139,8 @@ func main() {
 			}
 		}()*/
 
-	notificationRepo := repositories.NewNotificationRepository(app.DB, nil)
+	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
+	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)
 	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
 	go func() {
 		if _, err := socket.ListenServer(app.DB, notificationMgr); err != nil {
