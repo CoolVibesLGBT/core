@@ -317,6 +317,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Attachments").
 		Preload("Attachments.File").
+		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
 		Where("published = ?", true).
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
@@ -347,7 +348,7 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
+		Where("contentable_type IN ?", []string{string(filters.PostKind)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).

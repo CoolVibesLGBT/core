@@ -62,44 +62,8 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 	cryptos := []map[string]string{
 		{
 			"kind":             string(payment.PaymentKind_CRYPTO),
-			"chain_id":         "1",
-			"contract_address": "0x0000000000000000000000000000000000000000",
-			"name":             "Ethereum",
-			"symbol":           "ETH",
-			"decimals":         "18",
-			"logo":             "/images/payments/eth.svg",
-		},
-		{
-			"kind":             string(payment.PaymentKind_CRYPTO),
-			"chain_id":         "88888",
-			"contract_address": "0x0000000000000000000000000000000000000000",
-			"name":             "Chiliz",
-			"symbol":           "CHZ",
-			"decimals":         "18",
-			"logo":             "/images/payments/chz.svg",
-		},
-		{
-			"kind":             string(payment.PaymentKind_CRYPTO),
-			"chain_id":         "56",
-			"contract_address": "0x0000000000000000000000000000000000000000",
-			"name":             "Binance BNB",
-			"symbol":           "BNB",
-			"decimals":         "18",
-			"logo":             "/images/payments/bnb.svg",
-		},
-		{
-			"kind":             string(payment.PaymentKind_CRYPTO),
-			"chain_id":         "43114",
-			"contract_address": "0x0000000000000000000000000000000000000000",
-			"name":             "Avalanche",
-			"symbol":           "AVAX",
-			"decimals":         "18",
-			"logo":             "/images/payments/avax.svg",
-		},
-		{
-			"kind":             string(payment.PaymentKind_CRYPTO),
 			"chain_id":         "999999",
-			"contract_address": "0x0000000000000000000000000000000000000000",
+			"contract_address": "AuxPrz4dnh7KfytKZPgcrGgch1BhkLW3hu1dRnNgTByA",
 			"name":             "Solana",
 			"symbol":           "SOL",
 			"decimals":         "9",
@@ -110,7 +74,7 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 	googlePays := []map[string]interface{}{
 		{
 			"name":        "Google Pay Test",
-			"enabled":     true,
+			"enabled":     false,
 			"merchant_id": GOOGLE_PAY_TEST_MERCHANT_ID,
 			"api_key":     GOOGLE_PAY_TEST_API_KEY,
 			"description": "COOLVIBES LGBTIQ SOCIAL MEDIA APPLICATION STRIPE TEST MERCHANT",
@@ -126,7 +90,7 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 		},
 		{
 			"name":        "Google Pay",
-			"enabled":     true,
+			"enabled":     false,
 			"merchant_id": GOOGLE_PAY_PROD_MERCHANT_ID,
 			"api_key":     GOOGLE_PAY_PROD_API_KEY,
 			"description": "COOLVIBES LGBTIQ SOCIAL MEDIA APPLICATION STRIPE MERCHANT",
@@ -335,11 +299,11 @@ func SeedPackagesAndPaymentMethods(db *gorm.DB) error {
 		ID:                 uuid.New(),
 		DefaultPaymentKind: payment.PaymentKind_GOOGLEPAY, // ya da PaymentKind tipi yoksa string olarak böyle bırakabilirsin
 		IBANDetails:        ibanJSON,
-		IsIBANEnabled:      true,
+		IsIBANEnabled:      false,
 		CryptoDetails:      cryptoJSON,
 		IsCryptoEnabled:    true,
 		GooglePayDetails:   googlePayJSON, // Google Pay token yoksa nil bırak
-		IsGooglePayEnabled: true,
+		IsGooglePayEnabled: false,
 		Packages:           packagesJSON,
 		SecretKeys:         secretsJSON,
 		CreatedAt:          time.Now(),

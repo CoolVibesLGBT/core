@@ -204,6 +204,7 @@ func Migrate(db *gorm.DB) error {
 		&models.Preferences{},
 
 		&models.User{},
+		&models.Wallet{},
 
 		&models.Mention{},
 		&models.Hashtag{},
