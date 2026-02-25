@@ -5,7 +5,7 @@ import (
 	"core/models/media"
 	services "core/services/user"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +18,7 @@ func NewUploadHandler(service *services.MediaService) *UploadHandler {
 }
 
 func (h *UploadHandler) HandleUploadMedia(s *services.MediaService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		ownerIDStr := c.FormValue("owner_id")
 		ownerTypeStr := c.FormValue("owner_type")
 		roleStr := c.FormValue("role")

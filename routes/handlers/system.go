@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
@@ -56,7 +56,7 @@ func NewSystemHandler(service *services.NotificationsService) *SystemHandler {
 }
 
 func HandleInitialSync(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var preferences models.PreferencesData
 		if err := db.Model(&models.Preferences{}).Select("data").First(&preferences).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -106,7 +106,7 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 }
 
 func HandleVapidGetKey(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		key, err := helpers.CreateVapidKeys(db)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -125,7 +125,7 @@ func HandleVapidGetKey(db *gorm.DB) fiber.Handler {
 }
 
 func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -204,7 +204,7 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 }
 
 func HandleGetNotifications(s *services.NotificationsService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -234,7 +234,7 @@ func HandleGetNotifications(s *services.NotificationsService) fiber.Handler {
 }
 
 func HandleFetchPaymentMethods(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var pm payment.PaymentMethod
 		if err := db.First(&pm).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {

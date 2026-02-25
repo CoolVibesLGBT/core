@@ -14,8 +14,9 @@ import (
 	"fmt"
 	"strings"
 
-	fiber "github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	fiber "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 )
@@ -85,14 +86,17 @@ func NewRouter(
 	}
 
 	r.fiber.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders: []string{
+			"Accept", "Authorization", "Content-Type", "Content-Length",
+			"X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection",
+			"Accept-Encoding", "Accept-Language", "X-Requested-With",
+		},
 		AllowCredentials: false,
-		AllowMethods:     "POST,GET,OPTIONS,PUT,DELETE",
-		AllowHeaders:     "Accept,Authorization,authorization,Content-Type,Content-Length,X-CSRF-Token,Token,session,Origin,Host,Connection,Accept-Encoding,Accept-Language,X-Requested-With",
 	}))
 
-	r.fiber.Static("/static", "./static")
-
+	r.fiber.Use("/static", static.New("./static"))
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))         // middleware yok
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db)) // middleware yok vapid
@@ -389,7 +393,7 @@ func NewRouter(
 	r.fiber.All("/test", r.handlePacket)
 	r.fiber.All("/packet", r.handlePacket)
 
-	r.fiber.All("/sitemap.xml", func(c *fiber.Ctx) error {
+	r.fiber.All("/sitemap.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GenerateSitemapIndex(GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -399,7 +403,7 @@ func NewRouter(
 		return c.SendString(xml)
 	})
 
-	r.fiber.All("/sitemap-posts.xml", func(c *fiber.Ctx) error {
+	r.fiber.All("/sitemap-posts.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GeneratePostSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -409,7 +413,7 @@ func NewRouter(
 		return c.Send(xml)
 	})
 
-	r.fiber.All("/sitemap-news.xml", func(c *fiber.Ctx) error {
+	r.fiber.All("/sitemap-news.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GenerateNewsSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -419,7 +423,7 @@ func NewRouter(
 		return c.Send(xml)
 	})
 
-	r.fiber.All("/sitemap-pillars.xml", func(c *fiber.Ctx) error {
+	r.fiber.All("/sitemap-pillars.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GeneratePillarSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -429,7 +433,7 @@ func NewRouter(
 		return c.Send(xml)
 	})
 
-	r.fiber.All("/sitemap-clusters.xml", func(c *fiber.Ctx) error {
+	r.fiber.All("/sitemap-clusters.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GenerateClusterSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -439,7 +443,7 @@ func NewRouter(
 		return c.Send(xml)
 	})
 
-	r.fiber.Get("/sitemap-images.xml", func(c *fiber.Ctx) error {
+	r.fiber.Get("/sitemap-images.xml", func(c fiber.Ctx) error {
 		xmlData, err := sitemapRepo.GenerateImageSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -448,7 +452,7 @@ func NewRouter(
 		return c.Send(xmlData)
 	})
 
-	r.fiber.Get("/sitemap-videos.xml", func(c *fiber.Ctx) error {
+	r.fiber.Get("/sitemap-videos.xml", func(c fiber.Ctx) error {
 		xmlData, err := sitemapRepo.GenerateVideoSitemap(c.Context(), GetBaseURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
@@ -459,7 +463,7 @@ func NewRouter(
 	return r
 }
 
-func GetBaseURL(c *fiber.Ctx) string {
+func GetBaseURL(c fiber.Ctx) string {
 	scheme := "http"
 
 	if c.Protocol() == "https" {
@@ -469,7 +473,7 @@ func GetBaseURL(c *fiber.Ctx) string {
 	return scheme + "://" + c.Hostname()
 }
 
-func (r *Router) handlePacket(c *fiber.Ctx) error {
+func (r *Router) handlePacket(c fiber.Ctx) error {
 	var action string
 	c.Set("Access-Control-Allow-Origin", "*")
 	c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -491,7 +495,8 @@ func (r *Router) handlePacket(c *fiber.Ctx) error {
 			var packet struct {
 				Action string `json:"action"`
 			}
-			if err := c.BodyParser(&packet); err != nil {
+
+			if err := c.Bind().JSON(&packet); err != nil {
 				return c.Status(fiber.StatusBadRequest).SendString("invalid JSON body")
 			}
 			action = packet.Action

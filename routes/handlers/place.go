@@ -5,7 +5,7 @@ import (
 	services "core/services/user"
 	"mime/multipart"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type PlaceHandler struct {
@@ -17,7 +17,7 @@ func NewPlaceHandler(service *services.PlaceService) *PlaceHandler {
 }
 
 func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
 		if err != nil {
@@ -52,7 +52,7 @@ func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
 }
 
 func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
 

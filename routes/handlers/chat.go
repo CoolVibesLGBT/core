@@ -7,7 +7,7 @@ import (
 	"core/utils"
 	"mime/multipart"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
@@ -20,7 +20,7 @@ func NewChatHandler(chatService *services.ChatService) *ChatHandler {
 }
 
 func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -51,7 +51,7 @@ func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
 }
 
 func HandleSendMessage(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
@@ -80,7 +80,7 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 }
 
 func HandleCreateChat(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -123,7 +123,7 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 }
 
 func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -144,7 +144,7 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 }
 
 func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -185,7 +185,7 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 }
 
 func HandlePinMessage(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -222,7 +222,7 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 }
 
 func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -259,7 +259,7 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -296,7 +296,7 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -327,7 +327,7 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -358,7 +358,7 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -388,7 +388,7 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteChat(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -418,7 +418,7 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 }
 
 func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)

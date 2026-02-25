@@ -4,16 +4,16 @@ import (
 	"core/mcp"
 	services "core/services/user"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func HandleMCP(s *services.AIService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		var payload any
 
 		if c.Method() != fiber.MethodGet {
-			if err := c.BodyParser(&payload); err != nil {
+			if err := c.Bind().Body(&payload); err != nil {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 					"error": "invalid body",
 				})

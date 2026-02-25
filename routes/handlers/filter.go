@@ -7,11 +7,11 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
-func ParseFilters(c *fiber.Ctx, authUser *models.User) (types.Filter, error) {
+func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	filter := types.Filter{
 		AuthUser: authUser,
 		Context:  c.Context(),

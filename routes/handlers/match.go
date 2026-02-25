@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type MatchHandler struct {
@@ -21,7 +21,7 @@ func NewMatchHandler(service *services.MatchesService) *MatchHandler {
 }
 
 func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -44,7 +44,7 @@ func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
 }
 
 func HandleRecordView(s *services.MatchesService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -98,7 +98,7 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 }
 
 func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -153,7 +153,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
 }
 
 func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -208,7 +208,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 }
 
 func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {

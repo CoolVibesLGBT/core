@@ -5,7 +5,7 @@ import (
 
 	services "core/services/user"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type PaymentHandler struct {
@@ -18,7 +18,7 @@ func NewPaymentHandler(service *services.PaymentService) *PaymentHandler {
 
 // /stripe/thin
 func HandleStripeThin(s *services.PaymentService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		fmt.Println("STRIPE_THIN_EXECUTED")
 		return c.SendStatus(fiber.StatusOK)
 	}
@@ -26,7 +26,7 @@ func HandleStripeThin(s *services.PaymentService) fiber.Handler {
 
 // /stripe/snapshot
 func HandleStripeSnapshot(s *services.PaymentService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		fmt.Println("STRIPE_SNAPSHOT_EXECUTED")
 		return c.SendStatus(fiber.StatusOK)
 	}

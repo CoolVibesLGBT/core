@@ -3,7 +3,7 @@ package router
 import (
 	"core/middleware"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +34,7 @@ func (ar *ActionRouter) Register(action string, handler fiber.Handler, mws ...mi
 }
 
 // Resolve
-func (ar *ActionRouter) Resolve(c *fiber.Ctx) error {
+func (ar *ActionRouter) Resolve(c fiber.Ctx) error {
 	action := c.FormValue("action")
 	if action == "" {
 		action = c.Query("action")

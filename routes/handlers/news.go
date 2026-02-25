@@ -7,7 +7,7 @@ import (
 	"mime/multipart"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type NewsHandler struct {
@@ -19,7 +19,7 @@ func NewNewsHandler(service *services.NewsService) *NewsHandler {
 }
 
 func HandleCreateNews(s *services.NewsService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
 		if err != nil {
@@ -54,7 +54,7 @@ func HandleCreateNews(s *services.NewsService) fiber.Handler {
 }
 
 func HandleFetchNews(s *services.NewsService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
 

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -23,7 +23,7 @@ func NewPostHandler(service *services.PostService) *PostHandler {
 }
 
 func HandleCreate(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
 		if err != nil {
@@ -54,7 +54,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 }
 
 func HandleVote(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -102,7 +102,7 @@ func HandleVote(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostDelete(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -127,7 +127,7 @@ func HandlePostDelete(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostLike(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		// authenticated user
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -157,7 +157,7 @@ func HandlePostLike(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostBanana(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -181,7 +181,7 @@ func HandlePostBanana(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostDislike(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -205,7 +205,7 @@ func HandlePostDislike(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostBookmark(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -232,7 +232,7 @@ func HandlePostBookmark(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostReport(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -271,7 +271,7 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostView(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		//todo:without middleware
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -299,7 +299,7 @@ func HandlePostView(s *services.PostService) fiber.Handler {
 }
 
 func HandlePostTip(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -349,7 +349,7 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetByID(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -369,7 +369,7 @@ func HandleGetByID(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetByPublicID(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -387,7 +387,7 @@ func HandleGetByPublicID(s *services.PostService) fiber.Handler {
 }
 
 func HandleTimeline(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -405,7 +405,7 @@ func HandleTimeline(s *services.PostService) fiber.Handler {
 }
 
 func HandleTimelineVibes(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -425,7 +425,7 @@ func HandleTimelineVibes(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -445,7 +445,7 @@ func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -465,7 +465,7 @@ func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -499,7 +499,7 @@ func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		idStr := c.FormValue("id")
 		if idStr == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -526,7 +526,7 @@ func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetTrends(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -551,7 +551,7 @@ func HandleGetTrends(s *services.PostService) fiber.Handler {
 }
 
 func HandleGetCategories(s *services.PostService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		//
 

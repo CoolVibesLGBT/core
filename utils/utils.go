@@ -3,7 +3,7 @@ package utils
 import (
 	"core/constants"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type ErrorResponse struct {
@@ -12,7 +12,7 @@ type ErrorResponse struct {
 	Message string              `json:"message"`
 }
 
-func SendError(c *fiber.Ctx, status int, code constants.ErrorCode) error {
+func SendError(c fiber.Ctx, status int, code constants.ErrorCode) error {
 	return c.Status(status).JSON(ErrorResponse{
 		Success: false,
 		Code:    code,
@@ -20,6 +20,6 @@ func SendError(c *fiber.Ctx, status int, code constants.ErrorCode) error {
 	})
 }
 
-func SendJSON(c *fiber.Ctx, status int, payload interface{}) error {
+func SendJSON(c fiber.Ctx, status int, payload interface{}) error {
 	return c.Status(status).JSON(payload)
 }

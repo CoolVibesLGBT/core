@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type UserHandler struct {
@@ -22,7 +22,7 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 }
 
 func HandleRegister(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// Multipart form'u al (error kontrolü ile)
 		form, err := c.MultipartForm()
 		if err != nil {
@@ -44,7 +44,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 }
 
 func HandleLogin(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// Multipart form verisini al
 		form, err := c.MultipartForm()
 		if err != nil {
@@ -68,7 +68,7 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 }
 
 func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		username := c.FormValue("nickname")
 		if username == "" {
 			username = c.FormValue("username")
@@ -88,7 +88,7 @@ func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
 }
 
 func HandleUploadAvatar(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -125,7 +125,7 @@ func HandleUploadAvatar(s *services.UserService) fiber.Handler {
 }
 
 func HandleUploadCover(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// Dosyayı al
 		fileHeader, err := c.FormFile("cover")
 		if err != nil {
@@ -167,7 +167,7 @@ func HandleUploadCover(s *services.UserService) fiber.Handler {
 }
 
 func HandleUploadStory(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// Dosyayı al (multipart form otomatik parse edilir)
 		fileHeader, err := c.FormFile("story")
 		if err != nil {
@@ -197,7 +197,7 @@ func HandleUploadStory(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserInfo(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -217,7 +217,7 @@ func HandleUserInfo(s *services.UserService) fiber.Handler {
 }
 
 func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -261,7 +261,7 @@ func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
 }
 
 func HandleFetchStories(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// limit parametresini query'den al, default 20 olsun
 		limit := 20
 		if l := c.Query("limit"); l != "" {
@@ -286,7 +286,7 @@ func HandleFetchStories(s *services.UserService) fiber.Handler {
 }
 
 func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		fmt.Println("AuthMiddlewareWithoutCheck")
 
 		// Fiber'de form parse işlemi otomatik olarak yapılır, elle ParseForm yok
@@ -349,7 +349,7 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 }
 
 func HandleFollow(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -392,7 +392,7 @@ func HandleFollow(s *services.UserService) fiber.Handler {
 }
 
 func HandleUnfollow(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -435,7 +435,7 @@ func HandleUnfollow(s *services.UserService) fiber.Handler {
 }
 
 func HandleToggleFollow(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -493,7 +493,7 @@ func HandleToggleFollow(s *services.UserService) fiber.Handler {
 }
 
 func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		searchStr := c.FormValue("query")
 		limit := 15
 
@@ -511,7 +511,7 @@ func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
 }
 
 func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -542,7 +542,7 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 }
 
 func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -613,7 +613,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserLike(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -644,7 +644,7 @@ func HandleUserLike(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserDislike(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -675,7 +675,7 @@ func HandleUserDislike(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -720,7 +720,7 @@ func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Han
 }
 
 func HandleUserBlock(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -750,7 +750,7 @@ func HandleUserBlock(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserUnblock(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
@@ -780,7 +780,7 @@ func HandleUserUnblock(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -818,7 +818,7 @@ func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserNotifications(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -860,7 +860,7 @@ func HandleUserNotifications(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserCheckIn(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -890,7 +890,7 @@ func HandleUserCheckIn(s *services.UserService) fiber.Handler {
 }
 
 func HandleUserDelete(s *services.UserService) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {

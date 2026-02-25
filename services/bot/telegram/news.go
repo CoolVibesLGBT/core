@@ -176,7 +176,7 @@ func (s *Service) SendNews(post *post.Post) error {
 				_, errBot := s.Bot.Send(chat, text, &telegramPackage.SendOptions{
 					ParseMode:   telegramPackage.ModeHTML,
 					ReplyMarkup: menu,
-					ThreadID:    topic.ThreadID, // Burada topic ID ile topic içinde gönder
+					ThreadID:    topic.ThreadID,
 				})
 				if errBot != nil {
 					fmt.Println("Error sending news:", errBot)

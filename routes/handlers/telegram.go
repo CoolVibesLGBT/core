@@ -7,18 +7,17 @@ import (
 
 	"os"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func HandleTelegramUpdates(s *telegramServices.Service) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		secret := c.Get("X-Telegram-Bot-Api-Secret-Token")
 		if secret != os.Getenv("TELEGRAM_WEBHOOK_SECRET") {
 			return c.SendStatus(403)
 		}
-
 		var update tele.Update
-		if err := c.BodyParser(&update); err != nil {
+		if err := c.Bind().JSON(&update); err != nil {
 			return c.SendStatus(400)
 		}
 

@@ -7,7 +7,7 @@ import (
 	"core/models"
 	"core/repositories"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 const userContextKey = "authenticatedUser"
@@ -16,7 +16,7 @@ type Middleware func(fiber.Handler) fiber.Handler
 
 func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
 	return func(next fiber.Handler) fiber.Handler {
-		return func(c *fiber.Ctx) error {
+		return func(c fiber.Ctx) error {
 			authHeader := c.Get("Authorization")
 			if authHeader == "" {
 				return c.Status(fiber.StatusUnauthorized).SendString("Missing Authorization header")
@@ -48,7 +48,7 @@ func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) f
 
 func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
 	return func(next fiber.Handler) fiber.Handler {
-		return func(c *fiber.Ctx) error {
+		return func(c fiber.Ctx) error {
 			authHeader := c.Get("Authorization")
 
 			if authHeader != "" {
@@ -75,7 +75,7 @@ func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) func(fibe
 	}
 }
 
-func GetAuthenticatedUser(c *fiber.Ctx) (*models.User, bool) {
+func GetAuthenticatedUser(c fiber.Ctx) (*models.User, bool) {
 	u := c.Locals(userContextKey)
 	if u == nil {
 		return nil, false
