@@ -105,5 +105,15 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Longitude = &long
 	}
 
+	// Distance
+	if distStr := c.FormValue("distance"); distStr != "" {
+		dist, err := strconv.ParseFloat(distStr, 64)
+		if err != nil {
+			return filter, fmt.Errorf("invalid distance")
+		}
+		filter.Distance = &dist
+	}
+
+
 	return filter, nil
 }

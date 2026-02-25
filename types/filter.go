@@ -26,6 +26,7 @@ type Filter struct {
 	Country   *string
 	Latitude  *float64
 	Longitude *float64
+	Distance  *float64
 	Cursor    *int64
 	Limit     int
 }
