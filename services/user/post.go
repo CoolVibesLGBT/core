@@ -112,7 +112,6 @@ func (s *PostService) GetRecentHashtags(filters types.Filter) ([]types.HashtagSt
 }
 
 func (s *PostService) GetTimelineVibes(filters types.Filter) (types.TimelineResult, error) {
-	// Repo fonksiyonunu çağırıyoruz
 	posts, err := s.postRepo.GetTimelineVibes(filters)
 	if err != nil {
 		return types.TimelineResult{}, err

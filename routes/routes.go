@@ -155,6 +155,12 @@ func NewRouter(
 	)
 
 	r.action.Register(
+		constants.CMD_USER_DELETE_PROFILE,
+		handlers.HandleUserDelete(userService),
+		middleware.AuthMiddleware(userRepo),
+	)
+
+	r.action.Register(
 		constants.CMD_USER_CHECK_IN,
 		handlers.HandleUserCheckIn(userService),
 		middleware.AuthMiddleware(userRepo),

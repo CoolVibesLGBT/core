@@ -888,3 +888,33 @@ func HandleUserCheckIn(s *services.UserService) fiber.Handler {
 		})
 	}
 }
+
+func HandleUserDelete(s *services.UserService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+
+		if auth_user == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		filters, err := ParseFilters(c, auth_user)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		delUserError := s.DeleteUser(filters)
+		if delUserError != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": delUserError.Error(),
+			})
+		}
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+			"success": true,
+		})
+	}
+}

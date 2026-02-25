@@ -252,7 +252,7 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindNews)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).

@@ -142,6 +142,7 @@ func (s *Service) SendNews(post *post.Post) error {
 			URL  string `json:"source_url"`
 		} `json:"source"`
 	}
+	return nil
 
 	var extras PostExtras
 	_ = json.Unmarshal(post.Extras, &extras)

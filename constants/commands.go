@@ -46,6 +46,7 @@ const (
 	CMD_USER_UPLOAD_COVER       = "user.upload_cover"
 	CMD_USER_UPLOAD_STORY       = "user.upload_story"
 	CMD_UPDATE_USER_PROFILE     = "user.update_profile"
+	CMD_USER_DELETE_PROFILE     = "user.delete_profile"
 
 	CMD_USER_FETCH_STORIES     = "user.fetch.stories"
 	CMD_USER_FETCH_PROFILE     = "user.fetch_profile"

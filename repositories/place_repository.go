@@ -58,13 +58,8 @@ func (r *PlaceRepository) GetPlaceByID(id uuid.UUID) (*post.Post, error) {
 	return r.postRepo.GetPostByID(id)
 }
 
-func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
-	source string,
-	placeSourceID string,
-) (bool, error) {
-
+func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(source string, placeSourceID string) (bool, error) {
 	var exists bool
-
 	err := r.db.Raw(`
         SELECT EXISTS (
             SELECT 1
@@ -73,7 +68,6 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(
               AND extras -> 'place' ->> 'SourceID' = ?
         )
     `, source, placeSourceID).Scan(&exists).Error
-
 	return exists, err
 }
 

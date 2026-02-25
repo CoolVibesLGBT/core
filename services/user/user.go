@@ -10,6 +10,7 @@ import (
 	"core/models/notifications"
 	"core/models/utils"
 	"core/repositories"
+	"core/types"
 	"errors"
 	"fmt"
 	"log"
@@ -604,4 +605,9 @@ func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models
 
 func (s *UserService) CheckIn(ctx context.Context) error {
 	return s.userRepo.CheckIn(ctx)
+}
+
+func (s *UserService) DeleteUser(filters types.Filter) error {
+	return s.userRepo.DeleteUser(filters)
+
 }

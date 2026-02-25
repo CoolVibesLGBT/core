@@ -6,6 +6,7 @@ import (
 	"core/models"
 	"core/models/notifications"
 	"core/models/utils"
+	"core/types"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -102,9 +103,9 @@ func (r *UserRepository) UpdateUser(u *models.User) error {
 	return r.db.Save(u).Error
 }
 
-func (r *UserRepository) DeleteUser(userID uuid.UUID) error {
+func (r *UserRepository) DeleteUser(filters types.Filter) error {
 	return r.db.
-		Where("id = ?", userID).
+		Where("id = ?", filters.UserID).
 		Delete(&models.User{}).Error
 }
 
@@ -116,7 +117,6 @@ func (r *UserRepository) LoginViaToken(token string) error {
 	return nil
 }
 
-// ID ile kullanıcıyı al
 func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 	var u models.User
 
