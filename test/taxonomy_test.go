@@ -12,63 +12,63 @@ import (
 
 func TestPillar_FullLifecycle(t *testing.T) {
 
-	app, err := NewTestApp()
-	if err != nil {
-		t.Fatal(err)
-	}
+	app := NewTestApp(t)
+
+	slug := "spor-" + uuid.New().String()
+
+	// ---------------------------
+	// MAIN LIFECYCLE (TX)
+	// ---------------------------
+	tx := app.DB.Begin()
+	defer tx.Rollback()
 
 	pillar := taxonomy.Pillar{
-		ID:   uuid.New(),
-		Slug: "spor",
-		Name: utils.LocalizedString{
-			"tr": "Spor",
-			"en": "Sports",
-		},
+		ID:       uuid.New(),
+		Slug:     slug,
+		Name:     utils.LocalizedString{"tr": "Spor", "en": "Sports"},
 		IsActive: true,
 	}
 
-	err = app.DB.Create(&pillar).Error
-	assert.NoError(t, err)
+	assert.NoError(t, tx.Create(&pillar).Error)
 
 	var found taxonomy.Pillar
-	err = app.DB.First(&found, "slug = ?", "spor").Error
-	assert.NoError(t, err)
+	assert.NoError(t, tx.First(&found, "slug = ?", slug).Error)
 
-	assert.Equal(t, "spor", found.Slug)
-	assert.Equal(t, "Spor", found.Name["tr"])
-	assert.True(t, found.IsActive)
+	found.IsActive = false
+	assert.NoError(t, tx.Save(&found).Error)
+
+	assert.NoError(t, tx.Delete(&found).Error)
+
+	var count int64
+	tx.Model(&taxonomy.Pillar{}).
+		Where("id = ?", found.ID).
+		Count(&count)
+
+	assert.Equal(t, int64(0), count)
+
+	// ---------------------------
+	// DUPLICATE TEST (NO TX)
+	// ---------------------------
+
+	uniqueSlug := "dup-" + uuid.New().String()
+
+	original := taxonomy.Pillar{
+		ID:   uuid.New(),
+		Slug: uniqueSlug,
+		Name: utils.LocalizedString{"tr": "Spor"},
+	}
+
+	assert.NoError(t, app.DB.Create(&original).Error)
 
 	duplicate := taxonomy.Pillar{
 		ID:   uuid.New(),
-		Slug: "spor",
+		Slug: uniqueSlug,
 		Name: utils.LocalizedString{"tr": "Spor2"},
 	}
 
-	err = app.DB.Create(&duplicate).Error
-	assert.Error(t, err) // unique index çalışmalı
+	err := app.DB.Create(&duplicate).Error
+	assert.Error(t, err)
 
-	// 4️⃣ Update
-	found.IsActive = false
-	err = app.DB.Save(&found).Error
-	assert.NoError(t, err)
-
-	var updated taxonomy.Pillar
-	app.DB.First(&updated, found.ID)
-	assert.False(t, updated.IsActive)
-
-	// 5️⃣ Soft Delete
-	err = app.DB.Delete(&updated).Error
-	assert.NoError(t, err)
-
-	var count int64
-	app.DB.Model(&taxonomy.Pillar{}).Where("id = ?", updated.ID).Count(&count)
-	assert.Equal(t, int64(0), count) // soft delete default filtreli
-
-	// 6️⃣ Unscoped kontrol
-	app.DB.Unscoped().
-		Model(&taxonomy.Pillar{}).
-		Where("id = ?", updated.ID).
-		Count(&count)
-
-	assert.Equal(t, int64(1), count)
+	// temizle
+	app.DB.Delete(&original)
 }

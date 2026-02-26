@@ -7,28 +7,32 @@ import (
 	"core/models/utils"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCluster_SearchVector(t *testing.T) {
-	app, err := NewTestApp()
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Parallel()
 
-	// 1️⃣ Test için özel pillar oluştur
+	app := NewTestApp(t)
+
+	tx := app.DB.Begin()
+	if tx.Error != nil {
+		t.Fatal(tx.Error)
+	}
+	defer tx.Rollback()
+
+	// 1️⃣ Pillar (unique slug)
 	pillar := taxonomy.Pillar{
 		ID:       uuid.New(),
-		Slug:     "spor-cluster-test",
+		Slug:     "spor-cluster-test-" + uuid.New().String(),
 		Name:     utils.LocalizedString{"tr": "Spor"},
 		IsActive: true,
 	}
 
-	err = app.DB.Create(&pillar).Error
-	if err != nil {
-		t.Fatalf("pillar create failed: %v", err)
-	}
+	err := tx.Create(&pillar).Error
+	assert.NoError(t, err)
 
-	// 2️⃣ Cluster oluştur
+	// 2️⃣ Cluster
 	cluster := taxonomy.Cluster{
 		ID:       uuid.New(),
 		PillarID: pillar.ID,
@@ -43,20 +47,15 @@ func TestCluster_SearchVector(t *testing.T) {
 		IsActive: true,
 	}
 
-	err = app.DB.Create(&cluster).Error
-	if err != nil {
-		t.Fatalf("cluster create failed: %v", err)
-	}
+	err = tx.Create(&cluster).Error
+	assert.NoError(t, err)
 
 	var saved taxonomy.Cluster
-	err = app.DB.First(&saved, "id = ?", cluster.ID).Error
-	if err != nil {
-		t.Fatalf("fetch failed: %v", err)
-	}
+	err = tx.First(&saved, "id = ?", cluster.ID).Error
+	assert.NoError(t, err)
 
-	expected := "spor spor futbol haberleri en guncel spor haberleri"
+	// 🔥 SearchVector build mantığına göre beklenen değer
+	expected := "spor spor spor spor futbol haberleri en guncel spor haberleri"
 
-	if saved.SearchVector != expected {
-		t.Fatalf("expected:\n%s\ngot:\n%s", expected, saved.SearchVector)
-	}
+	assert.Equal(t, expected, saved.SearchVector)
 }

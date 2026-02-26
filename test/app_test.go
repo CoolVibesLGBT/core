@@ -2,22 +2,36 @@ package test
 
 import (
 	app "core/application"
-	"fmt"
-	"log"
 	"os"
+	"testing"
 
 	"github.com/joho/godotenv"
 )
 
-func NewTestApp() (*app.App, error) {
+func NewTestApp(t *testing.T) *app.App {
+	t.Helper()
 
 	wd, _ := os.Getwd()
-	fmt.Println("Working dir:", wd)
+	println("Working dir:", wd)
 
-	err := godotenv.Load("../.env") // Testler alt klasörde olduğu için root'taki .env'ye bakıyoruz
+	_ = godotenv.Load("../.env")
+
+	// Test env zorla
+	os.Setenv("APP_ENV", "test")
+
+	application, err := app.InitializeApp()
 	if err != nil {
-		log.Println("Error loading .env file")
+		t.Fatal(err)
 	}
 
-	return app.InitializeApp()
+	// 🔥 Her test başında full temizle
+	err = application.DB.Exec(`
+		TRUNCATE pillars, clusters
+		RESTART IDENTITY CASCADE
+	`).Error
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return application
 }
