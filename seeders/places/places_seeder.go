@@ -156,7 +156,10 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	}
 
 	if !isPillarExists {
-		postRepo.CreatePillar(context.Background(), &pillarInfo)
+		err := postRepo.CreatePillar(context.Background(), &pillarInfo)
+		if err != nil {
+			return err
+		}
 	}
 
 	pillarEntry, err := postRepo.GetPillarBySlug(context.Background(), pillarInfo.Slug)
@@ -184,7 +187,10 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		return err
 	}
 	if !isBarClusterExists {
-		postRepo.CreateCluster(context.Background(), &barClusterInfo)
+		err := postRepo.CreateCluster(context.Background(), &barClusterInfo)
+		if err != nil {
+			return err
+		}
 	}
 
 	barCluster, err := postRepo.GetCluster(context.Background(), pillarEntry.ID, nil, barClusterInfo.Slug)
@@ -424,7 +430,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	// =========================
 	// RESTAURANT
 	// =========================
-	addSynonyms("restaurant", []SynonymSeed{
+	errRestaurant := addSynonyms("restaurant", []SynonymSeed{
 		{"restaurant", utils.LocalizedString{"en": "Restaurant", "tr": "Restoran"}, true, 10},
 		{"eatery", utils.LocalizedString{"en": "Eatery", "tr": "Yemek Yeri"}, false, 7},
 		{"dining_place", utils.LocalizedString{"en": "Dining Place", "tr": "Yemek Mekanı"}, false, 6},
@@ -434,11 +440,14 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{"meyhane", utils.LocalizedString{"en": "Tavern", "tr": "Meyhane"}, false, 6},
 		{"food_place", utils.LocalizedString{"en": "Food Place", "tr": "Yemek Yeri"}, false, 4},
 	})
+	if errRestaurant != nil {
+		return errRestaurant
+	}
 
 	// =========================
 	// REAL ESTATE
 	// =========================
-	addSynonyms("real_estate", []SynonymSeed{
+	errRealEstate := addSynonyms("real_estate", []SynonymSeed{
 		{"real_estate", utils.LocalizedString{"en": "Real Estate", "tr": "Emlak"}, true, 10},
 		{"property", utils.LocalizedString{"en": "Property", "tr": "Mülk"}, false, 8},
 		{"apartment", utils.LocalizedString{"en": "Apartment", "tr": "Daire"}, false, 8},
@@ -452,10 +461,14 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{"rental_listing", utils.LocalizedString{"en": "Rental Listing", "tr": "Kiralık İlan"}, false, 6},
 	})
 
+	if errRealEstate != nil {
+		return errRealEstate
+	}
+
 	// =========================
 	// FITNESS
 	// =========================
-	addSynonyms("fitness", []SynonymSeed{
+	errFitness := addSynonyms("fitness", []SynonymSeed{
 		{"fitness", utils.LocalizedString{"en": "Fitness", "tr": "Fitness"}, true, 10},
 		{"gym", utils.LocalizedString{"en": "Gym", "tr": "Spor Salonu"}, false, 9},
 		{"workout_center", utils.LocalizedString{"en": "Workout Center", "tr": "Antrenman Merkezi"}, false, 6},
@@ -464,10 +477,13 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{"bodybuilding", utils.LocalizedString{"en": "Bodybuilding", "tr": "Vücut Geliştirme"}, false, 5},
 	})
 
+	if errFitness != nil {
+		return errFitness
+	}
 	// =========================
 	// BEAUTY
 	// =========================
-	addSynonyms("beauty", []SynonymSeed{
+	errBeauty := addSynonyms("beauty", []SynonymSeed{
 		{"beauty", utils.LocalizedString{"en": "Beauty", "tr": "Güzellik"}, true, 10},
 		{"beauty_salon", utils.LocalizedString{"en": "Beauty Salon", "tr": "Güzellik Salonu"}, false, 9},
 		{"hair_salon", utils.LocalizedString{"en": "Hair Salon", "tr": "Kuaför"}, false, 8},
@@ -476,10 +492,14 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{"spa", utils.LocalizedString{"en": "Spa", "tr": "Spa"}, false, 6},
 	})
 
+	if errBeauty != nil {
+		return errBeauty
+	}
+
 	// =========================
 	// MASSAGE
 	// =========================
-	addSynonyms("massage", []SynonymSeed{
+	errMassage := addSynonyms("massage", []SynonymSeed{
 		{"massage", utils.LocalizedString{"en": "Massage", "tr": "Masaj"}, true, 10},
 		{"massage_salon", utils.LocalizedString{"en": "Massage Salon", "tr": "Masaj Salonu"}, false, 9},
 		{"therapy_massage", utils.LocalizedString{"en": "Therapy Massage", "tr": "Terapötik Masaj"}, false, 7},
@@ -487,16 +507,24 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{"relaxation_center", utils.LocalizedString{"en": "Relaxation Center", "tr": "Rahatlama Merkezi"}, false, 5},
 	})
 
+	if errMassage != nil {
+		return errMassage
+	}
+
 	// =========================
 	// LGBTQ GROUPS
 	// =========================
-	addSynonyms("lgbtq_groups", []SynonymSeed{
+	errLGBTQGroups := addSynonyms("lgbtq_groups", []SynonymSeed{
 		{"lgbtq_groups", utils.LocalizedString{"en": "LGBTQ+ Groups", "tr": "LGBTQ+ Grupları"}, true, 10},
 		{"community_group", utils.LocalizedString{"en": "Community Group", "tr": "Topluluk Grubu"}, false, 7},
 		{"support_group", utils.LocalizedString{"en": "Support Group", "tr": "Destek Grubu"}, false, 8},
 		{"ngo", utils.LocalizedString{"en": "NGO", "tr": "Sivil Toplum Kuruluşu"}, false, 6},
 		{"association", utils.LocalizedString{"en": "Association", "tr": "Dernek"}, false, 6},
 	})
+
+	if errLGBTQGroups != nil {
+		return errLGBTQGroups
+	}
 
 	for _, c := range clusters {
 		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, c.Slug)

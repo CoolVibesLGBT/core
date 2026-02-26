@@ -674,11 +674,12 @@ func (r *UserRepository) UpdateLocation(context context.Context, authUser *model
 	if err != nil {
 		return err
 	}
-	loc.ContentableType = utils.LocationOwnerUser
-	loc.ContentableID = authUser.ID
+
 	if authUser != nil {
+		loc.ContentableType = utils.LocationOwnerUser
+		loc.ContentableID = authUser.ID
 		if authUser.Location == nil {
-			r.UpsertLocation(loc)
+			return r.UpsertLocation(loc)
 		}
 	}
 

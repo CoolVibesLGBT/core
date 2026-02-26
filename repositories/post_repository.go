@@ -1259,7 +1259,7 @@ func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cl
 		cluster.ID = uuid.New()
 	}
 
-	if cluster.IsActive == false {
+	if !cluster.IsActive {
 		cluster.IsActive = true
 	}
 
