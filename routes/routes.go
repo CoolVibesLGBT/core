@@ -12,6 +12,7 @@ import (
 	telegramService "core/services/bot/telegram"
 	services "core/services/user"
 	"fmt"
+	"os"
 	"strings"
 
 	fiber "github.com/gofiber/fiber/v3"
@@ -45,7 +46,10 @@ type Router struct {
 }
 
 func GeoIPDBProvider() (*maxminddb.Reader, error) {
-	db, err := maxminddb.Open("./static/data/GeoLite2-City.mmdb")
+	wd, _ := os.Getwd()
+	path := fmt.Sprintf("%s/static/data/GeoLite2-City.mmdb", wd)
+
+	db, err := maxminddb.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load GeoLite2-City.mmdb: %w", err)
 	}
