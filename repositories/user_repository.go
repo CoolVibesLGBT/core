@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/extensions"
 	"core/helpers"
 	"core/models"
 	"core/models/notifications"
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -19,6 +21,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/oschwald/maxminddb-golang"
 	"gorm.io/gorm"
 )
 
@@ -26,10 +29,15 @@ type UserRepository struct {
 	db             *gorm.DB
 	engagementRepo *EngagementRepository
 	snowFlakeNode  *helpers.Node
+	geoipDB        *maxminddb.Reader
 }
 
 func (r *UserRepository) DB() *gorm.DB {
 	return r.db
+}
+
+func (r *UserRepository) GEOIPDB() *maxminddb.Reader {
+	return r.geoipDB
 }
 
 func (r *UserRepository) GetEngagementRepository() *EngagementRepository {
@@ -40,8 +48,8 @@ func (r *UserRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewUserRepository(db *gorm.DB, snowFlakeNode *helpers.Node, engagementRepo *EngagementRepository) *UserRepository {
-	return &UserRepository{db: db, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo}
+func NewUserRepository(db *gorm.DB, geoipDB *maxminddb.Reader, snowFlakeNode *helpers.Node, engagementRepo *EngagementRepository) *UserRepository {
+	return &UserRepository{db: db, geoipDB: geoipDB, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo}
 }
 
 func (r *UserRepository) TestUser() error {
@@ -613,5 +621,66 @@ func (r *UserRepository) FetchUserNotifications(ctx context.Context, auth_user *
 }
 
 func (r *UserRepository) CheckIn(ctx context.Context) error {
+	return nil
+}
+
+func (r *UserRepository) GetLocationFromIP(ipStr string) (*utils.Location, error) {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return nil, fmt.Errorf("invalid IP")
+	}
+
+	var record utils.GeoIPCity
+	err := r.GEOIPDB().Lookup(ip, &record)
+	if err != nil {
+		return nil, err
+	}
+
+	countryName := record.Country.Names["en"]
+	cityName := record.City.Names["en"]
+	isoCode := record.Country.IsoCode
+	lat := record.Location.Latitude
+	lon := record.Location.Longitude
+	tz := record.Location.Timezone
+
+	display := cityName
+	if display == "" {
+		display = countryName
+	}
+
+	loc := &utils.Location{
+		CountryCode: &isoCode,
+		Country:     &countryName,
+		City:        &cityName,
+		Latitude:    &lat,
+		Longitude:   &lon,
+		Timezone:    &tz,
+		Display:     &display,
+	}
+
+	if loc.Latitude != nil && loc.Longitude != nil {
+		loc.LocationPoint = &extensions.PostGISPoint{
+			Lat: *loc.Latitude,
+			Lng: *loc.Longitude,
+		}
+	}
+
+	return loc, nil
+}
+
+func (r *UserRepository) UpdateLocation(context context.Context, authUser *models.User, ipStr string) error {
+
+	loc, err := r.GetLocationFromIP(ipStr)
+	if err != nil {
+		return err
+	}
+	loc.ContentableType = utils.LocationOwnerUser
+	loc.ContentableID = authUser.ID
+	if authUser != nil {
+		if authUser.Location == nil {
+			r.UpsertLocation(loc)
+		}
+	}
+
 	return nil
 }

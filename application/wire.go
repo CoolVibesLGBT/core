@@ -1,6 +1,7 @@
 //go:build wireinject
 // +build wireinject
 
+// go run github.com/google/wire/cmd/wire ./application
 package application
 
 import (

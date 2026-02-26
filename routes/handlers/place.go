@@ -73,3 +73,21 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 		})
 	}
 }
+
+func HandleGetPlaceCategories(s *services.PlaceService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		categories, err := s.GetPlacesCategories(filters)
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success":    err == nil,
+			"error":      err,
+			"categories": categories,
+		})
+	}
+}

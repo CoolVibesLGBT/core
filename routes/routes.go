@@ -18,10 +18,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/google/wire"
+	"github.com/oschwald/maxminddb-golang"
 	"gorm.io/gorm"
 )
 
-var ProviderSet = wire.NewSet(NewRouter)
+var ProviderSet = wire.NewSet(NewRouter, GeoIPDBProvider)
 
 type Router struct {
 	fiber         *fiber.App
@@ -29,6 +30,7 @@ type Router struct {
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
 	MCPServer     *mcp.MCPServer
+	GEOIPDB       *maxminddb.Reader
 
 	TelegramService *telegramService.Service
 
@@ -40,6 +42,14 @@ type Router struct {
 	PlaceService        *services.PlaceService
 	ChatService         *services.ChatService
 	PaymentService      *services.PaymentService
+}
+
+func GeoIPDBProvider() (*maxminddb.Reader, error) {
+	db, err := maxminddb.Open("./static/data/GeoLite2-City.mmdb")
+	if err != nil {
+		return nil, fmt.Errorf("unable to load GeoLite2-City.mmdb: %w", err)
+	}
+	return db, nil
 }
 
 func NewRouter(
@@ -57,6 +67,8 @@ func NewRouter(
 	userRepo *repositories.UserRepository,
 	notificationRepo *repositories.NotificationRepository,
 	sitemapRepo *repositories.SitemapRepository,
+	geoIPDB *maxminddb.Reader,
+
 ) *Router {
 
 	tg, err := telegramService.New()
@@ -72,7 +84,9 @@ func NewRouter(
 		fiber: fiber.New(fiber.Config{
 			ReadBufferSize:  8192,
 			WriteBufferSize: 8192,
+			ProxyHeader:     fiber.HeaderXForwardedFor,
 		}),
+		GEOIPDB:             geoIPDB,
 		MCPServer:           mcp.NewMCPServer(),
 		snowFlakeNode:       snowFlakeNode,
 		AIService:           aiService,
@@ -369,6 +383,11 @@ func NewRouter(
 		constants.CMD_PLACE_FETCH,
 		handlers.HandleGetNearByPlaces(placeService),    // handler
 		middleware.AuthMiddlewareWithoutCheck(userRepo), // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_PLACE_CATEGORIES,
+		handlers.HandleGetPlaceCategories(placeService),
 	)
 
 	//NEWS EKRANI

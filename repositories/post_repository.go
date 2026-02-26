@@ -635,6 +635,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		postKindType = post.PostKindStatus
 	}
 
+	postForm.Slug = helpers.GenerateSlug(postForm.Slug)
 	newPost := &post.Post{
 		ID:              uuid.New(),
 		ParentID:        parentUUID,
@@ -1210,6 +1211,8 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 func (r *PostRepository) CreatePillar(ctx context.Context, pillar *taxonomy.Pillar) error {
 	var existing taxonomy.Pillar
 
+	pillar.Slug = helpers.GenerateSlug(pillar.Slug)
+
 	err := r.db.WithContext(ctx).
 		Where("slug = ?", pillar.Slug).
 		First(&existing).Error
@@ -1229,8 +1232,85 @@ func (r *PostRepository) CreatePillar(ctx context.Context, pillar *taxonomy.Pill
 	return r.db.WithContext(ctx).Create(pillar).Error
 }
 
+func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cluster) error {
+	var existing taxonomy.Cluster
+
+	cluster.Slug = helpers.GenerateSlug(cluster.Slug)
+
+	query := r.db.WithContext(ctx).
+		Where("pillar_id = ? AND slug = ?", cluster.PillarID, cluster.Slug)
+
+	if cluster.ParentID != nil {
+		query = query.Where("parent_id = ?", *cluster.ParentID)
+	} else {
+		query = query.Where("parent_id IS NULL")
+	}
+
+	err := query.First(&existing).Error
+	if err == nil {
+		return fmt.Errorf("cluster already exists")
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if cluster.ID == uuid.Nil {
+		cluster.ID = uuid.New()
+	}
+
+	if cluster.IsActive == false {
+		cluster.IsActive = true
+	}
+
+	return r.db.WithContext(ctx).Create(cluster).Error
+}
+
+func (r *PostRepository) CreateSynonym(ctx context.Context, synonym *taxonomy.Synonym) error {
+	var existing taxonomy.Synonym
+	synonym.Slug = helpers.GenerateSlug(synonym.Slug)
+	err := r.db.WithContext(ctx).
+		Where("slug = ?", synonym.Slug).
+		First(&existing).Error
+
+	if err == nil {
+		return fmt.Errorf("synonym already exists")
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if synonym.ID == uuid.Nil {
+		synonym.ID = uuid.New()
+	}
+
+	if synonym.SearchWeight <= 0 {
+		synonym.SearchWeight = 1
+	}
+
+	if synonym.IsPrimary {
+		var primaryCount int64
+		if err := r.db.WithContext(ctx).
+			Model(&taxonomy.Synonym{}).
+			Where("cluster_id = ? AND is_primary = ?", synonym.ClusterID, true).
+			Count(&primaryCount).Error; err != nil {
+			return err
+		}
+
+		if primaryCount > 0 {
+			return fmt.Errorf("primary synonym already exists for this cluster")
+		}
+	}
+
+	synonym.CreatedAt = time.Now()
+
+	return r.db.WithContext(ctx).Create(synonym).Error
+}
+
 func (r *PostRepository) PillarExistsBySlug(ctx context.Context, slug string) (bool, error) {
 	var count int64
+	slug = helpers.GenerateSlug(slug)
 
 	err := r.db.WithContext(ctx).
 		Model(&taxonomy.Pillar{}).
@@ -1246,6 +1326,7 @@ func (r *PostRepository) PillarExistsBySlug(ctx context.Context, slug string) (b
 
 func (r *PostRepository) GetPillarBySlug(ctx context.Context, slug string) (*taxonomy.Pillar, error) {
 	var pillar taxonomy.Pillar
+	slug = helpers.GenerateSlug(slug)
 
 	err := r.db.WithContext(ctx).
 		Where("slug = ?", slug).
@@ -1260,6 +1341,8 @@ func (r *PostRepository) GetPillarBySlug(ctx context.Context, slug string) (*tax
 
 func (r *PostRepository) GetOrCreatePillar(ctx context.Context, slug string, name utils.LocalizedString) (*taxonomy.Pillar, error) {
 	var pillar taxonomy.Pillar
+	slug = helpers.GenerateSlug(slug)
+
 	err := r.db.WithContext(ctx).
 		Where("slug = ?", slug).
 		First(&pillar).Error
@@ -1286,42 +1369,38 @@ func (r *PostRepository) GetOrCreatePillar(ctx context.Context, slug string, nam
 }
 
 func (r *PostRepository) ClusterExists(ctx context.Context, pillarID uuid.UUID, parentID *uuid.UUID, slug string) (bool, error) {
-
-	var count int64
-	query := r.db.WithContext(ctx).
-		Model(&taxonomy.Cluster{}).
-		Where("pillar_id = ? AND slug = ?", pillarID, slug)
-
-	if parentID != nil {
-		query = query.Where("parent_id = ?", *parentID)
-	} else {
-		query = query.Where("parent_id IS NULL")
-	}
-
-	if err := query.Count(&count).Error; err != nil {
+	_, err := r.GetCluster(ctx, pillarID, parentID, slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
 		return false, err
 	}
-
-	return count > 0, nil
+	return true, nil
 }
 
 func (r *PostRepository) GetCluster(ctx context.Context, pillarID uuid.UUID, parentID *uuid.UUID, slug string) (*taxonomy.Cluster, error) {
 	var cluster taxonomy.Cluster
-	query := r.db.WithContext(ctx).Where("pillar_id = ? AND slug = ?", pillarID, slug)
+	slug = helpers.GenerateSlug(slug)
+	strict := helpers.SlugifyStrict(slug)
+
+	query := r.db.WithContext(ctx).
+		Where("pillar_id = ?", pillarID).
+		Where(`(slug = ? OR search_vector ILIKE ?)`, slug, "%"+strict+"%")
 	if parentID != nil {
 		query = query.Where("parent_id = ?", *parentID)
-	} else {
-		query = query.Where("parent_id IS NULL")
 	}
 	if err := query.First(&cluster).Error; err != nil {
 		return nil, err
 	}
+
 	return &cluster, nil
 }
 
 func (r *PostRepository) GetOrCreateCluster(ctx context.Context, pillarID uuid.UUID, parentID *uuid.UUID, slug string, name utils.LocalizedString) (*taxonomy.Cluster, error) {
 
 	var cluster taxonomy.Cluster
+	slug = helpers.GenerateSlug(slug)
 
 	query := r.db.WithContext(ctx).
 		Where("pillar_id = ? AND slug = ?", pillarID, slug)
@@ -1357,13 +1436,13 @@ func (r *PostRepository) GetOrCreateCluster(ctx context.Context, pillarID uuid.U
 	return &cluster, nil
 }
 
-func (r *PostRepository) SynonymExists(ctx context.Context, slug string) (bool, error) {
-
+func (r *PostRepository) SynonymExists(ctx context.Context, clusterID uuid.UUID, slug string) (bool, error) {
 	var count int64
+	slug = helpers.GenerateSlug(slug)
 
 	err := r.db.WithContext(ctx).
 		Model(&taxonomy.Synonym{}).
-		Where("slug = ?", slug).
+		Where("cluster_id = ? AND slug = ?", clusterID, slug).
 		Count(&count).Error
 
 	if err != nil {
@@ -1375,6 +1454,8 @@ func (r *PostRepository) SynonymExists(ctx context.Context, slug string) (bool, 
 
 func (r *PostRepository) GetSynonym(ctx context.Context, slug string) (*taxonomy.Synonym, error) {
 	var synonym taxonomy.Synonym
+	slug = helpers.GenerateSlug(slug)
+
 	if err := r.db.WithContext(ctx).
 		Where("slug = ?", slug).
 		First(&synonym).Error; err != nil {
@@ -1387,6 +1468,7 @@ func (r *PostRepository) GetSynonym(ctx context.Context, slug string) (*taxonomy
 func (r *PostRepository) GetOrCreateSynonym(ctx context.Context, clusterID uuid.UUID, slug string, word utils.LocalizedString, isPrimary bool, weight int) (*taxonomy.Synonym, error) {
 
 	var synonym taxonomy.Synonym
+	slug = helpers.GenerateSlug(slug)
 
 	err := r.db.WithContext(ctx).
 		Where("slug = ?", slug).
@@ -1446,6 +1528,28 @@ func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy
 		Preload("Clusters.Children.Synonyms"). // Alt clusterlar -> Synonyms
 		Where("is_active = ?", true).
 		Where("deleted_at IS NULL").
+		Find(&pillars).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return pillars, nil
+}
+
+func (r *PostRepository) GetPillarsWithClustersWithSlug(ctx context.Context, slug string) ([]taxonomy.Pillar, error) {
+	var pillars []taxonomy.Pillar
+
+	slug = strings.ToLower(helpers.SlugifyStrict(slug))
+	likePattern := "%" + slug + "%"
+
+	err := r.db.WithContext(ctx).
+		Model(&taxonomy.Pillar{}).
+		Joins("LEFT JOIN clusters ON clusters.pillar_id = pillars.id AND (clusters.slug ILIKE ? OR clusters.search_vector ILIKE ?)", likePattern, likePattern).
+		Preload("Clusters.Synonyms").
+		Preload("Clusters.Children.Synonyms").
+		Where("pillars.is_active = ?", true).
+		Where("pillars.deleted_at IS NULL").
 		Find(&pillars).Error
 
 	if err != nil {

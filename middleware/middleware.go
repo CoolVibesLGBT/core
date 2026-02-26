@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
 
 	"core/helpers"
@@ -13,6 +14,27 @@ import (
 const userContextKey = "authenticatedUser"
 
 type Middleware func(fiber.Handler) fiber.Handler
+
+func GetClientIP(c fiber.Ctx) string {
+	headers := []string{
+		"CF-Connecting-IP",
+		"X-Forwarded-For",
+		"X-Real-IP",
+	}
+
+	for _, h := range headers {
+		ip := c.Get(h)
+		if ip != "" {
+			if strings.Contains(ip, ",") {
+				parts := strings.Split(ip, ",")
+				return strings.TrimSpace(parts[0])
+			}
+			return strings.TrimSpace(ip)
+		}
+	}
+
+	return c.IP()
+}
 
 func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
 	return func(next fiber.Handler) fiber.Handler {
@@ -35,6 +57,15 @@ func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) f
 			}
 
 			u, err := userRepo.GetUserByPublicId(claims.PublicID)
+
+			userIP := GetClientIP(c)
+			fmt.Println("UserIP", userIP)
+
+			updateIPErr := userRepo.UpdateLocation(c.Context(), u, userIP)
+			if updateIPErr != nil {
+				fmt.Println("UPDATE_IP_FAILED", updateIPErr)
+			}
+
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).SendString("User not found")
 			}

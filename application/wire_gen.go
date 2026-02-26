@@ -27,8 +27,12 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	reader, err := routes.GeoIPDBProvider()
+	if err != nil {
+		return nil, err
+	}
 	engagementRepository := repositories.NewEngagementRepository(gormDB)
-	userRepository := repositories.NewUserRepository(gormDB, node, engagementRepository)
+	userRepository := repositories.NewUserRepository(gormDB, reader, node, engagementRepository)
 	mediaRepository := repositories.NewMediaRepository(gormDB, node)
 	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
 	postRepository := repositories.NewPostRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
@@ -49,7 +53,7 @@ func InitializeApp() (*App, error) {
 	mcpServer := mcp.NewMCPServer()
 	aiService := services.NewAIService(mcpServer, userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
-	router := routes.NewRouter(gormDB, node, userService, postService, placeService, newsService, matchesService, chatService, notificationsService, paymentService, aiService, userRepository, notificationRepository, sitemapRepository)
+	router := routes.NewRouter(gormDB, node, userService, postService, placeService, newsService, matchesService, chatService, notificationsService, paymentService, aiService, userRepository, notificationRepository, sitemapRepository, reader)
 	app := &App{
 		DB:            gormDB,
 		Router:        router,

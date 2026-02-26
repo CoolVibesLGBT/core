@@ -1,9 +1,11 @@
 package repositories
 
 import (
+	"context"
 	"core/constants"
 	"core/helpers"
 	"core/models/post"
+	"core/models/taxonomy"
 	"core/models/utils"
 	"core/types"
 	"fmt"
@@ -58,16 +60,22 @@ func (r *PlaceRepository) GetPlaceByID(id uuid.UUID) (*post.Post, error) {
 	return r.postRepo.GetPostByID(id)
 }
 
+func (r *PlaceRepository) GetPlacesCategories(filters types.Filter) ([]taxonomy.Pillar, error) {
+	filters.Search = utils.StringPtr("places")
+	return r.postRepo.GetPillarsWithClustersWithSlug(context.Background(), *filters.Search)
+}
+
 func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(source string, placeSourceID string) (bool, error) {
 	var exists bool
 	err := r.db.Raw(`
         SELECT EXISTS (
             SELECT 1
             FROM posts
-            WHERE  extras -> 'place' ->> 'Source' = ?
-              AND extras -> 'place' ->> 'SourceID' = ?
+            WHERE post_kind = ?
+              AND extras -> 'place' ->> 'source' = ?
+              AND extras -> 'place' ->> 'source_id' = ?
         )
-    `, source, placeSourceID).Scan(&exists).Error
+    `, post.PostKindPlace, source, placeSourceID).Scan(&exists).Error
 	return exists, err
 }
 

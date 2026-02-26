@@ -8,13 +8,17 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"core/constants"
 	"core/helpers"
+	"core/models/taxonomy"
+	"core/models/utils"
 	"core/repositories"
 	services "core/services/user"
 	globalUtils "core/utils"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -121,6 +125,399 @@ func placeToLexical(place Place) ([]byte, error) {
 
 func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 
+	notificationRepo := repositories.NewNotificationRepository(db, node)
+	// repository ve service oluştur
+	engagementRepo := repositories.NewEngagementRepository(db)
+	userRepo := repositories.NewUserRepository(db, nil, node, engagementRepo)
+	mediaRepo := repositories.NewMediaRepository(db, node)
+	postRepo := repositories.NewPostRepository(db, node, mediaRepo, userRepo, notificationRepo)
+	placesRepo := repositories.NewPlaceRepository(db, node, mediaRepo, userRepo, notificationRepo, postRepo)
+	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
+
+	pillarInfo := taxonomy.Pillar{
+		ID:   uuid.New(),
+		Slug: "places",
+		Name: utils.LocalizedString{
+			"en": "Places",
+			"tr": "Mekanlar",
+		},
+		Description: &utils.LocalizedString{
+			"en": "A comprehensive categorization of venues, locations, and places including restaurants, bars, clubs, gyms, clinics, and more. Perfect for discovering, browsing, or managing different types of establishments.",
+			"tr": "Restoranlar, barlar, kulüpler, spor salonları, klinikler ve daha fazlasını kapsayan mekanların kapsamlı bir sınıflandırması. Farklı türdeki yerleri keşfetmek, incelemek veya yönetmek için idealdir.",
+		},
+		IsActive:  true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	isPillarExists, err := postRepo.PillarExistsBySlug(context.Background(), pillarInfo.Slug)
+	if err != nil {
+		return err
+	}
+
+	if !isPillarExists {
+		postRepo.CreatePillar(context.Background(), &pillarInfo)
+	}
+
+	pillarEntry, err := postRepo.GetPillarBySlug(context.Background(), pillarInfo.Slug)
+	if err != nil {
+		return err
+	}
+
+	barClusterInfo := taxonomy.Cluster{
+		ID:       uuid.New(),
+		PillarID: pillarEntry.ID,
+		Name: utils.LocalizedString{
+			"en": "Bars",
+			"tr": "Barlar",
+		},
+		Description: &utils.LocalizedString{
+			"en": "All types of bars and nightlife venues",
+			"tr": "Tüm bar türleri ve gece mekanları",
+		},
+		Slug:     "bars",
+		IsActive: true,
+	}
+
+	isBarClusterExists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, barClusterInfo.Slug)
+	if err != nil {
+		return err
+	}
+	if !isBarClusterExists {
+		postRepo.CreateCluster(context.Background(), &barClusterInfo)
+	}
+
+	barCluster, err := postRepo.GetCluster(context.Background(), pillarEntry.ID, nil, barClusterInfo.Slug)
+	if err != nil {
+		return err
+	}
+
+	clusters := []taxonomy.Cluster{
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Restaurant",
+				"tr": "Restoran",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Restaurants and dining places",
+				"tr": "Restoranlar ve yemek mekanları",
+			},
+			Slug:     "restaurant",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Team",
+				"tr": "Takım",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Sports teams and clubs",
+				"tr": "Spor takımları ve kulüpler",
+			},
+			Slug:     "team",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Clinic",
+				"tr": "Klinik",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Medical and healthcare clinics",
+				"tr": "Tıbbi ve sağlık klinikleri",
+			},
+			Slug:     "clinic",
+			IsActive: true,
+		},
+		// Bars alt clusterleri
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			ParentID: &barCluster.ID,
+			Name: utils.LocalizedString{
+				"en": "Mix Bar",
+				"tr": "Mix Bar",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Bars and nightlife venues",
+				"tr": "Barlar ve gece mekanları",
+			},
+			Slug:     "mix_bar",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			ParentID: &barCluster.ID,
+			Name: utils.LocalizedString{
+				"en": "Gay Bar",
+				"tr": "Gay Bar",
+			},
+			Description: &utils.LocalizedString{
+				"en": "LGBTQ+ friendly bars and clubs",
+				"tr": "LGBTQ+ dostu barlar ve kulüpler",
+			},
+			Slug:     "gay_bar",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			ParentID: &barCluster.ID,
+			Name: utils.LocalizedString{
+				"en": "Other Bar",
+				"tr": "Diğer Bar",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Other types of bars",
+				"tr": "Diğer bar türleri",
+			},
+			Slug:     "other_bar",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Beauty",
+				"tr": "Güzellik",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Beauty salons and services",
+				"tr": "Güzellik salonları ve hizmetleri",
+			},
+			Slug:     "beauty",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Real Estate",
+				"tr": "Emlak",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Properties, apartments, and houses",
+				"tr": "Mülkler, daireler ve evler",
+			},
+			Slug:     "real_estate",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Fitness",
+				"tr": "Fitness",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Gyms and fitness centers",
+				"tr": "Spor salonları ve fitness merkezleri",
+			},
+			Slug:     "fitness",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "LGBTQ+ Groups",
+				"tr": "LGBTQ+ Grupları",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Groups and communities for LGBTQ+",
+				"tr": "LGBTQ+ için gruplar ve topluluklar",
+			},
+			Slug:     "lgbtq_groups",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Others",
+				"tr": "Diğer",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Other types of places",
+				"tr": "Diğer mekan türleri",
+			},
+			Slug:     "others",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Massage",
+				"tr": "Masaj",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Massage salons and services",
+				"tr": "Masaj salonları ve hizmetleri",
+			},
+			Slug:     "massage",
+			IsActive: true,
+		},
+		{
+			ID:       uuid.New(),
+			PillarID: pillarEntry.ID,
+			Name: utils.LocalizedString{
+				"en": "Associations",
+				"tr": "Dernekler",
+			},
+			Description: &utils.LocalizedString{
+				"en": "Local clubs, associations, and community groups for various interests and activities.",
+				"tr": "Yerel kulüpler, dernekler ve çeşitli ilgi alanları ve etkinlikler için topluluk grupları.",
+			},
+			Slug:     "associations",
+			IsActive: true,
+		},
+	}
+
+	type SynonymSeed struct {
+		Slug         string
+		Words        utils.LocalizedString
+		IsPrimary    bool
+		SearchWeight int
+	}
+
+	addSynonyms := func(clusterSlug string, seeds []SynonymSeed) error {
+
+		cluster, err := postRepo.GetCluster(context.Background(), pillarEntry.ID, nil, clusterSlug)
+		if err != nil {
+			return err
+		}
+
+		for _, s := range seeds {
+
+			exists, _ := postRepo.SynonymExists(context.Background(), cluster.ID, s.Slug)
+			if exists {
+				continue
+			}
+
+			syn := taxonomy.Synonym{
+				ID:           uuid.New(),
+				ClusterID:    cluster.ID,
+				Word:         s.Words,
+				Slug:         s.Slug,
+				IsPrimary:    s.IsPrimary,
+				SearchWeight: s.SearchWeight,
+				CreatedAt:    time.Now(),
+			}
+
+			if err := postRepo.CreateSynonym(context.Background(), &syn); err != nil {
+				fmt.Println("Synonym create error:", s.Slug, err)
+				continue
+			}
+		}
+
+		return nil
+	}
+
+	// =========================
+	// RESTAURANT
+	// =========================
+	addSynonyms("restaurant", []SynonymSeed{
+		{"restaurant", utils.LocalizedString{"en": "Restaurant", "tr": "Restoran"}, true, 10},
+		{"eatery", utils.LocalizedString{"en": "Eatery", "tr": "Yemek Yeri"}, false, 7},
+		{"dining_place", utils.LocalizedString{"en": "Dining Place", "tr": "Yemek Mekanı"}, false, 6},
+		{"cafe", utils.LocalizedString{"en": "Cafe", "tr": "Kafe"}, false, 6},
+		{"bistro", utils.LocalizedString{"en": "Bistro", "tr": "Bistro"}, false, 5},
+		{"lokanta", utils.LocalizedString{"en": "Lokanta", "tr": "Lokanta"}, false, 8},
+		{"meyhane", utils.LocalizedString{"en": "Tavern", "tr": "Meyhane"}, false, 6},
+		{"food_place", utils.LocalizedString{"en": "Food Place", "tr": "Yemek Yeri"}, false, 4},
+	})
+
+	// =========================
+	// REAL ESTATE
+	// =========================
+	addSynonyms("real_estate", []SynonymSeed{
+		{"real_estate", utils.LocalizedString{"en": "Real Estate", "tr": "Emlak"}, true, 10},
+		{"property", utils.LocalizedString{"en": "Property", "tr": "Mülk"}, false, 8},
+		{"apartment", utils.LocalizedString{"en": "Apartment", "tr": "Daire"}, false, 8},
+		{"house", utils.LocalizedString{"en": "House", "tr": "Ev"}, false, 7},
+		{"flat", utils.LocalizedString{"en": "Flat", "tr": "Daire"}, false, 6},
+		{"daily_rental", utils.LocalizedString{"en": "Daily Rental", "tr": "Günlük Kiralık"}, false, 9},
+		{"short_term_rent", utils.LocalizedString{"en": "Short Term Rent", "tr": "Kısa Dönem Kiralama"}, false, 7},
+		{"roommate", utils.LocalizedString{"en": "Roommate", "tr": "Oda Arkadaşı"}, false, 9},
+		{"housemate", utils.LocalizedString{"en": "Housemate", "tr": "Ev Arkadaşı"}, false, 9},
+		{"shared_flat", utils.LocalizedString{"en": "Shared Flat", "tr": "Paylaşımlı Ev"}, false, 8},
+		{"rental_listing", utils.LocalizedString{"en": "Rental Listing", "tr": "Kiralık İlan"}, false, 6},
+	})
+
+	// =========================
+	// FITNESS
+	// =========================
+	addSynonyms("fitness", []SynonymSeed{
+		{"fitness", utils.LocalizedString{"en": "Fitness", "tr": "Fitness"}, true, 10},
+		{"gym", utils.LocalizedString{"en": "Gym", "tr": "Spor Salonu"}, false, 9},
+		{"workout_center", utils.LocalizedString{"en": "Workout Center", "tr": "Antrenman Merkezi"}, false, 6},
+		{"pilates", utils.LocalizedString{"en": "Pilates Studio", "tr": "Pilates Salonu"}, false, 7},
+		{"crossfit", utils.LocalizedString{"en": "Crossfit", "tr": "Crossfit"}, false, 6},
+		{"bodybuilding", utils.LocalizedString{"en": "Bodybuilding", "tr": "Vücut Geliştirme"}, false, 5},
+	})
+
+	// =========================
+	// BEAUTY
+	// =========================
+	addSynonyms("beauty", []SynonymSeed{
+		{"beauty", utils.LocalizedString{"en": "Beauty", "tr": "Güzellik"}, true, 10},
+		{"beauty_salon", utils.LocalizedString{"en": "Beauty Salon", "tr": "Güzellik Salonu"}, false, 9},
+		{"hair_salon", utils.LocalizedString{"en": "Hair Salon", "tr": "Kuaför"}, false, 8},
+		{"barbershop", utils.LocalizedString{"en": "Barbershop", "tr": "Berber"}, false, 7},
+		{"nail_salon", utils.LocalizedString{"en": "Nail Salon", "tr": "Tırnak Salonu"}, false, 6},
+		{"spa", utils.LocalizedString{"en": "Spa", "tr": "Spa"}, false, 6},
+	})
+
+	// =========================
+	// MASSAGE
+	// =========================
+	addSynonyms("massage", []SynonymSeed{
+		{"massage", utils.LocalizedString{"en": "Massage", "tr": "Masaj"}, true, 10},
+		{"massage_salon", utils.LocalizedString{"en": "Massage Salon", "tr": "Masaj Salonu"}, false, 9},
+		{"therapy_massage", utils.LocalizedString{"en": "Therapy Massage", "tr": "Terapötik Masaj"}, false, 7},
+		{"thai_massage", utils.LocalizedString{"en": "Thai Massage", "tr": "Thai Masajı"}, false, 6},
+		{"relaxation_center", utils.LocalizedString{"en": "Relaxation Center", "tr": "Rahatlama Merkezi"}, false, 5},
+	})
+
+	// =========================
+	// LGBTQ GROUPS
+	// =========================
+	addSynonyms("lgbtq_groups", []SynonymSeed{
+		{"lgbtq_groups", utils.LocalizedString{"en": "LGBTQ+ Groups", "tr": "LGBTQ+ Grupları"}, true, 10},
+		{"community_group", utils.LocalizedString{"en": "Community Group", "tr": "Topluluk Grubu"}, false, 7},
+		{"support_group", utils.LocalizedString{"en": "Support Group", "tr": "Destek Grubu"}, false, 8},
+		{"ngo", utils.LocalizedString{"en": "NGO", "tr": "Sivil Toplum Kuruluşu"}, false, 6},
+		{"association", utils.LocalizedString{"en": "Association", "tr": "Dernek"}, false, 6},
+	})
+
+	for _, c := range clusters {
+		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, c.Slug)
+		if err != nil {
+			fmt.Println("Error checking cluster:", c.Slug, err)
+			continue
+		}
+
+		if !exists {
+			c.PillarID = pillarEntry.ID
+			c.ID = uuid.New()
+			if err := postRepo.CreateCluster(context.Background(), &c); err != nil {
+				fmt.Println("Error creating cluster:", c.Slug, err)
+				continue
+			}
+			fmt.Println("Created cluster:", c.Slug)
+		} else {
+			fmt.Println("Cluster already exists:", c.Slug)
+		}
+	}
+
 	var places []Place
 
 	currentDirectory, _ := os.Getwd()
@@ -147,15 +544,6 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		log.Fatalf("JSON parse edilemedi: %v", err)
 	}
 
-	notificationRepo := repositories.NewNotificationRepository(db, node)
-	// repository ve service oluştur
-	engagementRepo := repositories.NewEngagementRepository(db)
-	userRepo := repositories.NewUserRepository(db, node, engagementRepo)
-	mediaRepo := repositories.NewMediaRepository(db, node)
-	postRepo := repositories.NewPostRepository(db, node, mediaRepo, userRepo, notificationRepo)
-	placesRepo := repositories.NewPlaceRepository(db, node, mediaRepo, userRepo, notificationRepo, postRepo)
-	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
-
 	authUser, err := userRepo.GetUserByNameOrEmailOrNickname(constants.SystemUserExplorer)
 	if err != nil {
 		fmt.Println("PLACES:AuthUserNotFound", err)
@@ -166,7 +554,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	type SurveyQuestion struct {
 		Question string
 		Options  []string
-		Optional bool // Yorum gibi isteğe bağlı sorular için
+		Optional bool
 	}
 
 	var LGBTPlaceSurveyQuestions = []SurveyQuestion{
@@ -360,15 +748,6 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			panic(err)
 		}
 
-		/*
-			fileName := fmt.Sprintf("lexical_%s.json", strings.ReplaceAll(p.SourceID, " ", "_"))
-
-			err = os.WriteFile(fileName, lexicalJSON, 0644)
-			if err != nil {
-				panic(err)
-			}
-		*/
-
 		newP := PlaceDB(p)
 
 		jsonPlaceBytes, _ := json.Marshal(newP)
@@ -412,7 +791,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		exists, err := placesRepo.ExistsBySourceAndPlaceSourceID(p.Source, p.SourceID)
 		if err != nil {
 			log.Println("exists check failed:", err)
-			continue // veya return err
+			continue
 		}
 
 		if exists {
@@ -421,9 +800,23 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		}
 
 		authUser.DefaultLanguage = constants.CountryToLanguage[strings.ToUpper(p.CountryCode)]
-		if _, err := placeService.CreatePlace(context.Background(), request, nil, authUser); err != nil {
+		place, err := placeService.CreatePlace(context.Background(), request, nil, authUser)
+		if err != nil {
 			return err
 		}
+
+		postCluster, err := postRepo.GetCluster(context.Background(), pillarEntry.ID, nil, p.Tag)
+
+		if err != nil {
+			fmt.Println("cluster not found:", p.Tag, err)
+			return err
+		}
+
+		err = db.Model(place).Association("Clusters").Append(postCluster)
+		if err != nil {
+			fmt.Println("failed to attach cluster:", err)
+		}
+
 	}
 	return nil
 }

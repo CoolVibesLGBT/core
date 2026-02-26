@@ -4,6 +4,7 @@ import (
 	"context"
 	"core/models"
 	"core/models/post"
+	"core/models/taxonomy"
 	"core/types"
 	"fmt"
 
@@ -50,4 +51,8 @@ func (s *PlaceService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 
 func (s *PlaceService) GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error) {
 	return s.placeRepo.GetNearByPlaces(filters)
+}
+
+func (s *PlaceService) GetPlacesCategories(filters types.Filter) ([]taxonomy.Pillar, error) {
+	return s.placeRepo.GetPlacesCategories(filters)
 }

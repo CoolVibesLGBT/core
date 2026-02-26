@@ -130,6 +130,7 @@ const (
 	CMD_UNPIN_MESSAGE           = "chat.unpin_message"
 
 	//PLACE EKRANI
+	CMD_PLACE_CATEGORIES     = "place.categories"
 	CMD_PLACE_CREATE         = "place.create"
 	CMD_PLACE_FETCH          = "place.fetch"
 	CMD_PLACE_VOTE           = "place.vote"

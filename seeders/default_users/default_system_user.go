@@ -13,7 +13,7 @@ import (
 
 func SeedDefaultSystemUsers(db *gorm.DB, node *helpers.Node) error {
 	engagementRepo := repositories.NewEngagementRepository(db)
-	userRepo := repositories.NewUserRepository(db, node, engagementRepo)
+	userRepo := repositories.NewUserRepository(db, nil, node, engagementRepo)
 
 	for _, defaultUserName := range constants.DefaultSystemUsers {
 		defaultUserEmail := fmt.Sprintf("%s@coolvibes.lgbt", defaultUserName) // Email'i uygun şekilde ayarla

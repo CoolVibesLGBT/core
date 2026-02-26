@@ -8,6 +8,7 @@ import (
 )
 
 func GenerateSlug(s string) string {
+	s = strings.ReplaceAll(s, "_", "-")
 	return slug.Make(s)
 }
 
