@@ -17,7 +17,10 @@ func NewTestApp(t *testing.T) *app.App {
 	_ = godotenv.Load("../.env")
 
 	// Test env zorla
-	os.Setenv("APP_ENV", "test")
+	err := os.Setenv("APP_ENV", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	application, err := app.InitializeApp()
 	if err != nil {
