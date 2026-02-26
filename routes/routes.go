@@ -46,16 +46,17 @@ type Router struct {
 }
 
 func GeoIPDBProvider() (*maxminddb.Reader, error) {
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("cannot get working dir: %w", err)
+	}
 	path := fmt.Sprintf("%s/static/data/GeoLite2-City.mmdb", wd)
-
 	db, err := maxminddb.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to load GeoLite2-City.mmdb: %w", err)
+		return nil, fmt.Errorf("unable to load GeoLite2-City.mmdb at %s: %w", path, err)
 	}
 	return db, nil
 }
-
 func NewRouter(
 	db *gorm.DB,
 	snowFlakeNode *helpers.Node,
