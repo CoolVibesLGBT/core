@@ -1,6 +1,7 @@
 package constants
 
 const DEFAULT_LIMIT = 20
+const MAXIMUM_LIMIT = 100
 
 type FollowStatus string
 type GenderIdentity string

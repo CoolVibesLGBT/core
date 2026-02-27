@@ -145,6 +145,14 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			"en": "A comprehensive categorization of venues, locations, and places including restaurants, bars, clubs, gyms, clinics, and more. Perfect for discovering, browsing, or managing different types of establishments.",
 			"tr": "Restoranlar, barlar, kulüpler, spor salonları, klinikler ve daha fazlasını kapsayan mekanların kapsamlı bir sınıflandırması. Farklı türdeki yerleri keşfetmek, incelemek veya yönetmek için idealdir.",
 		},
+		MetaTitle: &utils.LocalizedString{
+			"en": "Bars - Nightlife & Drinks",
+			"tr": "Barlar - Gece Hayatı & İçecekler",
+		},
+		MetaDescription: &utils.LocalizedString{
+			"en": "Discover bars, pubs, and nightlife venues in your city.",
+			"tr": "Şehrinizdeki barları, pubları ve gece mekanlarını keşfedin.",
+		},
 		IsActive:  true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

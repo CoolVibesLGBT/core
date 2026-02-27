@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/models"
 	"core/types"
 	"fmt"
@@ -44,6 +45,12 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	// limit
 	if limitStr := c.FormValue("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			if l > constants.MAXIMUM_LIMIT {
+				l = 100
+			}
+			if l < constants.DEFAULT_LIMIT {
+				l = constants.DEFAULT_LIMIT
+			}
 			filter.Limit = l
 		} else {
 			return filter, fmt.Errorf("invalid limit")
@@ -113,7 +120,6 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		}
 		filter.Distance = &dist
 	}
-
 
 	return filter, nil
 }

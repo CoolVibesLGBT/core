@@ -2,6 +2,7 @@ package utils
 
 import (
 	"core/extensions"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,4 +59,21 @@ type Location struct {
 */
 func (Location) TableName() string {
 	return "locations"
+}
+
+func (l *Location) DistanceTo(lat, lon float64) float64 {
+	const R = 6371000 // Dünya yarıçapı metre cinsinden
+	lat1 := *l.Latitude * math.Pi / 180
+	lon1 := *l.Longitude * math.Pi / 180
+	lat2 := lat * math.Pi / 180
+	lon2 := lon * math.Pi / 180
+
+	dLat := lat2 - lat1
+	dLon := lon2 - lon1
+
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1)*math.Cos(lat2)*math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return R * c // metre cinsinden mesafe
 }
