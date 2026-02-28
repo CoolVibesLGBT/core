@@ -143,7 +143,7 @@ The server will start on the port specified in your `.env` file.
 
 ## Dependencies
 
-- **Gorilla Mux** - HTTP router and URL matcher
+- **Fiberv3** - HTTP router and URL matcher
 - **GORM** - ORM library for Go
 - **PostgreSQL Driver** - Database driver for PostgreSQL
 - **Socket.IO** - WebSocket library
@@ -155,24 +155,25 @@ The server will start on the port specified in your `.env` file.
 - Chats.go PinnedMsg   *Message   `gorm:"foreignKey:PinnedMsgID;references:ID"`
 
 ## License
+This project is free to use, open for everyone, and can be developed by anyone.
 
-[Add your license information here]
 
 
+## Update Homebrew
+```bash
 brew update
 brew install postgresql
 brew install postgis
 brew services start postgresql
 brew services list
 
-
 brew services start postgresql
 psql postgres
 
-ALTER ROLE postgres WITH PASSWORD 'TestTest!1453!';
+ALTER ROLE postgres WITH PASSWORD 'yourownpassword';
 
 brew services restart postgresql
-
+```
 
 ## Installation
 

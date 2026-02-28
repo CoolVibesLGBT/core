@@ -104,7 +104,7 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantID)
 		}
 
-		chat, err := s.CreateChat(parsedParticipantId, authUser.ID, chatType)
+		chat, err := s.CreateChat(c.Context(), parsedParticipantId, authUser.ID, chatType)
 		if err != nil {
 			return c.
 				Status(fiber.StatusBadRequest).

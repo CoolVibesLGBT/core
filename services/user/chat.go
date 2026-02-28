@@ -8,6 +8,7 @@ import (
 	"core/models/post"
 	"core/repositories"
 	"core/services/socket"
+	"core/types"
 	"encoding/json"
 	"errors"
 	"log"
@@ -59,8 +60,8 @@ func (s *ChatService) SendTypingEvent(chatID, userID uuid.UUID, typing bool) err
 	return err
 }
 
-func (s *ChatService) CreateChat(participantUserId, userID uuid.UUID, chatType string) (*chat.Chat, error) {
-	participantUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(participantUserId)
+func (s *ChatService) CreateChat(context context.Context, participantUserId, userID uuid.UUID, chatType string) (*chat.Chat, error) {
+	participantUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: context, UserUUID: participantUserId})
 	if err != nil {
 		return nil, errors.New(constants.ErrUserNotFound.String())
 	}

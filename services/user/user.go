@@ -47,7 +47,7 @@ func (s *UserService) UserRepository() *repositories.UserRepository {
 }
 
 // Register işlemi
-func (s *UserService) Register(request map[string][]string) (*models.User, string, error) {
+func (s *UserService) Register(context context.Context, request map[string][]string) (*models.User, string, error) {
 
 	type RegisterForm struct {
 		Name     string `form:"name"`
@@ -136,10 +136,10 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	if len(formData.Referral) > 0 {
 		referralId, err := helpers.StrToInt64(formData.Referral)
 		if err == nil {
-			referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(referralId)
+			referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: context, UserID: referralId})
 			if err == nil {
 				reward := constants.DEFAULT_REFERRAL_REWARD
-				newBalance, err := s.userRepo.AddReferral(context.Background(), referralUser.ID, userInfo.ID, reward)
+				newBalance, err := s.userRepo.AddReferral(context, referralUser.ID, userInfo.ID, reward)
 				if err != nil {
 					fmt.Println("REFERRAL ERROR3", err)
 				}
@@ -160,7 +160,7 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	return userInfo, token, nil
 }
 
-func (s *UserService) Login(request map[string][]string) (*models.User, string, error) {
+func (s *UserService) Login(context context.Context, request map[string][]string) (*models.User, string, error) {
 	// Form yapısı
 	type LoginForm struct {
 		UserName string `form:"nickname"`
@@ -291,12 +291,12 @@ func (s *UserService) UpsertUserPreference(ctx context.Context, user models.User
 	return err
 }
 
-func (s *UserService) GetAllStories(ctx context.Context, limit int) ([]*models.Story, error) {
-	return s.userRepo.GetAllStories(limit)
+func (s *UserService) GetAllStories(filters types.Filter) ([]*models.Story, error) {
+	return s.userRepo.GetAllStories(filters)
 }
 
-func (s *UserService) FetchNearbyUsers(ctx context.Context, user *models.User, distanceKm int, cursor *int64, limit int) ([]*models.User, error) {
-	return s.userRepo.FetchNearbyUsers(user, distanceKm, cursor, limit)
+func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+	return s.userRepo.FetchNearbyUsers(filters)
 }
 
 func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
@@ -316,11 +316,11 @@ func (s *UserService) HandleFollow(ctx context.Context, followerID, followeeID i
 }
 
 func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID int64) (bool, error) {
-	followerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(followerID)
+	followerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: followerID})
 	if err != nil {
 		return false, err
 	}
-	followeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(followeeID)
+	followeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: followeeID})
 	if err != nil {
 		return false, err
 	}
@@ -402,7 +402,7 @@ func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID i
 	return isFollowing, nil
 }
 
-func (s *UserService) UpdateUserProfile(authUser models.User, request map[string][]string) (*models.User, error) {
+func (s *UserService) UpdateUserProfile(context context.Context, authUser models.User, request map[string][]string) (*models.User, error) {
 	// Form yapısı
 	type UserProfileForm struct {
 		UserName                string `form:"username"`
@@ -440,7 +440,7 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		return nil, errors.New(constants.ErrUsernameTaken.String())
 	}
 
-	userInfo, err := s.userRepo.GetUserByUUIDdWithoutRelations(authUser.ID)
+	userInfo, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: context, UserUUID: authUser.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -531,11 +531,11 @@ func (s *UserService) HandleLike(ctx context.Context, authUser models.User, like
 }
 
 func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, likerId, likeeId int64, isLike bool) (bool, bool, error) {
-	likerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(likerId)
+	likerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: likerId})
 	if err != nil {
 		return isLike, false, errors.New(err.Error())
 	}
-	likeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(likeeId)
+	likeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: likeeId})
 	if err != nil {
 		return isLike, false, errors.New(err.Error())
 	}
@@ -582,11 +582,11 @@ func (s *UserService) HandleBlock(ctx context.Context, authUser models.User, blo
 }
 
 func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
-	blockerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(blockerId)
+	blockerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockerId})
 	if err != nil {
 		return false, errors.New(err.Error())
 	}
-	blockedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(blockedId)
+	blockedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockedId})
 	if err != nil {
 		return false, errors.New(err.Error())
 	}

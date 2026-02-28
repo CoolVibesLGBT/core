@@ -5,6 +5,7 @@ import (
 	"core/middleware"
 	"core/models"
 	services "core/services/user"
+	"core/types"
 	"core/utils"
 	"fmt"
 	"strconv"
@@ -23,7 +24,6 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 
 func HandleRegister(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		// Multipart form'u al (error kontrolü ile)
 		form, err := c.MultipartForm()
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -31,7 +31,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 			})
 		}
 
-		userObj, token, err := s.Register(form.Value)
+		userObj, token, err := s.Register(c.Context(), form.Value)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserExists)
 		}
@@ -45,7 +45,6 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 
 func HandleLogin(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		// Multipart form verisini al
 		form, err := c.MultipartForm()
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -53,7 +52,7 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 			})
 		}
 
-		userObj, token, err := s.Login(form.Value)
+		userObj, token, err := s.Login(c.Context(), form.Value)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid credentials",
@@ -224,7 +223,6 @@ func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		// Form verisini Fiber'dan al (multipart form parse'a gerek yok, Fiber zaten parse eder)
 		preferenceItemId := c.FormValue("id")
 		if len(preferenceItemId) == 0 {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
@@ -262,23 +260,14 @@ func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
 
 func HandleFetchStories(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		// limit parametresini query'den al, default 20 olsun
-		limit := 20
-		if l := c.Query("limit"); l != "" {
-			if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			}
-		}
-
-		if limit > 20 { // maximum 20
-			limit = 20
-		}
-
-		stories, err := s.GetAllStories(c.Context(), limit)
+		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer) // utils.SendError fiber uyumlu olmalı
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
-
+		stories, err := s.GetAllStories(filters)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
+		}
 		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
 			"stories": stories,
 		})
@@ -287,45 +276,18 @@ func HandleFetchStories(s *services.UserService) fiber.Handler {
 
 func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		fmt.Println("AuthMiddlewareWithoutCheck")
-
-		// Fiber'de form parse işlemi otomatik olarak yapılır, elle ParseForm yok
-		limit := 10
-		if limitStr := c.FormValue("limit"); limitStr != "" {
-			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-				limit = parsedLimit
-			}
-		}
-
-		distance := 10
-		if distanceStr := c.FormValue("distance"); distanceStr != "" {
-			if parsedDistance, err := strconv.Atoi(distanceStr); err == nil && parsedDistance > 0 {
-				distance = parsedDistance
-			}
-		}
-
-		var cursor int64 = 0
-		if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-			val, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = val
-		}
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			fmt.Println("LOCATIONLESSx")
-			// Burada istersen kullanıcı yoksa hata dön veya boş liste dön
-			// return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
-			// veya devam et
 		}
 
-		fmt.Println("distance", distance, cursor)
+		filters, err := ParseFilters(c, auth_user)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
 
-		users, err := s.FetchNearbyUsers(c.Context(), auth_user, distance, &cursor, limit)
+		users, err := s.FetchNearbyUsers(filters)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
@@ -527,7 +489,7 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 
 		formValues := form.Value // map[string][]string olarak direkt kullan
 
-		user, err := s.UpdateUserProfile(*auth_user, formValues)
+		user, err := s.UpdateUserProfile(c.Context(), *auth_user, formValues)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
@@ -581,7 +543,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 			limit = parsedLimit
 		}
 
-		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(engageeId)
+		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(types.Filter{Context: c.Context(), UserID: engageeId})
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}

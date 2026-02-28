@@ -201,10 +201,10 @@ func (r *UserRepository) GetUsersStartingWith(letter string, limit int) ([]model
 	return users, nil
 }
 
-func (r *UserRepository) GetUserByPublicIdWithoutRelations(userID int64) (*models.User, error) {
+func (r *UserRepository) GetUserByPublicIdWithoutRelations(filters types.Filter) (*models.User, error) {
 	var u models.User
 	err :=
-		r.db.First(&u, "public_id = ?", userID).Error
+		r.db.WithContext(filters.Context).First(&u, "public_id = ?", filters.UserID).Error
 
 	if err != nil {
 		return nil, err
@@ -212,10 +212,10 @@ func (r *UserRepository) GetUserByPublicIdWithoutRelations(userID int64) (*model
 	return &u, nil
 }
 
-func (r *UserRepository) GetUserByUUIDdWithoutRelations(userID uuid.UUID) (*models.User, error) {
+func (r *UserRepository) GetUserByUUIDdWithoutRelations(filters types.Filter) (*models.User, error) {
 	var u models.User
 	err :=
-		r.db.First(&u, "id = ?", userID).Error
+		r.db.WithContext(filters.Context).First(&u, "id = ?", filters.UserUUID).Error
 
 	if err != nil {
 		return nil, err
@@ -277,16 +277,16 @@ func (r *UserRepository) GetUserStories(userID uuid.UUID, limit int) ([]*models.
 	return stories, nil
 }
 
-func (r *UserRepository) GetAllStories(limit int) ([]*models.Story, error) {
+func (r *UserRepository) GetAllStories(filters types.Filter) ([]*models.Story, error) {
 	var stories []*models.Story
-	if err := r.db.
+	if err := r.db.WithContext(filters.Context).
 		Preload("Media.File").
 		Preload("User").
 		Preload("User.Avatar.File").
 		Preload("User.Cover.File").
 		Where("is_expired = false").
 		Order("created_at DESC").
-		Limit(limit).
+		Limit(filters.Limit).
 		Find(&stories).Error; err != nil {
 		return nil, err
 	}
@@ -387,119 +387,15 @@ func (r *UserRepository) UpsertUserPreference(ctx context.Context, user models.U
 	return nil
 }
 
-func (r *UserRepository) FetchNearbyUsersLegacy(auth_user *models.User, distance int, cursor *int64, limit int) ([]*models.User, error) {
-	if limit <= 0 {
-		limit = 100
-	}
-	if limit > 100 {
-		limit = 100
-	}
-
-	if auth_user != nil {
-		fmt.Println("GELEN CURSOR ", *cursor)
-	} else {
-		fmt.Println("CURSOR NILL")
-	}
-
-	var users []*models.User
-	meters := float64(distance * 100000)
-
-	var user *models.User
-	if auth_user != nil {
-		r.db.Preload("Location").First(&user, "id = ?", auth_user.ID)
-	}
-
-	// Eğer kullanıcı konumu yoksa -> tüm kullanıcıları çek (cursor + limit uygula)
-	if user == nil || user.Location == nil || user.Location.Latitude == nil || user.Location.Longitude == nil {
-		q := r.db.Model(&models.User{}).
-			Order("public_id ASC").
-			Limit(limit)
-
-		if cursor != nil {
-			fmt.Println("CURSOR EKLENDI")
-			q = q.Where("public_id > ?", *cursor)
-		}
-
-		// Preload ilişkiler ihtiyaca göre arttır
-		if err := q.Preload("Location").
-			Preload("Avatar").
-			Preload("Avatar.File").
-			Preload("Cover").
-			Preload("Cover.File").
-			Preload("Fantasies.Fantasy").
-			Preload("Interests.InterestItem.Interest").
-			Preload("Avatar.File").
-			Preload("Cover.File").
-			Preload("GenderIdentities").
-			Preload("SexualOrientations").
-			Preload("SexualRole").
-			Preload("UserAttributes.Attribute").
-			Find(&users).Error; err != nil {
-			return nil, err
-		}
-
-		return users, nil
-	}
-
-	raw := r.db.
-		Table("users u").
-		Joins("JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
-		Select(`
-			u.*,
-			ST_Distance(
-				l.location_point,
-				ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-			) AS distance
-		`, *user.Location.Longitude, *user.Location.Latitude).
-		Where("l.location_point IS NOT NULL").
-		Where(`
-			ST_DWithin(
-				l.location_point,
-				ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-				?
-			)
-		`, *user.Location.Longitude, *user.Location.Latitude, meters).
-		Order("distance ASC, u.display_name ASC").
-		Limit(limit)
-
-	if cursor != nil {
-		raw = raw.Where("u.public_id > ?", *cursor)
-	}
-
-	if err := raw.Preload("Location").
-		Preload("Fantasies.Fantasy").
-		Preload("Interests.InterestItem.Interest").
-		Preload("Avatar").
-		Preload("Avatar.File").
-		Preload("Cover").
-		Preload("Cover.File").
-		Preload("GenderIdentities").
-		Preload("SexualOrientations").
-		Preload("SexualRole").
-		Preload("UserAttributes.Attribute").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
-func (r *UserRepository) FetchNearbyUsers(auth_user *models.User, distance int, cursor *int64, limit int) ([]*models.User, error) {
-	if limit <= 0 {
-		limit = 100
-	}
-	if limit > 100 {
-		limit = 100
-	}
+func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
 
 	var users []*models.User
 	var user *models.User
 
-	if auth_user != nil {
-		r.db.Preload("Location").First(&user, "id = ?", auth_user.ID)
+	if filters.AuthUser != nil {
+		r.db.Preload("Location").First(&user, "id = ?", filters.AuthUser.ID)
 	}
 
-	// Kullanıcının konumu varsa -> yakından uzağa tüm kullanıcılar
 	if user != nil && user.Location != nil && user.Location.Latitude != nil && user.Location.Longitude != nil {
 		raw := r.db.
 			Table("users u").
@@ -515,10 +411,10 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *models.User, distance int, 
 			`, *user.Location.Longitude, *user.Location.Latitude).
 			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
 			Order("distance ASC, u.public_id ASC").
-			Limit(limit)
+			Limit(filters.Limit)
 
-		if cursor != nil {
-			raw = raw.Where("u.public_id > ?", *cursor)
+		if filters.Cursor != nil {
+			raw = raw.Where("u.public_id > ?", *filters.Cursor)
 		}
 
 		if err := r.db.Table("(?) as subquery", raw).
@@ -532,13 +428,12 @@ func (r *UserRepository) FetchNearbyUsers(auth_user *models.User, distance int, 
 		return users, nil
 	}
 
-	// Kullanıcının konumu yoksa -> normal sıralama
 	q := r.db.Model(&models.User{}).
 		Order("public_id ASC").
-		Limit(limit)
+		Limit(filters.Limit)
 
-	if cursor != nil {
-		q = q.Where("public_id > ?", *cursor)
+	if filters.Cursor != nil {
+		q = q.Where("public_id > ?", *filters.Cursor)
 	}
 
 	if err := q.
@@ -713,11 +608,11 @@ func (r *UserRepository) AddReferral(ctx context.Context, referrerID uuid.UUID, 
 	}
 
 	canSendNotification := true
-	senderUser, err := r.GetUserByUUIDdWithoutRelations(referredUserID)
+	senderUser, err := r.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: referredUserID})
 	if err != nil {
 		canSendNotification = false
 	}
-	receiverUser, err := r.GetUserByUUIDdWithoutRelations(referrerID)
+	receiverUser, err := r.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: referrerID})
 	if err != nil {
 		canSendNotification = false
 	}

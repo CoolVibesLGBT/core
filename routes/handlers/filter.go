@@ -5,7 +5,6 @@ import (
 	"core/models"
 	"core/types"
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -16,7 +15,7 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	filter := types.Filter{
 		AuthUser: authUser,
 		Context:  c.Context(),
-		Limit:    20, // default
+		Limit:    constants.DEFAULT_LIMIT,
 	}
 
 	// user_id
@@ -46,7 +45,7 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	if limitStr := c.FormValue("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			if l > constants.MAXIMUM_LIMIT {
-				l = 100
+				l = constants.MAXIMUM_LIMIT
 			}
 			if l < constants.DEFAULT_LIMIT {
 				l = constants.DEFAULT_LIMIT
@@ -64,9 +63,6 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 			return filter, fmt.Errorf("invalid cursor")
 		}
 		filter.Cursor = &cVal
-	} else {
-		maxInt64 := int64(math.MaxInt64)
-		filter.Cursor = &maxInt64
 	}
 
 	// Search (optional string pointer)
