@@ -56,7 +56,8 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 		Password string `form:"password"`
 		Domain   string `form:"domain"`
 		Email    string `form:"email"`
-		Captcha  string `form:"recaptchaToken"` // string veya time.Time
+		Captcha  string `form:"recaptchaToken"`
+		Referral string `form:"referralCode"`
 	}
 	decoder := form.NewDecoder()
 	var formData RegisterForm
@@ -132,6 +133,26 @@ func (s *UserService) Register(request map[string][]string) (*models.User, strin
 	if err != nil {
 		return nil, "", err
 	}
+
+	if len(formData.Referral) > 0 {
+		referralId, err := helpers.StrToInt64(formData.Referral)
+		if err == nil {
+			referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(referralId)
+			if err == nil {
+				reward := constants.DEFAULT_REFERRAL_REWARD
+				newBalance, err := s.userRepo.AddReferral(context.Background(), referralUser.ID, userInfo.ID, reward)
+				if err != nil {
+					fmt.Println("REFERRAL ERROR3", err)
+				}
+				fmt.Println("NEW BALANCE", newBalance)
+			} else {
+				fmt.Println("REFERRAL ERROR2", err)
+			}
+		} else {
+			fmt.Println("REFERRAL ERROR1", err)
+		}
+	}
+
 	token, err := helpers.GenerateUserJWT(userObj.ID, userObj.PublicID)
 	if err != nil {
 		return nil, "", err
@@ -415,7 +436,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		return nil, err
 	}
 
-	// Kullanıcıyı username ile bul (repo'da buna uygun fonksiyon olmalı)
 	existsUser, err := s.userRepo.GetByNameOrMailWithoutRelations(formData.UserName)
 	if err == nil && existsUser.ID != authUser.ID {
 		return nil, errors.New("username already taken")
@@ -426,7 +446,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 		return nil, err
 	}
 
-	// Şifre doğrulaması (şifre formdan geliyorsa)
 	if formData.CurrentPassword != "" {
 		ok, err := helpers.ComparePasswordArgon2id(authUser.Password, formData.CurrentPassword)
 		if err != nil {
@@ -453,7 +472,6 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 
 	userInfo.PrivacyLevel = constants.PrivacyLevel(formData.PrivacyLevel)
 
-	// Update et
 	if err := s.userRepo.UpdateUser(userInfo); err != nil {
 		return nil, err
 	}

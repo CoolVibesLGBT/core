@@ -12,3 +12,11 @@ func DefaultIfEmpty(value, fallback string) string {
 	}
 	return value
 }
+
+func StrToInt64(s string) (int64, error) {
+	return strconv.ParseInt(s, 10, 64)
+}
+
+func StrToInt(s string) (int, error) {
+	return strconv.Atoi(s)
+}

@@ -31,6 +31,7 @@ const (
 	EngagementKindDislikeGiven    EngagementKind = "dislike_given"    // Kullanıcının beğendikleri
 	EngagementKindDisLikeReceived EngagementKind = "dislike_received" // Kullanıcıyı beğenenler
 	EngagementKindMatched         EngagementKind = "matched"          // Kullanıcının eslestikleri
+	EngagementKindReferral        EngagementKind = "referral"         // referral işlemi
 
 	EngagementKindViewGiven    EngagementKind = "view_given"    // Görüntüleyen kişi (benim baktıklarım)
 	EngagementKindViewReceived EngagementKind = "view_received" // Görülen kişi (bana bakanlar)
@@ -92,6 +93,8 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindReport:   {"report_count", ""},
 	EngagementKindDeposit:  {"deposit_count", "deposit_amount"},
 	EngagementKindWithdraw: {"withdraw_count", "withdraw_amount"},
+
+	EngagementKindReferral: {"referral_count", "referral_amount"},
 }
 
 func NewCountsMap() map[string]interface{} {

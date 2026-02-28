@@ -70,13 +70,20 @@ go run . -seed
 go run . -install
 ```
 
+### 6. Lint
 ```bash
 golangci-lint run ./...
 ```
+
+### 7. Wire Injections
 ```bash
 go run github.com/google/wire/cmd/wire ./application
 ```
 
+### 7. Test
+```bash
+go test ./...
+```
 
 go test -race -cover
 brew install golangci-lint

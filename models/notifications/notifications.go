@@ -24,6 +24,8 @@ const (
 	NotificationTypeSuperLike     = "super_like"     // Özel beğeni bildirimi (örn. Tinder’daki gibi)
 	NotificationTypeMessageRead   = "message_read"   // Mesaj okundu bildirimi
 	NotificationTypeMatchUnmatch  = "match_unmatch"  // Eşleşme iptali bildirimi
+	NotificationTypeReferral      = "referral"       // Profil beğenisi bildirimi
+
 )
 
 type Notification struct {

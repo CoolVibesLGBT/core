@@ -128,7 +128,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	notificationRepo := repositories.NewNotificationRepository(db, node)
 	// repository ve service oluştur
 	engagementRepo := repositories.NewEngagementRepository(db)
-	userRepo := repositories.NewUserRepository(db, nil, node, engagementRepo)
+	userRepo := repositories.NewUserRepository(db, nil, node, engagementRepo, notificationRepo)
 	mediaRepo := repositories.NewMediaRepository(db, node)
 	postRepo := repositories.NewPostRepository(db, node, mediaRepo, userRepo, notificationRepo)
 	placesRepo := repositories.NewPlaceRepository(db, node, mediaRepo, userRepo, notificationRepo, postRepo)

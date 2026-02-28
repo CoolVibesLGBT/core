@@ -94,7 +94,7 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
 	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
 	// repository ve service oluştur
 	engagementRepo := repositories.NewEngagementRepository(db)
-	userRepo := repositories.NewUserRepository(db, nil, snowFlakeNode, engagementRepo)
+	userRepo := repositories.NewUserRepository(db, nil, snowFlakeNode, engagementRepo, notificationRepo)
 	mediaRepo := repositories.NewMediaRepository(db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
 	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)

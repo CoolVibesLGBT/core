@@ -10,6 +10,7 @@ import (
 	"core/types"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -22,14 +23,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/oschwald/maxminddb-golang"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserRepository struct {
-	db             *gorm.DB
-	engagementRepo *EngagementRepository
-	snowFlakeNode  *helpers.Node
-	geoipDB        *maxminddb.Reader
+	db               *gorm.DB
+	engagementRepo   *EngagementRepository
+	notificationRepo *NotificationRepository
+	snowFlakeNode    *helpers.Node
+	geoipDB          *maxminddb.Reader
 }
 
 func (r *UserRepository) DB() *gorm.DB {
@@ -48,8 +52,8 @@ func (r *UserRepository) Node() *helpers.Node {
 	return r.snowFlakeNode
 }
 
-func NewUserRepository(db *gorm.DB, geoipDB *maxminddb.Reader, snowFlakeNode *helpers.Node, engagementRepo *EngagementRepository) *UserRepository {
-	return &UserRepository{db: db, geoipDB: geoipDB, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo}
+func NewUserRepository(db *gorm.DB, geoipDB *maxminddb.Reader, snowFlakeNode *helpers.Node, engagementRepo *EngagementRepository, notificationRepo *NotificationRepository) *UserRepository {
+	return &UserRepository{db: db, geoipDB: geoipDB, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo, notificationRepo: notificationRepo}
 }
 
 func (r *UserRepository) TestUser() error {
@@ -684,4 +688,82 @@ func (r *UserRepository) UpdateLocation(context context.Context, authUser *model
 	}
 
 	return nil
+}
+
+func (r *UserRepository) AddReferral(ctx context.Context, referrerID uuid.UUID, referredUserID uuid.UUID, rewardAmount decimal.Decimal) (*decimal.Decimal, error) {
+	exists, err := r.GetEngagementRepository().HasUserEngaged(ctx, referredUserID, referrerID, models.EngagementKindReferral)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, errors.New("user already referred")
+	}
+
+	referralErr := r.GetEngagementRepository().AddTip(ctx, referredUserID, referrerID, rewardAmount, referrerID, models.EngagementContentableTypeUser, models.EngagementKindReferral)
+	if referralErr != nil {
+		return nil, referralErr
+	}
+
+	messageTitle := " New Referral Reward"
+	messageText := "You received a new referral reward. Click to read."
+
+	payload := notifications.NotificationPayload{
+		Title: messageTitle,
+		Body:  messageText,
+	}
+
+	canSendNotification := true
+	senderUser, err := r.GetUserByUUIDdWithoutRelations(referredUserID)
+	if err != nil {
+		canSendNotification = false
+	}
+	receiverUser, err := r.GetUserByUUIDdWithoutRelations(referrerID)
+	if err != nil {
+		canSendNotification = false
+	}
+	if canSendNotification {
+		err = r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notifications.NotificationTypeReferral, messageTitle, messageText, payload)
+		if err != nil {
+			fmt.Printf("Bildirim gönderilemedi user %s: %v\n", referrerID, err)
+		}
+	}
+
+	return r.AddBalance(ctx, referrerID, rewardAmount)
+
+}
+
+func (r *UserRepository) AddBalance(ctx context.Context, userID uuid.UUID, amount decimal.Decimal) (*decimal.Decimal, error) {
+
+	if amount.IsZero() {
+		return nil, errors.New("amount cannot be zero")
+	}
+
+	if amount.IsNegative() {
+		return nil, errors.New("amount cannot be negative")
+	}
+
+	var newBalance decimal.Decimal
+
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var user models.User
+
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", userID).First(&user).Error; err != nil {
+			return err
+		}
+
+		user.Balance = user.Balance.Add(amount)
+		newBalance = user.Balance
+
+		if err := tx.Model(&models.User{}).Where("id = ?", userID).Update("balance", newBalance).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &newBalance, nil
 }
