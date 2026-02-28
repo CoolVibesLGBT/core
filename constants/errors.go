@@ -65,14 +65,28 @@ const (
 	ErrPostDeleteFailed ErrorCode = "POST_DELETE_FAILED"
 	ErrPostCreateFailed ErrorCode = "POST_CREATE_FAILED"
 
-	ErrInsufficientBalance ErrorCode = "INSUFFICIENT_BALANCE"
-	ErrInvalidAmount       ErrorCode = "INVALID_AMOUNT" // yeni hata kodu
+	ErrInsufficientBalance  ErrorCode = "INSUFFICIENT_BALANCE"
+	ErrInvalidAmount        ErrorCode = "INVALID_AMOUNT"
+	ErrFailedToBookmarkPost ErrorCode = "FAILED_TO_BOOKMARK_POST"
 
+	// Place
+	ErrPlaceNotFound     ErrorCode = "PLACE_NOT_FOUND"
+	ErrPlaceDeleteDenied ErrorCode = "PLACE_DELETE_DENIED"
+	ErrPlaceDeleteFailed ErrorCode = "PLACE_DELETE_FAILED"
+	ErrPlaceCreateFailed ErrorCode = "PLACE_CREATE_FAILED"
 	// Chat
-	ErrSelfChatNotAllowed        ErrorCode = "SELF_CHAT_NOT_ALLOWED"
-	ErrUnsupportedChatType       ErrorCode = "UNSUPPORTED_CHAT_TYPE"
-	ErrInvalidParticipantID      ErrorCode = "INVALID_PARTICIPANT_ID"
-	ErrInvalidParticipantsLength ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
+	ErrSelfChatNotAllowed           ErrorCode = "SELF_CHAT_NOT_ALLOWED"
+	ErrUnsupportedChatType          ErrorCode = "UNSUPPORTED_CHAT_TYPE"
+	ErrInvalidParticipantID         ErrorCode = "INVALID_PARTICIPANT_ID"
+	ErrInvalidParticipantsLength    ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
+	ErrFailedToLoadMessages         ErrorCode = "FAILED_TO_LOAD_MESSAGES"
+	ErrInvalidChatID                ErrorCode = "INVALID_CHAT_ID"
+	ErrInvalidMessageID             ErrorCode = "INVALID_MESSAGE_ID"
+	ErrFailedToPinMessage           ErrorCode = "FAILED_TO_PIN_MESSAGE"
+	ErrFailedToUnpinMessage         ErrorCode = "FAILED_TO_UNPIN_MESSAGE"
+	ErrFailedToDeleteMessageForUser ErrorCode = "FAILED_TO_DELETE_MESSAGE_FOR_USER"
+	ErrFailedToDeleteChatForAll     ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_ALL"
+	ErrFailedToDeleteChatForUser    ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_USER"
 
 	// Location / Geo
 	ErrInvalidLatitude  ErrorCode = "INVALID_LATITUDE"
@@ -135,18 +149,33 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrVoteFailed:       "Failed to register your vote. Please try again.",
 
 	// Post
-	ErrPostNotFound:        "Post not found.",
-	ErrPostDeleteDenied:    "You are not allowed to delete this post.",
-	ErrPostDeleteFailed:    "Failed to delete the post.",
-	ErrInsufficientBalance: "Insufficient balance.",    // yeni mesaj eklendi
-	ErrInvalidAmount:       "Invalid amount provided.", // yeni mesaj
-	ErrPostCreateFailed:    "Failed to create post",
+	ErrPostNotFound:         "Post not found.",
+	ErrPostDeleteDenied:     "You are not allowed to delete this post.",
+	ErrPostDeleteFailed:     "Failed to delete the post.",
+	ErrInsufficientBalance:  "Insufficient balance.",    // yeni mesaj eklendi
+	ErrInvalidAmount:        "Invalid amount provided.", // yeni mesaj
+	ErrPostCreateFailed:     "Failed to create post",
+	ErrFailedToBookmarkPost: "Failed to bookmark post",
+
+	// Place
+	ErrPlaceCreateFailed: "Failed to create place",
+	ErrPlaceNotFound:     "Place not found",
+	ErrPlaceDeleteDenied: "You are not allowed to delete this place",
+	ErrPlaceDeleteFailed: "Failed to delete the place",
 
 	// Chat
-	ErrSelfChatNotAllowed:        "You cannot create a chat with yourself.",
-	ErrUnsupportedChatType:       "Unsupported chat type.",
-	ErrInvalidParticipantID:      "Invalid participant ID.",
-	ErrInvalidParticipantsLength: "Invalid participants length.",
+	ErrSelfChatNotAllowed:           "You cannot create a chat with yourself.",
+	ErrUnsupportedChatType:          "Unsupported chat type.",
+	ErrInvalidParticipantID:         "Invalid participant ID.",
+	ErrInvalidParticipantsLength:    "Invalid participants length.",
+	ErrFailedToLoadMessages:         "Failed to load messages. Please try again later.",
+	ErrInvalidChatID:                "The provided chat ID is invalid.",
+	ErrInvalidMessageID:             "The provided message ID is invalid.",
+	ErrFailedToPinMessage:           "Failed to pin message.",
+	ErrFailedToUnpinMessage:         "Failed to unpin the message. Please try again later.",
+	ErrFailedToDeleteMessageForUser: "Failed to delete the message for the user.",
+	ErrFailedToDeleteChatForAll:     "Failed to delete the chat for all.",
+	ErrFailedToDeleteChatForUser:    "Failed to delete the chat for the user.",
 
 	// Location / Geo
 	ErrInvalidLatitude:  "Invalid latitude.",

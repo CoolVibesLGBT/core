@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/middleware"
 	services "core/services/user"
+	"core/utils"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,9 +23,7 @@ func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Could not parse multipart form: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Could not parse multipart form: "+err.Error())
 		}
 
 		formParams := form.Value
@@ -35,19 +35,15 @@ func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
 		post, err := s.CreatePlace(c.Context(), formParams, files, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPlaceCreateFailed, "Failed to create post: "+err.Error())
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(post)
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Post created successfully")
 	}
 }
 
@@ -58,19 +54,18 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 
 		filters, err := ParseFilters(c, authUser)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		places, cursorInfo, err := s.GetNearByPlaces(filters)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPlaceNotFound, "Failed to get places: "+err.Error())
+		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": err == nil,
-			"error":   err,
-			"places":  places,
-			"cursor":  cursorInfo,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"places": places,
+			"cursor": cursorInfo,
+		}, "Places fetched successfully")
 	}
 }
 
@@ -78,16 +73,16 @@ func HandleGetPlaceCategories(s *services.PlaceService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		categories, err := s.GetPlacesCategories(filters)
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success":    err == nil,
-			"error":      err,
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPlaceNotFound, "Failed to get categories: "+err.Error())
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"categories": categories,
-		})
+		}, "Categories fetched successfully")
 	}
 }

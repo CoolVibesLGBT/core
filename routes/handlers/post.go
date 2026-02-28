@@ -193,21 +193,15 @@ func HandlePostBookmark(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		err = s.Bookmark(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to bookmark post: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToBookmarkPost)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post bookmarked successfully")
 	}
 }
 
@@ -221,16 +215,12 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 
 		postIdStr := c.FormValue("post_id")
 		if postIdStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "post_id is required",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrPostNotFound)
 		}
 
 		postId, err := strconv.ParseInt(postIdStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid post_id: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrPostNotFound)
 		}
 
 		reason := c.FormValue("reason")
@@ -238,15 +228,10 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 
 		err = s.Report(c.Context(), postId, reason, description, user)
 		if err != nil {
-			// constants.ErrInvalidInput örnek hata, istersen kendi hata mesajını yazabilirsin
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid input",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post reported successfully")
 	}
 }
 
@@ -260,21 +245,15 @@ func HandlePostView(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		err = s.View(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post viewed successfully")
 	}
 }
 
@@ -288,43 +267,32 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 
 		postIdStr := c.FormValue("post_id")
 		if postIdStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "post_id is required",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "post_id is required")
 		}
 
 		postId, err := strconv.ParseInt(postIdStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid post_id: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid post_id: "+err.Error())
 		}
 
 		amountStr := c.FormValue("amount")
 		if amountStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "amount is required",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "amount is required")
 		}
 
 		amount, err := decimal.NewFromString(amountStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid amount: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid amount: "+err.Error())
 		}
 
 		balance, err := s.Tip(c.Context(), postId, user, amount)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to tip post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to tip post: "+err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"balance": balance,
-		})
+		}, "Post tipped successfully")
 	}
 }
 
@@ -333,18 +301,14 @@ func HandleGetByID(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
 
-		return c.JSON(post)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")
 	}
 }
 
@@ -352,17 +316,13 @@ func HandleGetByPublicID(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
-		return c.JSON(post)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")
 	}
 }
 
@@ -370,17 +330,13 @@ func HandleTimeline(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		result, err := s.GetTimeline(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get timeline: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get timeline: "+err.Error())
 		}
-		return c.JSON(result)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, result, "Timeline fetched successfully")
 	}
 }
 
@@ -389,18 +345,14 @@ func HandleTimelineVibes(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		result, err := s.GetTimelineVibes(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get timeline: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get timeline: "+err.Error())
 		}
-		return c.JSON(result)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, result, "Timeline fetched successfully")
 	}
 }
 
@@ -408,19 +360,15 @@ func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		posts, err := s.GetPostsByUserID(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get posts: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get posts: "+err.Error())
 		}
 
-		return c.JSON(posts)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, posts, "Posts fetched successfully")
 	}
 }
 
@@ -428,19 +376,15 @@ func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		posts, err := s.GetUserPostReplies(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get posts: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get posts: "+err.Error())
 		}
 
-		return c.JSON(posts)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, posts, "Posts fetched successfully")
 	}
 }
 
@@ -449,16 +393,12 @@ func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		medias, nextCursor, err := s.GetUserMedias(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get medias: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get medias: "+err.Error())
 		}
 
 		var nextCursorStr string
@@ -474,7 +414,7 @@ func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 			"has_more":    nextCursor != nil,
 		}
 
-		return c.JSON(response)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, response, "Medias fetched successfully")
 	}
 }
 
@@ -482,26 +422,20 @@ func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		idStr := c.FormValue("id")
 		if idStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "missing post id",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "missing post id")
 		}
 
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid uuid",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid uuid")
 		}
 
 		post, err := s.GetPostByID(id)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
 
-		return c.JSON(post)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")
 	}
 }
 
@@ -510,42 +444,32 @@ func HandleGetTrends(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		hashtags, err := s.GetRecentHashtags(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get trends: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get trends: "+err.Error())
 		}
 
-		return c.JSON(fiber.Map{
-			"success":     true,
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"trends":      hashtags,
 			"last_update": time.Now(),
-		})
+		}, "Trends fetched successfully")
 	}
 }
 
 func HandleGetCategories(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		//
-
 		categories, err := s.GetPillarsWithClusters(c.Context())
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to get trends: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get trends: "+err.Error())
 		}
 
-		return c.JSON(fiber.Map{
-			"success":     true,
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"categories":  categories,
 			"last_update": time.Now(),
-		})
+		}, "Categories fetched successfully")
 	}
 }

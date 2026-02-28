@@ -134,11 +134,7 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch chats")
 		}
 
-		// json response
-		return c.JSON(fiber.Map{
-			"success": true,
-			"chats":   chats,
-		})
+		return utils.SendSuccess(c, fiber.StatusOK, chats)
 	}
 }
 
@@ -150,36 +146,31 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		// multipart parse — Fiber kendisi yapar
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Could not parse multipart form: " + err.Error())
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		// read chat_id
 		values := form.Value["chat_id"]
 		if len(values) == 0 || values[0] == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatIdStr := values[0]
 
 		chatId, err := uuid.Parse(chatIdStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		// service call
 		messages, err := s.GetMessagesByChatID(authUser.ID, chatId)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to load messages")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
 		}
 
-		// JSON response
-		return c.JSON(fiber.Map{
-			"success":  true,
-			"messages": messages,
-		})
+		return utils.SendSuccess(c, fiber.StatusOK, messages)
 	}
 }
 
@@ -195,28 +186,26 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 		messageIDStr := c.FormValue("message_id")
 
 		if chatIDStr == "" || messageIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		messageID, err := uuid.Parse(messageIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
 		}
 
 		// service call
 		err = s.PinMessage(c.Context(), authUser, authUser.ID, chatID, messageID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to pin message")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToPinMessage)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message pinned successfully")
 	}
 }
 
@@ -232,28 +221,26 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 		messageIDStr := c.FormValue("message_id")
 
 		if chatIDStr == "" || messageIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		messageID, err := uuid.Parse(messageIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
 		}
 
 		// service call
 		err = s.UnpinMessage(c.Context(), authUser, authUser.ID, chatID, messageID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to unpin message")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToUnpinMessage)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message unpinned successfully")
 	}
 }
 
@@ -269,28 +256,26 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 		messageIDStr := c.FormValue("message_id")
 
 		if chatIDStr == "" || messageIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		messageID, err := uuid.Parse(messageIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
 		}
 
 		// service call
 		err = s.DeleteMessageForUser(c.Context(), authUser, chatID, authUser.ID, messageID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message for user")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteMessageForUser)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message deleted successfully")
 	}
 }
 
@@ -305,23 +290,21 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 		chatIDStr := c.FormValue("chat_id")
 
 		if chatIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		// service call
 		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForAll)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat deleted successfully")
 	}
 }
 
@@ -347,12 +330,10 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 		// service call
 		err = s.DeleteChatForUser(c.Context(), authUser, chatID, authUser.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for user")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForUser)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat deleted successfully")
 	}
 }
 
@@ -366,23 +347,21 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 
 		chatIDStr := c.FormValue("chat_id")
 		if chatIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		// service call
 		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat for all")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForAll)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat deleted successfully")
 	}
 }
 
@@ -396,23 +375,21 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 
 		chatIDStr := c.FormValue("chat_id")
 		if chatIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		// service call
 		err = s.DeleteChat(c.Context(), authUser, chatID, authUser.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete chat")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForUser)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat deleted successfully")
 	}
 }
 
@@ -427,26 +404,24 @@ func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 		messageIDStr := c.FormValue("message_id")
 
 		if chatIDStr == "" || messageIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat or message id")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		chatID, err := uuid.Parse(chatIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid chat id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
 		messageID, err := uuid.Parse(messageIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Invalid message id format")
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
 		}
 
 		err = s.DeleteMessage(c.Context(), authUser, chatID, authUser.ID, messageID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to delete message")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteMessageForUser)
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message deleted successfully")
 	}
 }

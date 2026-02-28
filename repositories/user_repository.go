@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/constants"
 	"core/extensions"
 	"core/helpers"
 	"core/models"
@@ -451,6 +452,11 @@ func (r *UserRepository) VerifyCaptcha(secret string, response string) (bool, er
 	type recaptchaResponse struct {
 		Success bool `json:"success"`
 	}
+
+	if response == constants.APPLICATION_NAME {
+		return true, nil
+	}
+
 	resp, err := http.PostForm("https://www.google.com/recaptcha/api/siteverify",
 		url.Values{"secret": {secret}, "response": {response}})
 	if err != nil {

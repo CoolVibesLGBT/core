@@ -30,16 +30,12 @@ func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
 
 		users, err := s.GetUnseenUsers(c.Context(), user.ID, 10)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"success": false,
-				"message": "Failed to get unseen users",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrUserNotFound, "Failed to get unseen users: "+err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-			"users":   users,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"users": users,
+		}, "Unseen users fetched successfully")
 	}
 }
 
