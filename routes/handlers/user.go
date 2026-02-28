@@ -85,9 +85,9 @@ func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user": userObj,
-		})
+		}, "User fetched successfully")
 	}
 }
 
@@ -100,16 +100,12 @@ func HandleUploadAvatar(s *services.UserService) fiber.Handler {
 
 		fileHeader, err := c.FormFile("avatar")
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid avatar file",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		newAvatar, err := s.UpdateAvatar(c.Context(), fileHeader, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrMediaUploadFailed,
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
 		user.AvatarID = &newAvatar.ID
@@ -117,14 +113,12 @@ func HandleUploadAvatar(s *services.UserService) fiber.Handler {
 
 		updatedUser, err := s.GetUserByID(user.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrMediaUploadFailed,
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user": updatedUser,
-		})
+		}, "Avatar updated successfully")
 	}
 }
 
@@ -133,24 +127,18 @@ func HandleUploadCover(s *services.UserService) fiber.Handler {
 		// Dosyayı al
 		fileHeader, err := c.FormFile("cover")
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "No cover file uploaded",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Unauthorized",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		// UpdateCover fonksiyonunu çağır
 		newCover, err := s.UpdateCover(c.Context(), fileHeader, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrMediaUploadFailed,
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
 		// user içindeki avatar yerine cover alanlarını güncelle
@@ -159,14 +147,12 @@ func HandleUploadCover(s *services.UserService) fiber.Handler {
 
 		updatedUser, err := s.GetUserByID(user.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrMediaUploadFailed,
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user": updatedUser,
-		})
+		}, "Cover updated successfully")
 	}
 }
 
@@ -175,28 +161,22 @@ func HandleUploadStory(s *services.UserService) fiber.Handler {
 		// Dosyayı al (multipart form otomatik parse edilir)
 		fileHeader, err := c.FormFile("story")
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrMediaInvalidFile,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMediaInvalidFile)
 		}
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		newStory, err := s.AddStory(c.Context(), fileHeader, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrMediaUploadFailed,
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"story": newStory,
-		})
+		}, "Story added successfully")
 	}
 }
 
@@ -209,14 +189,12 @@ func HandleUserInfo(s *services.UserService) fiber.Handler {
 
 		userInfo, err := s.GetUserByID(auth_user.ID)
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user": userInfo,
-		})
+		}, "User info fetched successfully")
 	}
 }
 
@@ -306,10 +284,10 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 			nextCursorStr = nil
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, map[string]interface{}{
 			"users":  users,
 			"cursor": nextCursorStr,
-		})
+		}, "Users fetched successfully")
 	}
 }
 
