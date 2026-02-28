@@ -438,7 +438,7 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 
 	existsUser, err := s.userRepo.GetByNameOrMailWithoutRelations(formData.UserName)
 	if err == nil && existsUser.ID != authUser.ID {
-		return nil, errors.New("username already taken")
+		return nil, errors.New(constants.ErrUsernameTaken.String())
 	}
 
 	userInfo, err := s.userRepo.GetUserByUUIDdWithoutRelations(authUser.ID)
@@ -452,7 +452,7 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 			return nil, err
 		}
 		if !ok {
-			return nil, errors.New("invalid password")
+			return nil, errors.New(constants.ErrInvalidPassword.String())
 		}
 	}
 

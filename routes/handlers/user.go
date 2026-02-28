@@ -530,7 +530,7 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 		user, err := s.UpdateUserProfile(*auth_user, formValues)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to update user profile",
+				"error": err.Error(),
 			})
 		}
 

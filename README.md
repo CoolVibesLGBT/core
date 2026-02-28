@@ -40,6 +40,10 @@ sudo apt install postgis postgresql-17-postgis-3
 brew install postgresql postgis
 ```
 
+```bash
+brew install golangci-lint
+```
+
 ### 3. Set up environment variables
 ```bash
 cp env.sample .env
@@ -80,15 +84,20 @@ golangci-lint run ./...
 go run github.com/google/wire/cmd/wire ./application
 ```
 
-### 7. Test
+### 8. Coverage
+```bash
+go test -race -cover
+```
+
+### 9. Test
 ```bash
 go test ./...
 ```
 
-go test -race -cover
-brew install golangci-lint
-## Project Structure
 
+
+
+## Project Structure
 ```
 core/
 ├── constants/          # Application constants and error definitions

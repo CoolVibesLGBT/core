@@ -28,6 +28,7 @@ const (
 	ErrUsernameRequired ErrorCode = "USERNAME_REQUIRED"
 	ErrUnauthorized     ErrorCode = "UNAUTHORIZED"
 	ErrUserUnauthorized ErrorCode = "USER_UNAUTHORIZED"
+	ErrUsernameTaken    ErrorCode = "USERNAME_TAKEN"
 
 	// Engagement
 	ErrEngagementNotFound    ErrorCode = "ENGAGEMENT_NOT_FOUND"
@@ -79,6 +80,7 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrUserNotFound:     "User not found.",
 	ErrUsernameRequired: "username or nickname is required",
 	ErrUserUnauthorized: "User is not authorized to perform this action.",
+	ErrUsernameTaken:    "Username already taken",
 
 	// Engagement
 	ErrEngagementNotFound:    "Engagement record not found.",
