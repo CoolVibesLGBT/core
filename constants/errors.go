@@ -7,6 +7,7 @@ const (
 	ErrFileNotFound         ErrorCode = "FILE_NOT_FOUND"
 	ErrPermissionDenied     ErrorCode = "PERMISSION_DENIED"
 	ErrInvalidInput         ErrorCode = "INVALID_INPUT"
+	ErrInvalidForm          ErrorCode = "INVALID_FORM"
 	ErrNetworkError         ErrorCode = "NETWORK_ERROR"
 	ErrDatabaseError        ErrorCode = "DATABASE_ERROR"
 	ErrResourceNotFound     ErrorCode = "RESOURCE_NOT_FOUND"
@@ -16,11 +17,28 @@ const (
 	ErrDuplicateResource    ErrorCode = "DUPLICATE_RESOURCE"
 	ErrInternalServer       ErrorCode = "INTERNAL_SERVER_ERROR"
 	ErrMethodNotImplemented ErrorCode = "METHOD_NOT_IMPLEMENTED"
+
+	// Preferences
+	ErrPreferencesFetchFailed ErrorCode = "PREFERENCES_FETCH_FAILED"
+
+	// EventKinds
+	ErrEventKindsFetchFailed ErrorCode = "EVENT_KINDS_FETCH_FAILED"
+
+	// ReportKinds
+	ErrReportKindsFetchFailed ErrorCode = "REPORT_KINDS_FETCH_FAILED"
+
 	// Media
 	ErrMediaUploadFailed    ErrorCode = "MEDIA_UPLOAD_FAILED"
 	ErrMediaInvalidFile     ErrorCode = "MEDIA_INVALID_FILE"
 	ErrMediaUnsupportedType ErrorCode = "MEDIA_UNSUPPORTED_TYPE"
 	ErrMediaSaveFailed      ErrorCode = "MEDIA_SAVE_FAILED"
+
+	ErrVapidKeyGenerationFailed ErrorCode = "VAPID_KEY_GENERATION_FAILED"
+	ErrVapidKeyNotFound         ErrorCode = "VAPID_KEY_NOT_FOUND"
+	ErrVapidSubscriptionFailed  ErrorCode = "VAPID_SUBSCRIPTION_FAILED"
+
+	// Notifications
+	ErrNotificationsFetchFailed ErrorCode = "NOTIFICATIONS_FETCH_FAILED"
 
 	// User
 	ErrUserExists       ErrorCode = "USER_EXISTS"
@@ -59,6 +77,7 @@ const (
 )
 
 var ErrorMessages = map[ErrorCode]string{
+	ErrInvalidForm:          "Invalid form data.",
 	ErrUnknown:              "An unknown error occurred.",
 	ErrFileNotFound:         "The requested file could not be found.",
 	ErrPermissionDenied:     "Permission denied.",
@@ -73,6 +92,20 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrDuplicateResource:    "This resource already exists.",
 	ErrInternalServer:       "An internal server error occurred.",
 	ErrMethodNotImplemented: "The requested method is not implemented.",
+
+	ErrVapidKeyGenerationFailed: "Failed to generate VAPID keys.",
+	ErrVapidKeyNotFound:         "VAPID key not found.",
+	ErrVapidSubscriptionFailed:  "Failed to save VAPID subscription.",
+
+	// Preferences
+	ErrPreferencesFetchFailed: "Failed to fetch user preferences.",
+
+	// EventKinds
+	ErrEventKindsFetchFailed: "Failed to fetch event kinds.",
+
+	// ReportKinds
+	ErrReportKindsFetchFailed: "Failed to fetch report kinds.",
+
 	// Media
 	ErrMediaUploadFailed:    "Failed to upload media.",
 	ErrMediaInvalidFile:     "Invalid media file.",
@@ -111,6 +144,9 @@ var ErrorMessages = map[ErrorCode]string{
 	// Location / Geo
 	ErrInvalidLatitude:  "Invalid latitude.",
 	ErrInvalidLongitude: "Invalid longitude.",
+
+	// Notifications
+	ErrNotificationsFetchFailed: "Failed to fetch notifications.",
 }
 
 func (e ErrorCode) String() string {

@@ -8,9 +8,9 @@ import (
 	"core/models/payment"
 	eventkinds "core/models/post/payloads"
 	services "core/services/user"
+	"core/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v3"
@@ -59,36 +59,27 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var preferences models.PreferencesData
 		if err := db.Model(&models.Preferences{}).Select("data").First(&preferences).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to fetch preferences data",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPreferencesFetchFailed)
 		}
 
 		var eventKinds []eventkinds.EventKind
 		if err := db.Model(&eventkinds.EventKind{}).Order("display_order ASC").Find(&eventKinds).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to fetch event kinds",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrEventKindsFetchFailed)
 		}
 
 		var reportKinds []models.ReportKind
 		if err := db.Model(&models.ReportKind{}).Order("display_order ASC").Find(&reportKinds).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to fetch report kinds",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrReportKindsFetchFailed)
 		}
 
 		countries := map[string]CountryResponse{
 			"TR": {Code: "TR", Name: "Turkey"},
 			"US": {Code: "US", Name: "United States"},
-			// dilediğin kadar ekle
 		}
 
 		key, err := helpers.CreateVapidKeys(db)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to get VAPID key",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidKeyGenerationFailed)
 		}
 		initialData := InitialData{
 			VapidPubicKey: key.PublicKey,
@@ -98,10 +89,9 @@ func HandleInitialSync(db *gorm.DB) fiber.Handler {
 			EventKinds:    eventKinds,
 			ReportKinds:   reportKinds,
 			CheckInTags:   models.GetAllCheckInTagTypes(),
-			Status:        "ok",
 		}
 
-		return c.Status(fiber.StatusOK).JSON(initialData)
+		return utils.SendSuccess(c, fiber.StatusOK, initialData)
 	}
 }
 
@@ -109,9 +99,7 @@ func HandleVapidGetKey(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		key, err := helpers.CreateVapidKeys(db)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to get VAPID key",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidKeyGenerationFailed)
 		}
 
 		resp := struct {
@@ -120,7 +108,7 @@ func HandleVapidGetKey(db *gorm.DB) fiber.Handler {
 			PublicKey: key.PublicKey,
 		}
 
-		return c.JSON(resp)
+		return utils.SendSuccess(c, fiber.StatusOK, resp)
 	}
 }
 
@@ -128,40 +116,30 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		// Multipart formu oku (dosyalar ve alanlar)
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Failed to parse multipart form: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		// subscription JSON stringini al
 		subscriptionJsonArr := form.Value["subscriptions"]
 		if len(subscriptionJsonArr) == 0 || subscriptionJsonArr[0] == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "subscriptions field is required",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 		subscriptionJson := subscriptionJsonArr[0]
 
 		var newSub models.Subscription
 		if err := json.Unmarshal([]byte(subscriptionJson), &newSub); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid subscription JSON",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		var user models.User
 		if err := db.First(&user, "id = ?", authUser.ID).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "User not found",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUserNotFound)
 		}
 
 		var subscriptions []models.Subscription
@@ -184,20 +162,15 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 
 		subsJson, err := json.Marshal(subscriptions)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Could not marshal subscriptions",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
 		}
 		user.Subscriptions = subsJson
 
 		if err := db.Save(&user).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to update subscriptions",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"message": "Subscription saved",
 		})
 	}
@@ -207,9 +180,7 @@ func HandleGetNotifications(s *services.NotificationsService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": constants.ErrUnauthorized,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
 		// Multipart form parse etmeye gerek yoksa atla.
@@ -219,15 +190,10 @@ func HandleGetNotifications(s *services.NotificationsService) fiber.Handler {
 
 		notifications, err := s.FetchNotifications(authUser.ID, 1)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to fetch notifications",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrNotificationsFetchFailed)
 		}
 
-		fmt.Println("Notifications", authUser.ID)
-
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success":       true,
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"notifications": notifications,
 		})
 	}
