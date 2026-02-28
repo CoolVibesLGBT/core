@@ -134,7 +134,9 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch chats")
 		}
 
-		return utils.SendSuccess(c, fiber.StatusOK, chats)
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+			"chats": chats,
+		})
 	}
 }
 
@@ -170,7 +172,9 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
 		}
 
-		return utils.SendSuccess(c, fiber.StatusOK, messages)
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+			"messages": messages,
+		})
 	}
 }
 

@@ -294,9 +294,7 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 
 		users, err := s.FetchNearbyUsers(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
 		var nextCursorStr *string
@@ -308,9 +306,9 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 			nextCursorStr = nil
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"users":       users,
-			"next_cursor": nextCursorStr,
+		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+			"users":  users,
+			"cursor": nextCursorStr,
 		})
 	}
 }
@@ -325,36 +323,27 @@ func HandleFollow(s *services.UserService) fiber.Handler {
 		// Form verisini Fiber'de c.FormValue ile alıyoruz
 		followeeIDStr := c.FormValue("followee_id")
 		if followeeIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid followee ID")
 		}
 
 		status, err := s.Follow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrDatabaseError,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "User followed successfully",
-			"status":  status,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, "User followed successfully")
 	}
 }
 
@@ -368,36 +357,27 @@ func HandleUnfollow(s *services.UserService) fiber.Handler {
 
 		followeeIDStr := c.FormValue("followee_id")
 		if followeeIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid followee ID")
 		}
 
 		status, err := s.Unfollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrDatabaseError,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "User unfollowed successfully",
-			"status":  status,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, "User unfollowed successfully")
 	}
 }
 
@@ -411,32 +391,24 @@ func HandleToggleFollow(s *services.UserService) fiber.Handler {
 
 		followeeIDStr := c.FormValue("followee_id")
 		if followeeIDStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		followeeID, err := strconv.ParseInt(followeeIDStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		followerID := auth_user.PublicID
 		if followeeID == 0 || followerID == 0 || followeeID == followerID {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid followee ID")
 		}
 
 		fmt.Println("FOLLOWER,FOLLOWEE", followerID, followeeID)
 
 		status, err := s.ToggleFollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrDatabaseError,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
 		message := "User unfollowed successfully"
@@ -446,16 +418,13 @@ func HandleToggleFollow(s *services.UserService) fiber.Handler {
 
 		user, err := s.GetUserByID(auth_user.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrDatabaseError,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": message,
-			"status":  status,
-			"user":    user,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+			"user":   user,
+		}, message)
 	}
 }
 
@@ -466,14 +435,12 @@ func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
 
 		users, err := s.GetUsersStartingWith(searchStr, limit)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": constants.ErrDatabaseError,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"users": users,
-		})
+		}, "Users fetched successfully")
 	}
 }
 
@@ -487,9 +454,7 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid form data",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid form data")
 		}
 
 		formValues := form.Value // map[string][]string olarak direkt kullan
@@ -529,9 +494,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "Invalid cursor format. Use RFC3339 format.",
-				})
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid cursor format. Use RFC3339 format.")
 			}
 			cursor = &parsedTime
 		}
@@ -541,9 +504,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 		if limitStr != "" {
 			parsedLimit, err := strconv.Atoi(limitStr)
 			if err != nil || parsedLimit <= 0 {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "Invalid limit value",
-				})
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid limit value")
 			}
 			limit = parsedLimit
 		}
@@ -560,22 +521,21 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 		case "followers":
 			engagementKind = models.EngagementKindFollower
 		default:
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidEngagementKind,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidEngagementKind, "Invalid engagement kind")
 		}
 
 		engagements, nextCursor, err := s.FetchUserEngagements(c.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrEngagementNotFound)
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrEngagementNotFound, "Engagement not found")
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"engagements": engagements,
-			"next_cursor": nextCursor,
-			"prev_cursor": cursor,
-			"success":     true,
-		})
+			"cursor": fiber.Map{
+				"prev": cursor,
+				"next": nextCursor,
+			},
+		}, "Engagements fetched successfully")
 	}
 }
 
@@ -634,10 +594,9 @@ func HandleUserDislike(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"message": "User disliked successfully",
-			"status":  status,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, "User disliked successfully")
 	}
 }
 
@@ -680,9 +639,9 @@ func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Han
 			}
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]string{
-			"message": message,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, message)
 	}
 }
 
@@ -709,10 +668,9 @@ func HandleUserBlock(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"message": "User blocked successfully",
-			"status":  status,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, "User blocked successfully")
 	}
 }
 
@@ -739,10 +697,9 @@ func HandleUserUnblock(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"message": "User unblocked successfully",
-			"status":  status,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, "User unblocked successfully")
 	}
 }
 
@@ -778,9 +735,9 @@ func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
 			message = "User unblocked successfully"
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]string{
-			"message": message,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, message)
 	}
 }
 
@@ -817,12 +774,13 @@ func HandleUserNotifications(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to fetch notifications")
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"notifications": notifications,
-			"prev_cursor":   cursor,
-			"next_cursor":   nextCursor,
-			"success":       true,
-		})
+			"cursor": fiber.Map{
+				"prev": cursor,
+				"next": nextCursor,
+			},
+		}, "Notifications fetched successfully")
 	}
 }
 
@@ -845,14 +803,10 @@ func HandleUserCheckIn(s *services.UserService) fiber.Handler {
 		err := s.CheckIn(c.Context())
 
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to check in")
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{}, "Check in successful")
 	}
 }
 
@@ -870,18 +824,12 @@ func HandleUserDelete(s *services.UserService) fiber.Handler {
 
 		filters, err := ParseFilters(c, auth_user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to parse filters")
 		}
 		delUserError := s.DeleteUser(filters)
 		if delUserError != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": delUserError.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to delete user")
 		}
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{}, "User deleted successfully")
 	}
 }
