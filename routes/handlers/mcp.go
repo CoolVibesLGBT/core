@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/mcp"
 	services "core/services/user"
+	"core/utils"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -14,9 +16,7 @@ func HandleMCP(s *services.AIService) fiber.Handler {
 
 		if c.Method() != fiber.MethodGet {
 			if err := c.Bind().Body(&payload); err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid body",
-				})
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid input: "+err.Error())
 			}
 		}
 
@@ -33,11 +33,9 @@ func HandleMCP(s *services.AIService) fiber.Handler {
 
 		response, err := s.MCPServer().Router().Route(msg)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInternalServer, "Failed to route message: "+err.Error())
 		}
 
-		return c.JSON(response.Payload)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, response.Payload, "Message routed successfully")
 	}
 }

@@ -59,15 +59,33 @@ const (
 	ErrWeightInvalid    ErrorCode = "WEIGHT_INVALID"
 	ErrRankInvalid      ErrorCode = "RANK_INVALID"
 	ErrVoteFailed       ErrorCode = "VOTE_FAILED"
-	// Post
-	ErrPostNotFound     ErrorCode = "POST_NOT_FOUND"
-	ErrPostDeleteDenied ErrorCode = "POST_DELETE_DENIED"
-	ErrPostDeleteFailed ErrorCode = "POST_DELETE_FAILED"
-	ErrPostCreateFailed ErrorCode = "POST_CREATE_FAILED"
 
+	// Post
+	ErrPostNotFound         ErrorCode = "POST_NOT_FOUND"
+	ErrPostDeleteDenied     ErrorCode = "POST_DELETE_DENIED"
+	ErrPostDeleteFailed     ErrorCode = "POST_DELETE_FAILED"
+	ErrPostCreateFailed     ErrorCode = "POST_CREATE_FAILED"
+	ErrPostUpdateFailed     ErrorCode = "POST_UPDATE_FAILED"
+	ErrPostSaveFailed       ErrorCode = "POST_SAVE_FAILED"
+	ErrPostUnsaveFailed     ErrorCode = "POST_UNSAVE_FAILED"
+	ErrPostShareFailed      ErrorCode = "POST_SHARE_FAILED"
+	ErrPostReportFailed     ErrorCode = "POST_REPORT_FAILED"
+	ErrPostLikeFailed       ErrorCode = "POST_LIKE_FAILED"
+	ErrPostDislikeFailed    ErrorCode = "POST_DISLIKE_FAILED"
+	ErrPostUnlikeFailed     ErrorCode = "POST_UNLIKE_FAILED"
+	ErrPostBookmarkFailed   ErrorCode = "POST_BOOKMARK_FAILED"
+	ErrPostUnbookmarkFailed ErrorCode = "POST_UNBOOKMARK_FAILED"
 	ErrInsufficientBalance  ErrorCode = "INSUFFICIENT_BALANCE"
 	ErrInvalidAmount        ErrorCode = "INVALID_AMOUNT"
 	ErrFailedToBookmarkPost ErrorCode = "FAILED_TO_BOOKMARK_POST"
+	ErrFailedToDislikePost  ErrorCode = "FAILED_TO_DISLIKE_POST"
+	ErrFailedToLikePost     ErrorCode = "FAILED_TO_LIKE_POST"
+	ErrFailedToReportPost   ErrorCode = "FAILED_TO_REPORT_POST"
+	ErrFailedToSavePost     ErrorCode = "FAILED_TO_SAVE_POST"
+	ErrFailedToUnsavePost   ErrorCode = "FAILED_TO_UNSAVE_POST"
+	ErrFailedToSharePost    ErrorCode = "FAILED_TO_SHARE_POST"
+	ErrFailedToUnlikePost   ErrorCode = "FAILED_TO_UNLIKE_POST"
+	ErrFailedToBananaPost   ErrorCode = "FAILED_TO_BANANA_POST"
 
 	// Place
 	ErrPlaceNotFound     ErrorCode = "PLACE_NOT_FOUND"
@@ -91,6 +109,13 @@ const (
 	// Location / Geo
 	ErrInvalidLatitude  ErrorCode = "INVALID_LATITUDE"
 	ErrInvalidLongitude ErrorCode = "INVALID_LONGITUDE"
+
+	// Payment
+	ErrPaymentMethodNotFound    ErrorCode = "PAYMENT_METHOD_NOT_FOUND"
+	ErrPaymentMethodFetchFailed ErrorCode = "PAYMENT_METHOD_FETCH_FAILED"
+
+	// News
+	ErrNewsCreateFailed ErrorCode = "NEWS_CREATE_FAILED"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -156,6 +181,13 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrInvalidAmount:        "Invalid amount provided.", // yeni mesaj
 	ErrPostCreateFailed:     "Failed to create post",
 	ErrFailedToBookmarkPost: "Failed to bookmark post",
+	ErrFailedToDislikePost:  "Failed to dislike post",
+	ErrFailedToLikePost:     "Failed to like post",
+	ErrFailedToUnlikePost:   "Failed to unlike post",
+	ErrFailedToReportPost:   "Failed to report post",
+	ErrFailedToSavePost:     "Failed to save post",
+	ErrFailedToUnsavePost:   "Failed to unsave post",
+	ErrFailedToSharePost:    "Failed to share post",
 
 	// Place
 	ErrPlaceCreateFailed: "Failed to create place",
@@ -183,6 +215,13 @@ var ErrorMessages = map[ErrorCode]string{
 
 	// Notifications
 	ErrNotificationsFetchFailed: "Failed to fetch notifications.",
+
+	// Payment
+	ErrPaymentMethodNotFound:    "Payment method not found.",
+	ErrPaymentMethodFetchFailed: "Failed to fetch payment method.",
+
+	// News
+	ErrNewsCreateFailed: "Failed to create news",
 }
 
 func (e ErrorCode) String() string {

@@ -168,17 +168,13 @@ func HandlePostDislike(s *services.PostService) fiber.Handler {
 		}
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		err = s.Dislike(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to dislike post: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDislikePost)
 		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"success": true,
 		})
 	}
@@ -409,9 +405,9 @@ func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 		}
 
 		response := fiber.Map{
-			"medias":      medias,
-			"next_cursor": nextCursorStr,
-			"has_more":    nextCursor != nil,
+			"medias":   medias,
+			"cursor":   nextCursorStr,
+			"has_more": nextCursor != nil,
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, response, "Medias fetched successfully")

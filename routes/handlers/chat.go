@@ -44,7 +44,7 @@ func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to send typing event")
 		}
 
-		return c.JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"success": true,
 		})
 	}
@@ -54,12 +54,12 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).SendString("User not authenticated")
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).SendString("Could not parse multipart form: " + err.Error())
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		images := form.File["images[]"]
@@ -70,9 +70,9 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 
 		_post, err := s.AddMessageToChat(c.Context(), formParams, files, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Send message failed")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"success": true,
 			"message": _post,
 		})
@@ -106,13 +106,7 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 
 		chat, err := s.CreateChat(c.Context(), parsedParticipantId, authUser.ID, chatType)
 		if err != nil {
-			return c.
-				Status(fiber.StatusBadRequest).
-				JSON(fiber.Map{
-					"success": false,
-					"code":    constants.ErrUnknown,
-					"error":   err.Error(),
-				})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnknown)
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -131,7 +125,7 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 		// servis çağrısı
 		chats, err := s.GetChatsByUserID(authUser.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch chats")
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUnknown)
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{

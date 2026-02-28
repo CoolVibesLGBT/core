@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/middleware"
 	services "core/services/user"
-	"core/types"
+	"core/utils"
 	"mime/multipart"
-	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -23,9 +23,7 @@ func HandleCreateNews(s *services.NewsService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Could not parse multipart form: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Could not parse multipart form: "+err.Error())
 		}
 
 		formParams := form.Value
@@ -37,19 +35,15 @@ func HandleCreateNews(s *services.NewsService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "User not authenticated",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
 		post, err := s.CreateNews(c.Context(), formParams, files, user)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrNewsCreateFailed, "Failed to create post: "+err.Error())
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(post)
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Post created successfully")
 	}
 }
 
@@ -58,67 +52,19 @@ func HandleFetchNews(s *services.NewsService) fiber.Handler {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
 
-		limitStr := c.FormValue("limit")
-		limit := 10
-		if limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
-			}
-		}
-
-		var lat *float64
-		latStr := c.FormValue("latitude")
-		if latStr != "" {
-			if v, err := strconv.ParseFloat(latStr, 64); err == nil {
-				lat = &v
-			}
-		}
-
-		var lon *float64
-		lonStr := c.FormValue("longitude")
-		if lonStr != "" {
-			if v, err := strconv.ParseFloat(lonStr, 64); err == nil {
-				lon = &v
-			}
-		}
-
-		var cursor *int64
-		cursorStr := c.FormValue("cursor")
-		if cursorStr != "" {
-			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor",
-				})
-			}
-			cursor = &cVal
-		}
-
-		category := c.FormValue("category")
-		name := c.FormValue("name")
-		city := c.FormValue("city")
-		country := c.FormValue("country")
-
-		filters := types.Filter{
-			Context:   c.Context(),
-			AuthUser:  authUser,
-			Latitude:  lat,
-			Longitude: lon,
-			Cursor:    cursor,
-			Limit:     limit,
-			Category:  &category,
-			Name:      &name,
-			City:      &city,
-			Country:   &country,
+		filters, err := ParseFilters(c, authUser)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid filter: "+err.Error())
 		}
 
 		postResult, err := s.GetNews(filters)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrNewsCreateFailed, "Failed to create post: "+err.Error())
+		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": err == nil,
-			"error":   err,
-			"news":    postResult.Posts,
-			"cursor":  postResult.Cursor,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"news":   postResult.Posts,
+			"cursor": postResult.Cursor,
+		}, "News fetched successfully")
 	}
 }

@@ -439,15 +439,13 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 
 		user, err := s.UpdateUserProfile(c.Context(), *auth_user, formValues)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user":    user,
 			"success": true,
-		})
+		}, "User profile updated successfully")
 	}
 }
 
@@ -462,9 +460,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 		engageeIdStr := c.FormValue("user_id")
 		engageeId, err := strconv.ParseInt(engageeIdStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": constants.ErrInvalidInput,
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid engagee ID")
 		}
 
 		var cursor *time.Time

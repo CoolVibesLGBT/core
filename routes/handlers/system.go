@@ -204,17 +204,13 @@ func HandleFetchPaymentMethods(db *gorm.DB) fiber.Handler {
 		var pm payment.PaymentMethod
 		if err := db.First(&pm).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-					"error": "payment method not found",
-				})
+				return utils.SendErrorWithMessage(c, fiber.StatusNotFound, constants.ErrPaymentMethodNotFound, "Payment method not found")
 			}
 
 			log.Printf("db error fetching payment method: %v", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "internal server error",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPaymentMethodFetchFailed, "Payment method fetch failed")
 		}
 
-		return c.Status(fiber.StatusOK).JSON(pm)
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, pm, "Payment method fetched successfully")
 	}
 }

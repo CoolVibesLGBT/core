@@ -50,25 +50,17 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 		// form-data / x-www-form-urlencoded otomatik parse ediliyor
 		userIdStr := c.FormValue("public_id")
 		if userIdStr == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "invalid form data",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		userId, err := strconv.ParseInt(userIdStr, 10, 64)
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"code":    constants.ErrInvalidInput,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
 
 		targetUserId, err := s.UserRepo().GetUserUUIDByPublicID(userId)
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"code":    constants.ErrInvalidInput,
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
 
 		reactionStr := c.FormValue("reaction")
@@ -81,12 +73,10 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 		)
 
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to get unseen users",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"matched":     isMatched,
 			"target_user": userIdStr,
 		})
@@ -129,9 +119,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
 			limit,
 		)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to get unseen users",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
 		// ---- pagination cursor ----
@@ -141,7 +129,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
 			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"users":  matches,
 			"cursor": nextCursor,
 		})
@@ -162,9 +150,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"message": "invalid cursor format",
-				})
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 			}
 			cursor = &parsedTime
 		}
@@ -184,9 +170,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 			limit,
 		)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to get unseen users",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
 		// ---- pagination cursor ----
@@ -196,7 +180,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 			nextCursor = last.CreatedAt.Format(time.RFC3339)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"users":  passes,
 			"cursor": nextCursor,
 		})
@@ -216,9 +200,7 @@ func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
 		if cursorStr != "" {
 			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
 			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid cursor format",
-				})
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 			}
 			cursor = &parsedTime
 		}
@@ -233,9 +215,7 @@ func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
 
 		likes, err := s.GetLikesAfter(c.Context(), authUser.ID, cursor, limit)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to get unseen users",
-			})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
 		nextCursor := ""
@@ -244,7 +224,7 @@ func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
 			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"users":  likes,
 			"cursor": nextCursor,
 		})
