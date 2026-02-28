@@ -55,7 +55,10 @@ const (
 	// Poll
 	ErrPollTitleEmpty   ErrorCode = "POLL_TITLE_EMPTY"
 	ErrPollOptionsEmpty ErrorCode = "POLL_OPTIONS_EMPTY"
-
+	ErrChoiceIDInvalid  ErrorCode = "CHOICE_ID_INVALID"
+	ErrWeightInvalid    ErrorCode = "WEIGHT_INVALID"
+	ErrRankInvalid      ErrorCode = "RANK_INVALID"
+	ErrVoteFailed       ErrorCode = "VOTE_FAILED"
 	// Post
 	ErrPostNotFound     ErrorCode = "POST_NOT_FOUND"
 	ErrPostDeleteDenied ErrorCode = "POST_DELETE_DENIED"
@@ -126,6 +129,10 @@ var ErrorMessages = map[ErrorCode]string{
 	// Poll
 	ErrPollTitleEmpty:   "Poll title cannot be empty.",
 	ErrPollOptionsEmpty: "Poll options cannot be empty.",
+	ErrChoiceIDInvalid:  "The provided choice ID is invalid.",
+	ErrWeightInvalid:    "Weight must be a positive integer.",
+	ErrRankInvalid:      "Rank must be zero or a positive integer.",
+	ErrVoteFailed:       "Failed to register your vote. Please try again.",
 
 	// Post
 	ErrPostNotFound:        "Post not found.",

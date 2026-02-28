@@ -31,6 +31,7 @@ const (
 	CMD_AUTH_LOGOUT    = "auth.logout"
 	CMD_AUTH_TEST      = "auth.test"
 	CMD_AUTH_USER_INFO = "auth.user_info"
+	CMD_AUTH_CHECK     = "auth.check"
 
 	// CHAT
 	CMD_CHAT_SEND_TEXT    = "chat.send_text"

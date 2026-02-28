@@ -49,7 +49,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostCreateFailed)
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(post)
+		return utils.SendSuccess(c, fiber.StatusCreated, post)
 	}
 }
 
@@ -67,18 +67,14 @@ func HandleVote(s *services.PostService) fiber.Handler {
 
 		choiceId, err := uuid.Parse(choiceIdStr)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid_choice_id",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrChoiceIDInvalid)
 		}
 
 		weight := 1
 		if weightStr != "" {
 			weight, err = strconv.Atoi(weightStr)
 			if err != nil || weight <= 0 {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid_weight",
-				})
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrWeightInvalid)
 			}
 		}
 
@@ -86,17 +82,17 @@ func HandleVote(s *services.PostService) fiber.Handler {
 		if rankStr != "" {
 			rank, err = strconv.Atoi(rankStr)
 			if err != nil || rank < 0 {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid_rank",
-				})
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrRankInvalid)
 			}
 		}
 
 		err = s.Vote(c.Context(), choiceId, weight, rank, user.ID)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVoteFailed)
+		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": err == nil,
-			"error":   err,
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+			"message": "Vote registered successfully",
 		})
 	}
 }
@@ -111,18 +107,14 @@ func HandlePostDelete(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		if err := s.Delete(filters); err != nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrPostDeleteFailed)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post deleted successfully")
 	}
 }
 
@@ -137,22 +129,16 @@ func HandlePostLike(s *services.PostService) fiber.Handler {
 
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid post_id: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 
 		// do like
 		err = s.Like(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to like post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post liked successfully")
 	}
 }
 
@@ -164,19 +150,13 @@ func HandlePostBanana(s *services.PostService) fiber.Handler {
 		}
 		filters, err := ParseFilters(c, user)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		err = s.Banana(filters)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to banana post: " + err.Error(),
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
 		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-		})
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post banana successfully")
 	}
 }
 

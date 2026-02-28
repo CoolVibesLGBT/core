@@ -26,9 +26,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid form data",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		userObj, token, err := s.Register(c.Context(), form.Value)
@@ -36,7 +34,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserExists)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"user":  userObj,
 			"token": token,
 		})
@@ -60,6 +58,16 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 			"token": token,
 		}
 		return utils.SendSuccess(c, fiber.StatusOK, payload)
+	}
+}
+
+func HandleAuthCheck(s *services.UserService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, user)
 	}
 }
 

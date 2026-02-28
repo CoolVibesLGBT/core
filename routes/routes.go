@@ -126,6 +126,7 @@ func NewRouter(
 	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))
 
 	// Action register
+	r.action.Register(constants.CMD_AUTH_CHECK, handlers.HandleAuthCheck(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
 	r.action.Register(constants.CMD_AUTH_LOGIN, handlers.HandleLogin(userService))
 	r.action.Register(constants.CMD_USER_FETCH_PROFILE, handlers.HandleFetchUserProfile(userService))

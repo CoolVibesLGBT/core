@@ -115,9 +115,8 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 				})
 		}
 
-		return c.JSON(fiber.Map{
-			"success": true,
-			"chat":    chat,
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+			"chat": chat,
 		})
 	}
 }
