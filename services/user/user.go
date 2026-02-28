@@ -16,7 +16,6 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -478,13 +477,13 @@ func (s *UserService) UpdateUserProfile(authUser models.User, request map[string
 
 	if formData.LocationLatitude != "" && formData.LocationLongitude != "" {
 
-		lat, err := strconv.ParseFloat(formData.LocationLatitude, 64)
+		lat, err := helpers.ParseFloat(formData.LocationLatitude)
 		if err != nil {
-			return nil, errors.New("invalid latitude")
+			return nil, errors.New(constants.ErrInvalidLatitude.String())
 		}
-		lng, err := strconv.ParseFloat(formData.LocationLongitude, 64)
+		lng, err := helpers.ParseFloat(formData.LocationLongitude)
 		if err != nil {
-			return nil, errors.New("invalid longitude")
+			return nil, errors.New(constants.ErrInvalidLongitude.String())
 		}
 
 		locationPoint := &extensions.PostGISPoint{

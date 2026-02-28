@@ -52,6 +52,10 @@ const (
 	ErrUnsupportedChatType       ErrorCode = "UNSUPPORTED_CHAT_TYPE"
 	ErrInvalidParticipantID      ErrorCode = "INVALID_PARTICIPANT_ID"
 	ErrInvalidParticipantsLength ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
+
+	// Location / Geo
+	ErrInvalidLatitude  ErrorCode = "INVALID_LATITUDE"
+	ErrInvalidLongitude ErrorCode = "INVALID_LONGITUDE"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -103,6 +107,10 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrUnsupportedChatType:       "Unsupported chat type.",
 	ErrInvalidParticipantID:      "Invalid participant ID.",
 	ErrInvalidParticipantsLength: "Invalid participants length.",
+
+	// Location / Geo
+	ErrInvalidLatitude:  "Invalid latitude.",
+	ErrInvalidLongitude: "Invalid longitude.",
 }
 
 func (e ErrorCode) String() string {
