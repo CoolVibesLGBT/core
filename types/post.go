@@ -10,8 +10,8 @@ import (
 type Int64String int64
 
 type TimelineResult struct {
-	Posts      []post.Post `json:"posts"`
-	NextCursor *string     `json:"next_cursor"`
+	Posts  []post.Post `json:"posts"`
+	Cursor *string     `json:"cursor"`
 }
 
 type PostsResult struct {
@@ -22,7 +22,7 @@ type PostsResult struct {
 type MediaWithUser struct {
 	media.Media `json:",inline"` // embedded struct, alanları direkt üstte olacak
 	User        models.User      `gorm:"embedded;embeddedPrefix:user_" json:"user"`
-	NextCursor  *int64           `json:"next_cursor"` // Bir sonraki sayfa için cursor (PublicID)
+	Cursor      *int64           `json:"cursor"` // Bir sonraki sayfa için cursor (PublicID)
 }
 
 func (i Int64String) MarshalJSON() ([]byte, error) {

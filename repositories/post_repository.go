@@ -296,8 +296,8 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 	}
 
 	return types.TimelineResult{
-		Posts:      posts,
-		NextCursor: nextCursor,
+		Posts:  posts,
+		Cursor: nextCursor,
 	}, nil
 }
 
@@ -338,8 +338,8 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 	}
 
 	return types.TimelineResult{
-		Posts:      posts,
-		NextCursor: nextCursor,
+		Posts:  posts,
+		Cursor: nextCursor,
 	}, nil
 }
 
