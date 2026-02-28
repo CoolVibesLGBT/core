@@ -47,22 +47,19 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid form data",
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		userObj, token, err := s.Login(c.Context(), form.Value)
 		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "invalid credentials",
-			})
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		payload := fiber.Map{
 			"user":  userObj,
 			"token": token,
-		})
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, payload)
 	}
 }
 
