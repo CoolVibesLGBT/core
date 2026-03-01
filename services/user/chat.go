@@ -147,3 +147,11 @@ func (s *ChatService) DeleteChat(ctx context.Context, authUser *models.User, cha
 func (s *ChatService) DeleteMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
 	return s.chatRepo.DeleteMessage(ctx, authUser, chatID, userID, messageID)
 }
+
+func (s *ChatService) DeleteChatHistoryForUser(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+	return s.chatRepo.DeleteChatHistoryForUser(ctx, authUser, chatID)
+}
+
+func (s *ChatService) DeleteChatHistoryForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+	return s.chatRepo.DeleteChatHistoryForAll(ctx, authUser, chatID)
+}

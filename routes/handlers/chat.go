@@ -423,3 +423,56 @@ func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message deleted successfully")
 	}
 }
+
+func HandleClearChatHistoryForUser(s *services.ChatService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+
+		}
+
+		chatIDStr := c.FormValue("chat_id")
+		if chatIDStr == "" {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		err = s.DeleteChatHistoryForUser(c.Context(), authUser, chatID)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatHistoryForUser)
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat history cleared successfully")
+	}
+}
+
+func HandleClearChatHistoryForAll(s *services.ChatService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		chatIDStr := c.FormValue("chat_id")
+		if chatIDStr == "" {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		err = s.DeleteChatHistoryForAll(c.Context(), authUser, chatID)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatHistoryForAll)
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat history cleared successfully")
+	}
+}

@@ -388,6 +388,18 @@ func NewRouter(
 	r.action.Register(constants.CMD_PIN_MESSAGE, handlers.HandlePinMessage(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_UNPIN_MESSAGE, handlers.HandleUnpinMessage(chatService), middleware.AuthMiddleware(userRepo))
 
+	r.action.Register(
+		constants.CMD_CLEAR_CHAT_HISTORY_FOR_USER,
+		handlers.HandleClearChatHistoryForUser(chatService), // handler
+		middleware.AuthMiddleware(userRepo),                 // middleware
+	)
+
+	r.action.Register(
+		constants.CMD_CLEAR_CHAT_HISTORY_FOR_ALL,
+		handlers.HandleClearChatHistoryForAll(chatService), // handler
+		middleware.AuthMiddleware(userRepo),                // middleware
+	)
+
 	//PLACE EKRANI ICIN
 	r.action.Register(
 		constants.CMD_PLACE_FETCH,

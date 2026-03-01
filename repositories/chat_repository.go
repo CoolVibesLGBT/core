@@ -8,6 +8,7 @@ import (
 	"core/models/chat"
 	"core/models/notifications"
 	"core/models/utils"
+	"errors"
 	"fmt"
 
 	"core/models/post"
@@ -409,8 +410,23 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 
 func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
 	var messages []post.Post
+
+	var participant chat.ChatParticipant
 	err := r.db.
-		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID).
+		Where("chat_id = ? AND user_id = ?", chatID, userID).
+		First(&participant).Error
+	if err != nil {
+		return nil, err
+	}
+
+	query := r.db.
+		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID)
+
+	if participant.ClearedAt != nil {
+		query = query.Where("created_at > ?", *participant.ClearedAt)
+	}
+
+	err = query.
 		Order("created_at ASC").
 		Preload("Author").
 		Preload("Parent").
@@ -496,4 +512,50 @@ func (r *ChatRepository) GetUserChatIDsByUserPublicID(userPublicId int64) ([]uui
 	}
 
 	return chatIDs, nil
+}
+
+func (r *ChatRepository) DeleteChatHistoryForUser(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+
+	now := time.Now()
+
+	return r.db.Model(&chat.ChatParticipant{}).
+		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
+		Updates(map[string]interface{}{
+			"cleared_at":   now,
+			"unread_count": 0,
+			"last_read_at": now,
+		}).Error
+}
+
+func (r *ChatRepository) DeleteChatHistoryForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
+
+	chatEntity, err := r.GetChatByID(chatID)
+	if err != nil {
+		return err
+	}
+	if chatEntity == nil {
+		return nil
+	}
+
+	if chatEntity.CreatorID != authUser.ID {
+		return errors.New("unauthorized")
+	}
+
+	now := time.Now()
+
+	tx := r.db.Begin()
+
+	err = tx.Model(&chat.ChatParticipant{}).
+		Where("chat_id = ?", chatID).
+		Updates(map[string]interface{}{
+			"cleared_at":   now,
+			"unread_count": 0,
+			"last_read_at": now,
+		}).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

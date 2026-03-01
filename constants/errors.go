@@ -93,18 +93,20 @@ const (
 	ErrPlaceDeleteFailed ErrorCode = "PLACE_DELETE_FAILED"
 	ErrPlaceCreateFailed ErrorCode = "PLACE_CREATE_FAILED"
 	// Chat
-	ErrSelfChatNotAllowed           ErrorCode = "SELF_CHAT_NOT_ALLOWED"
-	ErrUnsupportedChatType          ErrorCode = "UNSUPPORTED_CHAT_TYPE"
-	ErrInvalidParticipantID         ErrorCode = "INVALID_PARTICIPANT_ID"
-	ErrInvalidParticipantsLength    ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
-	ErrFailedToLoadMessages         ErrorCode = "FAILED_TO_LOAD_MESSAGES"
-	ErrInvalidChatID                ErrorCode = "INVALID_CHAT_ID"
-	ErrInvalidMessageID             ErrorCode = "INVALID_MESSAGE_ID"
-	ErrFailedToPinMessage           ErrorCode = "FAILED_TO_PIN_MESSAGE"
-	ErrFailedToUnpinMessage         ErrorCode = "FAILED_TO_UNPIN_MESSAGE"
-	ErrFailedToDeleteMessageForUser ErrorCode = "FAILED_TO_DELETE_MESSAGE_FOR_USER"
-	ErrFailedToDeleteChatForAll     ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_ALL"
-	ErrFailedToDeleteChatForUser    ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_USER"
+	ErrSelfChatNotAllowed               ErrorCode = "SELF_CHAT_NOT_ALLOWED"
+	ErrUnsupportedChatType              ErrorCode = "UNSUPPORTED_CHAT_TYPE"
+	ErrInvalidParticipantID             ErrorCode = "INVALID_PARTICIPANT_ID"
+	ErrInvalidParticipantsLength        ErrorCode = "INVALID_PARTICIPANTS_LENGTH"
+	ErrFailedToLoadMessages             ErrorCode = "FAILED_TO_LOAD_MESSAGES"
+	ErrInvalidChatID                    ErrorCode = "INVALID_CHAT_ID"
+	ErrInvalidMessageID                 ErrorCode = "INVALID_MESSAGE_ID"
+	ErrFailedToPinMessage               ErrorCode = "FAILED_TO_PIN_MESSAGE"
+	ErrFailedToUnpinMessage             ErrorCode = "FAILED_TO_UNPIN_MESSAGE"
+	ErrFailedToDeleteMessageForUser     ErrorCode = "FAILED_TO_DELETE_MESSAGE_FOR_USER"
+	ErrFailedToDeleteChatForAll         ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_ALL"
+	ErrFailedToDeleteChatForUser        ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_USER"
+	ErrFailedToDeleteChatHistoryForUser ErrorCode = "FAILED_TO_DELETE_CHAT_HISTORY_FOR_USER"
+	ErrFailedToDeleteChatHistoryForAll  ErrorCode = "FAILED_TO_DELETE_CHAT_HISTORY_FOR_ALL"
 
 	// Location / Geo
 	ErrInvalidLatitude  ErrorCode = "INVALID_LATITUDE"
@@ -196,18 +198,20 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrPlaceDeleteFailed: "Failed to delete the place",
 
 	// Chat
-	ErrSelfChatNotAllowed:           "You cannot create a chat with yourself.",
-	ErrUnsupportedChatType:          "Unsupported chat type.",
-	ErrInvalidParticipantID:         "Invalid participant ID.",
-	ErrInvalidParticipantsLength:    "Invalid participants length.",
-	ErrFailedToLoadMessages:         "Failed to load messages. Please try again later.",
-	ErrInvalidChatID:                "The provided chat ID is invalid.",
-	ErrInvalidMessageID:             "The provided message ID is invalid.",
-	ErrFailedToPinMessage:           "Failed to pin message.",
-	ErrFailedToUnpinMessage:         "Failed to unpin the message. Please try again later.",
-	ErrFailedToDeleteMessageForUser: "Failed to delete the message for the user.",
-	ErrFailedToDeleteChatForAll:     "Failed to delete the chat for all.",
-	ErrFailedToDeleteChatForUser:    "Failed to delete the chat for the user.",
+	ErrSelfChatNotAllowed:               "You cannot create a chat with yourself.",
+	ErrUnsupportedChatType:              "Unsupported chat type.",
+	ErrInvalidParticipantID:             "Invalid participant ID.",
+	ErrInvalidParticipantsLength:        "Invalid participants length.",
+	ErrFailedToLoadMessages:             "Failed to load messages. Please try again later.",
+	ErrInvalidChatID:                    "The provided chat ID is invalid.",
+	ErrInvalidMessageID:                 "The provided message ID is invalid.",
+	ErrFailedToPinMessage:               "Failed to pin message.",
+	ErrFailedToUnpinMessage:             "Failed to unpin the message. Please try again later.",
+	ErrFailedToDeleteMessageForUser:     "Failed to delete the message for the user.",
+	ErrFailedToDeleteChatForAll:         "Failed to delete the chat for all.",
+	ErrFailedToDeleteChatForUser:        "Failed to delete the chat for the user.",
+	ErrFailedToDeleteChatHistoryForUser: "Failed to delete the chat history for the user.",
+	ErrFailedToDeleteChatHistoryForAll:  "Failed to delete the chat history for all.",
 
 	// Location / Geo
 	ErrInvalidLatitude:  "Invalid latitude.",

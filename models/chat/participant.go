@@ -18,8 +18,8 @@ type ChatParticipant struct {
 	UnreadCount int             `gorm:"default:0" json:"unread_count"`
 	Chat        Chat            `json:"chat,omitempty"`
 	User        models.User     `json:"user,omitempty"`
-
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	LastReadAt *time.Time `json:"last_read_at,omitempty"`
+	ClearedAt   *time.Time      `json:"cleared_at,omitempty"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	LastReadAt  *time.Time      `json:"last_read_at,omitempty"`
 }
