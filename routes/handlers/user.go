@@ -235,9 +235,9 @@ func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"user": userInfo,
-		})
+		}, "User preferences updated successfully")
 	}
 }
 
