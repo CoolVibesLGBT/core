@@ -251,9 +251,10 @@ func HandleFetchStories(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
-		return utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"stories": stories,
-		})
+		}, "Stories fetched successfully")
 	}
 }
 
