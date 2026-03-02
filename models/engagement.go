@@ -53,8 +53,11 @@ const (
 	EngagementKindDeposit  EngagementKind = "deposit"
 	EngagementKindWithdraw EngagementKind = "withdraw"
 
-	EngagementKindDeletedForMe  EngagementKind = "deleted_for_me"
-	EngagementKindDeletedForAll EngagementKind = "deleted_for_all"
+	EngagementKindMessageDeletedForMe  EngagementKind = "message_deleted_for_me"
+	EngagementKindMessageDeletedForAll EngagementKind = "message_deleted_for_all"
+
+	EngagementKindChatDeletedForMe  EngagementKind = "chat_deleted_for_me"
+	EngagementKindChatDeletedForAll EngagementKind = "chat_deleted_for_all"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {
@@ -94,7 +97,11 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindDeposit:  {"deposit_count", "deposit_amount"},
 	EngagementKindWithdraw: {"withdraw_count", "withdraw_amount"},
 
-	EngagementKindReferral: {"referral_count", "referral_amount"},
+	EngagementKindReferral:             {"referral_count", "referral_amount"},
+	EngagementKindMessageDeletedForMe:  {"message_deleted_for_me_count", ""},
+	EngagementKindMessageDeletedForAll: {"message_deleted_for_all_count", ""},
+	EngagementKindChatDeletedForMe:     {"chat_deleted_for_me_count", ""},
+	EngagementKindChatDeletedForAll:    {"chat_deleted_for_all_count", ""},
 }
 
 func NewCountsMap() map[string]interface{} {

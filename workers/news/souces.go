@@ -1927,6 +1927,8 @@ var StaticRSSSources = []RSSSource{
 	{ID: "haber380", Name: "haber380", URL: "https://www.haber380.com/rss/turizm.xml", Enabled: true},
 	{ID: "haber380", Name: "haber380", URL: "https://www.haber380.com/rss/diger.xml", Enabled: true},
 
+	{ID: "lgbti", Name: "lgbti", URL: "https://news.lgbti.org/feed/", Enabled: true},
+
 	{ID: "telgraf", Name: "telgraf", URL: "https://telgraf.net/rss", Enabled: true},
 	{ID: "sektorgazetesi", Name: "sektorgazetesi", URL: "https://www.sektorgazetesi.com.tr/rss", Enabled: true},
 	{ID: "indyturk", Name: "indyturk", URL: "https://www.indyturk.com/rss.xml", Enabled: true},

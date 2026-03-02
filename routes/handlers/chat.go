@@ -296,13 +296,22 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
+		messageIDStr := c.FormValue("message_id")
+		if messageIDStr == "" {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+		}
+		messageID, err := uuid.Parse(messageIDStr)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+		}
+
 		// service call
-		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
+		err = s.DeleteMessageForAll(c.Context(), authUser, authUser.ID, chatID, messageID)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForAll)
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat deleted successfully")
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Message deleted successfully")
 	}
 }
 
@@ -353,7 +362,6 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
 		}
 
-		// service call
 		err = s.DeleteChatForAll(c.Context(), authUser, chatID)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDeleteChatForAll)

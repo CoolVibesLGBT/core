@@ -124,9 +124,9 @@ const (
 	CMD_DELETE_MESSAGE              = "chat.delete_message" // Mesajı sil
 	CMD_FETCH_MESSAGES              = "chat.fetch_messages" // Mesajları getir
 	CMD_DELETE_MESSAGE_FOR_USER     = "chat.delete_message_for_user"
+	CMD_DELETE_MESSAGE_FOR_ALL      = "chat.delete_message_for_all"
 	CMD_DELETE_CHAT_FOR_USER        = "chat.delete_chat_for_user"
 	CMD_DELETE_CHAT_FOR_ALL         = "chat.delete_chat_for_all"
-	CMD_DELETE_MESSAGE_FOR_ALL      = "chat.delete_message_for_all"
 	CMD_CLEAR_CHAT_HISTORY_FOR_USER = "chat.clear_chat_history_for_user"
 	CMD_CLEAR_CHAT_HISTORY_FOR_ALL  = "chat.clear_chat_history_for_all"
 

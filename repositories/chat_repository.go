@@ -63,7 +63,7 @@ func (r *ChatRepository) GetChatByIDWithoutRelations(id uuid.UUID) (*chat.Chat, 
 	return &chatObj, nil
 }
 
-func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
+func (r *ChatRepository) GetChatsByUserIDW(userID uuid.UUID) ([]chat.Chat, error) {
 	var chats []chat.Chat
 
 	err := r.db.
@@ -76,6 +76,56 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 		Preload("LastMessage.Author.Avatar.File").
 		Preload("LastMessage.Author.Cover.File").
 		Order("last_message_timestamp DESC").
+		Find(&chats).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return chats, nil
+}
+
+func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
+	var chats []chat.Chat
+
+	err := r.db.
+		Model(&chat.Chat{}).
+		Where("chats.deleted_at IS NULL").
+		Where(`
+			EXISTS (
+				SELECT 1
+				FROM chat_participants cp
+				WHERE cp.chat_id = chats.id
+				AND cp.user_id = ?
+				AND (
+					cp.cleared_at IS NULL
+					OR chats.last_message_timestamp IS NULL
+					OR chats.last_message_timestamp > cp.cleared_at
+				)
+			)
+		`, userID).
+		Where(`
+			NOT EXISTS (
+				SELECT 1
+				FROM engagements e
+				JOIN engagement_details ed ON ed.engagement_id = e.id
+				WHERE e.contentable_id = chats.id
+				AND e.contentable_type = ?
+				AND ed.kind = ?
+			)
+		`,
+			post.PostKindChat,
+			models.EngagementKindChatDeletedForAll,
+		).
+		Preload("Participants.User.Avatar.File").
+		Preload("Participants.User.Cover.File").
+		Preload("LastMessage", func(db *gorm.DB) *gorm.DB {
+			return db.Where("posts.deleted_at IS NULL")
+		}).
+		Preload("LastMessage.Author").
+		Preload("LastMessage.Author.Avatar.File").
+		Preload("LastMessage.Author.Cover.File").
+		Order("chats.last_message_timestamp DESC").
 		Find(&chats).Error
 
 	if err != nil {
@@ -311,13 +361,19 @@ func (r *ChatRepository) UnpinMessage(ctx context.Context, authUser *models.User
 }
 
 func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
+	fmt.Println("HERE", authUser.ID, chatID, userID, messageID)
+
 	post, err := r.postRepo.GetPostByID(messageID)
 	if err != nil {
+		fmt.Println("ERROR", err.Error())
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDeletedForMe, post.ID, models.EngagementContentableTypeMessage)
+
+		err = r.userRepo.engagementRepo.AddEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindMessageDeletedForMe, post.ID, models.EngagementContentableTypeMessage)
 		if err != nil {
+			fmt.Println("ERROR", err.Error())
+
 			return err
 		}
 	}
@@ -330,7 +386,7 @@ func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, authUser *mode
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindDeletedForAll, post.ID, models.EngagementContentableTypeMessage)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindMessageDeletedForAll, post.ID, models.EngagementContentableTypeMessage)
 		if err != nil {
 			return err
 		}
@@ -344,7 +400,7 @@ func (r *ChatRepository) DeleteChatForUser(ctx context.Context, authUser *models
 		return err
 	}
 	if chat != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindDeletedForMe, chat.ID, models.EngagementContentableTypeChat)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindChatDeletedForMe, chat.ID, models.EngagementContentableTypeChat)
 		if err != nil {
 			return err
 		}
@@ -358,7 +414,7 @@ func (r *ChatRepository) DeleteChatForAll(ctx context.Context, authUser *models.
 		return err
 	}
 	if chat != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindDeletedForAll, chat.ID, models.EngagementContentableTypeChat)
+		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindChatDeletedForAll, chat.ID, models.EngagementContentableTypeChat)
 		if err != nil {
 			return err
 		}
@@ -412,27 +468,43 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 	var messages []post.Post
 
 	var participant chat.ChatParticipant
-	err := r.db.
+	if err := r.db.
 		Where("chat_id = ? AND user_id = ?", chatID, userID).
-		First(&participant).Error
-	if err != nil {
+		First(&participant).Error; err != nil {
 		return nil, err
 	}
 
-	query := r.db.
-		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID)
+	query := r.db.Model(&post.Post{}).
+		Where("posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindChat, chatID).
+		Joins(`LEFT JOIN engagements e 
+			ON e.contentable_id = posts.id AND e.contentable_type = ?`, post.PostKindMessage).
+		Joins(`LEFT JOIN engagement_details ed 
+			ON ed.engagement_id = e.id 
+			AND ((ed.kind = ? AND ed.engager_id = ?) OR ed.kind = ?)`,
+			models.EngagementKindMessageDeletedForMe, userID, models.EngagementKindMessageDeletedForAll).
+		Where("ed.id IS NULL")
 
 	if participant.ClearedAt != nil {
-		query = query.Where("created_at > ?", *participant.ClearedAt)
+		query = query.Where("posts.created_at > ?", *participant.ClearedAt)
 	}
 
-	err = query.
-		Order("created_at ASC").
+	err := query.
+		Order("posts.created_at ASC").
 		Preload("Author").
 		Preload("Parent").
 		Preload("Parent.Author.Avatar.File").
 		Preload("Parent.Author.Cover.File").
 		Preload("Parent.Attachments").
+		Preload("Engagements", func(db *gorm.DB) *gorm.DB {
+			return db.Preload("EngagementDetails", func(db2 *gorm.DB) *gorm.DB {
+				return db2.Where("kind NOT IN ?", []models.EngagementKind{
+					models.EngagementKindMessageDeletedForMe,
+					models.EngagementKindMessageDeletedForAll,
+				})
+			})
+		}).
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Parent.Attachments.File").
 		Preload("Author.Avatar.File").
 		Preload("Author.Cover.File").
@@ -451,10 +523,10 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 			"unread_count": 0,
 			"last_read_at": now,
 		}).Error
-
 	if err != nil {
 		return nil, err
 	}
+
 	return messages, nil
 }
 
