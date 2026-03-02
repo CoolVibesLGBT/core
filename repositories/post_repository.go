@@ -841,28 +841,34 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	}
 
 	var hashtagItems []*models.Hashtag
+	seen := make(map[string]bool)
 
-	for _, hashtagStr := range postForm.Hashtags {
-		hashtagStr = strings.TrimPrefix(hashtagStr, "#")
-		if len(hashtagStr) == 0 {
+	for _, raw := range postForm.Hashtags {
+		normalized := helpers.SlugifyStrict(strings.TrimPrefix(raw, "#"))
+
+		if normalized == "" {
 			continue
 		}
 
-		slug := helpers.GenerateSlug(helpers.SlugifyStrict(hashtagStr))
+		if seen[normalized] {
+			continue
+		}
+		seen[normalized] = true
+
 		hashtagItem := &models.Hashtag{
 			Domain: author.Domain,
 			ID:     uuid.New(),
-			Tag:    hashtagStr,
-			Slug:   slug,
+			Tag:    normalized,
+			Slug:   helpers.GenerateSlug(normalized),
 		}
+
 		hashtagItems = append(hashtagItems, hashtagItem)
 	}
-
-	// RelatedHashtags olarak tüm diğer hashtagleri ekle (kendisi hariç)
 	for i := range hashtagItems {
 		for j := range hashtagItems {
 			if i != j {
-				hashtagItems[i].RelatedHashtags = append(hashtagItems[i].RelatedHashtags, hashtagItems[j])
+				hashtagItems[i].RelatedHashtags =
+					append(hashtagItems[i].RelatedHashtags, hashtagItems[j])
 			}
 		}
 	}
