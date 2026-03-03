@@ -1552,6 +1552,7 @@ func (r *PostRepository) GetPillarsWithClustersWithSlug(ctx context.Context, slu
 	err := r.db.WithContext(ctx).
 		Model(&taxonomy.Pillar{}).
 		Joins("LEFT JOIN clusters ON clusters.pillar_id = pillars.id AND (clusters.slug ILIKE ? OR clusters.search_vector ILIKE ?)", likePattern, likePattern).
+		Preload("Clusters.Pillar").
 		Preload("Clusters.Synonyms").
 		Preload("Clusters.Children.Synonyms").
 		Where("pillars.is_active = ?", true).

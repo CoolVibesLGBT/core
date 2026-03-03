@@ -186,6 +186,14 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			"en": "All types of bars and nightlife venues",
 			"tr": "Tüm bar türleri ve gece mekanları",
 		},
+		MetaTitle: &utils.LocalizedString{
+			"en": "Best Bars and Nightlife Venues",
+			"tr": "En İyi Barlar ve Gece Mekanları",
+		},
+		MetaDescription: &utils.LocalizedString{
+			"en": "Discover the best bars, pubs and nightlife spots.",
+			"tr": "En iyi barları ve gece mekanlarını keşfedin.",
+		},
 		Slug:     "bars",
 		IsActive: true,
 	}
@@ -210,189 +218,275 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Restaurant",
-				"tr": "Restoran",
-			},
+			Name:     utils.LocalizedString{"en": "Restaurant", "tr": "Restoran"},
 			Description: &utils.LocalizedString{
 				"en": "Restaurants and dining places",
 				"tr": "Restoranlar ve yemek mekanları",
 			},
-			Slug:     "restaurant",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Best Restaurants & Dining Spots",
+				"tr": "En İyi Restoranlar",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Explore top-rated restaurants, cuisines, menus and local dining experiences.",
+				"tr": "En iyi restoranları, mutfakları ve yerel yemek deneyimlerini keşfedin.",
+			},
+			Slug: "restaurant", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Team",
-				"tr": "Takım",
-			},
+			Name:     utils.LocalizedString{"en": "Team", "tr": "Takım"},
 			Description: &utils.LocalizedString{
 				"en": "Sports teams and clubs",
 				"tr": "Spor takımları ve kulüpler",
 			},
-			Slug:     "team",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Sports Teams, Clubs & Communities",
+				"tr": "Spor Takımları ve Kulüpler",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Follow professional and local sports teams, clubs and fan groups.",
+				"tr": "Profesyonel ve yerel spor takımlarını ve topluluklarını keşfedin.",
+			},
+			Slug: "team", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Clinic",
-				"tr": "Klinik",
-			},
+			Name:     utils.LocalizedString{"en": "Clinic", "tr": "Klinik"},
 			Description: &utils.LocalizedString{
 				"en": "Medical and healthcare clinics",
 				"tr": "Tıbbi ve sağlık klinikleri",
 			},
-			Slug:     "clinic",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Clinics & Medical Services",
+				"tr": "Klinikler ve Sağlık Hizmetleri",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Find trusted healthcare clinics and medical service providers.",
+				"tr": "Güvenilir sağlık kliniklerini ve tıbbi hizmetleri keşfedin.",
+			},
+			Slug: "clinic", IsActive: true,
 		},
-		// Bars alt clusterleri
+
+		// Mix Bar
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
 			ParentID: &barCluster.ID,
-			Name: utils.LocalizedString{
-				"en": "Mix Bar",
-				"tr": "Mix Bar",
-			},
+			Name:     utils.LocalizedString{"en": "Mix Bar", "tr": "Mix Bar"},
 			Description: &utils.LocalizedString{
 				"en": "Bars and nightlife venues",
 				"tr": "Barlar ve gece mekanları",
 			},
-			Slug:     "mix_bar",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Mix Bars & Cocktail Venues",
+				"tr": "Mix Bar ve Kokteyl Mekanları",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Discover cocktail bars, vibrant nightlife and social venues.",
+				"tr": "Kokteyl barları ve canlı gece hayatını keşfedin.",
+			},
+			Slug: "mix_bar", IsActive: true,
 		},
+
+		// Gay Bar
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
 			ParentID: &barCluster.ID,
-			Name: utils.LocalizedString{
-				"en": "Gay Bar",
-				"tr": "Gay Bar",
-			},
+			Name:     utils.LocalizedString{"en": "Gay Bar", "tr": "Gay Bar"},
 			Description: &utils.LocalizedString{
-				"en": "LGBTQ+ friendly bars and clubs",
-				"tr": "LGBTQ+ dostu barlar ve kulüpler",
+				"en": "LGBTIQA+ friendly bars and clubs",
+				"tr": "LGBTIQA+ dostu barlar ve kulüpler",
 			},
-			Slug:     "gay_bar",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "LGBTIQA+ Friendly Bars & Clubs",
+				"tr": "LGBTIQA+ Dostu Barlar",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Explore inclusive nightlife venues and welcoming LGBTIQA+ spaces.",
+				"tr": "Kapsayıcı ve güvenli LGBTIQA+ gece mekanlarını keşfedin.",
+			},
+			Slug: "gay_bar", IsActive: true,
 		},
+
+		// Other Bar
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
 			ParentID: &barCluster.ID,
-			Name: utils.LocalizedString{
-				"en": "Other Bar",
-				"tr": "Diğer Bar",
-			},
+			Name:     utils.LocalizedString{"en": "Other Bar", "tr": "Diğer Bar"},
 			Description: &utils.LocalizedString{
 				"en": "Other types of bars",
 				"tr": "Diğer bar türleri",
 			},
-			Slug:     "other_bar",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Specialty & Unique Bars",
+				"tr": "Özel ve Farklı Barlar",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Browse themed bars, specialty venues and unique nightlife concepts.",
+				"tr": "Temalı ve farklı konseptteki barları keşfedin.",
+			},
+			Slug: "other_bar", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Beauty",
-				"tr": "Güzellik",
-			},
+			Name:     utils.LocalizedString{"en": "Beauty", "tr": "Güzellik"},
 			Description: &utils.LocalizedString{
 				"en": "Beauty salons and services",
 				"tr": "Güzellik salonları ve hizmetleri",
 			},
-			Slug:     "beauty",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Beauty Salons & Cosmetic Services",
+				"tr": "Güzellik ve Kozmetik Hizmetleri",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Find beauty salons, skincare, hair and cosmetic specialists.",
+				"tr": "Güzellik salonları ve bakım hizmetlerini keşfedin.",
+			},
+			Slug: "beauty", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Real Estate",
-				"tr": "Emlak",
-			},
+			Name:     utils.LocalizedString{"en": "Real Estate", "tr": "Emlak"},
 			Description: &utils.LocalizedString{
 				"en": "Properties, apartments, and houses",
 				"tr": "Mülkler, daireler ve evler",
 			},
-			Slug:     "real_estate",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Real Estate Listings & Properties",
+				"tr": "Emlak İlanları",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Browse apartments, houses and property listings for sale or rent.",
+				"tr": "Satılık ve kiralık emlak ilanlarını inceleyin.",
+			},
+			Slug: "real_estate", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Fitness",
-				"tr": "Fitness",
-			},
+			Name:     utils.LocalizedString{"en": "Fitness", "tr": "Fitness"},
 			Description: &utils.LocalizedString{
 				"en": "Gyms and fitness centers",
 				"tr": "Spor salonları ve fitness merkezleri",
 			},
-			Slug:     "fitness",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Gyms, Trainers & Fitness Studios",
+				"tr": "Fitness ve Spor Salonları",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Discover gyms, personal trainers and wellness studios near you.",
+				"tr": "Spor salonlarını ve antrenörleri keşfedin.",
+			},
+			Slug: "fitness", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "LGBTQ+ Groups",
-				"tr": "LGBTQ+ Grupları",
-			},
+			Name:     utils.LocalizedString{"en": "LGBTIQA+ Groups", "tr": "LGBTIQA+ Grupları"},
 			Description: &utils.LocalizedString{
-				"en": "Groups and communities for LGBTQ+",
-				"tr": "LGBTQ+ için gruplar ve topluluklar",
+				"en": "Groups and communities for LGBTIQA+",
+				"tr": "LGBTIQA+ için gruplar ve topluluklar",
 			},
-			Slug:     "lgbtq_groups",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "LGBTIQA+ Communities & Social Groups",
+				"tr": "LGBTIQA+ Toplulukları",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Connect with LGBTIQA+ groups, support networks and community events.",
+				"tr": "LGBTIQA+ toplulukları ve sosyal gruplarla bağlantı kurun.",
+			},
+			Slug: "lgbtqia_groups", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Others",
-				"tr": "Diğer",
-			},
+			Name:     utils.LocalizedString{"en": "Others", "tr": "Diğer"},
 			Description: &utils.LocalizedString{
 				"en": "Other types of places",
 				"tr": "Diğer mekan türleri",
 			},
-			Slug:     "others",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Explore More Categories",
+				"tr": "Diğer Mekan Kategorileri",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Browse additional categories and discover unique local places.",
+				"tr": "Farklı mekan kategorilerini keşfedin.",
+			},
+			Slug: "others", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Massage",
-				"tr": "Masaj",
-			},
+			Name:     utils.LocalizedString{"en": "Massage", "tr": "Masaj"},
 			Description: &utils.LocalizedString{
 				"en": "Massage salons and services",
 				"tr": "Masaj salonları ve hizmetleri",
 			},
-			Slug:     "massage",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Massage & Relaxation Services",
+				"tr": "Masaj ve Rahatlama",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Find professional massage therapists and relaxation services.",
+				"tr": "Profesyonel masaj ve rahatlama hizmetlerini keşfedin.",
+			},
+			Slug: "massage", IsActive: true,
 		},
+
 		{
 			ID:       uuid.New(),
 			PillarID: pillarEntry.ID,
-			Name: utils.LocalizedString{
-				"en": "Associations",
-				"tr": "Dernekler",
-			},
+			Name:     utils.LocalizedString{"en": "Associations", "tr": "Dernekler"},
 			Description: &utils.LocalizedString{
-				"en": "Local clubs, associations, and community groups for various interests and activities.",
-				"tr": "Yerel kulüpler, dernekler ve çeşitli ilgi alanları ve etkinlikler için topluluk grupları.",
+				"en": "Local clubs, associations, and community groups.",
+				"tr": "Yerel kulüpler ve dernekler.",
 			},
-			Slug:     "associations",
-			IsActive: true,
+			MetaTitle: &utils.LocalizedString{
+				"en": "Associations & Community Organizations",
+				"tr": "Dernekler ve Topluluklar",
+			},
+			MetaDescription: &utils.LocalizedString{
+				"en": "Discover local associations, clubs and community initiatives.",
+				"tr": "Yerel dernekleri ve topluluk organizasyonlarını keşfedin.",
+			},
+			Slug: "associations", IsActive: true,
 		},
+	}
+
+	for _, c := range clusters {
+		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, c.Slug)
+		if err != nil {
+			fmt.Println("Error checking cluster:", c.Slug, err)
+			continue
+		}
+
+		if !exists {
+			c.PillarID = pillarEntry.ID
+			c.ID = uuid.New()
+			if err := postRepo.CreateCluster(context.Background(), &c); err != nil {
+				fmt.Println("Error creating cluster:", c.Slug, err)
+				continue
+			}
+			fmt.Println("Created cluster:", c.Slug)
+		} else {
+			fmt.Println("Cluster already exists:", c.Slug)
+		}
 	}
 
 	type SynonymSeed struct {
@@ -522,8 +616,8 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	// =========================
 	// LGBTQ GROUPS
 	// =========================
-	errLGBTQGroups := addSynonyms("lgbtq_groups", []SynonymSeed{
-		{"lgbtq_groups", utils.LocalizedString{"en": "LGBTQ+ Groups", "tr": "LGBTQ+ Grupları"}, true, 10},
+	errLGBTQGroups := addSynonyms("lgbtqia_groups", []SynonymSeed{
+		{"lgbtqia_groups", utils.LocalizedString{"en": "LGBTIQA+ Groups", "tr": "LGBTIQA+ Grupları"}, true, 10},
 		{"community_group", utils.LocalizedString{"en": "Community Group", "tr": "Topluluk Grubu"}, false, 7},
 		{"support_group", utils.LocalizedString{"en": "Support Group", "tr": "Destek Grubu"}, false, 8},
 		{"ngo", utils.LocalizedString{"en": "NGO", "tr": "Sivil Toplum Kuruluşu"}, false, 6},
@@ -532,26 +626,6 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 
 	if errLGBTQGroups != nil {
 		return errLGBTQGroups
-	}
-
-	for _, c := range clusters {
-		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, c.Slug)
-		if err != nil {
-			fmt.Println("Error checking cluster:", c.Slug, err)
-			continue
-		}
-
-		if !exists {
-			c.PillarID = pillarEntry.ID
-			c.ID = uuid.New()
-			if err := postRepo.CreateCluster(context.Background(), &c); err != nil {
-				fmt.Println("Error creating cluster:", c.Slug, err)
-				continue
-			}
-			fmt.Println("Created cluster:", c.Slug)
-		} else {
-			fmt.Println("Cluster already exists:", c.Slug)
-		}
 	}
 
 	var places []Place
@@ -772,7 +846,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			Optional: false,
 		},
 		{
-			Question: "Does the place offer support groups or resources for LGBTQ+ individuals?",
+			Question: "Does the place offer support groups or resources for LGBTIQA+ individuals?",
 			Options:  []string{"Yes", "No", "Don't know"},
 			Optional: false,
 		},

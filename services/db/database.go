@@ -184,6 +184,10 @@ func Migrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 
+		&taxonomy.Entity{},
+		&taxonomy.Intent{},
+		&taxonomy.ClusterEntity{},
+		&taxonomy.ClusterIntent{},
 		&taxonomy.Pillar{},
 		&taxonomy.Cluster{},
 		&taxonomy.Synonym{},

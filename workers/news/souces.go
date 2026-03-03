@@ -2551,6 +2551,10 @@ var StaticRSSSources = []RSSSource{
 	{ID: "war", Name: "war", URL: "https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?max=10000&ContentType=1&Site=945", Enabled: true},
 	{ID: "war", Name: "war", URL: "https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=2&Site=945&max=10000", Enabled: true},
 	{ID: "war", Name: "war", URL: "https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=11&Site=945&max=10000", Enabled: true},
+	{ID: "krttv", Name: "krttv", URL: "https://www.krttv.com.tr/rss", Enabled: true},
+	{ID: "artigercek", Name: "artigercek", URL: "https://artigercek.com/export/rss", Enabled: true},
+	{ID: "odatv", Name: "odatv", URL: "https://www.odatv.com/rss.xml", Enabled: true},
+	{ID: "superhaber", Name: "superhaber", URL: "https://www.superhaber.com/export/rss", Enabled: true},
 }
 
 func GenerateGoogleNewsRSSURL(lang Language) string {

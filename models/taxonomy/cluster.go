@@ -12,9 +12,10 @@ import (
 )
 
 type Cluster struct {
-	ID              uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
-	PillarID        uuid.UUID              `gorm:"type:uuid;not null;index" json:"pillar_id"`
-	Pillar          Pillar                 `gorm:"-" json:"-"`
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	PillarID uuid.UUID `gorm:"type:uuid;not null;index" json:"pillar_id"`
+	Pillar   Pillar    `gorm:"foreignKey:PillarID" json:"-"`
+
 	ParentID        *uuid.UUID             `gorm:"type:uuid;index" json:"parent_id,omitempty"`
 	Parent          *Cluster               `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
 	Children        []Cluster              `gorm:"foreignKey:ParentID" json:"children,omitempty"`
@@ -25,11 +26,14 @@ type Cluster struct {
 	IsActive        bool                   `gorm:"default:true;index" json:"is_active"`
 	MetaTitle       *utils.LocalizedString `gorm:"type:jsonb" json:"meta_title,omitempty"`
 	MetaDescription *utils.LocalizedString `gorm:"type:jsonb" json:"meta_description,omitempty"`
-	Synonyms        []Synonym              `gorm:"foreignKey:ClusterID;constraint:OnDelete:CASCADE" json:"synonyms,omitempty"`
-	Posts           []uuid.UUID            `gorm:"-" json:"post_ids,omitempty"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
-	DeletedAt       gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
+
+	Intents   []Intent       `gorm:"many2many:cluster_intents;constraint:OnDelete:CASCADE" json:"intents,omitempty"`
+	Entities  []Entity       `gorm:"many2many:cluster_entities;constraint:OnDelete:CASCADE" json:"entities,omitempty"`
+	Synonyms  []Synonym      `gorm:"foreignKey:ClusterID;constraint:OnDelete:CASCADE" json:"synonyms,omitempty"`
+	Posts     []uuid.UUID    `gorm:"-" json:"post_ids,omitempty"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 func (c *Cluster) BuildSearchVector() string {

@@ -505,13 +505,7 @@ func NewRouter(
 }
 
 func GetBaseURL(c fiber.Ctx) string {
-	scheme := "http"
-
-	if c.Protocol() == "https" {
-		scheme = "https"
-	}
-
-	return scheme + "://" + c.Hostname()
+	return "https://" + c.Hostname()
 }
 
 func (r *Router) handlePacket(c fiber.Ctx) error {
