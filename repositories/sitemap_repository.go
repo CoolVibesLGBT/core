@@ -272,10 +272,7 @@ func (r *SitemapRepository) GenerateNewsSitemap(
 	return r.BuildNewsSitemap(ctx, baseURL, "Your Site", "tr")
 }
 
-func (r *SitemapRepository) GenerateImageSitemap(
-	ctx context.Context,
-	baseURL string,
-) ([]byte, error) {
+func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL string) ([]byte, error) {
 
 	var posts []post.Post
 
