@@ -119,6 +119,17 @@ func NewRouter(
 		AllowCredentials: false,
 	}))
 
+	r.fiber.Use("/static", cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders: []string{
+			"Accept", "Authorization", "Content-Type", "Content-Length",
+			"X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection",
+			"Accept-Encoding", "Accept-Language", "X-Requested-With",
+		},
+		AllowCredentials: false,
+	}))
+
 	r.fiber.Use("/static", static.New("./static", static.Config{
 		ModifyResponse: func(c fiber.Ctx) error {
 			c.Set("Access-Control-Allow-Origin", "*")
