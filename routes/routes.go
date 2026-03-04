@@ -134,11 +134,18 @@ func NewRouter(
 		ModifyResponse: func(c fiber.Ctx) error {
 			c.Set("Access-Control-Allow-Origin", "*")
 			c.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			c.Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 			c.Set("Cross-Origin-Resource-Policy", "cross-origin")
+
+			// CACHE KAPAT
+			c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+			c.Set("Pragma", "no-cache")
+			c.Set("Expires", "0")
+
 			return nil
 		},
 		Browse: false,
-		MaxAge: 86400,
+		MaxAge: 0, // önemli
 	}))
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
