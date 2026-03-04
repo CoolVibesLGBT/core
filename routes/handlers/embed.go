@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"core/constants"
 	"core/utils"
 	"net/http"
+	"net/url"
 
 	"github.com/gofiber/fiber/v3"
 	"golang.org/x/net/html"
@@ -27,20 +29,26 @@ type EmbedResponse struct {
 func HandleLinkPreview() fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		url := c.Query("url")
-		if url == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "url param missing"})
+		rawURL := c.FormValue("url") // veya c.Query("url") GET param için
+
+		if rawURL == "" {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
-		resp, err := http.Get(url)
+		decodedURL, err := url.QueryUnescape(rawURL)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to fetch url"})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
+		}
+
+		resp, err := http.Get(decodedURL)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrOGFetchFailed)
 		}
 		defer resp.Body.Close()
 
 		doc, err := html.Parse(resp.Body)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to parse html"})
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrHTMLParseFailed)
 		}
 
 		og := &MetaData{}

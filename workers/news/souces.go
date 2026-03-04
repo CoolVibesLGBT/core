@@ -2555,6 +2555,11 @@ var StaticRSSSources = []RSSSource{
 	{ID: "artigercek", Name: "artigercek", URL: "https://artigercek.com/export/rss", Enabled: true},
 	{ID: "odatv", Name: "odatv", URL: "https://www.odatv.com/rss.xml", Enabled: true},
 	{ID: "superhaber", Name: "superhaber", URL: "https://www.superhaber.com/export/rss", Enabled: true},
+
+	{ID: "yaajmexico", Name: "yaajmexico", URL: "https://www.yaajmexico.org/feed/", Enabled: true},
+	{ID: "fueradelclosetac", Name: "fueradelclosetac", URL: "https://fueradelclosetac.com/rss", Enabled: true},
+
+	{ID: "refugiolgbt", Name: "refugiolgbt", URL: "https://refugiolgbt.org/feed/", Enabled: true},
 }
 
 func GenerateGoogleNewsRSSURL(lang Language) string {

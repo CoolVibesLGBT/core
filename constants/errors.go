@@ -118,6 +118,10 @@ const (
 
 	// News
 	ErrNewsCreateFailed ErrorCode = "NEWS_CREATE_FAILED"
+
+	// Others
+	ErrOGFetchFailed   ErrorCode = "OG_FETCH_FAILED"
+	ErrHTMLParseFailed ErrorCode = "HTML_PARSE_FAILED"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -226,6 +230,10 @@ var ErrorMessages = map[ErrorCode]string{
 
 	// News
 	ErrNewsCreateFailed: "Failed to create news",
+
+	// Others
+	ErrOGFetchFailed:   "Failed to fetch OG data from the URL.",
+	ErrHTMLParseFailed: "Failed to parse HTML from the URL.",
 }
 
 func (e ErrorCode) String() string {
