@@ -44,7 +44,12 @@ func HandleLinkPreview() fiber.Handler {
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrOGFetchFailed)
 		}
-		defer resp.Body.Close()
+
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 
 		doc, err := html.Parse(resp.Body)
 		if err != nil {

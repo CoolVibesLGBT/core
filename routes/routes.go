@@ -119,34 +119,7 @@ func NewRouter(
 		AllowCredentials: false,
 	}))
 
-	r.fiber.Use("/static", cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
-		AllowHeaders: []string{
-			"Accept", "Authorization", "Content-Type", "Content-Length",
-			"X-CSRF-Token", "Token", "session", "Origin", "Host", "Connection",
-			"Accept-Encoding", "Accept-Language", "X-Requested-With",
-		},
-		AllowCredentials: false,
-	}))
-
-	r.fiber.Use("/static", static.New("./static", static.Config{
-		ModifyResponse: func(c fiber.Ctx) error {
-			c.Set("Access-Control-Allow-Origin", "*")
-			c.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-			c.Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-			c.Set("Cross-Origin-Resource-Policy", "cross-origin")
-
-			// CACHE KAPAT
-			c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
-			c.Set("Pragma", "no-cache")
-			c.Set("Expires", "0")
-
-			return nil
-		},
-		Browse: false,
-		MaxAge: 0, // önemli
-	}))
+	r.fiber.Use("/static", static.New("./static"))
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
