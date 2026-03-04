@@ -119,7 +119,12 @@ func NewRouter(
 		AllowCredentials: false,
 	}))
 
-	r.fiber.Use("/static", static.New("./static"))
+	r.fiber.Get("/static/*", static.New("./static", static.Config{
+		Browse:        false,  // ← klasör listeleme AÇIK
+		ByteRange:     true,   // büyük dosyalar için faydalı
+		CacheDuration: 5 * 60, // 5 dk cache (isteğe göre 0 da yapabilirsin)
+		// Index:      "index.html",  // istersen klasöre girince otomatik index.html açsın
+	}))
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
