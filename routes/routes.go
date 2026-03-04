@@ -119,11 +119,15 @@ func NewRouter(
 		AllowCredentials: false,
 	}))
 
-	r.fiber.Get("/static/*", static.New("./static", static.Config{
-		Browse:        false,  // ← klasör listeleme AÇIK
-		ByteRange:     true,   // büyük dosyalar için faydalı
-		CacheDuration: 5 * 60, // 5 dk cache (isteğe göre 0 da yapabilirsin)
-		// Index:      "index.html",  // istersen klasöre girince otomatik index.html açsın
+	r.fiber.Use("/static", static.New("./static", static.Config{
+		ModifyResponse: func(c fiber.Ctx) error {
+			c.Set("Access-Control-Allow-Origin", "*")
+			c.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			c.Set("Cross-Origin-Resource-Policy", "cross-origin")
+			return nil
+		},
+		Browse: false,
+		MaxAge: 86400,
 	}))
 	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
