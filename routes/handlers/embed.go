@@ -29,7 +29,7 @@ type EmbedResponse struct {
 func HandleLinkPreview() fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		rawURL := c.FormValue("url") // veya c.Query("url") GET param için
+		rawURL := c.FormValue("url")
 
 		if rawURL == "" {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)

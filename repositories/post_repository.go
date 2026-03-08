@@ -305,7 +305,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
-		Joins("INNER JOIN medias ON medias.owner_id = posts.id AND medias.owner_type = ?", "post").
+		//	Joins("INNER JOIN medias ON medias.owner_id = posts.id AND medias.owner_type = ?", "post").
 		Preload("Author").
 		Preload("Author.Avatar").
 		Preload("Author.Avatar.File").
@@ -318,13 +318,13 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
-		Where("published = ?", true).
+		//Where("published = ?", true).
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
 		Group("posts.id")
 
 	if filters.Cursor != nil {
-		query = query.Where("posts.public_id < ?", &filters.Cursor)
+		query = query.Where("posts.public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {

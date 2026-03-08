@@ -555,12 +555,12 @@ func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, like
 
 	}
 
-	status, err := engagementRepo.ToggleEngagement(ctx, likerUser.ID, likeeUser.ID, engagementKindGiven, likerUser.ID, "user")
+	status, err := engagementRepo.ToggleEngagement(ctx, likerUser.ID, likeeUser.ID, engagementKindGiven, likerUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return isLike, status, err
 	}
 
-	status, err = engagementRepo.ToggleEngagement(ctx, likeeUser.ID, likerUser.ID, engagementKindReceived, likeeUser.ID, "user")
+	status, err = engagementRepo.ToggleEngagement(ctx, likeeUser.ID, likerUser.ID, engagementKindReceived, likeeUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return isLike, status, err
 	}
@@ -582,13 +582,18 @@ func (s *UserService) HandleBlock(ctx context.Context, authUser models.User, blo
 }
 
 func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+
+	if blockerId == blockedId {
+		return false, errors.New("you cannot block yourself")
+	}
+
 	blockerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockerId})
 	if err != nil {
-		return false, errors.New(err.Error())
+		return false, err
 	}
 	blockedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockedId})
 	if err != nil {
-		return false, errors.New(err.Error())
+		return false, err
 	}
 
 	engagementRepo := s.userRepo.GetEngagementRepository()
@@ -599,17 +604,19 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 	engagementKindGiven = models.EngagementKindBlocking
 	engagementKindReceived = models.EngagementKindBlockedBy
 
-	status, err := engagementRepo.ToggleEngagement(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven, blockerUser.ID, "user")
+	isBlocked, _ := engagementRepo.HasUserEngaged(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven)
+
+	status, err := engagementRepo.ToggleEngagement(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven, blockerUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return status, err
 	}
 
-	status, err = engagementRepo.ToggleEngagement(ctx, blockedUser.ID, blockerUser.ID, engagementKindReceived, blockedUser.ID, "user")
+	status, err = engagementRepo.ToggleEngagement(ctx, blockedUser.ID, blockerUser.ID, engagementKindReceived, blockedUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return status, err
 	}
 
-	return true, nil
+	return !isBlocked, nil
 }
 
 func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {

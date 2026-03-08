@@ -78,8 +78,8 @@ type Post struct {
 
 	//Extras *map[string]any `gorm:"type:jsonb" json:"extras,omitempty"`
 	Extras datatypes.JSON `gorm:"type:jsonb" json:"extras,omitempty"`
-	Author models.User    `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
-
+	//Author      models.User        `gorm:"foreignKey:AuthorID;references:ID" json:"author"`
+	Author      models.User        `gorm:"foreignKey:AuthorID;references:ID;constraint:OnDelete:CASCADE" json:"author"`
 	Clusters    []taxonomy.Cluster `gorm:"many2many:post_clusters;" json:"clusters,omitempty"`
 	Attachments []*media.Media     `gorm:"polymorphic:Owner;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"attachments,omitempty"`
 	Mentions    []*models.Mention  `gorm:"polymorphic:Mentionable;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"mentions,omitempty"`

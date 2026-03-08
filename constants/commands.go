@@ -44,6 +44,7 @@ const (
 	CMD_USER_UPDATE_PREFERENCES = "user.update_preferences"
 	CMD_USER_UPDATE_IDENTIFY    = "user.update_identify"
 	CMD_USER_CHECK_IN           = "user.check_in"
+	CMD_USER_CHECK_IN_FETCH     = "user.check_in_fetch"
 	CMD_USER_UPLOAD_AVATAR      = "user.upload_avatar"
 	CMD_USER_UPLOAD_COVER       = "user.upload_cover"
 	CMD_USER_UPLOAD_STORY       = "user.upload_story"

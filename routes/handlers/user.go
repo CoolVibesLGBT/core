@@ -697,7 +697,6 @@ func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		fmt.Println("BLOCK,", blockerId, blockedId)
 		status, err := s.ToggleBlock(c.Context(), *auth_user, blockerId, blockedId)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
@@ -756,32 +755,6 @@ func HandleUserNotifications(s *services.UserService) fiber.Handler {
 				"next": nextCursor,
 			},
 		}, "Notifications fetched successfully")
-	}
-}
-
-func HandleUserCheckIn(s *services.UserService) fiber.Handler {
-	return func(c fiber.Ctx) error {
-
-		auth_user, ok := middleware.GetAuthenticatedUser(c)
-		if !ok {
-			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
-		}
-
-		if auth_user == nil {
-			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
-		}
-
-		checkInKind := c.Params("check_in")
-
-		fmt.Println("CheckIn", checkInKind)
-
-		err := s.CheckIn(c.Context())
-
-		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to check in")
-		}
-
-		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{}, "Check in successful")
 	}
 }
 
