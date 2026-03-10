@@ -2690,6 +2690,9 @@ var StaticRSSSources = []RSSSource{
 	{ID: "i-base", Name: "i-base", URL: "https://i-base.info/feed/", Enabled: true},
 	{ID: "preventionaccess", Name: "preventionaccess", URL: "https://preventionaccess.com/feed/", Enabled: true},
 	{ID: "qplusmagazine", Name: "qplusmagazine", URL: "https://qplusmagazine.com/feed/", Enabled: true},
+	{ID: "kuchutimes", Name: "kuchutimes", URL: "https://www.kuchutimes.com/feed/", Enabled: true},
+	{ID: "asdi-lgbti", Name: "asdi-lgbti", URL: "https://asdi-lgbti.com/feed/", Enabled: true},
+	{ID: "ayilarock", Name: "ayilarock", URL: "https://ayilarock.com/feed/", Enabled: true},
 }
 
 func GenerateGoogleNewsRSSURL(lang Language) string {
