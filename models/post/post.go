@@ -119,3 +119,24 @@ func (u Post) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(aux)
 }
+
+func IsValidPostKind(kind string) bool {
+	switch PostKind(kind) {
+	case
+		PostKindStatus,
+		PostKindTimeline,
+		PostKindPlace,
+		PostKindClassified,
+		PostKindGeneric,
+		PostKindNews,
+		PostKindStory,
+		PostKindChat,
+		PostKindMessage,
+		PostKindPost,
+		PostKindEvent,
+		PostKindCheckIn:
+		return true
+	default:
+		return false
+	}
+}

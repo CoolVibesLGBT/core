@@ -631,6 +631,9 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	case "place":
 		postKindType = post.PostKindPlace
 		isPublished = true
+	case "checkin":
+		postKindType = post.PostKindCheckIn
+		isPublished = true
 	default:
 		postKindType = post.PostKindStatus
 	}
