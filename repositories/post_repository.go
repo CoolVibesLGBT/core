@@ -7,6 +7,7 @@ import (
 	"core/helpers"
 	"core/models"
 	"core/models/media"
+	"core/models/notifications"
 	"core/models/post"
 	"core/models/taxonomy"
 	"core/models/utils"
@@ -1023,15 +1024,93 @@ func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
 	return count > 0, nil
 }
 
+func (r *PostRepository) SendNotification(ctx context.Context, senderUserUUID uuid.UUID, receiverUserUUID uuid.UUID, notificationPayload notifications.NotificationPayload) error {
+	canSendNotification := true
+	senderUser, err := r.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: senderUserUUID})
+	if err != nil {
+		canSendNotification = false
+	}
+	receiverUser, err := r.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: receiverUserUUID})
+	if err != nil {
+		canSendNotification = false
+	}
+
+	if canSendNotification {
+		err = r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notifications.NotificationTypeReferral, notificationPayload.Title, notificationPayload.Body, notificationPayload)
+		if err != nil {
+			fmt.Printf("Bildirim gönderilemedi user %s -> %s: %v\n", senderUserUUID, receiverUserUUID, err)
+			return err
+		}
+	}
+	return nil
+}
 func (r *PostRepository) Like(filters types.Filter) error {
 	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
+		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if isOk {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "New Like",
+					Body:  "Someone liked your post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Liked",
+					Body:  "You liked this post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		} else {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "Like Removed",
+					Body:  "Someone removed their like",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Like Removed",
+					Body:  "You removed your like",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
 		}
 	}
 	return nil
@@ -1043,9 +1122,61 @@ func (r *PostRepository) Dislike(filters types.Filter) error {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
+		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
+		}
+
+		if isOk {
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "New Dislike",
+					Body:  "Someone disliked your post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Disliked",
+					Body:  "You disliked this post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		} else {
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "Dislike Removed",
+					Body:  "Someone removed their dislike",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Dislike Removed",
+					Body:  "You removed your dislike",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
 		}
 	}
 	return nil
@@ -1057,9 +1188,60 @@ func (r *PostRepository) Banana(filters types.Filter) error {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
+		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
+		}
+		if isOk {
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "New Banana 🍌",
+					Body:  "Someone sent you a banana",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Banana Sent 🍌",
+					Body:  "You sent a banana",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		} else {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "Banana Removed",
+					Body:  "Someone removed their banana",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Banana Removed",
+					Body:  "You removed your banana",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
 		}
 	}
 	return nil
@@ -1099,10 +1281,65 @@ func (r *PostRepository) Bookmark(filters types.Filter) error {
 		return err
 	}
 	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
+		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return err
 		}
+
+		if isOk {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "New Bookmark",
+					Body:  "Someone bookmarked your post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Post Bookmarked",
+					Body:  "You bookmarked this post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		} else {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "Bookmark Removed",
+					Body:  "Someone removed their bookmark",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Bookmark Removed",
+					Body:  "You removed your bookmark",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		}
+
 	}
 	return nil
 }
