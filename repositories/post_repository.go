@@ -1055,10 +1055,6 @@ func (r *PostRepository) Like(filters types.Filter) error {
 			return err
 		}
 
-		if err != nil {
-			return err
-		}
-
 		if isOk {
 
 			if err := r.SendNotification(
