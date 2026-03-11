@@ -8,6 +8,7 @@ import (
 	"core/models"
 	"core/models/media"
 	"core/models/notifications"
+	"core/models/post"
 	"core/models/utils"
 	"core/repositories"
 	"core/types"
@@ -627,8 +628,16 @@ func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models
 	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
 }
 
-func (s *UserService) CheckIn(ctx context.Context) error {
-	return s.userRepo.CheckIn(ctx)
+func (s *UserService) CheckIn(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, postKind post.PostKind) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(postKind), nil)
+	if err != nil {
+		return nil, err
+	}
+	return s.postRepo.GetPostByID(_post.ID)
+}
+
+func (s *UserService) FetchCheckIns(filters types.Filter) (types.PostsResult, error) {
+	return s.postRepo.GetPostsByKind(filters)
 }
 
 func (s *UserService) DeleteUser(filters types.Filter) error {

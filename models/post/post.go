@@ -32,6 +32,7 @@ const (
 	PostKindMessage    PostKind = "message"
 	PostKindPost       PostKind = "post"
 	PostKindEvent      PostKind = "event"
+	PostKindCheckIn    PostKind = "checkin"
 )
 
 const (

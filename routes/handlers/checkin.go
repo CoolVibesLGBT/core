@@ -3,9 +3,10 @@ package handlers
 import (
 	"core/constants"
 	"core/middleware"
+	"core/models/post"
 	services "core/services/user"
 	"core/utils"
-	"fmt"
+	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -22,17 +23,31 @@ func HandleUserCheckIn(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		checkInKind := c.Params("check_in")
-
-		fmt.Println("CheckIn", checkInKind)
-
-		err := s.CheckIn(c.Context())
-
+		form, err := c.MultipartForm()
 		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to check in")
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Could not parse multipart form: " + err.Error(),
+			})
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{}, "Check in successful")
+		formParams := form.Value
+		images := form.File["images[]"]
+		videos := form.File["videos[]"]
+
+		files := append([]*multipart.FileHeader{}, images...)
+		files = append(files, videos...)
+
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		post, err := s.CheckIn(c.Context(), formParams, files, user, post.PostKindCheckIn)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedtoCheckIn)
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Check in successful")
 	}
 }
 
@@ -48,16 +63,19 @@ func HandleFetchCheckIns(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		checkInKind := c.Params("check_in")
+		filters, err := ParseFilters(c, auth_user)
+		filters.PostKind = post.PostKindCheckIn
+		if err != nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 
-		fmt.Println("CheckIn", checkInKind)
+		}
 
-		err := s.CheckIn(c.Context())
+		posts, err := s.FetchCheckIns(filters)
 
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to check in")
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{}, "Check in successful")
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, posts, "Checks fetched successful")
 	}
 }

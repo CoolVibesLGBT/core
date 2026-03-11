@@ -79,7 +79,7 @@ func FetchFantasies() ([]models.PreferenceCategory, error) {
 		category_slug := helpers.GenerateSlug(category_title["en"])
 		category_tag := payloads.UserAttributeFantasies
 
-		category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+		category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 		category_description := "Gender identity refers to a person’s deeply held sense of their own gender how they personally experience themselves as male, female, both, neither, or somewhere along the gender spectrum. It may or may not align with the sex they were assigned at birth, and it is an internal, individual understanding of who they are, rather than how others perceive them."
 
 		category := models.PreferenceCategory{
@@ -102,7 +102,7 @@ func FetchFantasies() ([]models.PreferenceCategory, error) {
 			if item.Category == categorySlug {
 
 				slug := helpers.GenerateSlug(labelLocalized["en"])
-				item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+				item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 				item := models.PreferenceItem{
 					ID:           item_id,
 					DisplayOrder: index,

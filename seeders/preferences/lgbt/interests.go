@@ -59,7 +59,7 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 		category_slug := helpers.GenerateSlug(category_title)
 		category_tag := payloads.UserAttributeInterests
 
-		category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+		category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 		category_description := ""
 
 		category := models.PreferenceCategory{
@@ -78,7 +78,7 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 				title := item.Name
 				icon := item.Emoji
 				slug := helpers.GenerateSlug(title)
-				item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+				item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 				slugPtr := &slug
 				item := models.PreferenceItem{
 					ID:           item_id,

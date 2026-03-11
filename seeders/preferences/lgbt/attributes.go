@@ -16,7 +16,7 @@ func _genderIdentities() models.PreferenceCategory {
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeGenderIdentity
 
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Gender identity refers to a person’s deeply held sense of their own gender how they personally experience themselves as male, female, both, neither, or somewhere along the gender spectrum. It may or may not align with the sex they were assigned at birth, and it is an internal, individual understanding of who they are, rather than how others perceive them."
 
 	category := models.PreferenceCategory{
@@ -68,7 +68,7 @@ func _genderIdentities() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -89,7 +89,7 @@ func _sexualOrientations() models.PreferenceCategory {
 	category_title := "Sexual Orientation"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeSexualOrientations
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Sexual orientation describes a person's emotional, romantic, or sexual attraction to others."
 
 	category := models.PreferenceCategory{
@@ -141,7 +141,7 @@ func _sexualOrientations() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -161,7 +161,7 @@ func _sexRoles() models.PreferenceCategory {
 	category_title := "Sex Role"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeSexRole
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Sexual orientation describes a person's emotional, romantic, or sexual attraction to others."
 
 	category := models.PreferenceCategory{
@@ -185,7 +185,7 @@ func _sexRoles() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -205,7 +205,7 @@ func _heightAttributes() models.PreferenceCategory {
 	category_title := "Height"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeHeight
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Height represents a person's stature measured from base to top."
 	category := models.PreferenceCategory{
 		ID:            category_id,
@@ -223,7 +223,7 @@ func _heightAttributes() models.PreferenceCategory {
 			"tr": fmt.Sprintf("%d cm", h),
 		}
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -243,7 +243,7 @@ func _weightAttributes() models.PreferenceCategory {
 	category_title := "Weight"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeWeight
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Weight represents a person's body mass or heaviness."
 	category := models.PreferenceCategory{
 		ID:            category_id,
@@ -261,7 +261,7 @@ func _weightAttributes() models.PreferenceCategory {
 			"tr": fmt.Sprintf("%d kg", w),
 		}
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -281,7 +281,7 @@ func _hairColors() models.PreferenceCategory {
 	category_title := "Hair Color"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeHairColor
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Hair color represents the various natural and dyed colors of a person's hair."
 
 	category := models.PreferenceCategory{
@@ -309,7 +309,7 @@ func _hairColors() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -329,7 +329,7 @@ func _eyeColors() models.PreferenceCategory {
 	category_title := "Eye Color"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeEyeColor
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Eye color refers to the color of the iris, which varies between individuals."
 
 	category := models.PreferenceCategory{
@@ -355,7 +355,7 @@ func _eyeColors() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -375,7 +375,7 @@ func _skinColors() models.PreferenceCategory {
 	category_title := "Skin Color"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeSkinColor
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Skin color refers to the natural color of a person’s skin, ranging from very fair to dark tones."
 
 	category := models.PreferenceCategory{
@@ -403,7 +403,7 @@ func _skinColors() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -423,7 +423,7 @@ func _bodyTypes() models.PreferenceCategory {
 	category_title := "Body Type"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeBodyType
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Body type describes the general shape and build of a person's physique."
 
 	category := models.PreferenceCategory{
@@ -448,7 +448,7 @@ func _bodyTypes() models.PreferenceCategory {
 
 	for i, ls := range bodyTypes {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -470,7 +470,7 @@ func _tattoos() models.PreferenceCategory {
 	category_tag := payloads.UserAttributeTattoos
 	category_description := "Tattoos indicate whether a person has body art and how extensive it is."
 
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category := models.PreferenceCategory{
 		ID:            category_id,
 		Tag:           &category_tag,
@@ -492,7 +492,7 @@ func _tattoos() models.PreferenceCategory {
 
 	for i, ls := range identities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -512,7 +512,7 @@ func _ethnicities() models.PreferenceCategory {
 	category_title := "Ethnicity"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeEthnicity
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Ethnicity refers to a person's cultural, regional, or ancestral background."
 
 	category := models.PreferenceCategory{
@@ -543,7 +543,7 @@ func _ethnicities() models.PreferenceCategory {
 
 	for i, ls := range ethnicities {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -564,7 +564,7 @@ func _zodiacs() models.PreferenceCategory {
 	category_title := "Zodiac"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeZodiac
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Zodiac signs represent astrological symbols based on the position of the sun at the time of birth."
 
 	category := models.PreferenceCategory{
@@ -595,7 +595,7 @@ func _zodiacs() models.PreferenceCategory {
 
 	for i, ls := range zodiacs {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -616,7 +616,7 @@ func _circumcisionStatus() models.PreferenceCategory {
 	category_title := "Circumcision Status"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeCircumcision
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Circumcision status indicates whether a person has undergone circumcision or not."
 
 	category := models.PreferenceCategory{
@@ -639,7 +639,7 @@ func _circumcisionStatus() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -660,7 +660,7 @@ func _disabilities() models.PreferenceCategory {
 	category_title := "Physical Disabilities"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributePhysicalDisability
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "This category includes various physical disabilities or conditions that may affect mobility, sensory abilities, or health."
 
 	category := models.PreferenceCategory{
@@ -696,7 +696,7 @@ func _disabilities() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -717,7 +717,7 @@ func _smoking() models.PreferenceCategory {
 	category_title := "Smoking Habits"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeSmoking
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's smoking habits."
 
 	category := models.PreferenceCategory{
@@ -740,7 +740,7 @@ func _smoking() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -761,7 +761,7 @@ func _drinking() models.PreferenceCategory {
 	category_title := "Drinking Habits"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeDrinking
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's alcohol consumption habits."
 
 	category := models.PreferenceCategory{
@@ -785,7 +785,7 @@ func _drinking() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -806,7 +806,7 @@ func _relationshipStatuses() models.PreferenceCategory {
 	category_title := "Relationship Statuses"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeRelationshipStatus
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's relationship status."
 
 	category := models.PreferenceCategory{
@@ -838,7 +838,7 @@ func _relationshipStatuses() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -859,7 +859,7 @@ func _preferredPartnerGenders() models.PreferenceCategory {
 	category_title := "Preferred Partner Gender"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributePreferredPartnerGender
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Preferred gender(s) of a person's partner."
 
 	category := models.PreferenceCategory{
@@ -883,7 +883,7 @@ func _preferredPartnerGenders() models.PreferenceCategory {
 
 	for i, ls := range partner_genders {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -904,7 +904,7 @@ func _relationshipPreferences() models.PreferenceCategory {
 	category_title := "Relationship Preferences"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeRelationshipPreferences
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Relationship preferences such as monogamous, polyamorous, open relationships, casual dating, or long term relationships."
 
 	category := models.PreferenceCategory{
@@ -939,7 +939,7 @@ func _relationshipPreferences() models.PreferenceCategory {
 
 	for i, ls := range preferences {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -959,7 +959,7 @@ func _kidsPreferences() models.PreferenceCategory {
 	category_title := "Kids Preferences"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeKidsPreference
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's preferences regarding having kids."
 
 	category := models.PreferenceCategory{
@@ -983,7 +983,7 @@ func _kidsPreferences() models.PreferenceCategory {
 
 	for i, ls := range preferences {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1004,7 +1004,7 @@ func _pets() models.PreferenceCategory {
 	category_title := "Pets"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributePets
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's pet preferences or ownership."
 
 	category := models.PreferenceCategory{
@@ -1029,7 +1029,7 @@ func _pets() models.PreferenceCategory {
 
 	for i, ls := range pets {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1050,7 +1050,7 @@ func _dietaryPreferences() models.PreferenceCategory {
 	category_title := "Dietary Preferences"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeDietary
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's dietary preferences."
 
 	category := models.PreferenceCategory{
@@ -1076,7 +1076,7 @@ func _dietaryPreferences() models.PreferenceCategory {
 
 	for i, ls := range dietary {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1097,7 +1097,7 @@ func _educationLevels() models.PreferenceCategory {
 	category_title := "Education Levels"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeEducation
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's level of education."
 
 	category := models.PreferenceCategory{
@@ -1127,7 +1127,7 @@ func _educationLevels() models.PreferenceCategory {
 
 	for i, ls := range educationLevels {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1148,7 +1148,7 @@ func _personalities() models.PreferenceCategory {
 	category_title := "Personality"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributePersonality
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's personality type."
 
 	category := models.PreferenceCategory{
@@ -1171,7 +1171,7 @@ func _personalities() models.PreferenceCategory {
 
 	for i, ls := range personalities {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1192,7 +1192,7 @@ func _mbtiTypes() models.PreferenceCategory {
 	category_title := "Personality Type"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeMBTIType
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "MBTI personality types describe different personality traits and preferences."
 
 	category := models.PreferenceCategory{
@@ -1228,7 +1228,7 @@ func _mbtiTypes() models.PreferenceCategory {
 
 	for i, ls := range mbti_types {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -1249,7 +1249,7 @@ func _chronotypes() models.PreferenceCategory {
 	category_title := "Chronotype"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeChronotype
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Chronotype describes whether a person is more active in the morning, evening, or night."
 
 	category := models.PreferenceCategory{
@@ -1273,7 +1273,7 @@ func _chronotypes() models.PreferenceCategory {
 
 	for i, ls := range chronotypes {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -1293,7 +1293,7 @@ func _humorStyles() models.PreferenceCategory {
 	category_title := "Sense of Humor"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeSenseOfHumor
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Sense of humor describes the kind of comedy or jokes a person enjoys or uses when communicating."
 	category := models.PreferenceCategory{
 		ID:            category_id,
@@ -1317,7 +1317,7 @@ func _humorStyles() models.PreferenceCategory {
 
 	for i, ls := range humortypes {
 		slug := helpers.GenerateSlug(ls["en"])
-		item_id := uuid.NewSHA1(helpers.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
+		item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           item_id,
@@ -1337,7 +1337,7 @@ func _religions() models.PreferenceCategory {
 	category_title := "Religion"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeReligion
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's religious beliefs or affiliations."
 
 	category := models.PreferenceCategory{
@@ -1379,7 +1379,7 @@ func _religions() models.PreferenceCategory {
 
 	for i, ls := range religions {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1400,7 +1400,7 @@ func _hivAidsStatuses() models.PreferenceCategory {
 	category_title := "HIV/AIDS Status"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeHIVAIDS
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Indicates the user's HIV/AIDS status and related health information."
 
 	category := models.PreferenceCategory{
@@ -1430,7 +1430,7 @@ func _hivAidsStatuses() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1451,7 +1451,7 @@ func _bdsmInterests() models.PreferenceCategory {
 	category_title := "BDSM Interest"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeBDSMInterest
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "User's interest in BDSM activities."
 
 	category := models.PreferenceCategory{
@@ -1475,7 +1475,7 @@ func _bdsmInterests() models.PreferenceCategory {
 
 	for i, ls := range statuses {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1496,7 +1496,7 @@ func _bdsmRoles() models.PreferenceCategory {
 	category_title := "BDSM Roles"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeBDSMRoles
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "User's preferred BDSM roles."
 
 	category := models.PreferenceCategory{
@@ -1537,7 +1537,7 @@ func _bdsmRoles() models.PreferenceCategory {
 
 	for i, ls := range roles {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,
@@ -1558,7 +1558,7 @@ func _bdsmPlays() models.PreferenceCategory {
 	category_title := "BDSM Plays"
 	category_slug := helpers.GenerateSlug(category_title)
 	category_tag := payloads.UserAttributeBDSMPlays
-	category_id := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug))
+	category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 	category_description := "Types of BDSM play activities user is interested in."
 
 	category := models.PreferenceCategory{
@@ -1588,7 +1588,7 @@ func _bdsmPlays() models.PreferenceCategory {
 
 	for i, ls := range plays {
 		slug := helpers.GenerateSlug(ls["en"])
-		itemID := uuid.NewSHA1(helpers.NameSpace, []byte(category_slug+"-"+slug))
+		itemID := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug+"-"+slug))
 		slugPtr := &slug
 		item := models.PreferenceItem{
 			ID:           itemID,

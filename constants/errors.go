@@ -122,6 +122,9 @@ const (
 	// Others
 	ErrOGFetchFailed   ErrorCode = "OG_FETCH_FAILED"
 	ErrHTMLParseFailed ErrorCode = "HTML_PARSE_FAILED"
+
+	//Check In
+	ErrFailedtoCheckIn ErrorCode = "FAILED_TO_CHECK_IN"
 )
 
 var ErrorMessages = map[ErrorCode]string{
@@ -183,8 +186,8 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrPostNotFound:         "Post not found.",
 	ErrPostDeleteDenied:     "You are not allowed to delete this post.",
 	ErrPostDeleteFailed:     "Failed to delete the post.",
-	ErrInsufficientBalance:  "Insufficient balance.",    // yeni mesaj eklendi
-	ErrInvalidAmount:        "Invalid amount provided.", // yeni mesaj
+	ErrInsufficientBalance:  "Insufficient balance.",
+	ErrInvalidAmount:        "Invalid amount provided.",
 	ErrPostCreateFailed:     "Failed to create post",
 	ErrFailedToBookmarkPost: "Failed to bookmark post",
 	ErrFailedToDislikePost:  "Failed to dislike post",
@@ -234,6 +237,9 @@ var ErrorMessages = map[ErrorCode]string{
 	// Others
 	ErrOGFetchFailed:   "Failed to fetch OG data from the URL.",
 	ErrHTMLParseFailed: "Failed to parse HTML from the URL.",
+
+	// CheckIn
+	ErrFailedtoCheckIn: "Failed to check in",
 }
 
 func (e ErrorCode) String() string {

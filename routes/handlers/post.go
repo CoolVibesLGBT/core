@@ -3,6 +3,7 @@ package handlers
 import (
 	"core/constants"
 	"core/middleware"
+	"core/models/post"
 	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
@@ -44,7 +45,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		post, err := s.CreatePost(c.Context(), formParams, files, user)
+		post, err := s.CreatePost(c.Context(), formParams, files, user, post.PostKindPost)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostCreateFailed)
 		}
