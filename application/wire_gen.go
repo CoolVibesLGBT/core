@@ -13,7 +13,7 @@ import (
 	"core/routes"
 	"core/services/db"
 	"core/services/socket"
-	services "core/services/user"
+	"core/services/user"
 )
 
 // Injectors from wire.go:
@@ -31,8 +31,8 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
 	engagementRepository := repositories.NewEngagementRepository(gormDB)
+	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
 	userRepository := repositories.NewUserRepository(gormDB, reader, node, engagementRepository, notificationRepository)
 	mediaRepository := repositories.NewMediaRepository(gormDB, node)
 	postRepository := repositories.NewPostRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)

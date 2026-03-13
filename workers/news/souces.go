@@ -2693,6 +2693,8 @@ var StaticRSSSources = []RSSSource{
 	{ID: "kuchutimes", Name: "kuchutimes", URL: "https://www.kuchutimes.com/feed/", Enabled: true},
 	{ID: "asdi-lgbti", Name: "asdi-lgbti", URL: "https://asdi-lgbti.com/feed/", Enabled: true},
 	{ID: "ayilarock", Name: "ayilarock", URL: "https://ayilarock.com/feed/", Enabled: true},
+	{ID: "seramount", Name: "seramount", URL: "https://seramount.com/feed/", Enabled: true},
+	{ID: "nlgja", Name: "nlgja", URL: "https://www.nlgja.org/feed/", Enabled: true},
 }
 
 func GenerateGoogleNewsRSSURL(lang Language) string {
