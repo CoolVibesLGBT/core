@@ -138,6 +138,11 @@ func HandleChatMessageRead(s *services.ChatService) fiber.Handler {
 		}
 
 		messageValues := form.Value["message_ids"]
+
+		if len(messageValues) == 0 {
+			messageValues = form.Value["message_ids[]"]
+		}
+
 		if len(messageValues) == 0 {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
 		}
