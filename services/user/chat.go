@@ -155,3 +155,7 @@ func (s *ChatService) DeleteChatHistoryForUser(ctx context.Context, authUser *mo
 func (s *ChatService) DeleteChatHistoryForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
 	return s.chatRepo.DeleteChatHistoryForAll(ctx, authUser, chatID)
 }
+
+func (s *ChatService) MarkChatMessageRead(ctx context.Context, authUser *models.User, chatID uuid.UUID, messageIDs []uuid.UUID) error {
+	return s.chatRepo.MarkChatMessageRead(ctx, authUser, chatID, messageIDs)
+}

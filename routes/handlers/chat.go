@@ -115,6 +115,53 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 	}
 }
 
+func HandleChatMessageRead(s *services.ChatService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		form, err := c.MultipartForm()
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
+		}
+
+		chatValues := form.Value["chat_id"]
+		if len(chatValues) == 0 || chatValues[0] == "" {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		chatID, err := uuid.Parse(chatValues[0])
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+
+		messageValues := form.Value["message_ids"]
+		if len(messageValues) == 0 {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+		}
+
+		var messageIDs []uuid.UUID
+
+		for _, id := range messageValues {
+			parsed, err := uuid.Parse(id)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+			}
+			messageIDs = append(messageIDs, parsed)
+		}
+
+		err = s.MarkChatMessageRead(c.Context(), authUser, chatID, messageIDs)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUnknown)
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Messages marked as read")
+
+	}
+}
+
 func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -122,7 +169,6 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		// servis çağrısı
 		chats, err := s.GetChatsByUserID(authUser.ID)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUnknown)

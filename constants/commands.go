@@ -35,10 +35,30 @@ const (
 	CMD_AUTH_CHECK     = "auth.check"
 
 	// CHAT
-	CMD_CHAT_SEND_TEXT    = "chat.send_text"
-	CMD_CHAT_SEND_GIF     = "chat.send_gif"
-	CMD_CHAT_SEND_CALL    = "chat.send_call"
-	CMD_CHAT_SEND_STICKER = "chat.send_sticker"
+	CMD_CHAT_SEND_TEXT              = "chat.send_text"
+	CMD_CHAT_SEND_GIF               = "chat.send_gif"
+	CMD_CHAT_SEND_CALL              = "chat.send_call"
+	CMD_CHAT_SEND_STICKER           = "chat.send_sticker"
+	CMD_CHAT_MESSAGE_READ           = "chat.message_read"
+	CMD_CHAT_CREATE                 = "chat.create"
+	CMD_TYPING                      = "chat.typing"
+	CMD_SEND_MESSAGE                = "chat.send_message"
+	CMD_EDIT_MESSAGE                = "chat.edit_message"
+	CMD_DELETE_CHAT                 = "chat.delete_chat"
+	CMD_FETCH_CHATS                 = "chat.fetch_chats"
+	CMD_DELETE_MESSAGE              = "chat.delete_message"
+	CMD_FETCH_MESSAGES              = "chat.fetch_messages"
+	CMD_DELETE_MESSAGE_FOR_USER     = "chat.delete_message_for_user"
+	CMD_DELETE_MESSAGE_FOR_ALL      = "chat.delete_message_for_all"
+	CMD_DELETE_CHAT_FOR_USER        = "chat.delete_chat_for_user"
+	CMD_DELETE_CHAT_FOR_ALL         = "chat.delete_chat_for_all"
+	CMD_CLEAR_CHAT_HISTORY_FOR_USER = "chat.clear_chat_history_for_user"
+	CMD_CLEAR_CHAT_HISTORY_FOR_ALL  = "chat.clear_chat_history_for_all"
+
+	CMD_PIN_MESSAGE   = "chat.pin_message"
+	CMD_UNPIN_MESSAGE = "chat.unpin_message"
+
+	// POST"
 
 	// USER
 	CMD_USER_UPDATE_PREFERENCES = "user.update_preferences"
@@ -116,24 +136,6 @@ const (
 
 	CMD_SEARCH_LOOKUP_USER = "search.user.lookup"
 	CMD_SEARCH_TRENDS      = "search.trends"
-
-	CMD_CHAT_CREATE                 = "chat.create" // Chat olustur
-	CMD_TYPING                      = "chat.typing"
-	CMD_SEND_MESSAGE                = "chat.send_message" // Mesaj gönder
-	CMD_EDIT_MESSAGE                = "chat.edit_message" // Mesaj düzenle
-	CMD_DELETE_CHAT                 = "chat.delete_chat"
-	CMD_FETCH_CHATS                 = "chat.fetch_chats"    // Sohbetleri getir
-	CMD_DELETE_MESSAGE              = "chat.delete_message" // Mesajı sil
-	CMD_FETCH_MESSAGES              = "chat.fetch_messages" // Mesajları getir
-	CMD_DELETE_MESSAGE_FOR_USER     = "chat.delete_message_for_user"
-	CMD_DELETE_MESSAGE_FOR_ALL      = "chat.delete_message_for_all"
-	CMD_DELETE_CHAT_FOR_USER        = "chat.delete_chat_for_user"
-	CMD_DELETE_CHAT_FOR_ALL         = "chat.delete_chat_for_all"
-	CMD_CLEAR_CHAT_HISTORY_FOR_USER = "chat.clear_chat_history_for_user"
-	CMD_CLEAR_CHAT_HISTORY_FOR_ALL  = "chat.clear_chat_history_for_all"
-
-	CMD_PIN_MESSAGE   = "chat.pin_message"
-	CMD_UNPIN_MESSAGE = "chat.unpin_message"
 
 	//PLACE EKRANI
 	CMD_PLACE_CATEGORIES     = "place.categories"

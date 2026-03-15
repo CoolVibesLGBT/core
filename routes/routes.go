@@ -262,6 +262,7 @@ func NewRouter(
 	//CHAT
 	r.action.Register(constants.CMD_TYPING, handlers.HandleSendTypingEvent(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_CHAT_CREATE, handlers.HandleCreateChat(chatService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_CHAT_MESSAGE_READ, handlers.HandleChatMessageRead(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_SEND_MESSAGE, handlers.HandleSendMessage(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_FETCH_CHATS, handlers.HandleGetChatsByUserID(chatService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_FETCH_MESSAGES, handlers.HandleGetMessagesByChatID(chatService), middleware.AuthMiddleware(userRepo))

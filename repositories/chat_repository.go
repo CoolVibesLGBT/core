@@ -631,3 +631,55 @@ func (r *ChatRepository) DeleteChatHistoryForAll(ctx context.Context, authUser *
 
 	return tx.Commit().Error
 }
+
+func (r *ChatRepository) MarkChatMessageRead(ctx context.Context, authUser *models.User, chatID uuid.UUID, messages []uuid.UUID) error {
+
+	var participant chat.ChatParticipant
+	err := r.db.
+		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
+		First(&participant).Error
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+
+	for _, messageID := range messages {
+
+		post, err := r.postRepo.GetPostByID(messageID)
+		if err != nil {
+			return err
+		}
+
+		if post == nil {
+			continue
+		}
+
+		err = r.userRepo.engagementRepo.AddEngagement(
+			ctx,
+			authUser.ID,
+			post.AuthorID,
+			models.EngagementKindChatMessageRead,
+			post.ID,
+			models.EngagementContentableTypeMessage,
+		)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = r.db.Model(&chat.ChatParticipant{}).
+		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
+		Updates(map[string]interface{}{
+			"unread_count": 0,
+			"last_read_at": now,
+		}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

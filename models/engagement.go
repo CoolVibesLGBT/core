@@ -58,6 +58,8 @@ const (
 
 	EngagementKindChatDeletedForMe  EngagementKind = "chat_deleted_for_me"
 	EngagementKindChatDeletedForAll EngagementKind = "chat_deleted_for_all"
+
+	EngagementKindChatMessageRead EngagementKind = "chat_mark_message_read"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {
@@ -102,6 +104,7 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindMessageDeletedForAll: {"message_deleted_for_all_count", ""},
 	EngagementKindChatDeletedForMe:     {"chat_deleted_for_me_count", ""},
 	EngagementKindChatDeletedForAll:    {"chat_deleted_for_all_count", ""},
+	EngagementKindChatMessageRead:      {"chat_message_read_count", ""},
 }
 
 func NewCountsMap() map[string]interface{} {
