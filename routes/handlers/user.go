@@ -489,14 +489,14 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
 
-		var engagementKind models.EngagementKind
-		switch engagement_type {
-		case "followings":
-			engagementKind = models.EngagementKindFollowing
-		case "followers":
-			engagementKind = models.EngagementKindFollower
-		default:
-			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidEngagementKind, "Invalid engagement kind")
+		engagementKind := models.EngagementKind(engagement_type)
+		if !engagementKind.IsValid() {
+			return utils.SendErrorWithMessage(
+				c,
+				fiber.StatusBadRequest,
+				constants.ErrInvalidEngagementKind,
+				constants.ErrInvalidEngagementKind.String(),
+			)
 		}
 
 		engagements, nextCursor, err := s.FetchUserEngagements(c.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)

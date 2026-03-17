@@ -142,3 +142,44 @@ type EngagementDetail struct {
 	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 }
+
+func (e EngagementKind) IsValid() bool {
+	switch e {
+	case
+		EngagementKindTouch,
+		EngagementKindBanana,
+		EngagementKindCarrot,
+		EngagementKindCoffee,
+		EngagementKindKiss,
+		EngagementKindLikeGiven,
+		EngagementKindLikeReceived,
+		EngagementKindDislikeGiven,
+		EngagementKindDisLikeReceived,
+		EngagementKindMatched,
+		EngagementKindReferral,
+		EngagementKindViewGiven,
+		EngagementKindViewReceived,
+		EngagementKindPost,
+		EngagementKindComment,
+		EngagementKindFollower,
+		EngagementKindFollowing,
+		EngagementKindBlockedBy,
+		EngagementKindBlocking,
+		EngagementKindView,
+		EngagementKindBookmark,
+		EngagementKindRating,
+		EngagementKindTip,
+		EngagementKindGift,
+		EngagementKindReport,
+		EngagementKindDeposit,
+		EngagementKindWithdraw,
+		EngagementKindMessageDeletedForMe,
+		EngagementKindMessageDeletedForAll,
+		EngagementKindChatDeletedForMe,
+		EngagementKindChatDeletedForAll,
+		EngagementKindChatMessageRead:
+		return true
+	default:
+		return false
+	}
+}

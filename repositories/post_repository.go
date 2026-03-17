@@ -248,6 +248,24 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	return r.GetPostByID(p.ID)
 }
 
+func (r *PostRepository) GetPostByIDWithoutRelations(id uuid.UUID) (*post.Post, error) {
+	var p post.Post
+
+	err := r.db.
+		Preload("Author").
+		Where("id = ?", id).
+		First(&p).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("post with id %s not found", id)
+		}
+		return nil, err
+	}
+
+	return &p, nil
+}
+
 func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult, error) {
 	var posts []post.Post
 

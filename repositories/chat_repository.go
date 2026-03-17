@@ -646,7 +646,7 @@ func (r *ChatRepository) MarkChatMessageRead(ctx context.Context, authUser *mode
 
 	for _, messageID := range messages {
 
-		post, err := r.postRepo.GetPostByID(messageID)
+		post, err := r.postRepo.GetPostByIDWithoutRelations(messageID)
 		if err != nil {
 			return err
 		}
