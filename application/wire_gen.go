@@ -42,6 +42,8 @@ func InitializeApp() (*App, error) {
 	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
 	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
+	listingRepository := repositories.NewListingRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
+	classifiedService := services.NewClassifiedService(userRepository, postRepository, mediaRepository, placeRepository, listingRepository)
 	matchesRepository := repositories.NewMatchesRepository(gormDB, engagementRepository)
 	matchesService := services.NewMatchService(userRepository, postRepository, mediaRepository, matchesRepository)
 	socketService := socket.NewSocketService(gormDB)
@@ -53,7 +55,7 @@ func InitializeApp() (*App, error) {
 	mcpServer := mcp.NewMCPServer()
 	aiService := services.NewAIService(mcpServer, userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
-	router := routes.NewRouter(gormDB, node, userService, postService, placeService, newsService, matchesService, chatService, notificationsService, paymentService, aiService, userRepository, notificationRepository, sitemapRepository, reader)
+	router := routes.NewRouter(gormDB, node, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, aiService, userRepository, notificationRepository, sitemapRepository, reader)
 	app := &App{
 		DB:            gormDB,
 		Router:        router,

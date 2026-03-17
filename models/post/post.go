@@ -25,6 +25,8 @@ const (
 	PostKindTimeline   PostKind = "timeline"
 	PostKindPlace      PostKind = "place"
 	PostKindClassified PostKind = "classified"
+	PostKindJobOffer   PostKind = "job_offer"
+	PostKindJobSearch  PostKind = "job_search"
 	PostKindGeneric    PostKind = "generic"
 	PostKindNews       PostKind = "news"
 	PostKindStory      PostKind = "story"
@@ -134,7 +136,9 @@ func IsValidPostKind(kind string) bool {
 		PostKindMessage,
 		PostKindPost,
 		PostKindEvent,
-		PostKindCheckIn:
+		PostKindCheckIn,
+		PostKindJobOffer,
+		PostKindJobSearch:
 		return true
 	default:
 		return false

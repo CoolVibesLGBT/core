@@ -42,6 +42,8 @@ type Router struct {
 	PlaceService        *services.PlaceService
 	ChatService         *services.ChatService
 	PaymentService      *services.PaymentService
+	ClassifiedService   *services.ClassifiedService
+	MatchesService      *services.MatchesService
 }
 
 func GeoIPDBProvider() (*maxminddb.Reader, error) {
@@ -68,6 +70,7 @@ func NewRouter(
 	postService *services.PostService,
 	placeService *services.PlaceService,
 	newsService *services.NewsService,
+	classifiedService *services.ClassifiedService,
 	matchesService *services.MatchesService,
 	chatService *services.ChatService,
 	notificationService *services.NotificationsService,
@@ -105,6 +108,8 @@ func NewRouter(
 		UserService:         userService,
 		NotificationService: notificationService,
 		PlaceService:        placeService,
+		ClassifiedService:   classifiedService,
+		MatchesService:      matchesService,
 		ChatService:         chatService,
 		PaymentService:      paymentService,
 	}
@@ -128,7 +133,6 @@ func NewRouter(
 	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db))
 	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))
 
-	// Action register
 	r.action.Register(constants.CMD_AUTH_CHECK, handlers.HandleAuthCheck(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
 	r.action.Register(constants.CMD_AUTH_LOGIN, handlers.HandleLogin(userService))
@@ -137,42 +141,12 @@ func NewRouter(
 	r.action.Register(constants.CMD_SEARCH_LOOKUP_USER, handlers.HandleGetUsersStartingWith(userService))
 	r.action.Register(constants.CMD_SEARCH_TRENDS, handlers.HandleGetTrends(postService))
 
-	r.action.Register( // access token'a gore user bilgisi
-		constants.CMD_AUTH_USER_INFO,
-		handlers.HandleUserInfo(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register( // access token'a gore user bilgisi
-		constants.CMD_PAYMENT_METHODS,
-		handlers.HandleFetchPaymentMethods(db),
-		//middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register( // access token'a gore user bilgisi
-		constants.CMD_GET_NOTIFICATIONS,
-		handlers.HandleGetNotifications(notificationService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(
-		constants.CMD_USER_GET_NOTIFICATIONS,
-		handlers.HandleUserNotifications(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(
-		constants.CMD_USER_UPDATE_PREFERENCES,
-		handlers.HandleSetUserPreferences(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(
-		constants.CMD_UPDATE_USER_PROFILE,
-		handlers.HandleUpdateUserProfile(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
+	r.action.Register(constants.CMD_AUTH_USER_INFO, handlers.HandleUserInfo(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_PAYMENT_METHODS, handlers.HandleFetchPaymentMethods(db))
+	r.action.Register(constants.CMD_GET_NOTIFICATIONS, handlers.HandleGetNotifications(notificationService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_GET_NOTIFICATIONS, handlers.HandleUserNotifications(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_UPDATE_PREFERENCES, handlers.HandleSetUserPreferences(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_UPDATE_USER_PROFILE, handlers.HandleUpdateUserProfile(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_FETCH_ENGAGEMENTS, handlers.HandleFetchUserEngagements(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UPLOAD_AVATAR, handlers.HandleUploadAvatar(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_DELETE_PROFILE, handlers.HandleUserDelete(userService), middleware.AuthMiddleware(userRepo))
@@ -189,52 +163,20 @@ func NewRouter(
 	//
 
 	//USER FOLLOW
-	r.action.Register(
-		constants.CMD_USER_FOLLOW,
-		handlers.HandleFollow(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(
-		constants.CMD_USER_UNFOLLOW,
-		handlers.HandleUnfollow(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-	r.action.Register(
-		constants.CMD_USER_TOGGLE_FOLLOW,
-		handlers.HandleToggleFollow(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
+	r.action.Register(constants.CMD_USER_FOLLOW, handlers.HandleFollow(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_UNFOLLOW, handlers.HandleUnfollow(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_TOGGLE_FOLLOW, handlers.HandleToggleFollow(userService), middleware.AuthMiddleware(userRepo))
 
 	//USER LIKE
-	r.action.Register(
-		constants.CMD_USER_LIKE,
-		handlers.HandleUserLike(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(
-		constants.CMD_USER_DISLIKE,
-		handlers.HandleUserDislike(userService),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(constants.CMD_USER_TOGGLE_LIKE,
-		handlers.HandleUserToggleLikeDislike(userService, true),
-		middleware.AuthMiddleware(userRepo),
-	)
-
-	r.action.Register(constants.CMD_USER_TOGGLE_DISLIKE,
-		handlers.HandleUserToggleLikeDislike(userService, false),
-		middleware.AuthMiddleware(userRepo),
-	)
-
+	r.action.Register(constants.CMD_USER_LIKE, handlers.HandleUserLike(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_DISLIKE, handlers.HandleUserDislike(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_TOGGLE_LIKE, handlers.HandleUserToggleLikeDislike(userService, true), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_TOGGLE_DISLIKE, handlers.HandleUserToggleLikeDislike(userService, false), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_BLOCK, handlers.HandleUserBlock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UNBLOCK, handlers.HandleUserUnblock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_TOGGLE_BLOCK, handlers.HandleUserToggleBlock(userService), middleware.AuthMiddleware(userRepo))
 
 	// POST
-
 	r.action.Register(constants.CMD_POST_CATEGORIES, handlers.HandleGetCategories(postService))
 	r.action.Register(constants.CMD_POST_CREATE, handlers.HandleCreate(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_VOTE, handlers.HandleVote(postService), middleware.AuthMiddleware(userRepo))
@@ -283,6 +225,12 @@ func NewRouter(
 
 	//NEWS EKRANI
 	r.action.Register(constants.CMD_NEWS_FETCH, handlers.HandleFetchNews(newsService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+
+	//CLASSIFIELDS
+	r.action.Register(constants.CMD_CLASSIFIEDS_CREATE, handlers.HandleCreateClassified(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_FETCH_JOB_OFFERS, handlers.HandleFetchJobOffers(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_FETCH_JOB_SEARCH, handlers.HandleFetchJobSearches(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_CLASSIFIEDS_FETCH, handlers.HandleGetClassified(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
 	//WEBHOOK
 

@@ -58,7 +58,11 @@ const (
 	CMD_PIN_MESSAGE   = "chat.pin_message"
 	CMD_UNPIN_MESSAGE = "chat.unpin_message"
 
-	// POST"
+	// LISTINGS
+	CMD_FETCH_JOB_OFFERS   = "classifieds.offers"
+	CMD_FETCH_JOB_SEARCH   = "classifieds.search"
+	CMD_CLASSIFIEDS_CREATE = "classifieds.create"
+	CMD_CLASSIFIEDS_FETCH  = "classifieds.get"
 
 	// USER
 	CMD_USER_UPDATE_PREFERENCES = "user.update_preferences"

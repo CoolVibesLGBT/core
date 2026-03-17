@@ -644,6 +644,12 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	case "classified":
 		postKindType = post.PostKindClassified
 		isPublished = true
+	case "job_offer":
+		postKindType = post.PostKindJobOffer
+		isPublished = true
+	case "job_search":
+		postKindType = post.PostKindJobSearch
+		isPublished = true
 	case "news":
 		postKindType = post.PostKindNews
 		isPublished = false

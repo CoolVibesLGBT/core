@@ -14,4 +14,5 @@ var ProviderSet = wire.NewSet(
 	NewMatchService,
 	NewChatService,
 	NewPaymentService,
+	NewClassifiedService,
 )

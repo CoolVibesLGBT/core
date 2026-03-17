@@ -11,6 +11,7 @@ var ProviderSet = wire.NewSet(
 	NewNotificationRepository,
 	NewPostRepository,
 	NewPlaceRepository,
+	NewListingRepository,
 	NewMatchesRepository,
 	NewNewsRepository,
 	NewChatRepository,
