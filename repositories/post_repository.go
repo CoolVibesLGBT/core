@@ -663,7 +663,14 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		postKindType = post.PostKindStatus
 	}
 
-	postForm.Slug = helpers.GenerateSlug(postForm.Slug)
+	postForm.Slug = helpers.GenerateSlug(
+		func() string {
+			if postForm.Slug != "" {
+				return postForm.Slug
+			}
+			return postForm.Title
+		}(),
+	)
 	newPost := &post.Post{
 		ID:              uuid.New(),
 		ParentID:        parentUUID,
