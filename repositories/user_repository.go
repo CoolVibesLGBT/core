@@ -448,7 +448,7 @@ func (r *UserRepository) FetchNearbyUsersLegacy(filters types.Filter) ([]*models
 	return users, nil
 }
 
-func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+func (r *UserRepository) FetchNearbyUsersBug(filters types.Filter) ([]*models.User, error) {
 	var users []*models.User
 	var authUser *models.User
 
@@ -490,6 +490,92 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		return users, nil
 	}
 
+	q := r.db.Model(&models.User{}).
+		Order("public_id ASC").
+		Limit(filters.Limit)
+
+	if filters.Cursor != nil {
+		q = q.Where("public_id > ?", *filters.Cursor)
+	}
+
+	if err := q.
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+	var users []*models.User
+	var authUser *models.User
+
+	if filters.AuthUser != nil {
+		if err := r.db.Preload("Location").First(&authUser, "id = ?", filters.AuthUser.ID).Error; err != nil {
+			authUser = nil
+		}
+	}
+
+	if authUser != nil &&
+		authUser.Location != nil &&
+		authUser.Location.Latitude != nil &&
+		authUser.Location.Longitude != nil {
+
+		lat := *authUser.Location.Latitude
+		lng := *authUser.Location.Longitude
+
+		radius := 50000000.0 // default: 50km
+		if filters.Distance != nil {
+			radius = *filters.Distance
+		}
+
+		raw := r.db.
+			Table("users u").
+			Select(`
+				DISTINCT ON (u.id) u.*,
+				ST_Distance(
+					l.location_point,
+					ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+				) AS distance
+			`, lng, lat).
+			Joins(`
+				INNER JOIN locations l 
+				ON l.contentable_id = u.id 
+				AND l.contentable_type = 'user'
+				AND l.location_point IS NOT NULL
+			`).
+			Where(`
+				ST_DWithin(
+					l.location_point,
+					ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+					?
+				)
+			`, lng, lat, radius).
+			Order("u.id, distance ASC, u.public_id ASC").
+			Limit(filters.Limit)
+
+		// Cursor pagination
+		if filters.Cursor != nil {
+			raw = raw.Where("u.public_id > ?", *filters.Cursor)
+		}
+
+		// Final query + preload
+		if err := r.db.
+			Table("(?) as subquery", raw).
+			Preload("Location").
+			Preload("Avatar.File").
+			Preload("Cover.File").
+			Find(&users).Error; err != nil {
+			return nil, err
+		}
+
+		return users, nil
+	}
+
+	// Fallback: location yoksa normal liste
 	q := r.db.Model(&models.User{}).
 		Order("public_id ASC").
 		Limit(filters.Limit)
