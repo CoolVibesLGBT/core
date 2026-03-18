@@ -527,7 +527,7 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		lat := *authUser.Location.Latitude
 		lng := *authUser.Location.Longitude
 
-		radius := 50000000.0 // default: 50km
+		radius := 50000.0
 		if filters.Distance != nil {
 			radius = *filters.Distance
 		}
@@ -535,10 +535,12 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		raw := r.db.
 			Table("users u").
 			Select(`
-				DISTINCT ON (u.id) u.*,
-				ST_Distance(
-					l.location_point,
-					ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+				u.*,
+				MIN(
+					ST_Distance(
+						l.location_point,
+						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+					)
 				) AS distance
 			`, lng, lat).
 			Joins(`
@@ -554,15 +556,14 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 					?
 				)
 			`, lng, lat, radius).
-			Order("u.id, distance ASC, u.public_id ASC").
+			Group("u.id").
+			Order("distance ASC, u.public_id ASC").
 			Limit(filters.Limit)
 
-		// Cursor pagination
 		if filters.Cursor != nil {
 			raw = raw.Where("u.public_id > ?", *filters.Cursor)
 		}
 
-		// Final query + preload
 		if err := r.db.
 			Table("(?) as subquery", raw).
 			Preload("Location").
@@ -575,7 +576,6 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		return users, nil
 	}
 
-	// Fallback: location yoksa normal liste
 	q := r.db.Model(&models.User{}).
 		Order("public_id ASC").
 		Limit(filters.Limit)
