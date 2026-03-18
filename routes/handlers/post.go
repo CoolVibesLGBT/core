@@ -290,7 +290,7 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 
 		balance, err := s.Tip(c.Context(), postId, user, amount)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to tip post: "+err.Error())
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidAction, "failed to tip post: "+err.Error())
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{

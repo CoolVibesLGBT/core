@@ -1425,9 +1425,8 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 		return &authUser.Balance, errors.New(constants.ErrPostNotFound.String())
 	}
 
-	// Kullanıcı kendine tip atamaz (opsiyonel kural)
 	if post.AuthorID == authUser.ID {
-		return &authUser.Balance, errors.New(constants.ErrInvalidAction.String()) // veya özel hata: "Cannot tip own post"
+		return &authUser.Balance, errors.New(constants.ErrCannotTipOwnPost.String()) // veya özel hata: "Cannot tip own post"
 	}
 
 	if amount.Cmp(decimal.Zero) <= 0 {
@@ -1439,12 +1438,10 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 		return &authUser.Balance, errors.New(constants.ErrInvalidAmount.String()) // veya uygun başka hata
 	}
 
-	// Kullanıcının bakiyesi yeterli mi?
 	if !authUser.Balance.GreaterThanOrEqual(amount) {
 		return &authUser.Balance, errors.New(constants.ErrInsufficientBalance.String())
 	}
 
-	// Transaction başlat (ör: GORM ile)
 	tx := r.db.Begin()
 	if tx.Error != nil {
 		return &authUser.Balance, tx.Error

@@ -86,6 +86,7 @@ const (
 	ErrFailedToSharePost    ErrorCode = "FAILED_TO_SHARE_POST"
 	ErrFailedToUnlikePost   ErrorCode = "FAILED_TO_UNLIKE_POST"
 	ErrFailedToBananaPost   ErrorCode = "FAILED_TO_BANANA_POST"
+	ErrCannotTipOwnPost     ErrorCode = "CANNOT_TIP_OWN_POST"
 
 	// Place
 	ErrPlaceNotFound     ErrorCode = "PLACE_NOT_FOUND"
@@ -197,7 +198,8 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrFailedToSavePost:     "Failed to save post",
 	ErrFailedToUnsavePost:   "Failed to unsave post",
 	ErrFailedToSharePost:    "Failed to share post",
-
+	ErrCannotTipOwnPost:     "You cannot tip your own post.",
+	ErrFailedToBananaPost:   "Failed to banana post",
 	// Place
 	ErrPlaceCreateFailed: "Failed to create place",
 	ErrPlaceNotFound:     "Place not found",

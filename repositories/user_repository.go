@@ -388,7 +388,7 @@ func (r *UserRepository) UpsertUserPreference(ctx context.Context, user models.U
 	return nil
 }
 
-func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+func (r *UserRepository) FetchNearbyUsersLegacy(filters types.Filter) ([]*models.User, error) {
 
 	var users []*models.User
 	var user *models.User
@@ -412,6 +412,67 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 			`, *user.Location.Longitude, *user.Location.Latitude).
 			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
 			Order("distance ASC, u.public_id ASC").
+			Limit(filters.Limit)
+
+		if filters.Cursor != nil {
+			raw = raw.Where("u.public_id > ?", *filters.Cursor)
+		}
+
+		if err := r.db.Table("(?) as subquery", raw).
+			Preload("Location").
+			Preload("Avatar.File").
+			Preload("Cover.File").
+			Find(&users).Error; err != nil {
+			return nil, err
+		}
+
+		return users, nil
+	}
+
+	q := r.db.Model(&models.User{}).
+		Order("public_id ASC").
+		Limit(filters.Limit)
+
+	if filters.Cursor != nil {
+		q = q.Where("public_id > ?", *filters.Cursor)
+	}
+
+	if err := q.
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+	var users []*models.User
+	var authUser *models.User
+
+	if filters.AuthUser != nil {
+		if err := r.db.Preload("Location").First(&authUser, "id = ?", filters.AuthUser.ID).Error; err != nil {
+			authUser = nil
+		}
+	}
+
+	if authUser != nil && authUser.Location != nil && authUser.Location.Latitude != nil && authUser.Location.Longitude != nil {
+		raw := r.db.
+			Table("users u").
+			Select(`
+				DISTINCT ON (u.id) u.*,
+				COALESCE(
+					ST_Distance(
+						l.location_point,
+						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+					),
+					9999999999
+				) AS distance
+			`, *authUser.Location.Longitude, *authUser.Location.Latitude).
+			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
+			Order("u.id, distance ASC, u.public_id ASC").
 			Limit(filters.Limit)
 
 		if filters.Cursor != nil {
