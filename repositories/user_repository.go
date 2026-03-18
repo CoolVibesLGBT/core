@@ -527,45 +527,40 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		lat := *authUser.Location.Latitude
 		lng := *authUser.Location.Longitude
 
-		radius := 50000.0
-		if filters.Distance != nil {
-			radius = *filters.Distance
-		}
-
 		raw := r.db.
 			Table("users u").
 			Select(`
 				u.*,
 				MIN(
-					ST_Distance(
-						l.location_point,
-						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+					COALESCE(
+						ST_Distance(
+							l.location_point,
+							ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+						),
+						9999999999
 					)
 				) AS distance
 			`, lng, lat).
 			Joins(`
-				INNER JOIN locations l 
+				LEFT JOIN locations l 
 				ON l.contentable_id = u.id 
 				AND l.contentable_type = 'user'
-				AND l.location_point IS NOT NULL
 			`).
-			Where(`
-				ST_DWithin(
-					l.location_point,
-					ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-					?
-				)
-			`, lng, lat, radius).
-			Group("u.id").
-			Order("distance ASC, u.public_id ASC").
-			Limit(filters.Limit)
+			Group("u.id")
 
-		if filters.Cursor != nil {
-			raw = raw.Where("u.public_id > ?", *filters.Cursor)
+		query := r.db.Table("(?) as sub", raw)
+
+		if filters.Cursor != nil && filters.Distance != nil {
+			query = query.Where(`
+				(sub.distance > ? OR (sub.distance = ? AND sub.public_id > ?))
+			`, *filters.Distance, *filters.Distance, *filters.Cursor)
 		}
 
-		if err := r.db.
-			Table("(?) as subquery", raw).
+		query = query.
+			Order("sub.distance ASC, sub.public_id ASC").
+			Limit(filters.Limit)
+
+		if err := query.
 			Preload("Location").
 			Preload("Avatar.File").
 			Preload("Cover.File").
