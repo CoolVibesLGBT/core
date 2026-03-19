@@ -232,6 +232,10 @@ func NewRouter(
 	r.action.Register(constants.CMD_FETCH_JOB_SEARCH, handlers.HandleFetchJobSearches(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 	r.action.Register(constants.CMD_CLASSIFIEDS_FETCH, handlers.HandleGetClassified(classifiedService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
+	//BROADCAST
+	r.action.Register(constants.CMD_BROADCASTS_FETCH, handlers.HandleFetchBroadcasts(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_BROADCASTS_JOIN, handlers.HandleBroadcastsJoinRequest(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+
 	//WEBHOOK
 
 	r.fiber.All("/webhook/bot/telegram/", handlers.HandleTelegramUpdates(tg))

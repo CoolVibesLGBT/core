@@ -161,6 +161,10 @@ const (
 	CMD_NEWS_UPDATE         = "news.update"
 	CMD_NEWS_COMMENT        = "news.comment"
 	CMD_NEWS_FETCH_COMMENTS = "news.fetch.comments"
+
+	//	BROADCASTS
+	CMD_BROADCASTS_FETCH = "broadcast.fetch"
+	CMD_BROADCASTS_JOIN  = "broadcast.join"
 )
 
 /*
