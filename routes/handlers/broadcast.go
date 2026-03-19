@@ -48,9 +48,8 @@ func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 
 		jsonData, err := json.Marshal(payload)
 		if err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"error": "Failed to encode request",
-			})
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Failed to encode request"+err.Error())
+
 		}
 
 		req, err := http.NewRequest("POST",
