@@ -28,7 +28,7 @@ func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
-			//return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
+			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
 		sessionToken := "r:82c7599c5e8f922d6db6791a26e2fcbc"
@@ -81,7 +81,11 @@ func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Request failed"+err.Error())
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -138,8 +142,11 @@ func HandleCreateBroadcast(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Request failed"+err.Error())
 		}
-		defer resp.Body.Close()
-
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Failed to read response"+err.Error())
@@ -200,8 +207,11 @@ func HandleViewBroadcast(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadGateway, constants.ErrInvalidInput, "Request failed :"+err.Error())
 		}
-		defer resp.Body.Close()
-
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadGateway, constants.ErrInvalidInput, "Failed to read response:"+err.Error())
@@ -273,7 +283,11 @@ func HandleBroadcastsJoinRequest(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Request failed"+err.Error())
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -341,8 +355,11 @@ func HandleLikeBroadcast(s *services.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Request failed"+err.Error())
 		}
-		defer resp.Body.Close()
-
+		defer func() {
+			if cerr := resp.Body.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrDatabaseError, "Failed to read response"+err.Error())
