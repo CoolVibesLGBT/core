@@ -163,8 +163,11 @@ const (
 	CMD_NEWS_FETCH_COMMENTS = "news.fetch.comments"
 
 	//	BROADCASTS
-	CMD_BROADCASTS_FETCH = "broadcast.fetch"
-	CMD_BROADCASTS_JOIN  = "broadcast.join"
+	CMD_BROADCASTS_FETCH  = "broadcast.fetch"
+	CMD_BROADCASTS_JOIN   = "broadcast.join"
+	CMD_BROADCASTS_VIEW   = "broadcast.view"
+	CMD_BROADCASTS_CREATE = "broadcast.create"
+	CMD_BROADCASTS_LIKE   = "broadcast.like"
 )
 
 /*

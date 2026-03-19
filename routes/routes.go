@@ -235,6 +235,9 @@ func NewRouter(
 	//BROADCAST
 	r.action.Register(constants.CMD_BROADCASTS_FETCH, handlers.HandleFetchBroadcasts(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 	r.action.Register(constants.CMD_BROADCASTS_JOIN, handlers.HandleBroadcastsJoinRequest(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_BROADCASTS_VIEW, handlers.HandleViewBroadcast(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_BROADCASTS_CREATE, handlers.HandleCreateBroadcast(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	r.action.Register(constants.CMD_BROADCASTS_LIKE, handlers.HandleLikeBroadcast(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
 	//WEBHOOK
 
