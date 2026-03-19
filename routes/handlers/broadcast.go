@@ -26,10 +26,7 @@ func NewBroadcastHandler(service *services.UserService) *BroadcastHandler {
 func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		user, ok := middleware.GetAuthenticatedUser(c)
-		if !ok {
-			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
-		}
+		user, _ := middleware.GetAuthenticatedUser(c)
 
 		sessionToken := "r:82c7599c5e8f922d6db6791a26e2fcbc"
 
