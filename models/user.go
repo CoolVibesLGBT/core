@@ -102,6 +102,7 @@ type User struct {
 
 	UserRole   constants.UserRole `json:"user_role"`
 	IsActive   bool               `json:"is_active"`
+	IsLive     bool               `json:"is_live"`
 	CreatedAt  time.Time          `json:"created_at"`
 	UpdatedAt  time.Time          `json:"updated_at"`
 	LastOnline *time.Time         `json:"last_online,omitempty"`
