@@ -13,7 +13,7 @@ import (
 	"core/services/socket"
 	services "core/services/user"
 
-	"github.com/google/wire"
+	wire "github.com/google/wire"
 )
 
 func InitializeApp() (*App, error) {
