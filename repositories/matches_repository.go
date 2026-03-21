@@ -2,24 +2,27 @@ package repositories
 
 import (
 	"context"
-	"time"
-
+	"core/helpers"
 	"core/models"
+	"core/models/notifications"
 	"core/types"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type MatchesRepository struct {
-	db             *gorm.DB
-	engagementRepo *EngagementRepository
+	db               *gorm.DB
+	engagementRepo   *EngagementRepository
+	notificationRepo *NotificationRepository
 }
 
-func NewMatchesRepository(db *gorm.DB, engagementRepo *EngagementRepository) *MatchesRepository {
+func NewMatchesRepository(db *gorm.DB, engagementRepo *EngagementRepository, notificationRepo *NotificationRepository) *MatchesRepository {
 	return &MatchesRepository{
-		db:             db,
-		engagementRepo: engagementRepo,
+		db:               db,
+		engagementRepo:   engagementRepo,
+		notificationRepo: notificationRepo,
 	}
 }
 
@@ -69,6 +72,24 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID
 		_, err = m.addEngagementPair(ctx, engagerId, engageeId, kindMatched)
 		if err != nil {
 			return false, err
+		}
+
+		// Create notification for the user who initiated the match
+		payload1 := notifications.NotificationPayload{
+			Data: map[string]string{"match_user_id": toUserId.String()},
+		}
+		_, err = m.notificationRepo.CreateNotification(toUserId, fromUserId, string(notifications.NotificationTypeNewMatch), "It's a Match!", "You have a new match.", payload1)
+		if err != nil {
+			helpers.Println("Failed to create match notification for user", fromUserId, ":", err)
+		}
+
+		// Create notification for the other user
+		payload2 := notifications.NotificationPayload{
+			Data: map[string]string{"match_user_id": fromUserId.String()},
+		}
+		_, err = m.notificationRepo.CreateNotification(fromUserId, toUserId, string(notifications.NotificationTypeNewMatch), "It's a Match!", "You have a new match.", payload2)
+		if err != nil {
+			helpers.Println("Failed to create match notification for user", toUserId, ":", err)
 		}
 	}
 

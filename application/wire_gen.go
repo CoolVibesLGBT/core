@@ -44,7 +44,7 @@ func InitializeApp() (*App, error) {
 	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	listingRepository := repositories.NewListingRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	classifiedService := services.NewClassifiedService(userRepository, postRepository, mediaRepository, placeRepository, listingRepository)
-	matchesRepository := repositories.NewMatchesRepository(gormDB, engagementRepository)
+	matchesRepository := repositories.NewMatchesRepository(gormDB, engagementRepository, notificationRepository)
 	matchesService := services.NewMatchService(userRepository, postRepository, mediaRepository, matchesRepository)
 	socketService := socket.NewSocketService(gormDB)
 	chatRepository := repositories.NewChatRepository(gormDB, node, postRepository, userRepository, notificationRepository)
