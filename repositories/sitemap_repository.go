@@ -7,8 +7,10 @@ import (
 	"core/models/taxonomy"
 	"encoding/xml"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -277,8 +279,13 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 	var posts []post.Post
 
 	err := r.db.WithContext(ctx).
-		Where("published = ?", true).
-		Where("deleted_at IS NULL").
+		Joins("JOIN medias ON medias.owner_id = posts.id AND medias.owner_type = 'post'").
+		Joins("JOIN file_metadata ON file_metadata.id = medias.file_id").
+		Where("posts.published = ?", true).
+		Where("posts.deleted_at IS NULL").
+		Where("file_metadata.mime_type LIKE ?", "image/%").
+		Preload("Attachments.File").
+		Group("posts.id").
 		Find(&posts).Error
 	if err != nil {
 		return nil, err
@@ -291,20 +298,29 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 
 	for _, p := range posts {
 
-		imageURI := "https://coolvibes.io/resim.png"
-		if p.Slug == nil {
+		if p.Slug == nil || p.Title == nil {
 			continue
 		}
 
-		urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
-			Loc: fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
-			Images: []sitemap.ImageEntry{
-				{
-					Loc:   imageURI,
-					Title: p.Title.DefaultValue(),
-				},
-			},
-		})
+		for _, attachment := range p.Attachments {
+			if attachment == nil || attachment.File.ID == uuid.Nil {
+				continue
+			}
+
+			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.URL != "" {
+				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
+					Loc: fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
+					Images: []sitemap.ImageEntry{
+						{
+							Loc:   attachment.File.URL,
+							Title: p.Title.DefaultValue(),
+						},
+					},
+				})
+				// We only need one image per post for the sitemap.
+				break
+			}
+		}
 	}
 
 	output, err := xml.MarshalIndent(urlSet, "", "  ")
@@ -315,18 +331,20 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 	return append([]byte(xml.Header), output...), nil
 }
 
-func (r *SitemapRepository) GenerateVideoSitemap(
-	ctx context.Context,
-	baseURL string,
-) ([]byte, error) {
+func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL string) ([]byte, error) {
 
 	var posts []post.Post
 
 	err := r.db.WithContext(ctx).
-		Where("published = ?", true).
-		Where("deleted_at IS NULL").
-		Where("video_url IS NOT NULL").
+		Joins("JOIN medias ON medias.owner_id = posts.id AND medias.owner_type = 'post'").
+		Joins("JOIN file_metadata ON file_metadata.id = medias.file_id").
+		Where("posts.published = ?", true).
+		Where("posts.deleted_at IS NULL").
+		Where("file_metadata.mime_type LIKE ?", "video/%").
+		Preload("Attachments.File").
+		Group("posts.id").
 		Find(&posts).Error
+
 	if err != nil {
 		return nil, err
 	}
@@ -338,21 +356,35 @@ func (r *SitemapRepository) GenerateVideoSitemap(
 
 	for _, p := range posts {
 
-		if p.Slug == nil {
+		if p.Slug == nil || p.Title == nil || p.Summary == nil {
 			continue
 		}
 
-		urlSet.URLs = append(urlSet.URLs, sitemap.VideoURLItem{
-			Loc: fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
-			Videos: []sitemap.VideoMeta{
-				{
-					ThumbnailLoc: "p.VideoThumbnail",
-					Title:        p.Title.DefaultValue(),
-					Description:  "p.Summary",
-					ContentLoc:   " p.VideoURL",
-				},
-			},
-		})
+		for _, attachment := range p.Attachments {
+			if attachment == nil || attachment.File.ID == uuid.Nil {
+				continue
+			}
+
+			if strings.HasPrefix(attachment.File.MimeType, "video/") && attachment.File.URL != "" {
+
+				videoMeta := sitemap.VideoMeta{
+					Title:       p.Title.DefaultValue(),
+					Description: p.Summary.DefaultValue(),
+					ContentLoc:  attachment.File.URL,
+				}
+
+				if attachment.File.Variants != nil && attachment.File.Variants.Video != nil && attachment.File.Variants.Video.Poster != nil && attachment.File.Variants.Video.Poster.URL != "" {
+					videoMeta.ThumbnailLoc = attachment.File.Variants.Video.Poster.URL
+				}
+
+				urlSet.URLs = append(urlSet.URLs, sitemap.VideoURLItem{
+					Loc:    fmt.Sprintf("%s/%s/%s", baseURL, *p.ContentableType, *p.Slug),
+					Videos: []sitemap.VideoMeta{videoMeta},
+				})
+
+				break
+			}
+		}
 	}
 
 	output, err := xml.MarshalIndent(urlSet, "", "  ")

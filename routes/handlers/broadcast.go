@@ -234,7 +234,11 @@ func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 				ch <- result{name, "", err}
 				return
 			}
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					fmt.Printf("Failed to close response body: %v\n", err)
+				}
+			}()
 
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
