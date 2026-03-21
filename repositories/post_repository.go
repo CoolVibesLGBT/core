@@ -1408,6 +1408,32 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 		return errors.New(constants.ErrPostDeleteDenied.String())
 	}
 
+	// If the post is a comment (has a parent), decrement the parent's comment count.
+	if post.ParentID != nil {
+		var parentEngagement models.Engagement
+		// Find the engagement record of the parent post
+		err := r.userRepo.engagementRepo.DB().Where("contentable_id = ? AND contentable_type = ?", *post.ParentID, models.EngagementContentableTypePost).First(&parentEngagement).Error
+
+		if err == nil {
+			// Found the parent's engagement, now find a specific detail to remove.
+			var detailToRemove models.EngagementDetail
+			err := r.userRepo.engagementRepo.DB().Where("engagement_id = ? AND engager_id = ? AND kind = ?", parentEngagement.ID, post.AuthorID, models.EngagementKindComment).First(&detailToRemove).Error
+
+			if err == nil {
+				// We found an engagement detail to remove. Let's remove it.
+				// This will also trigger the counter decrement.
+				errRemove := r.userRepo.engagementRepo.RemoveEngagementDetail(filters.Context, detailToRemove.ID)
+				if errRemove != nil {
+					helpers.Println("Failed to remove engagement detail during comment deletion:", errRemove)
+				}
+			} else {
+				helpers.Println("Could not find comment engagement detail to remove for comment:", post.ID)
+			}
+		} else {
+			helpers.Println("Could not find parent engagement for comment:", post.ID)
+		}
+	}
+
 	// 3. Soft delete
 	if err := r.db.WithContext(filters.Context).Delete(&post).Error; err != nil {
 		return errors.New(constants.ErrPostDeleteFailed.String())
