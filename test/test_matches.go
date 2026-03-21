@@ -20,7 +20,8 @@ func testMatches(db *gorm.DB, snowFlakeNode *helpers.Node, socketService *socket
 	fmt.Println("ToUser", toUser.ID)
 
 	engagementRepo := repositories.NewEngagementRepository(db)
-	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo)
+	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
+	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo, notificationRepo)
 
 	isFromMatched, _ := matchesRepo.RecordView(context.Background(), fromUser.ID, toUser.ID, types.ReactionLike)
 	isToMatched, _ := matchesRepo.RecordView(context.Background(), toUser.ID, fromUser.ID, types.ReactionLike)
@@ -58,7 +59,8 @@ func testMatchesDetails(db *gorm.DB, snowFlakeNode *helpers.Node) {
 
 	fromUser := faker.CreateUser(db, snowFlakeNode)
 	engagementRepo := repositories.NewEngagementRepository(db)
-	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo)
+	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
+	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo, notificationRepo)
 
 	for i := 0; i < 5; i++ {
 		fmt.Println("Iteration:", i)
