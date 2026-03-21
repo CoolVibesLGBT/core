@@ -284,6 +284,7 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 		Where("posts.published = ?", true).
 		Where("posts.deleted_at IS NULL").
 		Where("file_metadata.mime_type LIKE ?", "image/%").
+		Preload("Attachments").
 		Preload("Attachments.File").
 		Group("posts.id").
 		Find(&posts).Error
@@ -298,26 +299,21 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 
 	for _, p := range posts {
 
-		if p.Slug == nil || p.Title == nil {
-			continue
-		}
-
 		for _, attachment := range p.Attachments {
 			if attachment == nil || attachment.File.ID == uuid.Nil {
 				continue
 			}
 
-			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.URL != "" {
+			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.StoragePath != "" {
 				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
-					Loc: fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
+					Loc: fmt.Sprintf("%s/%s/%d", baseURL, *p.ContentableType, &p.PublicID),
 					Images: []sitemap.ImageEntry{
 						{
-							Loc:   attachment.File.URL,
-							Title: p.Title.DefaultValue(),
+							Loc:   attachment.File.StoragePath,
+							Title: p.SafeTitle(),
 						},
 					},
 				})
-				// We only need one image per post for the sitemap.
 				break
 			}
 		}

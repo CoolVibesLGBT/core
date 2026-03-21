@@ -132,7 +132,9 @@ type User struct {
 	Engagements   *Engagement    `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
 	Wallet        Wallet         `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"wallet,omitempty"`
 	Subscriptions datatypes.JSON `gorm:"type:jsonb" json:"-"`
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	BroadcastInfo datatypes.JSON `gorm:"type:jsonb" json:"broadcast_info"`
+
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
 }
 

@@ -109,14 +109,21 @@ func (Post) TableName() string {
 	return "posts"
 }
 
-func (u Post) MarshalJSON() ([]byte, error) {
+func (p *Post) SafeTitle() string {
+	if p.Title == nil {
+		return ""
+	}
+	return p.Title.DefaultValue()
+}
+
+func (p Post) MarshalJSON() ([]byte, error) {
 	type Alias Post
 	aux := struct {
 		PublicID string `json:"public_id"`
 		Alias
 	}{
-		PublicID: strconv.FormatInt(u.PublicID, 10),
-		Alias:    (Alias)(u),
+		PublicID: strconv.FormatInt(p.PublicID, 10),
+		Alias:    (Alias)(p),
 	}
 
 	return json.Marshal(aux)
