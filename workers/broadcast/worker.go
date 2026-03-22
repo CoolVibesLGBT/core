@@ -158,18 +158,14 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 			continue
 		}
 
-		networkUserIdRaw := userDetailsObj["networkUserId"]
-		if networkUserIdRaw == nil {
-			networkUserIdRaw = userDetailsObj["memberId"]
+		networkUserIdStr := normalizeBroadcastUserID(userDetailsObj["networkUserId"])
+		memberIdStr := normalizeBroadcastUserID(userDetailsObj["memberId"])
+		lookupIDs := uniqueNonEmptyStrings(networkUserIdStr, memberIdStr)
+		if len(lookupIDs) == 0 {
+			continue
 		}
-
-		networkUserIdStr := ""
-		if s, isStr := networkUserIdRaw.(string); isStr {
-			networkUserIdStr = s
-		} else if num, isNum := networkUserIdRaw.(float64); isNum {
-			networkUserIdStr = fmt.Sprintf("%.0f", num)
-		} else {
-			continue // ID tanımlanamadı
+		if networkUserIdStr == "" {
+			networkUserIdStr = lookupIDs[0]
 		}
 
 		publicID, err := strconv.ParseInt(networkUserIdStr, 10, 64)
@@ -184,7 +180,14 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 			defaultLang = strings.ToLower(langStr)
 		}
 
-		err = a.DB.Where("broadcast_info->'userDetails'->>'networkUserId' = ?", networkUserIdStr).First(&user).Error
+		err = a.DB.
+			Where(`
+				(
+					broadcast_info->'userDetails'->>'networkUserId' IN ?
+					OR broadcast_info->'userDetails'->>'memberId' IN ?
+				)
+			`, lookupIDs, lookupIDs).
+			First(&user).Error
 		if err == gorm.ErrRecordNotFound {
 			streamDesc := getString(b["streamDescription"])
 			if streamDesc == "" {
@@ -288,4 +291,33 @@ func getString(val interface{}) string {
 		return s
 	}
 	return ""
+}
+
+func normalizeBroadcastUserID(val interface{}) string {
+	switch v := val.(type) {
+	case string:
+		return v
+	case float64:
+		return fmt.Sprintf("%.0f", v)
+	default:
+		return ""
+	}
+}
+
+func uniqueNonEmptyStrings(values ...string) []string {
+	seen := make(map[string]struct{}, len(values))
+	result := make([]string, 0, len(values))
+
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+
+	return result
 }
