@@ -45,7 +45,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		postKind := post.PostKindPost
+		postKind := post.PostKindStatus
 
 		if kind := c.FormValue("kind"); kind != "" && post.IsValidPostKind(kind) {
 			postKind = post.PostKind(kind)
