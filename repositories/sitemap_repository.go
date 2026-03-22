@@ -306,7 +306,7 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 
 			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.StoragePath != "" {
 				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
-					Loc: fmt.Sprintf("%s/%s/%d", baseURL, *p.ContentableType, p.PublicID),
+					Loc: fmt.Sprintf("%s/%s/%s/%d", baseURL, p.Author.UserName, p.PostKind, p.PublicID),
 					Images: []sitemap.ImageEntry{
 						{
 							Loc:   baseURL + "/" + strings.TrimPrefix(attachment.File.StoragePath, "./"),

@@ -327,7 +327,7 @@ func NewRouter(
 }
 
 func GetBaseURL(c fiber.Ctx) string {
-	return "https://" + c.Hostname()
+	return "https://" + strings.TrimPrefix(c.Hostname(), "api.")
 }
 
 func (r *Router) handlePacket(c fiber.Ctx) error {
