@@ -257,7 +257,7 @@ func NewRouter(
 	r.fiber.All("/packet", r.handlePacket)
 
 	r.fiber.All("/sitemap.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GenerateSitemapIndex(GetBaseURL(c))
+		xml, err := sitemapRepo.GenerateSitemapIndex(GetApiURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -267,7 +267,7 @@ func NewRouter(
 	})
 
 	r.fiber.All("/sitemap-posts.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GeneratePostSitemap(c.Context(), GetBaseURL(c))
+		xml, err := sitemapRepo.GeneratePostSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -277,7 +277,7 @@ func NewRouter(
 	})
 
 	r.fiber.All("/sitemap-news.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GenerateNewsSitemap(c.Context(), GetBaseURL(c))
+		xml, err := sitemapRepo.GenerateNewsSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -287,7 +287,7 @@ func NewRouter(
 	})
 
 	r.fiber.All("/sitemap-pillars.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GeneratePillarSitemap(c.Context(), GetBaseURL(c))
+		xml, err := sitemapRepo.GeneratePillarSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -297,7 +297,7 @@ func NewRouter(
 	})
 
 	r.fiber.All("/sitemap-clusters.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GenerateClusterSitemap(c.Context(), GetBaseURL(c))
+		xml, err := sitemapRepo.GenerateClusterSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -307,7 +307,7 @@ func NewRouter(
 	})
 
 	r.fiber.Get("/sitemap-images.xml", func(c fiber.Ctx) error {
-		xmlData, err := sitemapRepo.GenerateImageSitemap(c.Context(), GetBaseURL(c))
+		xmlData, err := sitemapRepo.GenerateImageSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -316,7 +316,7 @@ func NewRouter(
 	})
 
 	r.fiber.Get("/sitemap-videos.xml", func(c fiber.Ctx) error {
-		xmlData, err := sitemapRepo.GenerateVideoSitemap(c.Context(), GetBaseURL(c))
+		xmlData, err := sitemapRepo.GenerateVideoSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -326,8 +326,12 @@ func NewRouter(
 	return r
 }
 
-func GetBaseURL(c fiber.Ctx) string {
+func GetFrontendURL(c fiber.Ctx) string {
 	return "https://" + strings.TrimPrefix(c.Hostname(), "api.")
+}
+
+func GetApiURL(c fiber.Ctx) string {
+	return "https://" + c.Hostname()
 }
 
 func (r *Router) handlePacket(c fiber.Ctx) error {
