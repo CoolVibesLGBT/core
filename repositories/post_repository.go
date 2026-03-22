@@ -336,7 +336,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("contentable_type IN ?", []string{string(post.PostKindPost)}).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindStatus)}).
 		//Where("published = ?", true).
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
