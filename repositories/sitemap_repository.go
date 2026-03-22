@@ -379,7 +379,7 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL st
 				}
 
 				urlSet.URLs = append(urlSet.URLs, sitemap.VideoURLItem{
-					Loc:    fmt.Sprintf("%s/%s/%s", baseURL, *p.ContentableType, *p.Slug),
+					Loc:    fmt.Sprintf("%s/%s/%s/%d", baseURL, p.Author.UserName, p.PostKind, p.PublicID),
 					Videos: []sitemap.VideoMeta{videoMeta},
 				})
 
