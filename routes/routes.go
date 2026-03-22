@@ -307,7 +307,7 @@ func NewRouter(
 	})
 
 	r.fiber.Get("/sitemap-images.xml", func(c fiber.Ctx) error {
-		xmlData, err := sitemapRepo.GenerateImageSitemap(c.Context(), GetFrontendURL(c))
+		xmlData, err := sitemapRepo.GenerateImageSitemap(c.Context(), GetFrontendURL(c), GetApiURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -316,7 +316,7 @@ func NewRouter(
 	})
 
 	r.fiber.Get("/sitemap-videos.xml", func(c fiber.Ctx) error {
-		xmlData, err := sitemapRepo.GenerateVideoSitemap(c.Context(), GetFrontendURL(c))
+		xmlData, err := sitemapRepo.GenerateVideoSitemap(c.Context(), GetFrontendURL(c), GetApiURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}

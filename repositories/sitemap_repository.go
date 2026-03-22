@@ -275,7 +275,7 @@ func (r *SitemapRepository) GenerateNewsSitemap(
 	return r.BuildNewsSitemap(ctx, baseURL, "Your Site", "tr")
 }
 
-func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL string) ([]byte, error) {
+func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, frontendURL string, apiURL string) ([]byte, error) {
 
 	var posts []post.Post
 
@@ -309,10 +309,10 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 
 			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.StoragePath != "" {
 				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
-					Loc: fmt.Sprintf("%s/%s/%s/%d", baseURL, p.Author.UserName, p.PostKind, p.PublicID),
+					Loc: fmt.Sprintf("%s/%s/%s/%d", frontendURL, p.Author.UserName, p.PostKind, p.PublicID),
 					Images: []sitemap.ImageEntry{
 						{
-							Loc:   baseURL + "/" + strings.TrimPrefix(attachment.File.StoragePath, "./"),
+							Loc:   apiURL + "/" + strings.TrimPrefix(attachment.File.StoragePath, "./"),
 							Title: p.SafeTitle(),
 						},
 					},
@@ -330,7 +330,7 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 	return append([]byte(xml.Header), output...), nil
 }
 
-func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL string) ([]byte, error) {
+func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, frontendURL string, apiURL string) ([]byte, error) {
 
 	var posts []post.Post
 
@@ -371,15 +371,15 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL st
 				videoMeta := sitemap.VideoMeta{
 					Title:       p.Title.DefaultValue(),
 					Description: p.Summary.DefaultValue(),
-					ContentLoc:  baseURL + "/" + strings.TrimPrefix(attachment.File.URL, "./"),
+					ContentLoc:  apiURL + "/" + strings.TrimPrefix(attachment.File.URL, "./"),
 				}
 
 				if attachment.File.Variants != nil && attachment.File.Variants.Video != nil && attachment.File.Variants.Video.Poster != nil && attachment.File.Variants.Video.Poster.URL != "" {
-					videoMeta.ThumbnailLoc = baseURL + "/" + strings.TrimPrefix(attachment.File.Variants.Video.Poster.URL, "./")
+					videoMeta.ThumbnailLoc = apiURL + "/" + strings.TrimPrefix(attachment.File.Variants.Video.Poster.URL, "./")
 				}
 
 				urlSet.URLs = append(urlSet.URLs, sitemap.VideoURLItem{
-					Loc:    fmt.Sprintf("%s/%s/%s/%d", baseURL, p.Author.UserName, p.PostKind, p.PublicID),
+					Loc:    fmt.Sprintf("%s/%s/%s/%d", frontendURL, p.Author.UserName, p.PostKind, p.PublicID),
 					Videos: []sitemap.VideoMeta{videoMeta},
 				})
 
