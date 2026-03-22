@@ -58,8 +58,8 @@ func fetchAndProcess(a *app.App) {
 		payload := map[string]interface{}{
 			"pageSize":  10000,
 			"gender":    "all",
-			"latitude":  0.0,
-			"longitude": 0.0,
+			"latitude":  47.7588508,
+			"longitude": 63.3075192,
 			"more":      true,
 			"score":     "0",
 		}
@@ -85,7 +85,7 @@ func fetchAndProcess(a *app.App) {
 			ch <- apiResult{name, nil, err}
 			return
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		body, err := io.ReadAll(resp.Body)
 		ch <- apiResult{name, body, err}

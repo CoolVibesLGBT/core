@@ -274,7 +274,7 @@ func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, us
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch image: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to fetch image: status code %d", resp.StatusCode)
@@ -312,8 +312,12 @@ func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, us
 	if err != nil {
 		return nil, fmt.Errorf("failed to create form file: %w", err)
 	}
-	part.Write(data)
-	writer.Close()
+	if _, err := part.Write(data); err != nil {
+		return nil, fmt.Errorf("failed to write data: %w", err)
+	}
+	if err := writer.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close writer: %w", err)
+	}
 
 	reader := multipart.NewReader(body, writer.Boundary())
 	form, err := reader.ReadForm(int64(len(data) + 1024))
