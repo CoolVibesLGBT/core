@@ -102,7 +102,7 @@ func fetchAndProcess(a *app.App) {
 			"X-Parse-Client-Key":      "com.initechapps.growlr",
 			"X-Parse-Installation-Id": "98f4e8f2-21f9-4b1b-9564-7131f57709a3",
 			"X-Parse-OS-Version":      "26.3 (23D127)",
-			"Accept-Language":         "tr-TR,tr;q=0.9",
+			"Accept-Language":         "ru-RU,ru;q=0.9",
 			"X-Parse-Client-Version":  "i1.19.6",
 			"User-Agent":              "growlr/16.46.1.0 ( network=growlr; ) ios/26.3.0 ( iPhone; ) TMGCommon/8.23.3",
 		},
