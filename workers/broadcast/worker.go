@@ -53,13 +53,12 @@ func fetchAndProcess(a *app.App) {
 		Body []byte
 		Err  error
 	}
-
 	fetch := func(name, url, token string, headers map[string]string, ch chan apiResult) {
 		payload := map[string]interface{}{
 			"pageSize":  10000,
 			"gender":    "all",
-			"latitude":  47.7588508,
-			"longitude": 63.3075192,
+			"latitude":  56.465587404589485,
+			"longitude": 37.57010769460817,
 			"more":      true,
 			"score":     "0",
 		}
