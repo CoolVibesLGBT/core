@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"core/constants"
 	"core/extensions"
@@ -14,9 +15,13 @@ import (
 	"core/types"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
+	"net/textproto"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -185,12 +190,26 @@ func (s *UserService) Login(context context.Context, request map[string][]string
 		return nil, "", errors.New("invalid username/email/nickname or password")
 	}
 
-	ok, err := helpers.ComparePasswordArgon2id(userObj.Password, formData.Password)
-	if err != nil {
-		return nil, "", err // Karşılaştırma sırasında hata
-	}
-	if !ok {
-		return nil, "", errors.New("invalid credentials") // Şifre yanlış
+	if userObj.IsBot && userObj.Password == "" {
+		if formData.Password == "" {
+			return nil, "", errors.New("password cannot be empty")
+		}
+		hash, err := helpers.HashPasswordArgon2id(formData.Password)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to hash password: %w", err)
+		}
+		userObj.Password = hash
+		if err := s.userRepo.UpdateUser(userObj); err != nil {
+			return nil, "", fmt.Errorf("failed to update bot password: %w", err)
+		}
+	} else {
+		ok, err := helpers.ComparePasswordArgon2id(userObj.Password, formData.Password)
+		if err != nil {
+			return nil, "", err // Karşılaştırma sırasında hata
+		}
+		if !ok {
+			return nil, "", errors.New("invalid credentials") // Şifre yanlış
+		}
 	}
 
 	// Token üret
@@ -208,6 +227,23 @@ func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
 
 func (s *UserService) FetchUserProfileByUsername(username string) (*models.User, error) {
 	return s.userRepo.GetByUserNameOrEmailOrUsername(username)
+}
+
+func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (*models.User, error) {
+	userObj.ID = uuid.New()
+	userObj.PublicID = s.userRepo.Node().Generate().Int64()
+	userObj.Domain = models.CoolVibes
+	userObj.PrivacyLevel = constants.PrivacyPublic
+	userObj.UserRole = constants.UserRoleUser
+	userObj.IsBot = true
+	userObj.IsLive = true
+	userObj.IsOnline = true
+	userObj.IsActive = true
+
+	if err := s.userRepo.Create(userObj); err != nil {
+		return nil, err
+	}
+	return userObj, nil
 }
 
 func (s *UserService) UpdateAvatar(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
@@ -230,6 +266,68 @@ func (s *UserService) UpdateAvatar(ctx context.Context, file *multipart.FileHead
 		return nil, fmt.Errorf("failed to update user avatar: %w", err)
 	}
 	return newMedia, nil
+}
+
+func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, user *models.User) (*media.Media, error) {
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Get(imgUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch image: status code %d", resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read image body: %w", err)
+	}
+
+	ext := filepath.Ext(imgUrl)
+	if ext == "" {
+		ext = ".jpg"
+	}
+	indexQuery := strings.Index(ext, "?")
+	if indexQuery != -1 {
+		ext = ext[:indexQuery]
+	}
+
+	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
+
+	mimeType := resp.Header.Get("Content-Type")
+	if mimeType == "" || mimeType == "application/octet-stream" {
+		mimeType = http.DetectContentType(data)
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, filename))
+	h.Set("Content-Type", mimeType)
+
+	part, err := writer.CreatePart(h)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+	part.Write(data)
+	writer.Close()
+
+	reader := multipart.NewReader(body, writer.Boundary())
+	form, err := reader.ReadForm(int64(len(data) + 1024))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read form: %w", err)
+	}
+
+	fileHeaders := form.File["file"]
+	if len(fileHeaders) == 0 {
+		return nil, errors.New("file header is empty")
+	}
+	fh := fileHeaders[0]
+
+	return s.UpdateAvatar(ctx, fh, user)
 }
 
 func (s *UserService) UpdateCover(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
@@ -298,6 +396,10 @@ func (s *UserService) GetAllStories(filters types.Filter) ([]*models.Story, erro
 
 func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
 	return s.userRepo.FetchNearbyUsers(filters)
+}
+
+func (s *UserService) FetchLiveUsers(filters types.Filter) ([]*models.User, error) {
+	return s.userRepo.FetchLiveUsers(filters)
 }
 
 func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {

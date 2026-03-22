@@ -388,127 +388,6 @@ func (r *UserRepository) UpsertUserPreference(ctx context.Context, user models.U
 	return nil
 }
 
-func (r *UserRepository) FetchNearbyUsersLegacy(filters types.Filter) ([]*models.User, error) {
-
-	var users []*models.User
-	var user *models.User
-
-	if filters.AuthUser != nil {
-		r.db.Preload("Location").First(&user, "id = ?", filters.AuthUser.ID)
-	}
-
-	if user != nil && user.Location != nil && user.Location.Latitude != nil && user.Location.Longitude != nil {
-		raw := r.db.
-			Table("users u").
-			Select(`
-				u.*,
-				COALESCE(
-					ST_Distance(
-						l.location_point,
-						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-					),
-					9999999999
-				) AS distance
-			`, *user.Location.Longitude, *user.Location.Latitude).
-			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
-			Order("distance ASC, u.public_id ASC").
-			Limit(filters.Limit)
-
-		if filters.Cursor != nil {
-			raw = raw.Where("u.public_id > ?", *filters.Cursor)
-		}
-
-		if err := r.db.Table("(?) as subquery", raw).
-			Preload("Location").
-			Preload("Avatar.File").
-			Preload("Cover.File").
-			Find(&users).Error; err != nil {
-			return nil, err
-		}
-
-		return users, nil
-	}
-
-	q := r.db.Model(&models.User{}).
-		Order("public_id ASC").
-		Limit(filters.Limit)
-
-	if filters.Cursor != nil {
-		q = q.Where("public_id > ?", *filters.Cursor)
-	}
-
-	if err := q.
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
-func (r *UserRepository) FetchNearbyUsersBug(filters types.Filter) ([]*models.User, error) {
-	var users []*models.User
-	var authUser *models.User
-
-	if filters.AuthUser != nil {
-		if err := r.db.Preload("Location").First(&authUser, "id = ?", filters.AuthUser.ID).Error; err != nil {
-			authUser = nil
-		}
-	}
-
-	if authUser != nil && authUser.Location != nil && authUser.Location.Latitude != nil && authUser.Location.Longitude != nil {
-		raw := r.db.
-			Table("users u").
-			Select(`
-				DISTINCT ON (u.id) u.*,
-				COALESCE(
-					ST_Distance(
-						l.location_point,
-						ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-					),
-					9999999999
-				) AS distance
-			`, *authUser.Location.Longitude, *authUser.Location.Latitude).
-			Joins("LEFT JOIN locations l ON l.contentable_id = u.id AND l.contentable_type = 'user'").
-			Order("u.id, distance ASC, u.public_id ASC").
-			Limit(filters.Limit)
-
-		if filters.Cursor != nil {
-			raw = raw.Where("u.public_id > ?", *filters.Cursor)
-		}
-
-		if err := r.db.Table("(?) as subquery", raw).
-			Preload("Location").
-			Preload("Avatar.File").
-			Preload("Cover.File").
-			Find(&users).Error; err != nil {
-			return nil, err
-		}
-
-		return users, nil
-	}
-
-	q := r.db.Model(&models.User{}).
-		Order("public_id ASC").
-		Limit(filters.Limit)
-
-	if filters.Cursor != nil {
-		q = q.Where("public_id > ?", *filters.Cursor)
-	}
-
-	if err := q.
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
 func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
 	var users []*models.User
 	var authUser *models.User
@@ -574,6 +453,95 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 	q := r.db.Model(&models.User{}).
 		Order("public_id ASC").
 		Limit(filters.Limit)
+
+	if filters.Cursor != nil {
+		q = q.Where("public_id > ?", *filters.Cursor)
+	}
+
+	if err := q.
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, error) {
+	var users []*models.User
+	var authUser *models.User
+
+	if filters.AuthUser != nil {
+		if err := r.db.Preload("Location").First(&authUser, "id = ?", filters.AuthUser.ID).Error; err != nil {
+			authUser = nil
+		}
+	}
+
+	if authUser != nil &&
+		authUser.Location != nil &&
+		authUser.Location.Latitude != nil &&
+		authUser.Location.Longitude != nil {
+
+		lat := *authUser.Location.Latitude
+		lng := *authUser.Location.Longitude
+
+		raw := r.db.
+			Table("users u").
+			Select(`
+				u.*,
+				MIN(
+					COALESCE(
+						ST_Distance(
+							l.location_point,
+							ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+						),
+						9999999999
+					)
+				) AS distance
+			`, lng, lat).
+			Joins(`
+				LEFT JOIN locations l 
+				ON l.contentable_id = u.id 
+				AND l.contentable_type = 'user'
+			`).
+			Group("u.id")
+
+		if filters.IsLive != nil {
+			raw = raw.Where("u.is_live = ?", *filters.IsLive)
+		}
+
+		query := r.db.Table("(?) as sub", raw)
+
+		if filters.Cursor != nil && filters.Distance != nil {
+			query = query.Where(`
+				(sub.distance > ? OR (sub.distance = ? AND sub.public_id > ?))
+			`, *filters.Distance, *filters.Distance, *filters.Cursor)
+		}
+
+		query = query.
+			Order("sub.distance ASC, sub.public_id ASC").
+			Limit(filters.Limit)
+
+		if err := query.
+			Preload("Location").
+			Preload("Avatar.File").
+			Preload("Cover.File").
+			Find(&users).Error; err != nil {
+			return nil, err
+		}
+
+		return users, nil
+	}
+
+	q := r.db.Model(&models.User{})
+
+	if filters.IsLive != nil {
+		q = q.Where("is_live = ?", *filters.IsLive)
+	}
+
+	q = q.Order("public_id ASC").Limit(filters.Limit)
 
 	if filters.Cursor != nil {
 		q = q.Where("public_id > ?", *filters.Cursor)

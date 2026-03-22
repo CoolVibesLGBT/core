@@ -99,42 +99,34 @@ type User struct {
 	IsBot            bool                   `gorm:"default:false" json:"-"`
 	PrivacyLevel     constants.PrivacyLevel `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
 	PreferencesFlags string                 `gorm:"column:preferences_flags" json:"preferences_flags"` // hex string representation of bits
-
-	UserRole   constants.UserRole `json:"user_role"`
-	IsActive   bool               `json:"is_active"`
-	IsLive     bool               `json:"is_live"`
-	CreatedAt  time.Time          `json:"created_at"`
-	UpdatedAt  time.Time          `json:"updated_at"`
-	LastOnline *time.Time         `json:"last_online,omitempty"`
-	Location   *utils.Location    `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
-
-	DefaultLanguage string `gorm:"type:varchar(8);default:'en'" json:"default_language"`
-
-	AvatarID *uuid.UUID   `json:"avatar_id,omitempty"`
-	Avatar   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
-
-	CoverID *uuid.UUID   `json:"cover_id,omitempty"`
-	Cover   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
-
-	Stories []Story `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stories,omitempty"`
-
-	Languages     pq.StringArray `gorm:"type:text[]" json:"languages"`
-	Hobbies       pq.StringArray `gorm:"type:text[]" json:"hobbies,omitempty"`
-	MoviesGenres  pq.StringArray `gorm:"type:text[]" json:"movies_genres,omitempty"`
-	TVShowsGenres pq.StringArray `gorm:"type:text[]" json:"tv_shows_genres,omitempty"`
-	TheaterGenres pq.StringArray `gorm:"type:text[]" json:"theater_genres,omitempty"`
-	CinemaGenres  pq.StringArray `gorm:"type:text[]" json:"cinema_genres,omitempty"`
-	ArtInterests  pq.StringArray `gorm:"type:text[]" json:"art_interests,omitempty"`
-	Entertainment pq.StringArray `gorm:"type:text[]" json:"entertainment,omitempty"`
-
-	Travel TravelData `gorm:"embedded;embeddedPrefix:travel_" json:"travel"`
-
-	Engagements   *Engagement    `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
-	Wallet        Wallet         `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"wallet,omitempty"`
-	Subscriptions datatypes.JSON `gorm:"type:jsonb" json:"-"`
-	BroadcastInfo datatypes.JSON `gorm:"type:jsonb" json:"broadcast_info"`
-
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	UserRole         constants.UserRole     `json:"user_role"`
+	IsActive         bool                   `json:"is_active"`
+	IsLive           bool                   `json:"is_live"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        time.Time              `json:"updated_at"`
+	LastOnline       *time.Time             `json:"last_online,omitempty"`
+	Location         *utils.Location        `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
+	DefaultLanguage  string                 `gorm:"type:varchar(8);default:'en'" json:"default_language"`
+	AvatarID         *uuid.UUID             `json:"avatar_id,omitempty"`
+	Avatar           *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
+	CoverID          *uuid.UUID             `json:"cover_id,omitempty"`
+	Cover            *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
+	Stories          []Story                `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stories,omitempty"`
+	Languages        pq.StringArray         `gorm:"type:text[]" json:"languages"`
+	Hobbies          pq.StringArray         `gorm:"type:text[]" json:"hobbies,omitempty"`
+	MoviesGenres     pq.StringArray         `gorm:"type:text[]" json:"movies_genres,omitempty"`
+	TVShowsGenres    pq.StringArray         `gorm:"type:text[]" json:"tv_shows_genres,omitempty"`
+	TheaterGenres    pq.StringArray         `gorm:"type:text[]" json:"theater_genres,omitempty"`
+	CinemaGenres     pq.StringArray         `gorm:"type:text[]" json:"cinema_genres,omitempty"`
+	ArtInterests     pq.StringArray         `gorm:"type:text[]" json:"art_interests,omitempty"`
+	Entertainment    pq.StringArray         `gorm:"type:text[]" json:"entertainment,omitempty"`
+	Travel           TravelData             `gorm:"embedded;embeddedPrefix:travel_" json:"travel"`
+	Engagements      *Engagement            `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"engagements,omitempty"`
+	Wallet           Wallet                 `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"wallet,omitempty"`
+	Subscriptions    datatypes.JSON         `gorm:"type:jsonb" json:"-"`
+	BroadcastInfo    datatypes.JSON         `gorm:"type:jsonb" json:"broadcast_info"`
+	Distance         float64                `gorm:"-" json:"distance,omitempty"`
+	DeletedAt        gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
 }
 

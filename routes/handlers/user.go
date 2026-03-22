@@ -276,18 +276,16 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		var nextCursorStr *string
+		var cursorObj types.Cursor
 		if len(users) > 0 {
 			last := users[len(users)-1]
 			str := fmt.Sprintf("%d", last.PublicID)
-			nextCursorStr = &str
-		} else {
-			nextCursorStr = nil
+			cursorObj.Next = &str
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, map[string]interface{}{
 			"users":  users,
-			"cursor": nextCursorStr,
+			"cursor": cursorObj,
 		}, "Users fetched successfully")
 	}
 }

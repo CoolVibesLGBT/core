@@ -5,6 +5,7 @@ import (
 	"core/constants"
 	"core/middleware"
 	services "core/services/user"
+	"core/types"
 	"core/utils"
 	"encoding/json"
 	"fmt"
@@ -193,116 +194,36 @@ func HandleFetchBroadcastsG(s *services.UserService) fiber.Handler {
 func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		type result struct {
-			Name string
-			Body string
-			Err  error
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			fmt.Println("LOCATIONLESSx")
 		}
 
-		fetch := func(name, url, token string, headers map[string]string, ch chan result) {
-			payload := map[string]interface{}{
-				"pageSize":  10000,
-				"gender":    "all",
-				"latitude":  0.0,
-				"longitude": 0.0,
-				"more":      true,
-				"score":     "0",
-			}
-
-			jsonData, _ := json.Marshal(payload)
-
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-			if err != nil {
-				ch <- result{name, "", err}
-				return
-			}
-
-			// ortak header
-			req.Header.Set("Content-Type", "application/json; charset=utf-8")
-			req.Header.Set("Accept", "*/*")
-			req.Header.Set("X-Parse-Application-Id", "sns-video")
-			req.Header.Set("X-Parse-Session-Token", token)
-
-			// özel headerlar
-			for k, v := range headers {
-				req.Header.Set(k, v)
-			}
-
-			client := &http.Client{}
-			resp, err := client.Do(req)
-			if err != nil {
-				ch <- result{name, "", err}
-				return
-			}
-			defer func() {
-				if err := resp.Body.Close(); err != nil {
-					fmt.Printf("Failed to close response body: %v\n", err)
-				}
-			}()
-
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				ch <- result{name, "", err}
-				return
-			}
-
-			ch <- result{name, string(body), nil}
+		filters, err := ParseFilters(c, auth_user)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		ch := make(chan result, 2)
+		isLive := true
+		filters.IsLive = &isLive
 
-		go fetch(
-			"gdata",
-			"https://api.gateway.growlr-live.com/video-api/growlr/functions/sns-video:getTrendingBroadcasts",
-			"r:cf7d80043703b5729f3d463f813a2f38",
-			map[string]string{
-				"Host":                        "api.gateway.growlr-live.com",
-				"X-Parse-Client-Key":          "com.initechapps.growlr",
-				"X-Parse-Installation-Id":     "98f4e8f2-21f9-4b1b-9564-7131f57709a3",
-				"X-Parse-OS-Version":          "26.3 (23D127)",
-				"Accept-Language":             "tr-TR,tr;q=0.9",
-				"X-Parse-Client-Version":      "i1.19.6",
-				"User-Agent":                  "growlr/16.46.1.0 ( network=growlr; ) ios/26.3.0 ( iPhone; ) TMGCommon/8.23.3",
-				"Connection":                  "keep-alive",
-				"X-Parse-App-Build-Version":   "16.46.1.0",
-				"X-Parse-App-Display-Version": "16.46.1",
-			},
-			ch,
-		)
-
-		go fetch(
-			"hdata",
-			"https://api.gateway.hornet-live.com/video-api/hornet/functions/sns-video:getTrendingBroadcasts",
-			"r:82c7599c5e8f922d6db6791a26e2fcbc",
-			map[string]string{
-				"accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-				"cache-control":   "no-cache",
-				"origin":          "https://api.gateway.hornet-live.com",
-				"referer":         "https://api.gateway.hornet-live.com/web-live/search/trending/all",
-				"x-user-agent":    "hornet/78.1.6 web/3.16.0 ( variant=small; )",
-				"user-agent":      "Mozilla/5.0",
-			},
-			ch,
-		)
-
-		// sonuçları topla
-		results := make(map[string]interface{})
-
-		for i := 0; i < 2; i++ {
-			res := <-ch
-			if res.Err != nil {
-				results[res.Name] = res.Err.Error()
-			} else {
-				results[res.Name] = json.RawMessage(res.Body) // JSON olarak sakla
-			}
+		users, err := s.FetchLiveUsers(filters)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		return utils.SendSuccessWithMessage(
-			c,
-			fiber.StatusOK,
-			results,
-			"All broadcasts fetched",
-		)
+		var cursorObj types.Cursor
+		if len(users) > 0 {
+			last := users[len(users)-1]
+			str := fmt.Sprintf("%d", last.PublicID)
+			cursorObj.Next = &str
+			cursorObj.Distance = &last.Distance
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, map[string]interface{}{
+			"users":  users,
+			"cursor": cursorObj,
+		}, "Broadcasts fetched successfully")
 	}
 }
 

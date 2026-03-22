@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	app "core/application"
 	"core/constants"
 	"core/helpers"
@@ -10,11 +9,11 @@ import (
 	"core/services/socket"
 	"core/services/socket/managers"
 	"core/workers"
+	"core/workers/broadcast"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -109,35 +108,10 @@ func main() {
 		fmt.Printf("VAPIDKEY : %s \n", vapidKeys.PublicKey)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	maxWorkers := 10
-	queueSize := 100
-
-	dispatcher := workers.NewDispatcher(maxWorkers, queueSize)
+	dispatcher := workers.NewDispatcher(10, 100)
 	dispatcher.Run()
 
-	//go news.FetchAllFeedsSequentiallyAndProcess(dispatcher, app)
-
-	ticker := time.NewTicker(5000 * time.Hour)
-
-	fmt.Println("TICKEr", ticker, ctx)
-
-	/*
-		go func() {
-			defer ticker.Stop()
-
-			for {
-				select {
-				case <-ticker.C:
-					news.SubmitRSSFetchTasks(dispatcher, app)
-
-				case <-ctx.Done():
-					return
-				}
-			}
-		}()*/
+	broadcast.StartFetcher(dispatcher, app)
 
 	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
 	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)

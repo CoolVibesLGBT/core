@@ -160,8 +160,6 @@ func NewRouter(
 	r.action.Register(constants.CMD_USER_POST_LIKES, handlers.HandleGetAllMediasByUser(postService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 	r.action.Register(constants.CMD_USER_POST_BOOKMARKS, handlers.HandleGetAllMediasByUser(postService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
-	//
-
 	//USER FOLLOW
 	r.action.Register(constants.CMD_USER_FOLLOW, handlers.HandleFollow(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UNFOLLOW, handlers.HandleUnfollow(userService), middleware.AuthMiddleware(userRepo))
@@ -193,6 +191,10 @@ func NewRouter(
 	r.action.Register(constants.CMD_POST_VIBES, handlers.HandleTimelineVibes(postService))
 	r.action.Register(constants.CMD_USER_FETCH_STORIES, handlers.HandleFetchStories(userService))
 	r.action.Register(constants.CMD_USER_FETCH_NEARBY_USERS, handlers.HandleFetchNearbyUsers(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+
+	// BROADCAST
+	r.action.Register(constants.CMD_USER_FETCH_BROADCASTERS, handlers.HandleFetchBroadcasts(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
+	//
 
 	//MATCHES EKRANI ICIN
 	r.action.Register(constants.CMD_MATCH_GET_UNSEEN, handlers.HandleGetUnseenUsers(matchesService), middleware.AuthMiddleware(userRepo))

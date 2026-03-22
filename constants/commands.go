@@ -97,6 +97,7 @@ const (
 	CMD_USER_REPORT       = "user.report"
 
 	CMD_USER_FETCH_NEARBY_USERS      = "user.fetch.nearby.users"
+	CMD_USER_FETCH_BROADCASTERS      = "user.fetch.broadcasters"
 	CMD_USER_GET_NOTIFICATIONS       = "user.fetch.notifications"
 	CMD_USER_MARK_NOTIFICATIONS_SEEN = "user.notifications.mark.seen"
 
