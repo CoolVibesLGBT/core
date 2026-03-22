@@ -9,7 +9,6 @@ import (
 	"core/services/socket"
 	"core/services/socket/managers"
 	"core/workers"
-	"core/workers/broadcast"
 	"flag"
 	"fmt"
 	"log"
@@ -111,7 +110,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(10, 100)
 	dispatcher.Run()
 
-	broadcast.StartFetcher(dispatcher, app)
+	//broadcast.StartFetcher(dispatcher, app)
 
 	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
 	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)

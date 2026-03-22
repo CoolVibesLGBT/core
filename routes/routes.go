@@ -257,7 +257,7 @@ func NewRouter(
 	r.fiber.All("/packet", r.handlePacket)
 
 	r.fiber.All("/sitemap.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GenerateSitemapIndex(GetFrontendURL(c))
+		xml, err := sitemapRepo.GenerateSitemapIndex(GetApiURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}

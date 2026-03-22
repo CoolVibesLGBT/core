@@ -125,7 +125,6 @@ type User struct {
 	Wallet           Wallet                 `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"wallet,omitempty"`
 	Subscriptions    datatypes.JSON         `gorm:"type:jsonb" json:"-"`
 	BroadcastInfo    datatypes.JSON         `gorm:"type:jsonb" json:"broadcast_info"`
-	Distance         float64                `gorm:"-" json:"distance,omitempty"`
 	DeletedAt        gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
 	jwt.StandardClaims
 }

@@ -271,18 +271,19 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		users, err := s.FetchNearbyUsers(filters)
+		users, lastDistance, err := s.FetchNearbyUsers(filters)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
 
-		var cursorObj types.Cursor
+		var cursorObj *types.Cursor
 		if len(users) > 0 {
 			last := users[len(users)-1]
 			str := fmt.Sprintf("%d", last.PublicID)
-			cursorObj.Next = &str
-			dist := last.Distance
-			cursorObj.Distance = &dist
+			cursorObj = &types.Cursor{
+				Next:     &str,
+				Distance: lastDistance,
+			}
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, map[string]interface{}{

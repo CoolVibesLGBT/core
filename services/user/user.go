@@ -398,7 +398,7 @@ func (s *UserService) GetAllStories(filters types.Filter) ([]*models.Story, erro
 	return s.userRepo.GetAllStories(filters)
 }
 
-func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, error) {
+func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, *float64, error) {
 	return s.userRepo.FetchNearbyUsers(filters)
 }
 
