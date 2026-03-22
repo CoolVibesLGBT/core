@@ -55,7 +55,7 @@ func fetchAndProcess(a *app.App) {
 	}
 	fetch := func(name, url, token string, headers map[string]string, ch chan apiResult) {
 		payload := map[string]interface{}{
-			"pageSize":  10000,
+			"pageSize":  100,
 			"gender":    "all",
 			"latitude":  56.465587404589485,
 			"longitude": 37.57010769460817,
@@ -115,7 +115,7 @@ func fetchAndProcess(a *app.App) {
 		"https://api.gateway.hornet-live.com/video-api/hornet/functions/sns-video:getTrendingBroadcasts",
 		"r:82c7599c5e8f922d6db6791a26e2fcbc",
 		map[string]string{
-			"accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+			"accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
 			"origin":          "https://api.gateway.hornet-live.com",
 			"referer":         "https://api.gateway.hornet-live.com/web-live/search/trending/all",
 			"x-user-agent":    "hornet/78.1.6 web/3.16.0 ( variant=small; )",
