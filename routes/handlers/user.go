@@ -281,6 +281,8 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 			last := users[len(users)-1]
 			str := fmt.Sprintf("%d", last.PublicID)
 			cursorObj.Next = &str
+			dist := last.Distance
+			cursorObj.Distance = &dist
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, map[string]interface{}{
