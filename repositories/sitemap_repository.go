@@ -306,10 +306,10 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 
 			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.StoragePath != "" {
 				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
-					Loc: fmt.Sprintf("%s/%s/%d", baseURL, *p.ContentableType, &p.PublicID),
+					Loc: fmt.Sprintf("%s/%s/%d", baseURL, *p.ContentableType, p.PublicID),
 					Images: []sitemap.ImageEntry{
 						{
-							Loc:   attachment.File.StoragePath,
+							Loc:   baseURL + "/" + strings.TrimPrefix(attachment.File.StoragePath, "./"),
 							Title: p.SafeTitle(),
 						},
 					},
@@ -366,11 +366,11 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL st
 				videoMeta := sitemap.VideoMeta{
 					Title:       p.Title.DefaultValue(),
 					Description: p.Summary.DefaultValue(),
-					ContentLoc:  attachment.File.URL,
+					ContentLoc:  baseURL + "/" + strings.TrimPrefix(attachment.File.URL, "./"),
 				}
 
 				if attachment.File.Variants != nil && attachment.File.Variants.Video != nil && attachment.File.Variants.Video.Poster != nil && attachment.File.Variants.Video.Poster.URL != "" {
-					videoMeta.ThumbnailLoc = attachment.File.Variants.Video.Poster.URL
+					videoMeta.ThumbnailLoc = baseURL + "/" + strings.TrimPrefix(attachment.File.Variants.Video.Poster.URL, "./")
 				}
 
 				urlSet.URLs = append(urlSet.URLs, sitemap.VideoURLItem{
