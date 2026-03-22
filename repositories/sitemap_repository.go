@@ -37,6 +37,7 @@ func (r *SitemapRepository) GetSitemapPosts(
 	err := r.db.WithContext(ctx).
 		Where("published = ?", true).
 		Where("deleted_at IS NULL").
+		Where("post_kind NOT IN ?", []string{"chat", "message"}).
 		Order("updated_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -283,7 +284,9 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, baseURL st
 		Joins("JOIN file_metadata ON file_metadata.id = medias.file_id").
 		Where("posts.published = ?", true).
 		Where("posts.deleted_at IS NULL").
+		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
 		Where("file_metadata.mime_type LIKE ?", "image/%").
+		Preload("Author").
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Group("posts.id").
@@ -336,8 +339,10 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, baseURL st
 		Joins("JOIN file_metadata ON file_metadata.id = medias.file_id").
 		Where("posts.published = ?", true).
 		Where("posts.deleted_at IS NULL").
+		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
 		Where("file_metadata.mime_type LIKE ?", "video/%").
 		Preload("Attachments.File").
+		Preload("Author").
 		Group("posts.id").
 		Find(&posts).Error
 
