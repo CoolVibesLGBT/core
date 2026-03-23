@@ -12,23 +12,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type newsPostRepository interface {
-	CreatePost(*post.Post) error
-	GetPostsByKind(types.Filter) (types.PostsResult, error)
-	GetPostByID(uuid.UUID) (*post.Post, error)
-	GetPostByPublicID(int64) (*post.Post, error)
-	ExistsBySlug(types.Filter) (bool, error)
-	GetPillarsWithClustersWithSlug(context.Context, string) ([]taxonomy.Pillar, error)
-}
-
 type NewsRepository struct {
 	db               *gorm.DB
 	snowFlakeNode    *helpers.Node
 	mediaRepo        *MediaRepository
 	userRepo         *UserRepository
 	notificationRepo *NotificationRepository
-	postRepo         newsPostRepository
-	rawPostRepo      *PostRepository
+	postRepo         *PostRepository
 }
 
 func (r *NewsRepository) DB() *gorm.DB {
@@ -52,7 +42,7 @@ func (r *NewsRepository) NotificationRepo() *NotificationRepository {
 }
 
 func (r *NewsRepository) PostRepo() *PostRepository {
-	return r.rawPostRepo
+	return r.postRepo
 }
 
 func NewNewsRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository, userRepo *UserRepository, notificationRepo *NotificationRepository, postRepo *PostRepository) *NewsRepository {
@@ -63,7 +53,6 @@ func NewNewsRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *Medi
 		userRepo:         userRepo,
 		notificationRepo: notificationRepo,
 		postRepo:         postRepo,
-		rawPostRepo:      postRepo,
 	}
 }
 
@@ -78,15 +67,7 @@ func (r *NewsRepository) GetNews(filters types.Filter) (types.PostsResult, error
 
 func (r *NewsRepository) Get(filters types.Filter) (*post.Post, error) {
 	postData, err := r.loadPost(filters)
-	if err != nil {
-		return nil, err
-	}
-
-	if postData == nil || postData.PostKind != post.PostKindNews {
-		return nil, newsNotFoundError(filters)
-	}
-
-	return postData, nil
+	return ensureNewsPost(filters, postData, err)
 }
 
 func (r *NewsRepository) loadPost(filters types.Filter) (*post.Post, error) {
@@ -106,6 +87,18 @@ func newsNotFoundError(filters types.Filter) error {
 		return fmt.Errorf("post with id %d not found", filters.PostID)
 	}
 	return fmt.Errorf("post with id %s not found", filters.PostUUID)
+}
+
+func ensureNewsPost(filters types.Filter, postData *post.Post, err error) (*post.Post, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	if postData == nil || postData.PostKind != post.PostKindNews {
+		return nil, newsNotFoundError(filters)
+	}
+
+	return postData, nil
 }
 
 func (r *NewsRepository) IsNewsExists(filters types.Filter) (bool, error) {

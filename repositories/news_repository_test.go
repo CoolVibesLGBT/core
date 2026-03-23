@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"context"
 	"core/models/post"
-	"core/models/taxonomy"
 	"core/types"
 	"errors"
 	"strings"
@@ -12,27 +10,26 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestNewsRepositoryGetRejectsNonNewsPosts(t *testing.T) {
+func TestEnsureNewsPost(t *testing.T) {
 	newsID := uuid.New()
 	placeID := uuid.New()
+	loadErr := errors.New("boom")
 
-	repo := &NewsRepository{
-		postRepo: newsPostRepositoryStub{
-			byUUID: map[uuid.UUID]*post.Post{
-				newsID:  {ID: newsID, PostKind: post.PostKindNews},
-				placeID: {ID: placeID, PostKind: post.PostKindPlace},
-			},
-			byPublicID: map[int64]*post.Post{
-				1001: {ID: newsID, PublicID: 1001, PostKind: post.PostKindNews},
-				2002: {ID: placeID, PublicID: 2002, PostKind: post.PostKindPlace},
-			},
-		},
-	}
+	t.Run("returns load error", func(t *testing.T) {
+		_, err := ensureNewsPost(types.Filter{PostUUID: newsID}, nil, loadErr)
+		if !errors.Is(err, loadErr) {
+			t.Fatalf("expected load error, got %v", err)
+		}
+	})
 
 	t.Run("returns news by uuid", func(t *testing.T) {
-		postData, err := repo.Get(types.Filter{PostUUID: newsID})
+		postData, err := ensureNewsPost(
+			types.Filter{PostUUID: newsID},
+			&post.Post{ID: newsID, PostKind: post.PostKindNews},
+			nil,
+		)
 		if err != nil {
-			t.Fatalf("Get() error = %v", err)
+			t.Fatalf("ensureNewsPost() error = %v", err)
 		}
 		if postData == nil || postData.PostKind != post.PostKindNews {
 			t.Fatalf("expected news post, got %#v", postData)
@@ -40,63 +37,45 @@ func TestNewsRepositoryGetRejectsNonNewsPosts(t *testing.T) {
 	})
 
 	t.Run("returns news by public id", func(t *testing.T) {
-		postData, err := repo.Get(types.Filter{PostID: 1001})
+		postData, err := ensureNewsPost(
+			types.Filter{PostID: 1001},
+			&post.Post{ID: newsID, PublicID: 1001, PostKind: post.PostKindNews},
+			nil,
+		)
 		if err != nil {
-			t.Fatalf("Get() error = %v", err)
+			t.Fatalf("ensureNewsPost() error = %v", err)
 		}
 		if postData == nil || postData.PostKind != post.PostKindNews {
 			t.Fatalf("expected news post, got %#v", postData)
 		}
 	})
 
+	t.Run("rejects nil post", func(t *testing.T) {
+		_, err := ensureNewsPost(types.Filter{PostUUID: placeID}, nil, nil)
+		if err == nil || !strings.Contains(err.Error(), "not found") {
+			t.Fatalf("expected nil post to be rejected, got %v", err)
+		}
+	})
+
 	t.Run("rejects non-news uuid", func(t *testing.T) {
-		_, err := repo.Get(types.Filter{PostUUID: placeID})
+		_, err := ensureNewsPost(
+			types.Filter{PostUUID: placeID},
+			&post.Post{ID: placeID, PostKind: post.PostKindPlace},
+			nil,
+		)
 		if err == nil || !strings.Contains(err.Error(), "not found") {
 			t.Fatalf("expected non-news uuid to be rejected, got %v", err)
 		}
 	})
 
 	t.Run("rejects non-news public id", func(t *testing.T) {
-		_, err := repo.Get(types.Filter{PostID: 2002})
+		_, err := ensureNewsPost(
+			types.Filter{PostID: 2002},
+			&post.Post{ID: placeID, PublicID: 2002, PostKind: post.PostKindPlace},
+			nil,
+		)
 		if err == nil || !strings.Contains(err.Error(), "not found") {
 			t.Fatalf("expected non-news public id to be rejected, got %v", err)
 		}
 	})
-}
-
-type newsPostRepositoryStub struct {
-	byUUID     map[uuid.UUID]*post.Post
-	byPublicID map[int64]*post.Post
-}
-
-func (s newsPostRepositoryStub) CreatePost(*post.Post) error {
-	return nil
-}
-
-func (s newsPostRepositoryStub) GetPostsByKind(types.Filter) (types.PostsResult, error) {
-	return types.PostsResult{}, nil
-}
-
-func (s newsPostRepositoryStub) GetPostByID(id uuid.UUID) (*post.Post, error) {
-	postData, ok := s.byUUID[id]
-	if !ok {
-		return nil, errors.New("not found")
-	}
-	return postData, nil
-}
-
-func (s newsPostRepositoryStub) GetPostByPublicID(id int64) (*post.Post, error) {
-	postData, ok := s.byPublicID[id]
-	if !ok {
-		return nil, errors.New("not found")
-	}
-	return postData, nil
-}
-
-func (s newsPostRepositoryStub) ExistsBySlug(types.Filter) (bool, error) {
-	return false, nil
-}
-
-func (s newsPostRepositoryStub) GetPillarsWithClustersWithSlug(context.Context, string) ([]taxonomy.Pillar, error) {
-	return nil, nil
 }
