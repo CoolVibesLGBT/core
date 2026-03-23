@@ -136,7 +136,11 @@ func performMCPRequest(t *testing.T, app *fiber.App, method string, path string,
 
 func decodeJSONBody(t *testing.T, response *http.Response, out any) {
 	t.Helper()
-	defer response.Body.Close()
+	t.Cleanup(func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close body: %v", err)
+		}
+	})
 
 	payload, err := io.ReadAll(response.Body)
 	if err != nil {

@@ -14,7 +14,6 @@ func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.W
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
 	writer := bufio.NewWriter(output)
-	defer writer.Flush()
 
 	for scanner.Scan() {
 		select {
