@@ -1,12 +1,13 @@
 package utils
 
 import (
-	"database/sql/driver"
-	"encoding/json"
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type FileMetadata struct {
@@ -69,27 +70,16 @@ func (fv *FileVariants) Scan(value interface{}) error {
 		return nil
 	}
 
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to scan FileVariants: expected []byte but got %T", value)
-	}
-
-	err := json.Unmarshal(bytes, fv)
-	if err != nil {
+	if err := ScanJSON(value, fv); err != nil {
 		return fmt.Errorf("failed to unmarshal FileVariants: %w", err)
 	}
 	return nil
 }
 
-// Valuer interface implementasyonu
-func (fv FileVariants) Value() (driver.Value, error) {
+func (fv FileVariants) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	if fv.Image == nil && fv.Video == nil {
-		return nil, nil
+		return gorm.Expr("NULL")
 	}
 
-	bytes, err := json.Marshal(fv)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal FileVariants: %w", err)
-	}
-	return bytes, nil
+	return JSONBGormValue(ctx, db, fv)
 }

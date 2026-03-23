@@ -1,13 +1,15 @@
 package notifications
 
 import (
+	"context"
 	"core/models"
-	"database/sql/driver"
-	"encoding/json"
+	modelutils "core/models/utils"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -69,14 +71,12 @@ type Action struct {
 }
 
 func (p *NotificationPayload) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("failed to scan NotificationPayload: type assertion to []byte failed")
+	if err := modelutils.ScanJSON(value, p); err != nil {
+		return errors.New("failed to scan NotificationPayload: " + err.Error())
 	}
-
-	return json.Unmarshal(bytes, p)
+	return nil
 }
 
-func (p NotificationPayload) Value() (driver.Value, error) {
-	return json.Marshal(p)
+func (p NotificationPayload) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	return modelutils.JSONBGormValue(ctx, db, p)
 }

@@ -81,6 +81,9 @@ golangci-lint run ./...
 
 ### 7. Wire Injections
 ```bash
+go tool wire ./application
+```
+```bash
 go run github.com/google/wire/cmd/wire ./application
 ```
 

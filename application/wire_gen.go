@@ -25,16 +25,17 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	config := ai.NewConfig()
-	httpClient := ai.NewHTTPClient()
-	registry, err := ai.NewRegistry(config, httpClient)
-	if err != nil {
-		return nil, err
-	}
 	node, err := helpers.NewDefaultNode()
 	if err != nil {
 		return nil, err
 	}
+	config := ai.NewConfig()
+	client := ai.NewHTTPClient()
+	registry, err := ai.NewRegistry(config, client)
+	if err != nil {
+		return nil, err
+	}
+	aiService := services.NewAIService(registry)
 	reader, err := routes.GeoIPDBProvider()
 	if err != nil {
 		return nil, err
@@ -44,12 +45,13 @@ func InitializeApp() (*App, error) {
 	userRepository := repositories.NewUserRepository(gormDB, reader, node, engagementRepository, notificationRepository)
 	mediaRepository := repositories.NewMediaRepository(gormDB, node)
 	postRepository := repositories.NewPostRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
-	userService := services.NewUserService(userRepository, postRepository, mediaRepository, engagementRepository, notificationRepository)
-	postService := services.NewPostService(userRepository, postRepository, mediaRepository)
 	placeRepository := repositories.NewPlaceRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
-	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
 	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
+	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
+	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
+	userService := services.NewUserService(userRepository, postRepository, mediaRepository, engagementRepository, notificationRepository)
+	postService := services.NewPostService(userRepository, postRepository, mediaRepository)
 	listingRepository := repositories.NewListingRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	classifiedService := services.NewClassifiedService(userRepository, postRepository, mediaRepository, placeRepository, listingRepository)
 	matchesRepository := repositories.NewMatchesRepository(gormDB, engagementRepository, notificationRepository)
@@ -60,8 +62,6 @@ func InitializeApp() (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationRepository)
 	paymentRepository := repositories.NewPaymentRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
 	paymentService := services.NewPaymentService(paymentRepository, userRepository, postRepository, mediaRepository)
-	aiService := services.NewAIService(registry)
-	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
 	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, userRepository, notificationRepository, sitemapRepository, reader)
 	app := &App{
@@ -75,21 +75,22 @@ func InitializeApp() (*App, error) {
 }
 
 func InitializeMCPOnly() (*mcp.MCPServer, error) {
+	config := ai.NewConfig()
+	client := ai.NewHTTPClient()
+	registry, err := ai.NewRegistry(config, client)
+	if err != nil {
+		return nil, err
+	}
+	aiService := services.NewAIService(registry)
 	gormDB, err := db.NewDatabase()
 	if err != nil {
 		return nil, err
 	}
-	config := ai.NewConfig()
-	httpClient := ai.NewHTTPClient()
-	registry, err := ai.NewRegistry(config, httpClient)
+	reader, err := routes.GeoIPDBProvider()
 	if err != nil {
 		return nil, err
 	}
 	node, err := helpers.NewDefaultNode()
-	if err != nil {
-		return nil, err
-	}
-	reader, err := routes.GeoIPDBProvider()
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,6 @@ func InitializeMCPOnly() (*mcp.MCPServer, error) {
 	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
-	aiService := services.NewAIService(registry)
 	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
 	return mcpServer, nil
 }

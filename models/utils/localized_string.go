@@ -1,24 +1,25 @@
 package utils
 
 import (
-	"database/sql/driver"
-	"encoding/json"
+	"context"
 	"fmt"
 	"strings"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type LocalizedString map[string]string
 
 func (ls *LocalizedString) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to scan LocalizedString: %v", value)
+	if err := ScanJSON(value, ls); err != nil {
+		return fmt.Errorf("failed to scan LocalizedString: %w", err)
 	}
-	return json.Unmarshal(bytes, &ls)
+	return nil
 }
 
-func (ls LocalizedString) Value() (driver.Value, error) {
-	return json.Marshal(ls)
+func (ls LocalizedString) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	return JSONBGormValue(ctx, db, ls)
 }
 
 func (ls *LocalizedString) GetLocalizedString(lang string) string {

@@ -14,6 +14,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -164,9 +165,9 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
 		}
-		user.Subscriptions = subsJson
-
-		if err := db.Save(&user).Error; err != nil {
+		if err := db.Model(&models.User{}).
+			Where("id = ?", authUser.ID).
+			Update("subscriptions", datatypes.JSON(subsJson)).Error; err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
 		}
 

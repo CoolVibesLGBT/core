@@ -1,12 +1,13 @@
 package models
 
 import (
+	"context"
 	"core/models/utils"
-	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PreferenceItem struct {
@@ -48,32 +49,30 @@ func (Preferences) TableName() string {
 	return "preferences"
 }
 
-func (p PreferencesData) Value() (driver.Value, error) {
-	return json.Marshal(p)
+func (p PreferencesData) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	return utils.JSONBGormValue(ctx, db, p)
 }
 
 func (p *PreferencesData) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("cannot convert %T to []byte", value)
+	if err := utils.ScanJSON(value, p); err != nil {
+		return fmt.Errorf("cannot decode PreferencesData: %w", err)
 	}
-	return json.Unmarshal(bytes, p)
+	return nil
 }
 
-func (pc PreferenceCategory) Value() (driver.Value, error) {
-	return json.Marshal(pc)
+func (pc PreferenceCategory) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	return utils.JSONBGormValue(ctx, db, pc)
 }
 
 func (pc *PreferenceCategory) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("cannot convert %T to []byte", value)
+	if err := utils.ScanJSON(value, pc); err != nil {
+		return fmt.Errorf("cannot decode PreferenceCategory: %w", err)
 	}
-	return json.Unmarshal(bytes, pc)
+	return nil
 }
