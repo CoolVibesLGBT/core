@@ -2,6 +2,7 @@ package media
 
 type MediaRole string
 type OwnerType string
+type ProcessingStatus string
 
 const (
 	// Role
@@ -24,4 +25,9 @@ const (
 	OwnerBlog OwnerType = "blog"
 	OwnerChat OwnerType = "chat"
 	OwnerPage OwnerType = "page"
+
+	ProcessingStatusPending    ProcessingStatus = "pending"
+	ProcessingStatusProcessing ProcessingStatus = "processing"
+	ProcessingStatusReady      ProcessingStatus = "ready"
+	ProcessingStatusFailed     ProcessingStatus = "failed"
 )

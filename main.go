@@ -10,6 +10,7 @@ import (
 	"core/services/socket"
 	"core/services/socket/managers"
 	"core/workers"
+	mediaworker "core/workers/media"
 	"flag"
 	"fmt"
 	"log"
@@ -130,6 +131,7 @@ func main() {
 
 	dispatcher := workers.NewDispatcher(10, 100)
 	dispatcher.Run()
+	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 
 	//	broadcast.StartFetcher(dispatcher, app)
 

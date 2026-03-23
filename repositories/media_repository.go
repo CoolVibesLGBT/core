@@ -5,6 +5,7 @@ import (
 	"core/helpers"
 	"core/models/media"
 	"core/models/utils"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MediaRepository struct {
@@ -169,6 +171,31 @@ func getFileSizeSafe(path string) int64 {
 		return 0
 	}
 	return info.Size()
+}
+
+func publicFileURL(path string) string {
+	return strings.TrimPrefix(path, ".")
+}
+
+func shouldProcessAsync(mimeType string) bool {
+	return strings.HasPrefix(mimeType, "image/") || strings.HasPrefix(mimeType, "video/")
+}
+
+func initialFileVariants(mimeType, storagePath, ext string, size int64) *utils.FileVariants {
+	if !strings.HasPrefix(mimeType, "image/") {
+		return nil
+	}
+
+	format := strings.TrimPrefix(strings.ToLower(ext), ".")
+	return &utils.FileVariants{
+		Image: &utils.ImageVariants{
+			Original: &utils.VariantInfo{
+				URL:    publicFileURL(storagePath),
+				Format: format,
+				Size:   size,
+			},
+		},
+	}
 }
 
 func (r *MediaRepository) MakeSureDirectoryPathExists(path string) error {
@@ -480,6 +507,129 @@ func (r *MediaRepository) MakeVideoVariant(path string) *utils.VariantInfo {
 	}
 }
 
+func (r *MediaRepository) ClaimNextPendingMedia(now time.Time) (*media.Media, error) {
+	var claimedID uuid.UUID
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		var claimed media.Media
+		if err := tx.
+			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Where("processing_status = ?", media.ProcessingStatusPending).
+			Order("created_at ASC").
+			First(&claimed).Error; err != nil {
+			return err
+		}
+
+		claimedID = claimed.ID
+		return tx.Model(&media.Media{}).
+			Where("id = ?", claimed.ID).
+			Updates(map[string]interface{}{
+				"processing_status":     media.ProcessingStatusProcessing,
+				"processing_started_at": now,
+				"processing_error":      nil,
+				"processing_attempts":   gorm.Expr("processing_attempts + ?", 1),
+			}).Error
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var claimed media.Media
+	if err := r.db.Preload("File").First(&claimed, "id = ?", claimedID).Error; err != nil {
+		return nil, err
+	}
+
+	return &claimed, nil
+}
+
+func (r *MediaRepository) RequeueStaleProcessing(timeout time.Duration) (int64, error) {
+	cutoff := time.Now().Add(-timeout)
+	result := r.db.Model(&media.Media{}).
+		Where("processing_status = ? AND processing_started_at IS NOT NULL AND processing_started_at < ?", media.ProcessingStatusProcessing, cutoff).
+		Updates(map[string]interface{}{
+			"processing_status":     media.ProcessingStatusPending,
+			"processing_started_at": nil,
+			"processing_error":      "processing timed out and was re-queued",
+		})
+
+	return result.RowsAffected, result.Error
+}
+
+func (r *MediaRepository) markMediaFailed(mediaID uuid.UUID, processErr error) error {
+	msg := processErr.Error()
+	if len(msg) > 2048 {
+		msg = msg[:2048]
+	}
+
+	return r.db.Model(&media.Media{}).
+		Where("id = ?", mediaID).
+		Updates(map[string]interface{}{
+			"processing_status":     media.ProcessingStatusFailed,
+			"processing_error":      msg,
+			"processing_started_at": nil,
+		}).Error
+}
+
+func (r *MediaRepository) markMediaReady(item *media.Media, width, height *int, variants *utils.FileVariants) error {
+	now := time.Now()
+
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&utils.FileMetadata{}).
+			Where("id = ?", item.FileID).
+			Updates(map[string]interface{}{
+				"url":      publicFileURL(item.File.StoragePath),
+				"width":    width,
+				"height":   height,
+				"variants": variants,
+			}).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(&media.Media{}).
+			Where("id = ?", item.ID).
+			Updates(map[string]interface{}{
+				"processing_status":     media.ProcessingStatusReady,
+				"processing_error":      nil,
+				"processing_started_at": nil,
+				"processed_at":          now,
+			}).Error
+	})
+}
+
+func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
+	if item == nil {
+		return nil
+	}
+
+	ext := strings.ToLower(filepath.Ext(item.File.StoragePath))
+
+	switch {
+	case strings.HasPrefix(item.File.MimeType, "image/"):
+		imageVariants, width, height, err := r.generateImageVariants(item.File.StoragePath, ext, item.Role)
+		if err != nil {
+			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
+				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
+			}
+			return err
+		}
+		return r.markMediaReady(item, width, height, &utils.FileVariants{Image: imageVariants})
+	case strings.HasPrefix(item.File.MimeType, "video/"):
+		videoVariants, width, height, err := r.generateVideoVariants(item.File.StoragePath, ext, item.Role)
+		if err != nil {
+			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
+				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
+			}
+			return err
+		}
+		return r.markMediaReady(item, width, height, &utils.FileVariants{Video: videoVariants})
+	default:
+		return r.markMediaReady(item, item.File.Width, item.File.Height, item.File.Variants)
+	}
+}
+
 func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
 	ext := filepath.Ext(file.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
@@ -490,55 +640,34 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	}
 
 	mimeType := file.Header.Get("Content-Type")
-
-	var (
-		variants *utils.FileVariants
-		width    *int
-		height   *int
-		err      error
-	)
-
-	// MIME tipine göre varyant üretimi
-	if strings.HasPrefix(mimeType, "image/") {
-		var imageVariants *utils.ImageVariants
-		var w, h *int
-		imageVariants, w, h, err = r.generateImageVariants(storagePath, ext, role)
-		if err != nil {
-			fmt.Println("WARN: image variant generation failed:", err)
-		} else {
-			variants = &utils.FileVariants{Image: imageVariants}
-			width, height = w, h
-		}
-	} else if strings.HasPrefix(mimeType, "video/") {
-		var videoVariants *utils.VideoVariants
-		var w, h *int
-		var vidErr error
-		videoVariants, w, h, vidErr = r.generateVideoVariants(storagePath, ext, role)
-		if vidErr != nil {
-			fmt.Println("WARN: video variant generation failed:", vidErr)
-		} else {
-			variants = &utils.FileVariants{Video: videoVariants}
-			width, height = w, h
-		}
+	if mimeType == "" {
+		mimeType = file.Header.Get("Content-type")
 	}
 
+	status := media.ProcessingStatusReady
+	if shouldProcessAsync(mimeType) {
+		status = media.ProcessingStatusPending
+	}
+
+	variants := initialFileVariants(mimeType, storagePath, ext, file.Size)
+
 	media := media.Media{
-		ID:        uuid.New(),
-		PublicID:  r.snowFlakeNode.Generate().Int64(),
-		FileID:    uuid.New(),
-		OwnerID:   ownerID,
-		UserID:    userId,
-		OwnerType: ownerType,
-		Role:      role,
-		IsPublic:  true,
+		ID:               uuid.New(),
+		PublicID:         r.snowFlakeNode.Generate().Int64(),
+		FileID:           uuid.New(),
+		OwnerID:          ownerID,
+		UserID:           userId,
+		OwnerType:        ownerType,
+		Role:             role,
+		IsPublic:         true,
+		ProcessingStatus: status,
 		File: utils.FileMetadata{
 			ID:          uuid.New(),
+			URL:         publicFileURL(storagePath),
 			StoragePath: storagePath,
 			MimeType:    mimeType,
 			Size:        file.Size,
 			Name:        file.Filename,
-			Width:       width,
-			Height:      height,
 			Variants:    variants,
 			CreatedAt:   time.Now(),
 		},
@@ -546,10 +675,12 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		UpdatedAt: time.Now(),
 	}
 
-	if err := r.db.Create(&media.File).Error; err != nil {
-		return nil, err
-	}
-	if err := r.db.Create(&media).Error; err != nil {
+	if err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&media.File).Error; err != nil {
+			return err
+		}
+		return tx.Create(&media).Error
+	}); err != nil {
 		return nil, err
 	}
 
