@@ -1,25 +1,39 @@
 package mcp
 
-type Agent interface {
-	Name() string
-	Handle(msg Envelope) (Envelope, error)
-}
+import "sort"
 
 type Registry struct {
-	agents map[string]Agent
+	tools map[string]Tool
 }
 
 func NewRegistry() *Registry {
 	return &Registry{
-		agents: make(map[string]Agent),
+		tools: make(map[string]Tool),
 	}
 }
 
-func (r *Registry) Register(agent Agent) {
-	r.agents[agent.Name()] = agent
+func (r *Registry) Register(tool Tool) {
+	definition := tool.Definition()
+	r.tools[definition.Name] = tool
 }
 
-func (r *Registry) Get(name string) (Agent, bool) {
-	agent, ok := r.agents[name]
-	return agent, ok
+func (r *Registry) Get(name string) (Tool, bool) {
+	tool, ok := r.tools[name]
+	return tool, ok
+}
+
+func (r *Registry) Definitions() []ToolDefinition {
+	names := make([]string, 0, len(r.tools))
+	for name := range r.tools {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	definitions := make([]ToolDefinition, 0, len(names))
+	for _, name := range names {
+		definitions = append(definitions, r.tools[name].Definition())
+	}
+
+	return definitions
 }

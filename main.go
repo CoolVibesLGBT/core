@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	app "core/application"
 	"core/constants"
 	"core/helpers"
@@ -9,7 +10,6 @@ import (
 	"core/services/socket"
 	"core/services/socket/managers"
 	"core/workers"
-	"core/workers/broadcast"
 	"flag"
 	"fmt"
 	"log"
@@ -18,24 +18,30 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var appInstance *app.App
+var (
+	appInstance  *app.App
+	migrateFlag  = flag.Bool("migrate", false, "Run DB migrations")
+	seedFlag     = flag.Bool("seed", false, "Run DB seed")
+	installFlag  = flag.Bool("install", false, "Run DB migrate & seed")
+	mcpStdioFlag = flag.Bool("mcp-stdio", false, "Run the MCP server over stdio")
+)
+
+func ensureFlagsParsed() {
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+}
 
 func NewApp() (*app.App, error) {
 	if appInstance != nil {
 		return appInstance, nil
 	}
 
+	ensureFlagsParsed()
+
 	application, err := app.InitializeApp()
 	if err != nil {
 		return nil, err
-	}
-
-	migrateFlag := flag.Bool("migrate", false, "Run DB migrations")
-	seedFlag := flag.Bool("seed", false, "Run DB seed")
-	installFlag := flag.Bool("install", false, "Run DB migrate & seed")
-
-	if !flag.Parsed() {
-		flag.Parse()
 	}
 
 	if *installFlag {
@@ -77,12 +83,26 @@ func GetApp() (*app.App, error) {
 }
 
 func main() {
-	fmt.Printf("%s Started \n", constants.APPLICATION_NAME)
+	ensureFlagsParsed()
 
 	err := godotenv.Load()
 	if err != nil {
 		log.Println(".env not found, using system env")
 	}
+
+	if *mcpStdioFlag {
+		mcpServer, err := app.InitializeMCPOnly()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := mcpServer.ServeStdio(context.Background(), os.Stdin, os.Stdout); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	fmt.Printf("%s Started \n", constants.APPLICATION_NAME)
 
 	app, err := NewApp()
 	if err != nil {
@@ -111,7 +131,7 @@ func main() {
 	dispatcher := workers.NewDispatcher(10, 100)
 	dispatcher.Run()
 
-	broadcast.StartFetcher(dispatcher, app)
+	//	broadcast.StartFetcher(dispatcher, app)
 
 	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
 	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)

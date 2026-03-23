@@ -7,6 +7,8 @@
 package application
 
 import (
+	"core/ai"
+	"core/application/mcpserver"
 	"core/helpers"
 	"core/mcp"
 	"core/repositories"
@@ -20,6 +22,10 @@ import (
 
 func InitializeApp() (*App, error) {
 	gormDB, err := db.NewDatabase()
+	if err != nil {
+		return nil, err
+	}
+	client, err := ai.NewClient()
 	if err != nil {
 		return nil, err
 	}
@@ -52,14 +58,49 @@ func InitializeApp() (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationRepository)
 	paymentRepository := repositories.NewPaymentRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
 	paymentService := services.NewPaymentService(paymentRepository, userRepository, postRepository, mediaRepository)
-	mcpServer := mcp.NewMCPServer()
-	aiService := services.NewAIService(mcpServer, userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
+	config := ai.NewConfig()
+	aiService := services.NewAIService(client, config)
+	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
-	router := routes.NewRouter(gormDB, node, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, aiService, userRepository, notificationRepository, sitemapRepository, reader)
+	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, userRepository, notificationRepository, sitemapRepository, reader)
 	app := &App{
 		DB:            gormDB,
 		Router:        router,
+		MCPServer:     mcpServer,
 		SnowFlakeNode: node,
+		GenAIClient:   client,
 	}
 	return app, nil
+}
+
+func InitializeMCPOnly() (*mcp.MCPServer, error) {
+	gormDB, err := db.NewDatabase()
+	if err != nil {
+		return nil, err
+	}
+	client, err := ai.NewClient()
+	if err != nil {
+		return nil, err
+	}
+	node, err := helpers.NewDefaultNode()
+	if err != nil {
+		return nil, err
+	}
+	reader, err := routes.GeoIPDBProvider()
+	if err != nil {
+		return nil, err
+	}
+	engagementRepository := repositories.NewEngagementRepository(gormDB)
+	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
+	userRepository := repositories.NewUserRepository(gormDB, reader, node, engagementRepository, notificationRepository)
+	mediaRepository := repositories.NewMediaRepository(gormDB, node)
+	postRepository := repositories.NewPostRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
+	placeRepository := repositories.NewPlaceRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
+	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
+	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
+	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
+	config := ai.NewConfig()
+	aiService := services.NewAIService(client, config)
+	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
+	return mcpServer, nil
 }

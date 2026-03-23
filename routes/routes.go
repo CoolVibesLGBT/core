@@ -34,7 +34,6 @@ type Router struct {
 
 	TelegramService *telegramService.Service
 
-	AIService           *services.AIService
 	NewsService         *services.NewsService
 	PostService         *services.PostService
 	UserService         *services.UserService
@@ -66,6 +65,7 @@ func GeoIPDBProvider() (*maxminddb.Reader, error) {
 func NewRouter(
 	db *gorm.DB,
 	snowFlakeNode *helpers.Node,
+	mcpServer *mcp.MCPServer,
 	userService *services.UserService,
 	postService *services.PostService,
 	placeService *services.PlaceService,
@@ -75,7 +75,6 @@ func NewRouter(
 	chatService *services.ChatService,
 	notificationService *services.NotificationsService,
 	paymentService *services.PaymentService,
-	aiService *services.AIService,
 	userRepo *repositories.UserRepository,
 	notificationRepo *repositories.NotificationRepository,
 	sitemapRepo *repositories.SitemapRepository,
@@ -100,9 +99,8 @@ func NewRouter(
 			ProxyHeader:     fiber.HeaderXForwardedFor,
 		}),
 		GEOIPDB:             geoIPDB,
-		MCPServer:           mcp.NewMCPServer(),
+		MCPServer:           mcpServer,
 		snowFlakeNode:       snowFlakeNode,
-		AIService:           aiService,
 		NewsService:         newsService,
 		PostService:         postService,
 		UserService:         userService,
@@ -126,7 +124,6 @@ func NewRouter(
 	}))
 
 	r.fiber.Use("/static", static.New("./static"))
-	r.action.Register(constants.CMD_AGENTS_INVOKE, handlers.HandleMCP(aiService))
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
 
@@ -243,6 +240,7 @@ func NewRouter(
 
 	//WEBHOOK
 
+	r.fiber.All("/mcp", handlers.HandleMCPTransport(mcpServer))
 	r.fiber.All("/webhook/bot/telegram/", handlers.HandleTelegramUpdates(tg))
 
 	r.fiber.Post("/webhook/gateway/stripe/thin", handlers.HandleStripeThin(paymentService))

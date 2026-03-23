@@ -5,6 +5,8 @@
 package application
 
 import (
+	"core/ai"
+	"core/application/mcpserver"
 	"core/helpers"
 	"core/mcp"
 	"core/repositories"
@@ -18,14 +20,28 @@ import (
 
 func InitializeApp() (*App, error) {
 	wire.Build(
+		ai.ProviderSet,
 		db.ProviderSet,
 		helpers.ProviderSet,
 		repositories.ProviderSet,
 		services.ProviderSet,
 		socket.ProviderSet,
-		mcp.NewMCPServer,
+		mcpserver.NewServer,
 		routes.ProviderSet,
-		wire.Struct(new(App), "DB", "Router", "SnowFlakeNode"),
+		wire.Struct(new(App), "DB", "Router", "MCPServer", "SnowFlakeNode", "GenAIClient"),
+	)
+	return nil, nil
+}
+
+func InitializeMCPOnly() (*mcp.MCPServer, error) {
+	wire.Build(
+		ai.ProviderSet,
+		db.ProviderSet,
+		helpers.ProviderSet,
+		repositories.ProviderSet,
+		services.ProviderSet,
+		routes.GeoIPDBProvider,
+		mcpserver.NewServer,
 	)
 	return nil, nil
 }
