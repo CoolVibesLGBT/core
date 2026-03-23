@@ -39,9 +39,6 @@ func BuildFilter(ctx context.Context, arguments map[string]any) (types.Filter, e
 		if limit > constants.MAXIMUM_LIMIT {
 			limit = constants.MAXIMUM_LIMIT
 		}
-		if limit < constants.DEFAULT_LIMIT {
-			limit = constants.DEFAULT_LIMIT
-		}
 		filter.Limit = int(limit)
 	}
 

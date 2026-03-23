@@ -9,6 +9,7 @@ import (
 )
 
 type generateTextArguments struct {
+	Provider          string   `json:"provider,omitempty"`
 	Prompt            string   `json:"prompt"`
 	Model             string   `json:"model,omitempty"`
 	SystemInstruction string   `json:"system_instruction,omitempty"`
@@ -16,16 +17,27 @@ type generateTextArguments struct {
 }
 
 func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
+	if aiService == nil || !aiService.IsConfigured() {
+		return
+	}
+
+	providers := aiService.Providers()
+	providerSchema := shared.SchemaString("Optional provider. Defaults to the configured default AI provider.")
+	if len(providers) > 0 {
+		providerSchema["enum"] = providers
+	}
+
 	server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        "ai.generate_text",
 			Title:       "Generate Text",
-			Description: "Generate plain text with the configured Google GenAI client.",
+			Description: "Generate plain text with one of the configured AI providers.",
 			InputSchema: mcp.JSONSchema{
 				Type: "object",
 				Properties: map[string]any{
+					"provider":           providerSchema,
 					"prompt":             shared.SchemaString("The user prompt to send to the model."),
-					"model":              shared.SchemaString("Optional model name. Defaults to GOOGLE_GENAI_MODEL."),
+					"model":              shared.SchemaString("Optional model name. Defaults to the selected provider's configured model."),
 					"system_instruction": shared.SchemaString("Optional system instruction."),
 					"temperature":        shared.SchemaNumber("Optional sampling temperature."),
 				},
@@ -35,8 +47,9 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 			OutputSchema: &mcp.JSONSchema{
 				Type: "object",
 				Properties: map[string]any{
-					"text":  shared.SchemaString("Generated text."),
-					"model": shared.SchemaString("Model used for generation."),
+					"text":     shared.SchemaString("Generated text."),
+					"model":    shared.SchemaString("Model used for generation."),
+					"provider": shared.SchemaString("Provider used for generation."),
 				},
 				AdditionalProperties: false,
 			},
@@ -55,6 +68,9 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 			if args.Prompt == "" {
 				args.Prompt, _ = shared.LookupString(req.Arguments, "prompt")
 			}
+			if args.Provider == "" {
+				args.Provider, _ = shared.LookupString(req.Arguments, "provider")
+			}
 			if args.Model == "" {
 				args.Model, _ = shared.LookupString(req.Arguments, "model")
 			}
@@ -64,10 +80,11 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 
 			model := strings.TrimSpace(args.Model)
 			if model == "" {
-				model = aiService.DefaultModel()
+				model = aiService.DefaultModel(args.Provider)
 			}
 
-			text, err := aiService.GenerateText(ctx, services.GenerateTextInput{
+			result, err := aiService.GenerateText(ctx, services.GenerateTextInput{
+				Provider:          args.Provider,
 				Prompt:            args.Prompt,
 				Model:             model,
 				SystemInstruction: args.SystemInstruction,
@@ -78,8 +95,9 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 			}
 
 			return map[string]any{
-				"text":  text,
-				"model": model,
+				"text":     result.Text,
+				"model":    result.Model,
+				"provider": result.Provider,
 			}, nil
 		},
 	))

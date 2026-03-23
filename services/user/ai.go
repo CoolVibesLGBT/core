@@ -3,79 +3,83 @@ package services
 import (
 	"context"
 	aiConfig "core/ai"
-	"errors"
 	"fmt"
-	"strings"
-
-	"google.golang.org/genai"
 )
 
 type AIService struct {
-	client       *genai.Client
-	defaultModel string
+	registry *aiConfig.Registry
 }
 
 type GenerateTextInput struct {
+	Provider          string
 	Prompt            string
 	Model             string
 	SystemInstruction string
 	Temperature       *float32
 }
 
-func NewAIService(
-	client *genai.Client,
-	config aiConfig.Config,
-) *AIService {
-	return &AIService{
-		client:       client,
-		defaultModel: config.DefaultModel,
-	}
+type GenerateTextResult struct {
+	Provider string
+	Model    string
+	Text     string
+}
+
+func NewAIService(registry *aiConfig.Registry) *AIService {
+	return &AIService{registry: registry}
 }
 
 func (s *AIService) ServiceName() string {
 	return "AIService"
 }
 
-func (s *AIService) Client() *genai.Client {
-	return s.client
+func (s *AIService) IsConfigured() bool {
+	return s != nil && s.registry != nil && s.registry.IsConfigured()
 }
 
-func (s *AIService) DefaultModel() string {
-	return s.defaultModel
+func (s *AIService) Providers() []string {
+	if s == nil || s.registry == nil {
+		return nil
+	}
+	return s.registry.ProviderStrings()
 }
 
-func (s *AIService) GenerateText(ctx context.Context, input GenerateTextInput) (string, error) {
-	if s.client == nil {
-		return "", errors.New("google genai client is not configured; set GOOGLE_API_KEY or Vertex AI environment variables")
+func (s *AIService) DefaultProvider() string {
+	if s == nil || s.registry == nil {
+		return ""
+	}
+	return string(s.registry.DefaultProvider())
+}
+
+func (s *AIService) DefaultModel(provider string) string {
+	if s == nil || s.registry == nil {
+		return ""
+	}
+	return s.registry.DefaultModel(provider)
+}
+
+func (s *AIService) GenerateText(ctx context.Context, input GenerateTextInput) (GenerateTextResult, error) {
+	if !s.IsConfigured() {
+		return GenerateTextResult{}, fmt.Errorf("no AI provider is configured")
 	}
 
-	prompt := strings.TrimSpace(input.Prompt)
-	if prompt == "" {
-		return "", errors.New("prompt is required")
-	}
-
-	model := strings.TrimSpace(input.Model)
-	if model == "" {
-		model = s.defaultModel
-	}
-
-	config := &genai.GenerateContentConfig{}
-	if input.Temperature != nil {
-		config.Temperature = input.Temperature
-	}
-
-	if instruction := strings.TrimSpace(input.SystemInstruction); instruction != "" {
-		config.SystemInstruction = &genai.Content{
-			Parts: []*genai.Part{
-				{Text: instruction},
-			},
-		}
-	}
-
-	result, err := s.client.Models.GenerateContent(ctx, model, genai.Text(prompt), config)
+	client, err := s.registry.Resolve(input.Provider)
 	if err != nil {
-		return "", fmt.Errorf("generate content: %w", err)
+		return GenerateTextResult{}, err
 	}
 
-	return strings.TrimSpace(result.Text()), nil
+	result, err := client.GenerateText(ctx, aiConfig.GenerateTextInput{
+		Prompt:            input.Prompt,
+		Model:             input.Model,
+		SystemInstruction: input.SystemInstruction,
+		Temperature:       input.Temperature,
+	})
+	if err != nil {
+		return GenerateTextResult{}, err
+	}
+
+	return GenerateTextResult{
+		Provider: string(result.Provider),
+		Model:    result.Model,
+		Text:     result.Text,
+	}, nil
 }

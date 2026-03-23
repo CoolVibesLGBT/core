@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,7 @@ var (
 	ErrToolRequired         = errors.New("tool required")
 	ErrToolNotFound         = errors.New("tool not found")
 	ErrServerNotInitialized = errors.New("server not initialized")
+	ErrEmptyBatch           = errors.New("empty batch")
 )
 
 func NormalizeToolName(target string, action string) string {
@@ -54,6 +56,31 @@ func DecodeArguments[T any](arguments map[string]any) (T, error) {
 	}
 
 	return out, nil
+}
+
+func DecodeWireMessages(raw []byte) ([]JSONRPCMessage, bool, error) {
+	raw = bytes.TrimSpace(raw)
+	if len(raw) == 0 {
+		return nil, false, fmt.Errorf("empty payload")
+	}
+
+	if raw[0] == '[' {
+		var messages []JSONRPCMessage
+		if err := json.Unmarshal(raw, &messages); err != nil {
+			return nil, true, err
+		}
+		if len(messages) == 0 {
+			return nil, true, ErrEmptyBatch
+		}
+		return messages, true, nil
+	}
+
+	var message JSONRPCMessage
+	if err := json.Unmarshal(raw, &message); err != nil {
+		return nil, false, err
+	}
+
+	return []JSONRPCMessage{message}, false, nil
 }
 
 func ToCallToolResult(result any) (CallToolResult, error) {

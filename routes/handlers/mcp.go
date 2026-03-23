@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"context"
+	"bytes"
 	"core/mcp"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -20,27 +21,41 @@ func HandleMCPTransport(server *mcp.MCPServer) fiber.Handler {
 		}
 
 		switch c.Method() {
+		case fiber.MethodGet:
+			c.Set(fiber.HeaderAllow, strings.Join([]string{fiber.MethodPost, fiber.MethodDelete}, ", "))
+			return c.SendStatus(fiber.StatusMethodNotAllowed)
 		case fiber.MethodPost:
 			return handleMCPPost(c, server)
 		case fiber.MethodDelete:
 			return handleMCPDelete(c, server)
 		default:
+			c.Set(fiber.HeaderAllow, strings.Join([]string{fiber.MethodPost, fiber.MethodDelete}, ", "))
 			return c.SendStatus(fiber.StatusMethodNotAllowed)
 		}
 	}
 }
 
 func handleMCPPost(c fiber.Ctx, server *mcp.MCPServer) error {
-	var message mcp.JSONRPCMessage
-	if err := c.Bind().JSON(&message); err != nil {
-		return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(nil, mcp.ParseErrorCode, "parse error", map[string]any{"details": err.Error()}))
+	rawBody := bytes.TrimSpace(c.Body())
+	messages, isBatch, err := mcp.DecodeWireMessages(rawBody)
+	if err != nil {
+		code := mcp.ParseErrorCode
+		message := "parse error"
+		if errors.Is(err, mcp.ErrEmptyBatch) {
+			code = mcp.InvalidRequestCode
+			message = "invalid request"
+		}
+		return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(nil, code, message, map[string]any{"details": err.Error()}))
 	}
 
-	if message.JSONRPC == "" {
-		message.JSONRPC = mcp.JSONRPCVersion
+	message := messages[0]
+	for index := range messages {
+		if messages[index].JSONRPC == "" {
+			messages[index].JSONRPC = mcp.JSONRPCVersion
+		}
 	}
 
-	if message.IsResponse() {
+	if !isBatch && message.IsResponse() {
 		return c.SendStatus(fiber.StatusAccepted)
 	}
 
@@ -53,7 +68,20 @@ func handleMCPPost(c fiber.Ctx, server *mcp.MCPServer) error {
 		ok           bool
 	)
 
-	if message.Method == "initialize" {
+	if isBatch {
+		if sessionID == "" {
+			return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(nil, mcp.InvalidRequestCode, "MCP-Session-Id header is required", nil))
+		}
+
+		connection, ok = server.GetHTTPSession(sessionID)
+		if !ok {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+		state := connection.Snapshot()
+		if !state.Initialized || !server.SupportsBatch(state.ProtocolVersion) {
+			return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(nil, mcp.InvalidRequestCode, "JSON-RPC batches are only supported for initialized sessions using protocol version 2025-03-26", nil))
+		}
+	} else if message.Method == "initialize" {
 		if sessionID != "" {
 			return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(message.ID, mcp.InvalidRequestCode, "initialize must not include MCP-Session-Id", nil))
 		}
@@ -77,27 +105,29 @@ func handleMCPPost(c fiber.Ctx, server *mcp.MCPServer) error {
 		return writeJSONRPC(c, fiber.StatusBadRequest, mcp.NewJSONRPCErrorMessage(message.ID, mcp.InvalidRequestCode, err.Error(), nil))
 	}
 
-	response := server.HandleMessage(context.Background(), connection, message)
-	if response == nil {
-		if message.IsNotification() {
+	responses := server.HandleMessages(c.Context(), connection, messages)
+	if len(responses) == 0 {
+		if isBatch || message.IsNotification() {
 			return c.SendStatus(fiber.StatusAccepted)
 		}
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 
 	if newSessionID != "" {
-		if response.Error != nil {
+		if responses[0].Error != nil {
 			server.DeleteHTTPSession(newSessionID)
 		} else {
 			c.Set("MCP-Session-Id", newSessionID)
 		}
 	}
 
-	if connection != nil && connection.ProtocolVersion != "" {
-		c.Set("MCP-Protocol-Version", connection.ProtocolVersion)
+	if connection != nil {
+		if protocolVersion := connection.ProtocolVersion(); protocolVersion != "" {
+			c.Set("MCP-Protocol-Version", protocolVersion)
+		}
 	}
 
-	return writeJSONRPC(c, fiber.StatusOK, response)
+	return writeJSONRPCMessages(c, fiber.StatusOK, responses, isBatch)
 }
 
 func handleMCPDelete(c fiber.Ctx, server *mcp.MCPServer) error {
@@ -114,15 +144,28 @@ func handleMCPDelete(c fiber.Ctx, server *mcp.MCPServer) error {
 }
 
 func writeJSONRPC(c fiber.Ctx, status int, message *mcp.JSONRPCMessage) error {
+	return writeJSONRPCMessages(c, status, []*mcp.JSONRPCMessage{message}, false)
+}
+
+func writeJSONRPCMessages(c fiber.Ctx, status int, messages []*mcp.JSONRPCMessage, isBatch bool) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSONCharsetUTF8)
-	return c.Status(status).JSON(message)
+	if isBatch {
+		return c.Status(status).JSON(messages)
+	}
+	return c.Status(status).JSON(messages[0])
 }
 
 func validateMCPProtocolHeader(server *mcp.MCPServer, connection *mcp.ConnectionState, protocolHeader string) error {
 	if protocolHeader == "" {
-		if connection != nil && connection.ProtocolVersion != "" {
-			return nil
-		}
+		return nil
+	}
+
+	if connection == nil {
+		return nil
+	}
+
+	expected := connection.ProtocolVersion()
+	if expected == "" {
 		return nil
 	}
 
@@ -130,8 +173,8 @@ func validateMCPProtocolHeader(server *mcp.MCPServer, connection *mcp.Connection
 		return fmt.Errorf("unsupported MCP-Protocol-Version: %s", protocolHeader)
 	}
 
-	if connection != nil && connection.ProtocolVersion != "" && connection.ProtocolVersion != protocolHeader {
-		return fmt.Errorf("protocol version mismatch: expected %s, got %s", connection.ProtocolVersion, protocolHeader)
+	if expected != protocolHeader {
+		return fmt.Errorf("protocol version mismatch: expected %s, got %s", expected, protocolHeader)
 	}
 
 	return nil

@@ -1,8 +1,10 @@
 package mcp
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"sync"
 )
 
 const (
@@ -15,7 +17,6 @@ var SupportedProtocolVersions = []string{
 	LatestProtocolVersion,
 	"2025-06-18",
 	DefaultProtocolVersion,
-	"2024-11-05",
 }
 
 type CallToolRequest struct {
@@ -150,7 +151,31 @@ type JSONRPCMessage struct {
 }
 
 func (m JSONRPCMessage) HasID() bool {
-	return len(m.ID) > 0
+	switch classifyJSONRPCID(m.ID) {
+	case jsonRPCIDKindString, jsonRPCIDKindNumber:
+		return true
+	default:
+		return false
+	}
+}
+
+func (m JSONRPCMessage) HasInvalidID() bool {
+	switch classifyJSONRPCID(m.ID) {
+	case jsonRPCIDKindNull, jsonRPCIDKindInvalid:
+		return true
+	default:
+		return false
+	}
+}
+
+func (m JSONRPCMessage) InvalidRequestID() json.RawMessage {
+	if m.HasInvalidID() {
+		return json.RawMessage("null")
+	}
+	if m.HasID() {
+		return cloneID(m.ID)
+	}
+	return nil
 }
 
 func (m JSONRPCMessage) IsRequest() bool {
@@ -165,9 +190,141 @@ func (m JSONRPCMessage) IsResponse() bool {
 	return m.Method == "" && m.HasID() && (m.Result != nil || m.Error != nil)
 }
 
-type ConnectionState struct {
+type ConnectionSnapshot struct {
 	ProtocolVersion    string
 	Initialized        bool
 	ClientInfo         Implementation
 	ClientCapabilities map[string]any
+}
+
+type ConnectionState struct {
+	mu sync.RWMutex
+
+	protocolVersion    string
+	initialized        bool
+	clientInfo         Implementation
+	clientCapabilities map[string]any
+}
+
+func (c *ConnectionState) Snapshot() ConnectionSnapshot {
+	if c == nil {
+		return ConnectionSnapshot{}
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return ConnectionSnapshot{
+		ProtocolVersion:    c.protocolVersion,
+		Initialized:        c.initialized,
+		ClientInfo:         c.clientInfo,
+		ClientCapabilities: cloneStringAnyMap(c.clientCapabilities),
+	}
+}
+
+func (c *ConnectionState) ProtocolVersion() string {
+	if c == nil {
+		return ""
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.protocolVersion
+}
+
+func (c *ConnectionState) IsReady() bool {
+	if c == nil {
+		return false
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.protocolVersion != "" && c.initialized
+}
+
+func (c *ConnectionState) TryInitialize(protocolVersion string, clientInfo Implementation, clientCapabilities map[string]any) bool {
+	if c == nil {
+		return false
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.protocolVersion != "" {
+		return false
+	}
+
+	c.protocolVersion = protocolVersion
+	c.clientInfo = clientInfo
+	c.clientCapabilities = cloneStringAnyMap(clientCapabilities)
+	c.initialized = false
+	return true
+}
+
+func (c *ConnectionState) MarkInitialized() bool {
+	if c == nil {
+		return false
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.protocolVersion == "" {
+		return false
+	}
+
+	c.initialized = true
+	return true
+}
+
+type jsonRPCIDKind uint8
+
+const (
+	jsonRPCIDKindMissing jsonRPCIDKind = iota
+	jsonRPCIDKindString
+	jsonRPCIDKindNumber
+	jsonRPCIDKindNull
+	jsonRPCIDKindInvalid
+)
+
+func classifyJSONRPCID(raw json.RawMessage) jsonRPCIDKind {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return jsonRPCIDKindMissing
+	}
+
+	if bytes.Equal(trimmed, []byte("null")) {
+		return jsonRPCIDKindNull
+	}
+
+	if trimmed[0] == '"' {
+		var value string
+		if err := json.Unmarshal(trimmed, &value); err == nil {
+			return jsonRPCIDKindString
+		}
+		return jsonRPCIDKindInvalid
+	}
+
+	if trimmed[0] == '-' || (trimmed[0] >= '0' && trimmed[0] <= '9') {
+		var value json.Number
+		if err := json.Unmarshal(trimmed, &value); err == nil {
+			return jsonRPCIDKindNumber
+		}
+	}
+
+	return jsonRPCIDKindInvalid
+}
+
+func cloneStringAnyMap(in map[string]any) map[string]any {
+	if len(in) == 0 {
+		return nil
+	}
+
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
 }

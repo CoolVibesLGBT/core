@@ -47,9 +47,6 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 			if l > constants.MAXIMUM_LIMIT {
 				l = constants.MAXIMUM_LIMIT
 			}
-			if l < constants.DEFAULT_LIMIT {
-				l = constants.DEFAULT_LIMIT
-			}
 			filter.Limit = l
 		} else {
 			return filter, fmt.Errorf("invalid limit")

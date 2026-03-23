@@ -25,7 +25,9 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := ai.NewClient()
+	config := ai.NewConfig()
+	httpClient := ai.NewHTTPClient()
+	registry, err := ai.NewRegistry(config, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +60,7 @@ func InitializeApp() (*App, error) {
 	notificationsService := services.NewNotificationsService(notificationRepository)
 	paymentRepository := repositories.NewPaymentRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
 	paymentService := services.NewPaymentService(paymentRepository, userRepository, postRepository, mediaRepository)
-	config := ai.NewConfig()
-	aiService := services.NewAIService(client, config)
+	aiService := services.NewAIService(registry)
 	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
 	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, userRepository, notificationRepository, sitemapRepository, reader)
@@ -68,7 +69,7 @@ func InitializeApp() (*App, error) {
 		Router:        router,
 		MCPServer:     mcpServer,
 		SnowFlakeNode: node,
-		GenAIClient:   client,
+		AIRegistry:    registry,
 	}
 	return app, nil
 }
@@ -78,7 +79,9 @@ func InitializeMCPOnly() (*mcp.MCPServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := ai.NewClient()
+	config := ai.NewConfig()
+	httpClient := ai.NewHTTPClient()
+	registry, err := ai.NewRegistry(config, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +102,7 @@ func InitializeMCPOnly() (*mcp.MCPServer, error) {
 	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	newsService := services.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	placeService := services.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
-	config := ai.NewConfig()
-	aiService := services.NewAIService(client, config)
+	aiService := services.NewAIService(registry)
 	mcpServer := mcpserver.NewServer(aiService, newsService, placeService)
 	return mcpServer, nil
 }

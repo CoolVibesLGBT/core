@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 )
 
@@ -27,20 +28,40 @@ func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.W
 			continue
 		}
 
-		var message JSONRPCMessage
-		if err := json.Unmarshal(line, &message); err != nil {
-			if err := writeStdioMessage(writer, NewJSONRPCErrorMessage(nil, ParseErrorCode, "parse error", map[string]any{"details": err.Error()})); err != nil {
+		messages, isBatch, err := DecodeWireMessages(line)
+		if err != nil {
+			code := ParseErrorCode
+			message := "parse error"
+			if errors.Is(err, ErrEmptyBatch) {
+				code = InvalidRequestCode
+				message = "invalid request"
+			}
+			if err := writeStdioMessages(writer, []*JSONRPCMessage{
+				NewJSONRPCErrorMessage(nil, code, message, map[string]any{"details": err.Error()}),
+			}, false); err != nil {
 				return err
 			}
 			continue
 		}
 
-		response := r.HandleMessage(ctx, connection, message)
-		if response == nil {
+		if isBatch {
+			state := connection.Snapshot()
+			if !state.Initialized || !r.SupportsBatch(state.ProtocolVersion) {
+				if err := writeStdioMessages(writer, []*JSONRPCMessage{
+					NewJSONRPCErrorMessage(nil, InvalidRequestCode, "JSON-RPC batches are only supported for initialized sessions using protocol version 2025-03-26", nil),
+				}, false); err != nil {
+					return err
+				}
+				continue
+			}
+		}
+
+		responses := r.HandleMessages(ctx, connection, messages)
+		if len(responses) == 0 {
 			continue
 		}
 
-		if err := writeStdioMessage(writer, response); err != nil {
+		if err := writeStdioMessages(writer, responses, isBatch); err != nil {
 			return err
 		}
 	}
@@ -48,8 +69,17 @@ func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.W
 	return scanner.Err()
 }
 
-func writeStdioMessage(writer *bufio.Writer, message *JSONRPCMessage) error {
-	payload, err := json.Marshal(message)
+func writeStdioMessages(writer *bufio.Writer, messages []*JSONRPCMessage, isBatch bool) error {
+	var (
+		payload []byte
+		err     error
+	)
+
+	if isBatch {
+		payload, err = json.Marshal(messages)
+	} else {
+		payload, err = json.Marshal(messages[0])
+	}
 	if err != nil {
 		return err
 	}

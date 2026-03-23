@@ -65,6 +65,14 @@ func (c *Cluster) BuildSearchVector() string {
 }
 
 func (c *Cluster) BeforeSave(tx *gorm.DB) error {
+	c.Slug = helpers.GenerateSlug(c.Slug)
 	c.SearchVector = c.BuildSearchVector()
 	return nil
+}
+
+func (c *Cluster) BeforeCreate(tx *gorm.DB) error {
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
+	}
+	return c.BeforeSave(tx)
 }

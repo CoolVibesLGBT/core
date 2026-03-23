@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/stdr"
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/rs/cors"
@@ -21,6 +23,7 @@ import (
 	"github.com/vchitai/go-socket.io/v4/engineio/transport"
 	"github.com/vchitai/go-socket.io/v4/engineio/transport/polling"
 	"github.com/vchitai/go-socket.io/v4/engineio/transport/websocket"
+	socketlogger "github.com/vchitai/go-socket.io/v4/logger"
 	"gorm.io/gorm"
 )
 
@@ -36,18 +39,81 @@ var allowOriginFunc = func(r *http.Request) bool {
 	return true
 }
 
+type socketLogFilter struct {
+	inner logr.LogSink
+}
+
+func (s *socketLogFilter) Init(info logr.RuntimeInfo) {
+	s.inner.Init(info)
+}
+
+func (s *socketLogFilter) Enabled(level int) bool {
+	return s.inner.Enabled(level)
+}
+
+func (s *socketLogFilter) Info(level int, msg string, keysAndValues ...any) {
+	s.inner.Info(level, msg, keysAndValues...)
+}
+
+func (s *socketLogFilter) Error(err error, msg string, keysAndValues ...any) {
+	if shouldSuppressSocketError(msg, err) {
+		return
+	}
+	s.inner.Error(err, msg, keysAndValues...)
+}
+
+func (s *socketLogFilter) WithValues(keysAndValues ...any) logr.LogSink {
+	return &socketLogFilter{inner: s.inner.WithValues(keysAndValues...)}
+}
+
+func (s *socketLogFilter) WithName(name string) logr.LogSink {
+	return &socketLogFilter{inner: s.inner.WithName(name)}
+}
+
+func shouldSuppressSocketError(msg string, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errText := strings.ToLower(err.Error())
+	if msg == "failed to get ping writer" && (strings.Contains(errText, "timeout") || strings.Contains(errText, "closed network connection")) {
+		return true
+	}
+	if msg == "failed to close ping writer" && strings.Contains(errText, "closed network connection") {
+		return true
+	}
+
+	return false
+}
+
+func configureSocketLogger() {
+	base := stdr.New(log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile))
+	socketlogger.ReplaceLogger(logr.New(&socketLogFilter{inner: base.GetSink()}))
+}
+
+func updateUserPresence(db *gorm.DB, socketID string, publicID int64, online bool) error {
+	now := time.Now()
+	updateData := map[string]any{
+		"last_online": now,
+		"is_online":   online,
+	}
+	query := db.Model(&userModel.User{}).Where("public_id = ?", publicID)
+
+	if online {
+		updateData["socket_id"] = socketID
+	} else {
+		updateData["socket_id"] = nil
+		query = query.Where("socket_id = ?", socketID)
+	}
+
+	return query.Updates(updateData).Error
+}
+
 func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) error {
 	var chatIDs []uuid.UUID
 
-	now := time.Now()
-
-	updateData := map[string]interface{}{
-		"last_online": now,
-		"socket_id":   s.ID(),
-	}
-	result := db.Model(&userModel.User{}).Where("public_id = ?", publicID).Updates(updateData)
-	if result.Error != nil {
-		return result.Error
+	if err := updateUserPresence(db, s.ID(), publicID, join); err != nil {
+		return err
 	}
 
 	err := db.
@@ -81,6 +147,7 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 }
 
 func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) (*socketio.Server, error) {
+	configureSocketLogger()
 
 	Server = socketio.NewServer(&engineio.Options{
 		PingInterval: 25 * time.Second, // Sunucunun istemciye ping atma sıklığı
@@ -173,6 +240,7 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 	})
 
 	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
+		delete(userConnections, s.ID())
 		publicID, ok := userPublicIDs[s.ID()]
 		if ok {
 			err := updateUserRooms(s, db, publicID, false) // false = leave rooms
@@ -181,7 +249,7 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 			}
 			delete(userPublicIDs, s.ID())
 		}
-		fmt.Println("Disconnected:", s.ID())
+		fmt.Printf("Disconnected: %s reason=%s\n", s.ID(), reason)
 	})
 
 	go func() {
@@ -248,16 +316,8 @@ func (socketService *SocketService) SendMessageToUser(userId uuid.UUID, event st
 func (s *SocketService) UpdateUserRooms(conn socketio.Conn, publicID int64, join bool) error {
 	var chatIDs []uuid.UUID
 
-	now := time.Now()
-
-	updateData := map[string]interface{}{
-		"last_online": now,
-		"socket_id":   conn.ID(),
-	}
-
-	result := s.db.Model(&userModel.User{}).Where("public_id = ?", publicID).Updates(updateData)
-	if result.Error != nil {
-		return result.Error
+	if err := updateUserPresence(s.db, conn.ID(), publicID, join); err != nil {
+		return err
 	}
 
 	err := s.db.

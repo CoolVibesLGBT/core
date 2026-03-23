@@ -28,7 +28,7 @@ func InitializeApp() (*App, error) {
 		socket.ProviderSet,
 		mcpserver.NewServer,
 		routes.ProviderSet,
-		wire.Struct(new(App), "DB", "Router", "MCPServer", "SnowFlakeNode", "GenAIClient"),
+		wire.Struct(new(App), "DB", "Router", "MCPServer", "SnowFlakeNode", "AIRegistry"),
 	)
 	return nil, nil
 }

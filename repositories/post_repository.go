@@ -300,6 +300,8 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 		Preload("Attachments").
 		Preload("Attachments.File")
 
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
+
 	if filters.Cursor != nil {
 		query = query.Where("public_id < ?", *filters.Cursor)
 	}
@@ -341,6 +343,8 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
 		Group("posts.id")
+
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
 
 	if filters.Cursor != nil {
 		query = query.Where("posts.public_id < ?", *filters.Cursor)
@@ -395,6 +399,8 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult
 		Preload("Mentions").
 		Preload("Attachments").
 		Preload("Attachments.File")
+
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
 
 	if filters.Cursor != nil {
 		query = query.Where("public_id < ?", *filters.Cursor)
@@ -1528,21 +1534,132 @@ func (r *PostRepository) CreatePillar(ctx context.Context, pillar *taxonomy.Pill
 	return r.db.WithContext(ctx).Create(pillar).Error
 }
 
-func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cluster) error {
-	var existing taxonomy.Cluster
+func normalizeTaxonomySlug(raw string) string {
+	return helpers.GenerateSlug(strings.TrimSpace(raw))
+}
 
-	cluster.Slug = helpers.GenerateSlug(cluster.Slug)
+func normalizeTaxonomySearch(raw string) (string, string) {
+	slug := normalizeTaxonomySlug(raw)
+	return slug, strings.ToLower(helpers.SlugifyStrict(slug))
+}
 
-	query := r.db.WithContext(ctx).
-		Where("pillar_id = ? AND slug = ?", cluster.PillarID, cluster.Slug)
+func activeTaxonomyPreload(db *gorm.DB) *gorm.DB {
+	return db.Where("is_active = ?", true).
+		Where("deleted_at IS NULL")
+}
 
-	if cluster.ParentID != nil {
-		query = query.Where("parent_id = ?", *cluster.ParentID)
+func orderedSynonymPreload(db *gorm.DB) *gorm.DB {
+	return db.Order("is_primary DESC").
+		Order("search_weight DESC").
+		Order("slug ASC")
+}
+
+func rootClusterPreload(db *gorm.DB) *gorm.DB {
+	return activeTaxonomyPreload(db).
+		Where("parent_id IS NULL").
+		Order("slug ASC")
+}
+
+func childClusterPreload(db *gorm.DB) *gorm.DB {
+	return activeTaxonomyPreload(db).
+		Order("slug ASC")
+}
+
+func taxonomyPillarTreeQuery(tx *gorm.DB) *gorm.DB {
+	return tx.Preload("Clusters", rootClusterPreload).
+		Preload("Clusters.Synonyms", orderedSynonymPreload).
+		Preload("Clusters.Children", childClusterPreload).
+		Preload("Clusters.Children.Synonyms", orderedSynonymPreload)
+}
+
+func exactClusterLookupQuery(tx *gorm.DB, pillarID uuid.UUID, parentID *uuid.UUID, slug string) *gorm.DB {
+	slug = normalizeTaxonomySlug(slug)
+
+	query := tx.Where("pillar_id = ?", pillarID).
+		Where("slug = ?", slug).
+		Where("deleted_at IS NULL")
+
+	if parentID != nil {
+		query = query.Where("parent_id = ?", *parentID)
 	} else {
 		query = query.Where("parent_id IS NULL")
 	}
 
-	err := query.First(&existing).Error
+	return query
+}
+
+func taxonomyPillarMatchQuery(tx *gorm.DB, slug string) *gorm.DB {
+	normalizedSlug, strictSlug := normalizeTaxonomySearch(slug)
+	if normalizedSlug == "" {
+		return activeTaxonomyPreload(tx)
+	}
+
+	likePattern := "%" + strictSlug + "%"
+
+	return activeTaxonomyPreload(tx).
+		Where(`
+			pillars.slug = ?
+			OR EXISTS (
+				SELECT 1
+				FROM clusters
+				WHERE clusters.pillar_id = pillars.id
+				  AND clusters.is_active = true
+				  AND clusters.deleted_at IS NULL
+				  AND (
+					clusters.slug = ?
+					OR clusters.search_vector ILIKE ?
+					OR EXISTS (
+						SELECT 1
+						FROM synonyms
+						WHERE synonyms.cluster_id = clusters.id
+						  AND synonyms.slug = ?
+					)
+				  )
+			)
+		`, normalizedSlug, normalizedSlug, likePattern, normalizedSlug)
+}
+
+func applyTaxonomyCategoryFilter(query *gorm.DB, category *string) *gorm.DB {
+	if category == nil {
+		return query
+	}
+
+	normalizedSlug, strictSlug := normalizeTaxonomySearch(*category)
+	if normalizedSlug == "" {
+		return query
+	}
+
+	likePattern := "%" + strictSlug + "%"
+
+	return query.Where(`
+		EXISTS (
+			SELECT 1
+			FROM post_clusters
+			JOIN clusters ON clusters.id = post_clusters.cluster_id
+			JOIN pillars ON pillars.id = clusters.pillar_id
+			LEFT JOIN synonyms ON synonyms.cluster_id = clusters.id
+			WHERE post_clusters.post_id = posts.id
+			  AND clusters.is_active = true
+			  AND clusters.deleted_at IS NULL
+			  AND pillars.is_active = true
+			  AND pillars.deleted_at IS NULL
+			  AND (
+				pillars.slug = ?
+				OR clusters.slug = ?
+				OR clusters.search_vector ILIKE ?
+				OR synonyms.slug = ?
+			  )
+		)
+	`, normalizedSlug, normalizedSlug, likePattern, normalizedSlug)
+}
+
+func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cluster) error {
+	var existing taxonomy.Cluster
+
+	cluster.Slug = normalizeTaxonomySlug(cluster.Slug)
+
+	err := exactClusterLookupQuery(r.db.WithContext(ctx), cluster.PillarID, cluster.ParentID, cluster.Slug).
+		First(&existing).Error
 	if err == nil {
 		return fmt.Errorf("cluster already exists")
 	}
@@ -1555,17 +1672,14 @@ func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cl
 		cluster.ID = uuid.New()
 	}
 
-	if !cluster.IsActive {
-		cluster.IsActive = true
-	}
-
 	return r.db.WithContext(ctx).Create(cluster).Error
 }
 
 func (r *PostRepository) CreateSynonym(ctx context.Context, synonym *taxonomy.Synonym) error {
 	var existing taxonomy.Synonym
-	synonym.Slug = helpers.GenerateSlug(synonym.Slug)
+	synonym.Slug = normalizeTaxonomySlug(synonym.Slug)
 	err := r.db.WithContext(ctx).
+		Where("cluster_id = ?", synonym.ClusterID).
 		Where("slug = ?", synonym.Slug).
 		First(&existing).Error
 
@@ -1675,18 +1789,32 @@ func (r *PostRepository) ClusterExists(ctx context.Context, pillarID uuid.UUID, 
 	return true, nil
 }
 
+func (r *PostRepository) FindClusterBySlug(ctx context.Context, pillarID uuid.UUID, slug string) (*taxonomy.Cluster, error) {
+	var clusters []taxonomy.Cluster
+
+	err := r.db.WithContext(ctx).
+		Where("pillar_id = ?", pillarID).
+		Where("slug = ?", normalizeTaxonomySlug(slug)).
+		Where("deleted_at IS NULL").
+		Limit(2).
+		Find(&clusters).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(clusters) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	if len(clusters) > 1 {
+		return nil, fmt.Errorf("cluster slug %q is ambiguous within pillar %s", slug, pillarID)
+	}
+
+	return &clusters[0], nil
+}
+
 func (r *PostRepository) GetCluster(ctx context.Context, pillarID uuid.UUID, parentID *uuid.UUID, slug string) (*taxonomy.Cluster, error) {
 	var cluster taxonomy.Cluster
-	slug = helpers.GenerateSlug(slug)
-	strict := helpers.SlugifyStrict(slug)
-
-	query := r.db.WithContext(ctx).
-		Where("pillar_id = ?", pillarID).
-		Where(`(slug = ? OR search_vector ILIKE ?)`, slug, "%"+strict+"%")
-	if parentID != nil {
-		query = query.Where("parent_id = ?", *parentID)
-	}
-	if err := query.First(&cluster).Error; err != nil {
+	if err := exactClusterLookupQuery(r.db.WithContext(ctx), pillarID, parentID, slug).
+		First(&cluster).Error; err != nil {
 		return nil, err
 	}
 
@@ -1696,18 +1824,10 @@ func (r *PostRepository) GetCluster(ctx context.Context, pillarID uuid.UUID, par
 func (r *PostRepository) GetOrCreateCluster(ctx context.Context, pillarID uuid.UUID, parentID *uuid.UUID, slug string, name utils.LocalizedString) (*taxonomy.Cluster, error) {
 
 	var cluster taxonomy.Cluster
-	slug = helpers.GenerateSlug(slug)
+	slug = normalizeTaxonomySlug(slug)
 
-	query := r.db.WithContext(ctx).
-		Where("pillar_id = ? AND slug = ?", pillarID, slug)
-
-	if parentID != nil {
-		query = query.Where("parent_id = ?", *parentID)
-	} else {
-		query = query.Where("parent_id IS NULL")
-	}
-
-	err := query.First(&cluster).Error
+	err := exactClusterLookupQuery(r.db.WithContext(ctx), pillarID, parentID, slug).
+		First(&cluster).Error
 	if err == nil {
 		return &cluster, nil
 	}
@@ -1734,7 +1854,7 @@ func (r *PostRepository) GetOrCreateCluster(ctx context.Context, pillarID uuid.U
 
 func (r *PostRepository) SynonymExists(ctx context.Context, clusterID uuid.UUID, slug string) (bool, error) {
 	var count int64
-	slug = helpers.GenerateSlug(slug)
+	slug = normalizeTaxonomySlug(slug)
 
 	err := r.db.WithContext(ctx).
 		Model(&taxonomy.Synonym{}).
@@ -1748,11 +1868,12 @@ func (r *PostRepository) SynonymExists(ctx context.Context, clusterID uuid.UUID,
 	return count > 0, nil
 }
 
-func (r *PostRepository) GetSynonym(ctx context.Context, slug string) (*taxonomy.Synonym, error) {
+func (r *PostRepository) GetSynonym(ctx context.Context, clusterID uuid.UUID, slug string) (*taxonomy.Synonym, error) {
 	var synonym taxonomy.Synonym
-	slug = helpers.GenerateSlug(slug)
+	slug = normalizeTaxonomySlug(slug)
 
 	if err := r.db.WithContext(ctx).
+		Where("cluster_id = ?", clusterID).
 		Where("slug = ?", slug).
 		First(&synonym).Error; err != nil {
 		return nil, err
@@ -1764,9 +1885,10 @@ func (r *PostRepository) GetSynonym(ctx context.Context, slug string) (*taxonomy
 func (r *PostRepository) GetOrCreateSynonym(ctx context.Context, clusterID uuid.UUID, slug string, word utils.LocalizedString, isPrimary bool, weight int) (*taxonomy.Synonym, error) {
 
 	var synonym taxonomy.Synonym
-	slug = helpers.GenerateSlug(slug)
+	slug = normalizeTaxonomySlug(slug)
 
 	err := r.db.WithContext(ctx).
+		Where("cluster_id = ?", clusterID).
 		Where("slug = ?", slug).
 		First(&synonym).Error
 
@@ -1819,11 +1941,12 @@ func (r *PostRepository) GetClusters(ctx context.Context) ([]taxonomy.Cluster, e
 func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
 	var pillars []taxonomy.Pillar
 
-	err := r.db.WithContext(ctx).
-		Preload("Clusters.Synonyms").          // Cluster -> Synonyms
-		Preload("Clusters.Children.Synonyms"). // Alt clusterlar -> Synonyms
-		Where("is_active = ?", true).
-		Where("deleted_at IS NULL").
+	err := taxonomyPillarTreeQuery(
+		activeTaxonomyPreload(
+			r.db.WithContext(ctx).Model(&taxonomy.Pillar{}),
+		),
+	).
+		Order("pillars.slug ASC").
 		Find(&pillars).Error
 
 	if err != nil {
@@ -1836,17 +1959,13 @@ func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy
 func (r *PostRepository) GetPillarsWithClustersWithSlug(ctx context.Context, slug string) ([]taxonomy.Pillar, error) {
 	var pillars []taxonomy.Pillar
 
-	slug = strings.ToLower(helpers.SlugifyStrict(slug))
-	likePattern := "%" + slug + "%"
-
-	err := r.db.WithContext(ctx).
-		Model(&taxonomy.Pillar{}).
-		Joins("LEFT JOIN clusters ON clusters.pillar_id = pillars.id AND (clusters.slug ILIKE ? OR clusters.search_vector ILIKE ?)", likePattern, likePattern).
-		Preload("Clusters.Pillar").
-		Preload("Clusters.Synonyms").
-		Preload("Clusters.Children.Synonyms").
-		Where("pillars.is_active = ?", true).
-		Where("pillars.deleted_at IS NULL").
+	err := taxonomyPillarTreeQuery(
+		taxonomyPillarMatchQuery(
+			r.db.WithContext(ctx).Model(&taxonomy.Pillar{}),
+			slug,
+		),
+	).
+		Order("pillars.slug ASC").
 		Find(&pillars).Error
 
 	if err != nil {

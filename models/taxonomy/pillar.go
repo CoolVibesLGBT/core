@@ -1,6 +1,7 @@
 package taxonomy
 
 import (
+	"core/helpers"
 	"core/models/utils"
 	"time"
 
@@ -19,5 +20,18 @@ type Pillar struct {
 	CreatedAt       time.Time              `json:"created_at"`
 	UpdatedAt       time.Time              `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt         `gorm:"index" json:"deleted_at,omitempty"`
-	Clusters        []Cluster              `gorm:"foreignKey:PillarID;constraint:OnDelete:SET NULL" json:"clusters,omitempty"`
+	Clusters        []Cluster              `gorm:"foreignKey:PillarID;constraint:OnDelete:CASCADE" json:"clusters,omitempty"`
+}
+
+func (p *Pillar) BeforeCreate(tx *gorm.DB) error {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
+	p.Slug = helpers.GenerateSlug(p.Slug)
+	return nil
+}
+
+func (p *Pillar) BeforeSave(tx *gorm.DB) error {
+	p.Slug = helpers.GenerateSlug(p.Slug)
+	return nil
 }

@@ -1,12 +1,12 @@
 package application
 
 import (
+	"core/ai"
 	"core/helpers"
 	"core/mcp"
 	"core/routes"
 
 	socketio "github.com/vchitai/go-socket.io/v4"
-	"google.golang.org/genai"
 	"gorm.io/gorm"
 )
 
@@ -16,5 +16,5 @@ type App struct {
 	MCPServer     *mcp.MCPServer
 	SnowFlakeNode *helpers.Node
 	SocketServer  *socketio.Server
-	GenAIClient   *genai.Client
+	AIRegistry    *ai.Registry
 }

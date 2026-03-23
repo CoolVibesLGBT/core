@@ -73,7 +73,6 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
-	gorm.io/driver/sqlite v1.6.0 // indirect
 )
 
 require (

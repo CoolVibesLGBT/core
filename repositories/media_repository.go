@@ -206,7 +206,7 @@ func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path stri
 }
 
 func (r *MediaRepository) generateImageVariants(originalPath string, ext string, role media.MediaRole) (*utils.ImageVariants, *int, *int, error) {
-	img, err := imaging.Open(originalPath)
+	img, err := helpers.LoadImageWithOrientation(originalPath)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -235,7 +235,7 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 	switch role {
 	case media.RoleAvatar:
 		aspect = "square"
-		resizeFunc = helpers.ResizeSquareKeepAspect
+		resizeFunc = helpers.ResizeSquareCrop
 	case media.RoleCover:
 		aspect = "landscape"
 		resizeFunc = helpers.ResizeLandscapeKeepAspect
@@ -247,20 +247,19 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 		resizeFunc = helpers.ResizeLandscapeKeepAspect
 	}
 
-	// ICON: Avatar ise square crop, diğerleri için square fit
+	// ICON: Avatar ise square crop, diğerleri için blur arka planla kare kutuya sığdır
 	iconPath := filepath.Join(baseDir, baseName+"_"+aspect+"_icon"+ext)
 	if role == media.RoleAvatar {
 		if err := helpers.ResizeSquareCrop(originalPath, iconPath, 128, 128); err != nil {
 			return nil, &w, &h, err
 		}
 	} else {
-		// Diğerleri için square aspect keep resize 128x128
 		if err := helpers.ResizeSquareKeepAspect(originalPath, iconPath, 128, 128); err != nil {
 			return nil, &w, &h, err
 		}
 	}
 
-	// Thumbnail 240x240 role göre
+	// Thumbnail: exact 240x240, blur arka planla aspect korunur.
 	thumbPath := filepath.Join(baseDir, baseName+"_"+aspect+"_thumb"+ext)
 	if err := resizeFunc(originalPath, thumbPath, 240, 240); err != nil {
 		return nil, &w, &h, err

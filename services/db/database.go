@@ -126,9 +126,19 @@ type IndexDefinition struct {
 	Using     string // gin, btree vs
 	Columns   []string
 	Condition string // optional (partial index)
+	Unique    bool
 }
 
 func MigrateIndexes(db *gorm.DB) error {
+	dropQueries := []string{
+		"DROP INDEX IF EXISTS idx_synonyms_slug;",
+	}
+
+	for _, query := range dropQueries {
+		if err := db.Exec(query).Error; err != nil {
+			return err
+		}
+	}
 
 	indexes := []IndexDefinition{
 		{
@@ -143,9 +153,50 @@ func MigrateIndexes(db *gorm.DB) error {
 			Using:   "btree",
 			Columns: []string{"slug"},
 		},
+		{
+			Name:    "idx_synonyms_slug",
+			Table:   "synonyms",
+			Using:   "btree",
+			Columns: []string{"slug"},
+		},
+		{
+			Name:      "uidx_clusters_root_identity",
+			Table:     "clusters",
+			Using:     "btree",
+			Columns:   []string{"pillar_id", "slug"},
+			Condition: "parent_id IS NULL AND deleted_at IS NULL",
+			Unique:    true,
+		},
+		{
+			Name:      "uidx_clusters_child_identity",
+			Table:     "clusters",
+			Using:     "btree",
+			Columns:   []string{"pillar_id", "parent_id", "slug"},
+			Condition: "parent_id IS NOT NULL AND deleted_at IS NULL",
+			Unique:    true,
+		},
+		{
+			Name:    "uidx_synonyms_cluster_slug",
+			Table:   "synonyms",
+			Using:   "btree",
+			Columns: []string{"cluster_id", "slug"},
+			Unique:  true,
+		},
+		{
+			Name:      "uidx_synonyms_primary_per_cluster",
+			Table:     "synonyms",
+			Using:     "btree",
+			Columns:   []string{"cluster_id"},
+			Condition: "is_primary = true",
+			Unique:    true,
+		},
 	}
 
 	for _, idx := range indexes {
+		createIndex := "CREATE INDEX IF NOT EXISTS"
+		if idx.Unique {
+			createIndex = "CREATE UNIQUE INDEX IF NOT EXISTS"
+		}
 
 		using := ""
 		if idx.Using != "" {
@@ -155,10 +206,15 @@ func MigrateIndexes(db *gorm.DB) error {
 		columns := strings.Join(idx.Columns, ", ")
 
 		query := fmt.Sprintf(`
-			CREATE INDEX IF NOT EXISTS %s
+			%s %s
 			ON %s
-			%s (%s);
-		`, idx.Name, idx.Table, using, columns)
+			%s (%s)%s;
+		`, createIndex, idx.Name, idx.Table, using, columns, func() string {
+			if idx.Condition == "" {
+				return ""
+			}
+			return " WHERE " + idx.Condition
+		}())
 
 		if err := db.Exec(query).Error; err != nil {
 			return err

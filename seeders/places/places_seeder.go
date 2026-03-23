@@ -470,7 +470,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	}
 
 	for _, c := range clusters {
-		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, nil, c.Slug)
+		exists, err := postRepo.ClusterExists(context.Background(), pillarEntry.ID, c.ParentID, c.Slug)
 		if err != nil {
 			fmt.Println("Error checking cluster:", c.Slug, err)
 			continue
@@ -915,7 +915,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			return err
 		}
 
-		postCluster, err := postRepo.GetCluster(context.Background(), pillarEntry.ID, nil, p.Tag)
+		postCluster, err := postRepo.FindClusterBySlug(context.Background(), pillarEntry.ID, p.Tag)
 
 		if err != nil {
 			fmt.Println("cluster not found:", p.Tag, err)

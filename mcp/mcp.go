@@ -75,6 +75,24 @@ func (r *MCPServer) SupportsProtocolVersion(version string) bool {
 	return false
 }
 
+func (r *MCPServer) PreferredProtocolVersion() string {
+	if len(r.supportedProtocolVersions) == 0 {
+		return ""
+	}
+	return r.supportedProtocolVersions[0]
+}
+
+func (r *MCPServer) NegotiateProtocolVersion(requested string) string {
+	if r.SupportsProtocolVersion(requested) {
+		return requested
+	}
+	return r.PreferredProtocolVersion()
+}
+
+func (r *MCPServer) SupportsBatch(version string) bool {
+	return version == DefaultProtocolVersion
+}
+
 func (r *MCPServer) NewConnection() *ConnectionState {
 	return &ConnectionState{}
 }
@@ -110,6 +128,10 @@ func (r *MCPServer) DeleteHTTPSession(sessionID string) bool {
 }
 
 func (r *MCPServer) HandleMessage(ctx context.Context, conn *ConnectionState, msg JSONRPCMessage) *JSONRPCMessage {
+	if msg.HasInvalidID() {
+		return NewJSONRPCErrorMessage(msg.InvalidRequestID(), InvalidRequestCode, "id must be a string or number", nil)
+	}
+
 	if msg.JSONRPC != "" && msg.JSONRPC != JSONRPCVersion {
 		if msg.HasID() {
 			return NewJSONRPCErrorMessage(msg.ID, InvalidRequestCode, "jsonrpc must be 2.0", nil)
@@ -131,19 +153,19 @@ func (r *MCPServer) HandleMessage(ctx context.Context, conn *ConnectionState, ms
 	case "initialize":
 		return r.handleInitialize(conn, msg)
 	case "notifications/initialized":
-		if conn != nil && conn.ProtocolVersion != "" {
-			conn.Initialized = true
+		if conn != nil {
+			conn.MarkInitialized()
 		}
 		return nil
 	case "notifications/cancelled":
 		return nil
 	case "ping":
-		if conn == nil || conn.ProtocolVersion == "" {
+		if conn == nil || conn.ProtocolVersion() == "" {
 			return NewJSONRPCErrorMessage(msg.ID, InvalidRequestCode, ErrServerNotInitialized.Error(), nil)
 		}
 		return NewJSONRPCResult(msg.ID, map[string]any{})
 	default:
-		if conn == nil || conn.ProtocolVersion == "" || !conn.Initialized {
+		if conn == nil || !conn.IsReady() {
 			if msg.HasID() {
 				return NewJSONRPCErrorMessage(msg.ID, InvalidRequestCode, ErrServerNotInitialized.Error(), nil)
 			}
@@ -154,6 +176,18 @@ func (r *MCPServer) HandleMessage(ctx context.Context, conn *ConnectionState, ms
 	}
 }
 
+func (r *MCPServer) HandleMessages(ctx context.Context, conn *ConnectionState, messages []JSONRPCMessage) []*JSONRPCMessage {
+	responses := make([]*JSONRPCMessage, 0, len(messages))
+	for _, message := range messages {
+		response := r.HandleMessage(ctx, conn, message)
+		if response != nil {
+			responses = append(responses, response)
+		}
+	}
+
+	return responses
+}
+
 func (r *MCPServer) handleInitialize(conn *ConnectionState, msg JSONRPCMessage) *JSONRPCMessage {
 	if !msg.HasID() {
 		return nil
@@ -161,10 +195,6 @@ func (r *MCPServer) handleInitialize(conn *ConnectionState, msg JSONRPCMessage) 
 
 	if conn == nil {
 		return NewJSONRPCErrorMessage(msg.ID, InternalErrorCode, "connection state is required", nil)
-	}
-
-	if conn.ProtocolVersion != "" {
-		return NewJSONRPCErrorMessage(msg.ID, InvalidRequestCode, "connection is already initialized", nil)
 	}
 
 	params, err := DecodeParams[InitializeRequestParams](msg.Params)
@@ -177,20 +207,17 @@ func (r *MCPServer) handleInitialize(conn *ConnectionState, msg JSONRPCMessage) 
 		return NewJSONRPCErrorMessage(msg.ID, InvalidParamsCode, "protocolVersion is required", nil)
 	}
 
-	if !r.SupportsProtocolVersion(requestedVersion) {
-		return NewJSONRPCErrorMessage(msg.ID, InvalidParamsCode, "unsupported protocol version", map[string]any{
-			"requested": requestedVersion,
-			"supported": r.SupportedProtocolVersions(),
-		})
+	negotiatedVersion := r.NegotiateProtocolVersion(requestedVersion)
+	if negotiatedVersion == "" {
+		return NewJSONRPCErrorMessage(msg.ID, InternalErrorCode, "server has no supported protocol versions", nil)
 	}
 
-	conn.ProtocolVersion = requestedVersion
-	conn.ClientInfo = params.ClientInfo
-	conn.ClientCapabilities = params.Capabilities
-	conn.Initialized = false
+	if !conn.TryInitialize(negotiatedVersion, params.ClientInfo, params.Capabilities) {
+		return NewJSONRPCErrorMessage(msg.ID, InvalidRequestCode, "connection is already initialized", nil)
+	}
 
 	return NewJSONRPCResult(msg.ID, InitializeResult{
-		ProtocolVersion: requestedVersion,
+		ProtocolVersion: negotiatedVersion,
 		Capabilities: ServerCapabilities{
 			Tools: &ToolsCapability{},
 		},

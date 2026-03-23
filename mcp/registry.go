@@ -1,6 +1,10 @@
 package mcp
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
 
 type Registry struct {
 	tools map[string]Tool
@@ -14,7 +18,16 @@ func NewRegistry() *Registry {
 
 func (r *Registry) Register(tool Tool) {
 	definition := tool.Definition()
-	r.tools[definition.Name] = tool
+	name := strings.TrimSpace(definition.Name)
+	if name == "" {
+		panic("mcp tool name is required")
+	}
+	if _, exists := r.tools[name]; exists {
+		panic(fmt.Sprintf("mcp tool already registered: %s", name))
+	}
+
+	definition.Name = name
+	r.tools[name] = NewTool(definition, tool.Call)
 }
 
 func (r *Registry) Get(name string) (Tool, bool) {

@@ -125,6 +125,8 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 		Preload("Attachments").
 		Preload("Attachments.File")
 
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
+
 	if lat != nil && lon != nil {
 
 		userPoint := fmt.Sprintf("POINT(%f %f)", *lon, *lat)
