@@ -94,7 +94,8 @@ func newDryRunTaxonomyDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: "host=localhost user=test password=test dbname=test sslmode=disable",
+		DSN:                  "host=localhost user=test password=test dbname=test sslmode=disable",
+		PreferSimpleProtocol: true,
 	}), &gorm.Config{
 		DryRun:               true,
 		DisableAutomaticPing: true,

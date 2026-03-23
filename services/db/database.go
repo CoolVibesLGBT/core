@@ -64,7 +64,10 @@ func InitDB() error {
 		},
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: errorOnlyLogger})
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true,
+	}), &gorm.Config{Logger: errorOnlyLogger})
 	if err != nil {
 		panic("failed to connect database")
 	}
