@@ -10,7 +10,6 @@ import (
 	"core/services/socket"
 	"core/services/socket/managers"
 	"core/workers"
-	"core/workers/broadcast"
 	mediaworker "core/workers/media"
 	"flag"
 	"fmt"
@@ -134,7 +133,7 @@ func main() {
 	dispatcher.Run()
 	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 
-	broadcast.StartFetcher(dispatcher, app)
+	//broadcast.StartFetcher(dispatcher, app)
 
 	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
 	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)
