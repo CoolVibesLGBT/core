@@ -17,14 +17,16 @@ const (
 	RoleChatMedia MediaRole = "chat_media"
 	RoleChatVideo MediaRole = "chat_video"
 	RoleOther     MediaRole = "other"
+	RoleVideo     MediaRole = "video"
 
 	// Owner Type
-	OwnerUser OwnerType = "user"
-	OwnerPost OwnerType = "post"
-	OwnerNews OwnerType = "news"
-	OwnerBlog OwnerType = "blog"
-	OwnerChat OwnerType = "chat"
-	OwnerPage OwnerType = "page"
+	OwnerUser  OwnerType = "user"
+	OwnerPost  OwnerType = "post"
+	OwnerNews  OwnerType = "news"
+	OwnerBlog  OwnerType = "blog"
+	OwnerChat  OwnerType = "chat"
+	OwnerPage  OwnerType = "page"
+	OwnerVideo OwnerType = "video"
 
 	ProcessingStatusPending    ProcessingStatus = "pending"
 	ProcessingStatusProcessing ProcessingStatus = "processing"

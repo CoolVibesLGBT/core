@@ -35,6 +35,7 @@ const (
 	PostKindPost       PostKind = "post"
 	PostKindEvent      PostKind = "event"
 	PostKindCheckIn    PostKind = "checkin"
+	PostKindVideo      PostKind = "video"
 )
 
 const (

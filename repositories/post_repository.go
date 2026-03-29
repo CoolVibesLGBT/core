@@ -665,6 +665,9 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	case "checkin":
 		postKindType = post.PostKindCheckIn
 		isPublished = true
+	case "video":
+		postKindType = post.PostKindVideo
+		isPublished = true
 	default:
 		postKindType = post.PostKindStatus
 	}
@@ -700,7 +703,6 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		return nil, err
 	}
 
-	// Media ekleme
 	for _, f := range files {
 		var ownerType media.OwnerType
 		var role media.MediaRole
@@ -715,6 +717,9 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		case "news":
 			ownerType = media.OwnerNews
 			role = media.RolePost
+		case "video":
+			ownerType = media.OwnerVideo
+			role = media.RoleVideo
 		default:
 			ownerType = media.OwnerPost
 			role = media.RolePost
