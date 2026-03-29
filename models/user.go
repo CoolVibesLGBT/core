@@ -91,14 +91,15 @@ type User struct {
 	UserName         string                 `json:"username"`
 	DisplayName      string                 `json:"displayname"`
 	Email            string                 `json:"-"`
-	Password         string                 `json:"-"` // gizli tutulmalı
+	Password         string                 `json:"-"`
 	Bio              *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
 	DateOfBirth      *time.Time             `json:"date_of_birth,omitempty"`
 	Balance          decimal.Decimal        `gorm:"type:numeric(38,18);default:0" json:"balance"`
 	IsOnline         bool                   `gorm:"default:false" json:"is_online"`
+	IsPremium        bool                   `gorm:"default:false" json:"is_premium"`
 	IsBot            bool                   `gorm:"default:false" json:"-"`
 	PrivacyLevel     constants.PrivacyLevel `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
-	PreferencesFlags string                 `gorm:"column:preferences_flags" json:"preferences_flags"` // hex string representation of bits
+	PreferencesFlags string                 `gorm:"column:preferences_flags" json:"preferences_flags"`
 	UserRole         constants.UserRole     `json:"user_role"`
 	IsActive         bool                   `json:"is_active"`
 	IsLive           bool                   `json:"is_live"`

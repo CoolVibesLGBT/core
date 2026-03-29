@@ -67,13 +67,11 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 	decoder := form.NewDecoder()
 	var formData RegisterForm
 
-	// formValues map[string][]string şeklinde gelecek
 	if err := decoder.Decode(&formData, request); err != nil {
 		return nil, "", err
 	}
 
 	captchaSecret := os.Getenv("CAPTCHA_SECRET_KEY")
-
 	if len(captchaSecret) == 0 {
 		log.Println("ENV CAPTCHA_SECRET_KEY is not set")
 	}
@@ -102,7 +100,6 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 		return nil, "", errors.New("invalid domain")
 	}
 
-	// Hashle
 	hash, err := helpers.HashPasswordArgon2id(formData.Password)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
@@ -119,7 +116,6 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 	UserID := uuid.New()
 
 	userObj := &models.User{
-
 		ID:          UserID,
 		PublicID:    s.userRepo.Node().Generate().Int64(),
 		Domain:      models.GetDomainKind(formData.Domain),
@@ -128,6 +124,9 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 		Email:       formData.Email,
 		Password:    hash,
 		UserRole:    constants.UserRoleUser,
+		IsLive:      false,
+		IsBot:       false,
+		IsPremium:   false,
 	}
 
 	if err := s.userRepo.Create(userObj); err != nil {
