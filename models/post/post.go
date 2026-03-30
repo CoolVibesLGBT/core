@@ -65,7 +65,7 @@ type Post struct {
 	PublicID int64 `gorm:"uniqueIndex;not null" json:"public_id"`
 
 	PostKind PostKind          `gorm:"size:50;not null;index;default:'post'" json:"post_kind"`
-	Domain   models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes.lgbt'" json:"domain"`
+	Domain   models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes'" json:"domain"`
 
 	ContentCategory ContentCategory `gorm:"size:50;not null;index;default:'normal'" json:"content_category"`
 

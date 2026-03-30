@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"core/helpers"
+	models "core/models"
 	"core/models/utils"
 
 	"github.com/google/uuid"
@@ -12,9 +13,10 @@ import (
 )
 
 type Cluster struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	PillarID uuid.UUID `gorm:"type:uuid;not null;index" json:"pillar_id"`
-	Pillar   Pillar    `gorm:"foreignKey:PillarID" json:"-"`
+	ID       uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
+	Domain   models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes'" json:"domain"`
+	PillarID uuid.UUID         `gorm:"type:uuid;not null;index" json:"pillar_id"`
+	Pillar   Pillar            `gorm:"foreignKey:PillarID" json:"-"`
 
 	ParentID        *uuid.UUID             `gorm:"type:uuid;index" json:"parent_id,omitempty"`
 	Parent          *Cluster               `gorm:"foreignKey:ParentID" json:"parent,omitempty"`

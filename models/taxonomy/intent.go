@@ -1,6 +1,7 @@
 package taxonomy
 
 import (
+	models "core/models"
 	"strings"
 	"time"
 
@@ -21,12 +22,13 @@ const (
 )
 
 type Intent struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Key       IntentKey `gorm:"type:varchar(40);not null;uniqueIndex" json:"key"`
-	Label     string    `gorm:"size:80;not null" json:"label"`
-	IsActive  bool      `gorm:"default:true;index" json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuid.UUID         `gorm:"type:uuid;primaryKey" json:"id"`
+	Domain    models.DomainKind `gorm:"size:50;not null;index;default:'coolvibes'" json:"domain"`
+	Key       IntentKey         `gorm:"type:varchar(40);not null;uniqueIndex" json:"key"`
+	Label     string            `gorm:"size:80;not null" json:"label"`
+	IsActive  bool              `gorm:"default:true;index" json:"is_active"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
 }
 
 func (i *Intent) BeforeCreate(tx *gorm.DB) error {

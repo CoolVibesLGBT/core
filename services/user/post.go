@@ -162,6 +162,6 @@ func (s *PostService) Tip(ctx context.Context, postId int64, authUser *models.Us
 	return s.postRepo.Tip(ctx, postId, authUser, amount)
 }
 
-func (s *PostService) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
-	return s.postRepo.GetPillarsWithClusters(ctx)
+func (s *PostService) GetPillarsWithClusters(filters types.Filter) ([]taxonomy.Pillar, error) {
+	return s.postRepo.GetPillarsWithClusters(filters)
 }

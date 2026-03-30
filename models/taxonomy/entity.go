@@ -2,6 +2,7 @@ package taxonomy
 
 import (
 	"core/helpers"
+	models "core/models"
 	"core/models/utils"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ const (
 
 type Entity struct {
 	ID          uuid.UUID              `gorm:"type:uuid;primaryKey" json:"id"`
+	Domain      models.DomainKind      `gorm:"size:50;not null;index;default:'coolvibes'" json:"domain"`
 	Type        EntityType             `gorm:"type:varchar(40);not null;index" json:"type"`
 	Slug        string                 `gorm:"size:150;not null;uniqueIndex" json:"slug"`
 	Name        utils.LocalizedString  `gorm:"type:jsonb;not null" json:"name"`

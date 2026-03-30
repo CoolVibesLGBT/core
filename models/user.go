@@ -87,7 +87,7 @@ type User struct {
 	ID               uuid.UUID              `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	PublicID         int64                  `gorm:"uniqueIndex;not null" json:"public_id"`
 	SocketID         *string                `json:"socket_id,omitempty"`
-	Domain           DomainKind             `gorm:"type:varchar(50);not null;index" json:"domain"`
+	Domain           DomainKind             `gorm:"size:50;not null;index;default:'coolvibes'" json:"domain"`
 	UserName         string                 `json:"username"`
 	DisplayName      string                 `json:"displayname"`
 	Email            string                 `json:"-"`

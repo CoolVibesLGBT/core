@@ -479,7 +479,11 @@ func HandleGetTrends(s *services.PostService) fiber.Handler {
 func HandleGetCategories(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		categories, err := s.GetPillarsWithClusters(c.Context())
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+		categories, err := s.GetPillarsWithClusters(filters)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get trends: "+err.Error())
 		}

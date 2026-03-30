@@ -2008,12 +2008,12 @@ func (r *PostRepository) GetClusters(ctx context.Context) ([]taxonomy.Cluster, e
 	return clusters, err
 }
 
-func (r *PostRepository) GetPillarsWithClusters(ctx context.Context) ([]taxonomy.Pillar, error) {
+func (r *PostRepository) GetPillarsWithClusters(filters types.Filter) ([]taxonomy.Pillar, error) {
 	var pillars []taxonomy.Pillar
 
 	err := taxonomyPillarTreeQuery(
 		activeTaxonomyPreload(
-			r.db.WithContext(ctx).Model(&taxonomy.Pillar{}),
+			r.db.WithContext(filters.Context).Model(&taxonomy.Pillar{}),
 		),
 	).
 		Order("pillars.slug ASC").

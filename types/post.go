@@ -19,10 +19,14 @@ type PostsResult struct {
 	Cursor *string     `json:"cursor"`
 }
 
+type UsersResult struct {
+	Users  []post.Post `json:"users"`
+	Cursor *string     `json:"cursor"`
+}
+
 type SearchResult struct {
-	Posts  []post.Post   `json:"posts"`
-	User   []models.User `json:"users"`
-	Cursor *string       `json:"cursor"`
+	Posts PostsResult `json:"posts"`
+	Users UsersResult `json:"users"`
 }
 
 type MediaWithUser struct {
