@@ -63,7 +63,6 @@ func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) f
 			}
 
 			userIP := GetClientIP(c)
-			fmt.Println("UserIP", userIP)
 
 			updateIPErr := userRepo.UpdateLocation(c.Context(), u, userIP)
 			if updateIPErr != nil {
@@ -92,7 +91,6 @@ func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) func(fibe
 						u, err := userRepo.GetUserByPublicId(claims.PublicID)
 						if err == nil {
 							userIP := GetClientIP(c)
-							fmt.Println("UserIP", userIP)
 
 							updateIPErr := userRepo.UpdateLocation(c.Context(), u, userIP)
 							if updateIPErr != nil {

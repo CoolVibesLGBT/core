@@ -698,6 +698,7 @@ func (r *UserRepository) GetLocationFromIP(ipStr string) (*utils.Location, error
 		Longitude:   &lon,
 		Timezone:    &tz,
 		Display:     &display,
+		IPAddress:   &ipStr,
 	}
 
 	if loc.Latitude != nil && loc.Longitude != nil {
