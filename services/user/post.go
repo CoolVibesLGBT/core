@@ -57,10 +57,17 @@ func (s *PostService) GetPostByPublicID(id int64) (*post.Post, error) {
 }
 
 func (s *PostService) GetTimeline(filters types.Filter) (types.TimelineResult, error) {
-	// Repo fonksiyonunu çağırıyoruz
 	posts, err := s.postRepo.GetTimeline(filters)
 	if err != nil {
 		return types.TimelineResult{}, err
+	}
+	return posts, nil
+}
+
+func (s *PostService) SearchPost(filters types.Filter) (types.PostsResult, error) {
+	posts, err := s.postRepo.FindPostsByKind(filters)
+	if err != nil {
+		return types.PostsResult{}, err
 	}
 	return posts, nil
 }

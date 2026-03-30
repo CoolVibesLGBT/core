@@ -422,6 +422,71 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult
 	}, nil
 }
 
+func (r *PostRepository) FindPostsByKind(filters types.Filter) (types.PostsResult, error) {
+	var posts []post.Post
+
+	fmt.Println("DOMAIN", *filters.Domain)
+	query := r.db.Model(&post.Post{}).
+		Where("published = ?", true).
+		Where("domain = ?", *filters.Domain).
+		Where("contentable_type IN ?", []string{string(filters.PostKind), string(post.PostKindVideo), string(post.PostKindStatus), string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindClassified), string(post.PostKindPlace)}).
+		Where("parent_id IS NULL").
+		Order("public_id DESC").
+		Limit(filters.Limit).
+		Preload("Location").
+		Preload("Poll").
+		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("Poll.Choices.Votes").
+		Preload("Poll.Choices.Votes.User").
+		Preload("Poll.Choices.Votes.User.Avatar").
+		Preload("Poll.Choices.Votes.User.Avatar.File").
+		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
+		Preload("Event").
+		Preload("Event.Location").
+		Preload("Event.Attendees").
+		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
+		Preload("Author.Cover").
+		Preload("Author.Cover.File").
+		Preload("Hashtags").
+		Preload("Mentions").
+		Preload("Attachments").
+		Preload("Attachments.File")
+
+	if filters.Search != nil && *filters.Search != "" {
+		search := "%" + *filters.Search + "%"
+		query = query.Where(
+			"title::text ILIKE ? OR content::text ILIKE ?",
+			search, search,
+		)
+	}
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
+
+	if filters.Cursor != nil {
+		query = query.Where("public_id < ?", *filters.Cursor)
+	}
+
+	if err := query.Find(&posts).Error; err != nil {
+		return types.PostsResult{}, err
+	}
+
+	var nextCursor *string
+	if len(posts) > 0 {
+		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
+		nextCursor = &s
+	}
+
+	return types.PostsResult{
+		Posts:  posts,
+		Cursor: nextCursor,
+	}, nil
+}
+
 func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([]post.Post, error) {
 	var posts []post.Post
 

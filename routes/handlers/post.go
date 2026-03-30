@@ -343,6 +343,20 @@ func HandleTimeline(s *services.PostService) fiber.Handler {
 	}
 }
 
+func HandleSearchPost(s *services.PostService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+		result, err := s.SearchPost(filters)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to search: "+err.Error())
+		}
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, result, "Successfully")
+	}
+}
+
 func HandleTimelineVibes(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 

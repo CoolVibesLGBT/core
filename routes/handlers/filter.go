@@ -62,12 +62,14 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Cursor = &cVal
 	}
 
-	// Search (optional string pointer)
-	if search := c.FormValue("search"); search != "" {
+	search := c.Query("search")
+	if search == "" {
+		search = c.FormValue("search")
+	}
+	if search != "" {
 		filter.Search = &search
 	}
 
-	// Category
 	if category := c.FormValue("category"); category != "" {
 		filter.Category = &category
 	}
@@ -112,6 +114,16 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 			return filter, fmt.Errorf("invalid distance")
 		}
 		filter.Distance = &dist
+	}
+
+	host := c.Get("X-Forwarded-Host")
+	if host == "" {
+		host = c.Hostname()
+	}
+
+	if host != "" {
+		kind := string(models.GetDomainKind(host))
+		filter.Domain = &kind
 	}
 
 	return filter, nil

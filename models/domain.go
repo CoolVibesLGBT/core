@@ -10,6 +10,7 @@ type DomainKind string
 const (
 	CoolVibes     DomainKind = "coolvibes"
 	KewlSwap      DomainKind = "kewlswap"
+	Porn          DomainKind = "porn"
 	UnknownDomain DomainKind = "unknown"
 	AllDomains    DomainKind = "all"
 )
@@ -30,6 +31,11 @@ var domainToKind = map[string]DomainKind{
 	"api.kewlswap.com": KewlSwap,
 	"api.kewlswap.io":  KewlSwap,
 	"api.kewlswap.app": KewlSwap,
+
+	// Porn
+	"cilwe.com":     Porn,
+	"api.cilwe.com": Porn,
+	"127.0.0.1":     Porn,
 }
 
 func NormalizeDomain(input string) string {

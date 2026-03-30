@@ -185,6 +185,8 @@ func NewRouter(
 	r.action.Register(constants.CMD_POST_DELETE, handlers.HandlePostDelete(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIP, handlers.HandlePostTip(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
+	r.action.Register(constants.CMD_POST_SEARCH, handlers.HandleSearchPost(postService))
+
 	r.action.Register(constants.CMD_POST_VIBES, handlers.HandleTimelineVibes(postService))
 	r.action.Register(constants.CMD_USER_FETCH_STORIES, handlers.HandleFetchStories(userService))
 	r.action.Register(constants.CMD_USER_FETCH_NEARBY_USERS, handlers.HandleFetchNearbyUsers(userService), middleware.AuthMiddlewareWithoutCheck(userRepo))
