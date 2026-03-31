@@ -47,7 +47,7 @@ func NewApp() (*app.App, error) {
 	}
 
 	if *botFlag {
-
+		fmt.Println("BOT MODE ON")
 	}
 
 	if *installFlag {
@@ -138,9 +138,14 @@ func main() {
 	dispatcher.Run()
 	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 
-	//broadcast.StartFetcher(dispatcher, app)
+	if *botFlag {
+		//workers.ExecuteBot(context.Background())
+		//workers.ExecuteBotWithDispatcher(context.Background(),dispatcher)
+		//broadcast.StartFetcher(dispatcher, app)
+		fmt.Println("Bot Flag")
+		return
+	}
 
-	// Bu kısım artık InitializeApp içerisinde yönetilebilir veya burada bırakılabilir
 	notificationRepo := repositories.NewNotificationRepository(app.DB, app.SnowFlakeNode)
 	notificationMgr := managers.NewNotificationManager(app.DB, notificationRepo)
 	go func() {

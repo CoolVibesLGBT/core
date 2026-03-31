@@ -19,6 +19,8 @@ static/samples
 
 ./workers/porn
 workers/porn
+workers/executor.go
+./workers/executor.go
 ./workers/temp
 workers/temp
 ./build
