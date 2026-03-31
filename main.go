@@ -48,29 +48,6 @@ func NewApp() (*app.App, error) {
 
 	if *botFlag {
 
-		ctx := context.Background()
-
-		bot := vxxx.NewVXXXBot()
-
-		// Worker ekle
-		worker := porn.NewDummyWorker()
-		bot.AddWorker(worker)
-
-		// Start
-		if err := bot.StartWorkers(ctx); err != nil {
-			fmt.Println("StartWorkers error:", err)
-			return
-		}
-
-		// 5 saniye çalışsın
-		select {
-		case <-time.After(5 * time.Second):
-		}
-
-		// Stop
-		if err := bot.StopWorkers(ctx); err != nil {
-			fmt.Println("StopWorkers error:", err)
-		}
 	}
 
 	if *installFlag {
