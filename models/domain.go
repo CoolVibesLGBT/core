@@ -17,6 +17,7 @@ const (
 
 var domainToKind = map[string]DomainKind{
 	// CoolVibes
+	"coolvibes":          CoolVibes,
 	"coolvibes.lgbt":     CoolVibes,
 	"coolvibes.app":      CoolVibes,
 	"coolvibes.io":       CoolVibes,
@@ -25,6 +26,7 @@ var domainToKind = map[string]DomainKind{
 	"api.coolvibes.io":   CoolVibes,
 
 	// KewlSwap
+	"kewl":             KewlSwap,
 	"kewlswap.com":     KewlSwap,
 	"kewlswap.io":      KewlSwap,
 	"kewlswap.app":     KewlSwap,
@@ -36,6 +38,7 @@ var domainToKind = map[string]DomainKind{
 	"cilwe.com":     Porn,
 	"api.cilwe.com": Porn,
 	"127.0.0.1":     Porn,
+	"porn":          Porn,
 }
 
 func NormalizeDomain(input string) string {

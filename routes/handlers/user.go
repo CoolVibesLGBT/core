@@ -31,7 +31,7 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 
 		userObj, token, err := s.Register(c.Context(), form.Value)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserExists)
+			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUserExists, err.Error())
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -261,10 +261,7 @@ func HandleFetchStories(s *services.UserService) fiber.Handler {
 func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
-		auth_user, ok := middleware.GetAuthenticatedUser(c)
-		if !ok {
-			fmt.Println("LOCATIONLESSx")
-		}
+		auth_user, _ := middleware.GetAuthenticatedUser(c)
 
 		filters, err := ParseFilters(c, auth_user)
 		if err != nil {

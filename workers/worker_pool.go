@@ -20,6 +20,6 @@ func (wp *WorkerPool) Wait() {
 }
 
 func (d *Dispatcher) StopAndWait() {
-	d.Wait() // Önce bitmesini bekle
-	d.Stop() // Sonra durdur
+	d.Wait()
+	d.Stop()
 }

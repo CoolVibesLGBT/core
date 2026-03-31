@@ -21,6 +21,7 @@ import (
 
 var (
 	appInstance  *app.App
+	botFlag      = flag.Bool("bot", false, "Run Bot Mode")
 	migrateFlag  = flag.Bool("migrate", false, "Run DB migrations")
 	seedFlag     = flag.Bool("seed", false, "Run DB seed")
 	installFlag  = flag.Bool("install", false, "Run DB migrate & seed")
@@ -43,6 +44,33 @@ func NewApp() (*app.App, error) {
 	application, err := app.InitializeApp()
 	if err != nil {
 		return nil, err
+	}
+
+	if *botFlag {
+
+		ctx := context.Background()
+
+		bot := vxxx.NewVXXXBot()
+
+		// Worker ekle
+		worker := porn.NewDummyWorker()
+		bot.AddWorker(worker)
+
+		// Start
+		if err := bot.StartWorkers(ctx); err != nil {
+			fmt.Println("StartWorkers error:", err)
+			return
+		}
+
+		// 5 saniye çalışsın
+		select {
+		case <-time.After(5 * time.Second):
+		}
+
+		// Stop
+		if err := bot.StopWorkers(ctx); err != nil {
+			fmt.Println("StopWorkers error:", err)
+		}
 	}
 
 	if *installFlag {

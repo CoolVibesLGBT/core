@@ -428,6 +428,10 @@ func (r *UserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User,
 		Preload("Cover.File").
 		Limit(limit)
 
+	if filters.Domain != nil {
+		baseQuery = baseQuery.Where("domain = ?", *filters.Domain)
+	}
+
 	if useLocation {
 		const noLocationDistance = 9999999999.0
 

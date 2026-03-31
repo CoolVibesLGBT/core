@@ -2016,6 +2016,7 @@ func (r *PostRepository) GetPillarsWithClusters(filters types.Filter) ([]taxonom
 			r.db.WithContext(filters.Context).Model(&taxonomy.Pillar{}),
 		),
 	).
+		Where("domain = ?", *filters.Domain).
 		Order("pillars.slug ASC").
 		Find(&pillars).Error
 

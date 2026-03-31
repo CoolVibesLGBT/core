@@ -20,11 +20,8 @@ func NewWorker(id int, workerPool chan TaskQueue, wg *sync.WaitGroup) Worker {
 
 func (w Worker) Start() {
 	go func() {
-		// Worker kendini havuza ekler
 		for {
 			w.WorkerPool <- w.TaskChannel
-
-			// Task gelince çalıştır
 			task := <-w.TaskChannel
 			task()
 			w.wg.Done()

@@ -35,8 +35,8 @@ func (d *Dispatcher) dispatch() {
 }
 
 func (d *Dispatcher) SubmitEx(task func()) {
-	d.wg.Add(1)         // Bir iş eklendi, bekleme sayısını artır
-	d.TaskQueue <- task // TaskQueue'ya task gönder
+	d.wg.Add(1)
+	d.TaskQueue <- task
 }
 
 func (d *Dispatcher) Submit(task Task) {
@@ -45,7 +45,7 @@ func (d *Dispatcher) Submit(task Task) {
 }
 
 func (d *Dispatcher) Stop() {
-	close(d.TaskQueue) // TaskQueue kapatılırsa, dispatch döngüsü sona erer
+	close(d.TaskQueue)
 }
 
 func (d *Dispatcher) Wait() {

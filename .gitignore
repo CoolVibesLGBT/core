@@ -17,7 +17,8 @@ static/samples
 ./bot/
 /bot/
 
-
+./workers/porn
+workers/porn
 ./workers/temp
 workers/temp
 ./build

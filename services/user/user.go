@@ -96,6 +96,7 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 	}
 
 	domain := models.GetDomainKind(formData.Domain)
+
 	if !models.IsValidDomainByKind(domain) {
 		return nil, "", errors.New("invalid domain")
 	}

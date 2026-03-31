@@ -20,6 +20,7 @@ const (
 	EntityPlatform     EntityType = "platform"
 	EntityEvent        EntityType = "event"
 	EntityTopic        EntityType = "topic"
+	EntityVideo        EntityType = "video"
 )
 
 type Entity struct {
