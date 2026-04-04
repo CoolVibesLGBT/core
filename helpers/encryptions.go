@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -93,4 +95,94 @@ func ComparePasswordArgon2id(encodedHash, password string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func Base164Decode(e string) string {
+	// Orijinal alfabedeki karakterler (Kiril ve Latin karışık - Sıralama çok kritiktir)
+	const alphabet = "АВСDЕFGHIJKLМNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,~"
+
+	// 1. Girdiyi temizle: Alfabede olmayan karakterleri kaldır
+	// JS: e = e.replace(/[^АВСЕМA-Za-z0-9\.\,\~]/g, "");
+	re := regexp.MustCompile(`[^АВСЕМA-Za-z0-9\.\,\~]`)
+	e = re.ReplaceAllString(e, "")
+
+	// 2. Alfabe için bir arama tablosu oluştur (Hızlı erişim için)
+	alphaRunes := []rune(alphabet)
+	alphaMap := make(map[rune]int)
+	for i, r := range alphaRunes {
+		alphaMap[r] = i
+	}
+
+	runes := []rune(e)
+	var decodedBytes []byte
+	r := 0
+
+	// 3. Ana kod çözme döngüsü (Base64 bit kaydırma mantığı)
+	for r < len(runes) {
+		getIdx := func() int {
+			if r >= len(runes) {
+				return -1
+			}
+			char := runes[r]
+			r++
+			if idx, ok := alphaMap[char]; ok {
+				return idx
+			}
+			return -1
+		}
+
+		i := getIdx()
+		o := getIdx()
+		a := getIdx()
+		s := getIdx()
+
+		// En az iki karakter (i ve o) mevcut olmalıdır
+		if i == -1 || o == -1 {
+			break
+		}
+
+		// İlk byte: i << 2 | o >> 4
+		decodedBytes = append(decodedBytes, byte(i<<2|o>>4))
+
+		// İkinci byte: (15 & o) << 4 | a >> 2
+		// 64 indexi '~' karakterine denk gelir ve padding (dolgu) olarak kabul edilir
+		if a != -1 && a != 64 {
+			decodedBytes = append(decodedBytes, byte((15&o)<<4|a>>2))
+		}
+
+		// Üçüncü byte: (3 & a) << 6 | s
+		if s != -1 && s != 64 {
+			decodedBytes = append(decodedBytes, byte((3&a)<<6|s))
+		}
+	}
+
+	// 4. JavaScript'in unescape(n) işlemini uygula ve sonucu döndür
+	return jsUnescape(string(decodedBytes))
+}
+
+// jsUnescape, JavaScript'in deprecated unescape() fonksiyonunun davranışını taklit eder.
+// %xx ve %uXXXX formatındaki kaçış dizilerini çözer.
+func jsUnescape(s string) string {
+	var res strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '%' {
+			// %uXXXX formatını kontrol et (Unicode)
+			if i+5 < len(s) && s[i+1] == 'u' {
+				if val, err := strconv.ParseUint(s[i+2:i+6], 16, 16); err == nil {
+					res.WriteRune(rune(val))
+					i += 5
+					continue
+				}
+			} else if i+2 < len(s) {
+				// %xx formatını kontrol et (ASCII/Hex)
+				if val, err := strconv.ParseUint(s[i+1:i+3], 16, 8); err == nil {
+					res.WriteByte(byte(val))
+					i += 2
+					continue
+				}
+			}
+		}
+		res.WriteByte(s[i])
+	}
+	return res.String()
 }

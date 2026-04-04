@@ -89,6 +89,17 @@ func GetApp() (*app.App, error) {
 }
 
 func main() {
+
+	/*
+		s := "L2dldF9maWxlLzЕvМWI2N2I1МWЕ0МmМ5МjYxNTА5ODU4ZWU1ZTRlNmVmYTЕxZjRiOGU0МWJjLzЕ3МDМwМDАvМTcwМzЕ1Ny8xNzАzМTU3X3NkLm1wNС8,ZD00ODАmYnI9МTQzJnRpPTЕ3NzUyNzc2NTg~"
+		decoded := helpers.Base164Decode(s)
+
+		fmt.Println("Decoded bytes length:", len(decoded))
+		fmt.Println("Decoded as string:")
+		fmt.Println(string(decoded))
+
+		return
+	*/
 	ensureFlagsParsed()
 
 	err := godotenv.Load()
@@ -134,12 +145,12 @@ func main() {
 		fmt.Printf("VAPIDKEY : %s \n", vapidKeys.PublicKey)
 	}
 
-	dispatcher := workers.NewDispatcher(10, 100)
+	dispatcher := workers.NewDispatcher(10, 10)
 	dispatcher.Run()
 	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 
 	if *botFlag {
-		//workers.ExecuteBot(context.Background())
+		workers.ExecuteBot(context.Background())
 		//workers.ExecuteBotWithDispatcher(context.Background(),dispatcher)
 		//broadcast.StartFetcher(dispatcher, app)
 		fmt.Println("Bot Flag")

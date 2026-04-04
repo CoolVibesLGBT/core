@@ -137,10 +137,6 @@ func resolveURL(base *url.URL, raw string) string {
 	return base.ResolveReference(u).String()
 }
 
-func MakeSureDirectoryPathExists(path string) error {
-	return os.MkdirAll(path, 0755)
-}
-
 func downloadImage(imgURL, path string) error {
 	client := &http.Client{
 		Timeout: 45 * time.Second,
@@ -244,11 +240,11 @@ func (h headerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func fetchAndSaveRSS(source RSSSource) (string, error) {
-	err := MakeSureDirectoryPathExists(FEED_DIRECTORY)
+	err := helpers.MakeSureDirectoryPathExists(FEED_DIRECTORY)
 	if err != nil {
 		return "", err
 	}
-	err = MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
+	err = helpers.MakeSureDirectoryPathExists(FEED_NEWS_DIRECTORY)
 	if err != nil {
 		return "", err
 	}
@@ -311,7 +307,7 @@ func processFeedItem(item *gofeed.Item, app *application.App) error {
 
 	articleSlug := helpers.GenerateSlug(item.Title)
 	articleFileFolder := fmt.Sprintf("%s%s/", FEED_NEWS_DIRECTORY, articleSlug)
-	err := MakeSureDirectoryPathExists(articleFileFolder)
+	err := helpers.MakeSureDirectoryPathExists(articleFileFolder)
 	if err != nil {
 		helpers.Println("MakeSureDirectoryPathExists", err)
 	}

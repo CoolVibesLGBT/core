@@ -64,7 +64,13 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 
 	search := c.Query("search")
 	if search == "" {
+		search = c.Query("q")
+	}
+	if search == "" {
 		search = c.FormValue("search")
+	}
+	if search == "" {
+		search = c.FormValue("q")
 	}
 	if search != "" {
 		filter.Search = &search

@@ -95,14 +95,15 @@ type User struct {
 	Bio              *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
 	DateOfBirth      *time.Time             `json:"date_of_birth,omitempty"`
 	Balance          decimal.Decimal        `gorm:"type:numeric(38,18);default:0" json:"balance"`
-	IsOnline         bool                   `gorm:"default:false" json:"is_online"`
-	IsPremium        bool                   `gorm:"default:false" json:"is_premium"`
-	IsBot            bool                   `gorm:"default:false" json:"-"`
 	PrivacyLevel     constants.PrivacyLevel `gorm:"type:varchar(20);default:'public'" json:"privacy_level"`
 	PreferencesFlags string                 `gorm:"column:preferences_flags" json:"preferences_flags"`
 	UserRole         constants.UserRole     `json:"user_role"`
-	IsActive         bool                   `json:"is_active"`
-	IsLive           bool                   `json:"is_live"`
+	IsOnline         bool                   `gorm:"default:false" json:"is_online"`
+	IsPremium        bool                   `gorm:"default:false" json:"is_premium"`
+	IsBot            bool                   `gorm:"default:false" json:"-"`
+	IsActive         bool                   `gorm:"default:false" json:"is_active"`
+	IsLive           bool                   `gorm:"default:false" json:"is_live"`
+	IsProcessed      bool                   `gorm:"default:false" json:"is_processed"`
 	CreatedAt        time.Time              `json:"created_at"`
 	UpdatedAt        time.Time              `json:"updated_at"`
 	LastOnline       *time.Time             `json:"last_online,omitempty"`
