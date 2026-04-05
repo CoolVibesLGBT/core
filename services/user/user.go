@@ -232,7 +232,6 @@ func (s *UserService) FetchUserProfileByUsername(username string) (*models.User,
 func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (*models.User, error) {
 	userObj.ID = uuid.New()
 	userObj.PublicID = s.userRepo.Node().Generate().Int64()
-	userObj.Domain = models.CoolVibes
 	userObj.PrivacyLevel = constants.PrivacyPublic
 	userObj.UserRole = constants.UserRoleUser
 	userObj.IsBot = true

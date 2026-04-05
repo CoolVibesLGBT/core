@@ -143,25 +143,31 @@ func HandleVapidSubscribe(db *gorm.DB) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrUserNotFound)
 		}
 
-		var subscriptions []models.Subscription
-		if len(user.Subscriptions) > 0 {
-			if err := json.Unmarshal(user.Subscriptions, &subscriptions); err != nil {
-				subscriptions = []models.Subscription{}
-			}
+		items, err := helpers.DecodeJSONItems(user.Subscriptions)
+		if err != nil {
+			items = nil
 		}
-
 		exists := false
-		for _, sub := range subscriptions {
+		for _, item := range items {
+			var sub models.Subscription
+			if err := json.Unmarshal(item, &sub); err != nil {
+				continue
+			}
 			if sub.Endpoint == newSub.Endpoint {
 				exists = true
 				break
 			}
 		}
 		if !exists {
-			subscriptions = append(subscriptions, newSub)
+			rawNewSub, err := json.Marshal(newSub)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
+			}
+
+			items = append(items, rawNewSub)
 		}
 
-		subsJson, err := json.Marshal(subscriptions)
+		subsJson, err := json.Marshal(items)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrVapidSubscriptionFailed)
 		}

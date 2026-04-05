@@ -38,6 +38,7 @@ var domainToKind = map[string]DomainKind{
 	"cilwe.com":     Porn,
 	"api.cilwe.com": Porn,
 	"127.0.0.1":     Porn,
+	"localhost":     Porn,
 	"porn":          Porn,
 }
 

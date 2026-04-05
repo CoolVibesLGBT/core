@@ -25,3 +25,5 @@ workers/executor.go
 workers/temp
 ./build
 build
+./.gocache
+.gocache

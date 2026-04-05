@@ -235,6 +235,27 @@ func (r *UserRepository) GetByNameOrMailWithoutRelations(input string) (*models.
 	return &userObj, nil
 }
 
+func (r *UserRepository) GetBySubscriptionSourceID(source, externalID string) (*models.User, error) {
+	var userObj models.User
+	err := r.db.
+		Where(`
+			CASE jsonb_typeof(subscriptions)
+				WHEN 'array' THEN EXISTS (
+					SELECT 1
+					FROM jsonb_array_elements(subscriptions) AS elem
+					WHERE elem->>'source' = ? AND elem->>'id' = ?
+				)
+				WHEN 'object' THEN subscriptions->>'source' = ? AND subscriptions->>'id' = ?
+				ELSE false
+			END
+		`, source, externalID, source, externalID).
+		First(&userObj).Error
+	if err != nil {
+		return nil, err
+	}
+	return &userObj, nil
+}
+
 func (r *UserRepository) UpsertLocation(location *utils.Location) error {
 	if location.ID == uuid.Nil {
 		location.ID = uuid.New()

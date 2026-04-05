@@ -182,8 +182,8 @@ func DownloadFile(urlAddr, filePath string) error {
 		return err
 	}
 
-	sleep := time.Duration(rand.Intn(10)+15) * time.Second
-	time.Sleep(sleep)
+	//	sleep := time.Duration(rand.Intn(10)+15) * time.Second
+	//	time.Sleep(sleep)
 
 	return nil
 }

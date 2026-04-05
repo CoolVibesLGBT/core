@@ -222,6 +222,7 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 			}
 
 			userToCreate := &models.User{
+				Domain:          models.CoolVibes,
 				UserName:        username,
 				DisplayName:     displayname,
 				DefaultLanguage: defaultLang,

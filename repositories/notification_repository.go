@@ -6,6 +6,7 @@ import (
 	"core/models/notifications"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	push "core/push"
@@ -40,11 +41,9 @@ func (r *NotificationRepository) GetAllSubscriptions() ([]models.Subscription, e
 
 	var allSubs []models.Subscription
 	for _, user := range users {
-		var subs []models.Subscription
-		if len(user.Subscriptions) > 0 {
-			if err := json.Unmarshal(user.Subscriptions, &subs); err == nil {
-				allSubs = append(allSubs, subs...)
-			}
+		subs, err := decodePushSubscriptions(user.Subscriptions)
+		if err == nil {
+			allSubs = append(allSubs, subs...)
 		}
 	}
 
@@ -86,9 +85,12 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 		return fmt.Errorf("user has no subscriptions")
 	}
 
-	err = json.Unmarshal(receiver.Subscriptions, &subscriptions)
+	subscriptions, err = decodePushSubscriptions(receiver.Subscriptions)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal subscriptions: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return fmt.Errorf("user has no subscriptions")
 	}
 
 	// Payload'u JSON string haline getir
@@ -128,6 +130,32 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 	}
 
 	return nil
+}
+
+func decodePushSubscriptions(raw []byte) ([]models.Subscription, error) {
+	items, err := helpers.DecodeJSONItems(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	subscriptions := make([]models.Subscription, 0, len(items))
+	for _, item := range items {
+		var sub models.Subscription
+		if err := json.Unmarshal(item, &sub); err != nil {
+			continue
+		}
+
+		if strings.TrimSpace(sub.Endpoint) == "" {
+			continue
+		}
+		if strings.TrimSpace(sub.Keys.Auth) == "" || strings.TrimSpace(sub.Keys.P256dh) == "" {
+			continue
+		}
+
+		subscriptions = append(subscriptions, sub)
+	}
+
+	return subscriptions, nil
 }
 
 func (r *NotificationRepository) FetchAndMarkShownNotifications(userID uuid.UUID, limit int) ([]notifications.Notification, error) {
