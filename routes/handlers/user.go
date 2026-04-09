@@ -713,6 +713,43 @@ func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
 	}
 }
 
+func HandleUserToggleSubscribe(s *services.UserService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+
+		auth_user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+
+		subscribedIdStr := c.FormValue("subscribed_id")
+		subscriberId := auth_user.PublicID
+		subscribedId, err := strconv.ParseInt(subscribedIdStr, 10, 64)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
+
+		if subscriberId == 0 || subscribedId == 0 || subscriberId == subscribedId {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
+
+		status, err := s.ToggleSubscribe(c.Context(), *auth_user, subscriberId, subscribedId)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+		}
+
+		var message string
+		if status {
+			message = "User subscribed successfully"
+		} else {
+			message = "User subscribed successfully"
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, message)
+	}
+}
+
 func HandleUserNotifications(s *services.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 

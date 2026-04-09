@@ -725,6 +725,44 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 	return !isBlocked, nil
 }
 
+func (s *UserService) ToggleSubscribe(ctx context.Context, authUser models.User, subscriberId, subscribedId int64) (bool, error) {
+
+	if subscriberId == subscribedId {
+		return false, errors.New("you cannot subscribe yourself")
+	}
+
+	subscriberUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: subscriberId})
+	if err != nil {
+		return false, err
+	}
+	subscribedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: subscribedId})
+	if err != nil {
+		return false, err
+	}
+
+	engagementRepo := s.userRepo.GetEngagementRepository()
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	engagementKindGiven = models.EngagementKindSubscribing
+	engagementKindReceived = models.EngagementKindSubscribedBy
+
+	isBlocked, _ := engagementRepo.HasUserEngaged(ctx, subscriberUser.ID, subscribedUser.ID, engagementKindGiven)
+
+	status, err := engagementRepo.ToggleEngagement(ctx, subscriberUser.ID, subscribedUser.ID, engagementKindGiven, subscriberUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	status, err = engagementRepo.ToggleEngagement(ctx, subscribedUser.ID, subscriberUser.ID, engagementKindReceived, subscribedUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	return !isBlocked, nil
+}
+
 func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
 	return s.userRepo.FetchUserNotifications(ctx, authUser, cursor, limit)
 }

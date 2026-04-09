@@ -170,6 +170,7 @@ func NewRouter(
 	r.action.Register(constants.CMD_USER_BLOCK, handlers.HandleUserBlock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UNBLOCK, handlers.HandleUserUnblock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_TOGGLE_BLOCK, handlers.HandleUserToggleBlock(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_TOGGLE_SUBSCRIBE, handlers.HandleUserToggleSubscribe(userService), middleware.AuthMiddleware(userRepo))
 
 	// POST
 	r.action.Register(constants.CMD_POST_CATEGORIES, handlers.HandleGetCategories(postService))

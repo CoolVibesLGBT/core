@@ -87,10 +87,11 @@ const (
 	CMD_USER_TOGGLE_LIKE    = "user.like.toggle"
 	CMD_USER_TOGGLE_DISLIKE = "user.dislike.toggle"
 
-	CMD_USER_BLOCK        = "user.block"
-	CMD_USER_UNBLOCK      = "user.unblock"
-	CMD_USER_TOGGLE_BLOCK = "user.block.toggle"
-	CMD_USER_REPORT       = "user.report"
+	CMD_USER_BLOCK            = "user.block"
+	CMD_USER_UNBLOCK          = "user.unblock"
+	CMD_USER_TOGGLE_BLOCK     = "user.block.toggle"
+	CMD_USER_REPORT           = "user.report"
+	CMD_USER_TOGGLE_SUBSCRIBE = "user.subscribe.toggle"
 
 	CMD_USER_FETCH_NEARBY_USERS      = "user.fetch.nearby.users"
 	CMD_USER_FETCH_BROADCASTERS      = "user.fetch.broadcasters"
