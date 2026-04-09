@@ -179,7 +179,7 @@ func NewRouter(
 	r.action.Register(constants.CMD_POST_LIKE, handlers.HandlePostLike(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_DISLIKE, handlers.HandlePostDislike(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_BOOKMARK, handlers.HandlePostBookmark(postService), middleware.AuthMiddleware(userRepo))
-	r.action.Register(constants.CMD_POST_BOOKMARK, handlers.HandlePostSubscribe(postService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_POST_SUBSCRIBE, handlers.HandlePostSubscribe(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_REPORT, handlers.HandlePostReport(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_VIEW, handlers.HandlePostView(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleFetchPost(postService))
