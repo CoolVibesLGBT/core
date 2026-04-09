@@ -93,6 +93,7 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Slug = &slug
 	}
 
+	fmt.Println("GELEN SLUG", slug)
 	if category := c.FormValue("category"); category != "" {
 		filter.Category = &category
 	}

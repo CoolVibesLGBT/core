@@ -249,11 +249,12 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	`
 
 	if err := r.db.Raw(cte, filters.Slug).Scan(&ids).Error; err != nil {
+
 		return nil, err
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("post with slug %s not found", filters.Slug)
+		return nil, fmt.Errorf("post with slug %s not found", &filters.Slug)
 	}
 
 	var posts []post.Post
@@ -289,7 +290,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("no posts found for slug %s", filters.Slug)
+		return nil, fmt.Errorf("no posts found for slug %s", &filters.Slug)
 	}
 
 	// map oluştur
@@ -314,14 +315,15 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	// root bul (slug'a karşılık gelen)
 	var root *post.Post
 	for _, p := range posts {
-		if p.Slug == filters.Slug {
+		if p.Slug != nil && filters.Slug != nil && *p.Slug == *filters.Slug {
 			root = postMap[p.ID]
 			break
 		}
+
 	}
 
 	if root == nil {
-		return nil, fmt.Errorf("root post not found for slug %s", filters.Slug)
+		return nil, fmt.Errorf("root post not found for slug %s", &filters.Slug)
 	}
 
 	buildTree(root)
@@ -1549,75 +1551,6 @@ func (r *PostRepository) Bookmark(filters types.Filter) error {
 				notifications.NotificationPayload{
 					Title: "Bookmark Removed",
 					Body:  "You removed your bookmark",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		}
-
-	}
-	return nil
-}
-
-func (r *PostRepository) Subscribe(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
-	if err != nil {
-		return err
-	}
-	if post != nil {
-		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindSubscribe, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
-		}
-
-		if isOk {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "New Subscribe",
-					Body:  "Someone subscribed your post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Post Subscribed",
-					Body:  "You subscribed this post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		} else {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "Subscibe Removed",
-					Body:  "Someone removed their subscibe",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Subscibe Removed",
-					Body:  "You removed your subscibe",
 				},
 			); err != nil {
 				helpers.Println("notification error:", err)

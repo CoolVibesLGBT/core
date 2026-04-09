@@ -187,27 +187,6 @@ func HandlePostDislike(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostSubscribe(s *services.PostService) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		user, ok := middleware.GetAuthenticatedUser(c)
-		if !ok {
-			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
-		}
-
-		filters, err := ParseFilters(c, user)
-		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
-		}
-
-		err = s.Subscribe(filters)
-		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostSubscribeFailed)
-		}
-
-		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post subscribed successfully")
-	}
-}
-
 func HandlePostBookmark(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
