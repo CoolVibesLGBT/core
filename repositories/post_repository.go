@@ -323,7 +323,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if root == nil {
-		return nil, fmt.Errorf("root post not found for slug %s", &filters.Slug)
+		return nil, fmt.Errorf("root post not found for slug %s", *filters.Slug)
 	}
 
 	buildTree(root)
