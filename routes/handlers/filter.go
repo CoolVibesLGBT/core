@@ -3,6 +3,7 @@ package handlers
 import (
 	"core/constants"
 	"core/models"
+	"core/models/post"
 	"core/types"
 	"fmt"
 	"strconv"
@@ -62,6 +63,7 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Cursor = &cVal
 	}
 
+	//search
 	search := c.Query("search")
 	if search == "" {
 		search = c.Query("q")
@@ -74,6 +76,21 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	}
 	if search != "" {
 		filter.Search = &search
+	}
+
+	//slug
+	slug := c.Query("slug")
+	if slug == "" {
+		slug = c.Query("slug")
+	}
+	if slug == "" {
+		slug = c.FormValue("slug")
+	}
+	if slug == "" {
+		slug = c.FormValue("slug")
+	}
+	if slug != "" {
+		filter.Slug = &slug
 	}
 
 	if category := c.FormValue("category"); category != "" {
@@ -120,6 +137,16 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 			return filter, fmt.Errorf("invalid distance")
 		}
 		filter.Distance = &dist
+	}
+
+	// Post Kind
+	if pk := c.FormValue("post_kind"); pk != "" {
+		if post.IsValidPostKind(pk) {
+			v := post.PostKind(pk)
+			filter.PostKind = v
+		} else {
+			filter.PostKind = post.PostKindPost
+		}
 	}
 
 	host := c.Get("X-Forwarded-Host")

@@ -232,6 +232,119 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return root, nil
 }
 
+func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error) {
+	var ids []uuid.UUID
+
+	cte := `
+	WITH RECURSIVE post_tree AS (
+		SELECT id
+		FROM posts
+		WHERE slug = ?
+		UNION ALL
+		SELECT p.id
+		FROM posts p
+		INNER JOIN post_tree pt ON pt.id = p.parent_id
+	)
+	SELECT id FROM post_tree;
+	`
+
+	if err := r.db.Raw(cte, filters.Slug).Scan(&ids).Error; err != nil {
+		return nil, err
+	}
+
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("post with slug %s not found", filters.Slug)
+	}
+
+	var posts []post.Post
+	if err := r.db.
+		Preload("Location").
+		Preload("Poll").
+		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("Poll.Choices.Votes").
+		Preload("Poll.Choices.Votes.User").
+		Preload("Poll.Choices.Votes.User.Avatar").
+		Preload("Poll.Choices.Votes.User.Avatar.File").
+		Preload("Event").
+		Preload("Event.Location").
+		Preload("Event.Attendees").
+		Preload("Engagements").
+		Preload("Engagements.EngagementDetails").
+		Preload("Engagements.EngagementDetails.Engager").
+		Preload("Engagements.EngagementDetails.Engagee").
+		Preload("Author").
+		Preload("Author.Cover").
+		Preload("Author.Cover.File").
+		Preload("Author.Avatar").
+		Preload("Author.Avatar.File").
+		Preload("Hashtags").
+		Preload("Attachments").
+		Preload("Attachments.File").
+		Where("id IN ?", ids).
+		Order("created_at ASC").
+		Find(&posts).Error; err != nil {
+		return nil, err
+	}
+
+	if len(posts) == 0 {
+		return nil, fmt.Errorf("no posts found for slug %s", filters.Slug)
+	}
+
+	// map oluştur
+	postMap := make(map[uuid.UUID]*post.Post, len(posts))
+	for i := range posts {
+		posts[i].Children = nil
+		postMap[posts[i].ID] = &posts[i]
+	}
+
+	// tree build
+	var buildTree func(parent *post.Post)
+	buildTree = func(parent *post.Post) {
+		for _, p := range posts {
+			if p.ParentID != nil && *p.ParentID == parent.ID {
+				child := postMap[p.ID]
+				buildTree(child)
+				parent.Children = append(parent.Children, *child)
+			}
+		}
+	}
+
+	// root bul (slug'a karşılık gelen)
+	var root *post.Post
+	for _, p := range posts {
+		if p.Slug == filters.Slug {
+			root = postMap[p.ID]
+			break
+		}
+	}
+
+	if root == nil {
+		return nil, fmt.Errorf("root post not found for slug %s", filters.Slug)
+	}
+
+	buildTree(root)
+
+	// children sort
+	var sortChildren func(p *post.Post)
+	sortChildren = func(p *post.Post) {
+		sort.SliceStable(p.Children, func(i, j int) bool {
+			if p.Children[i].PublicID != p.Children[j].PublicID {
+				return p.Children[i].PublicID < p.Children[j].PublicID
+			}
+			return p.Children[i].CreatedAt.Before(p.Children[j].CreatedAt)
+		})
+		for i := range p.Children {
+			sortChildren(&p.Children[i])
+		}
+	}
+
+	sortChildren(root)
+
+	return root, nil
+}
+
 func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	var p post.Post
 
@@ -271,7 +384,7 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindStatus)}).
+		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindStatus), string(post.PostKindVideo)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).
@@ -503,7 +616,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, post.PostKindPost).
+		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, filters.PostKind).
 		Order("public_id DESC").
 		Limit(filters.Limit)
 

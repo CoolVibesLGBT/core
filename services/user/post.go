@@ -48,6 +48,14 @@ func (s *PostService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return postData, nil
 }
 
+func (s *PostService) GetPostBySlug(filters types.Filter) (*post.Post, error) {
+	postData, err := s.postRepo.GetPostBySlug(filters)
+	if err != nil {
+		return nil, fmt.Errorf("GetPostBySlug error: %w", err)
+	}
+	return postData, nil
+}
+
 func (s *PostService) GetPostByPublicID(id int64) (*post.Post, error) {
 	postData, err := s.postRepo.GetPostByPublicID(id)
 	if err != nil {

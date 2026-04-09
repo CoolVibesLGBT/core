@@ -20,6 +20,7 @@ type Filter struct {
 	UserUUID  uuid.UUID
 	UserID    int64
 	Search    *string
+	Slug      *string
 	Category  *string
 	Name      *string
 	City      *string

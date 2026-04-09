@@ -27,3 +27,8 @@ workers/temp
 build
 ./.gocache
 .gocache
+
+./seeders/taxonomy/porn.go
+./seeders/taxonomy
+seeders/taxonomy
+seeders/taxonomy/porn.go

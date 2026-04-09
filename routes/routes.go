@@ -181,7 +181,9 @@ func NewRouter(
 	r.action.Register(constants.CMD_POST_BOOKMARK, handlers.HandlePostBookmark(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_REPORT, handlers.HandlePostReport(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_VIEW, handlers.HandlePostView(postService), middleware.AuthMiddleware(userRepo))
-	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleGetByID(postService))
+	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleFetchPost(postService))
+	r.action.Register(constants.CMD_POST_GET, handlers.HandleGetBySlug(postService))
+
 	r.action.Register(constants.CMD_POST_DELETE, handlers.HandlePostDelete(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIP, handlers.HandlePostTip(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))

@@ -145,7 +145,7 @@ func main() {
 		fmt.Printf("VAPIDKEY : %s \n", vapidKeys.PublicKey)
 	}
 
-	dispatcher := workers.NewDispatcher(10, 10)
+	dispatcher := workers.NewDispatcher(100, 1000)
 	dispatcher.Run()
 	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 

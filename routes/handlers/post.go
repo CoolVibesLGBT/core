@@ -299,6 +299,61 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 	}
 }
 
+func HandleFetchPost(s *services.PostService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+
+		var post *post.Post
+
+		switch {
+		case filters.PostID > 0:
+			post, err = s.GetPostByPublicID(filters.PostID)
+
+		case filters.PostUUID != uuid.Nil:
+			post, err = s.GetPostByID(filters.PostUUID)
+
+		case filters.Slug != nil && *filters.Slug != "":
+			post, err = s.GetPostBySlug(filters)
+
+		default:
+			return utils.SendErrorWithMessage(
+				c,
+				fiber.StatusBadRequest,
+				constants.ErrPostNotFound,
+				"no valid identifier provided",
+			)
+		}
+
+		if err != nil {
+			return utils.SendErrorWithMessage(
+				c,
+				fiber.StatusInternalServerError,
+				constants.ErrPostNotFound,
+				"failed to get post: "+err.Error(),
+			)
+		}
+
+		if post == nil {
+			return utils.SendErrorWithMessage(
+				c,
+				fiber.StatusNotFound,
+				constants.ErrPostNotFound,
+				"post not found",
+			)
+		}
+
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPostNotFound, "failed to get post: "+err.Error())
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")
+	}
+}
+
 func HandleGetByID(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
@@ -307,6 +362,22 @@ func HandleGetByID(s *services.PostService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
 		post, err := s.GetPostByPublicID(filters.PostID)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")
+	}
+}
+
+func HandleGetBySlug(s *services.PostService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+
+		filters, err := ParseFilters(c, nil)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+		post, err := s.GetPostBySlug(filters)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}

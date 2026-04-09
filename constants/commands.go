@@ -112,6 +112,7 @@ const (
 	CMD_POST_VOTE       = "post.vote"
 	CMD_POST_UPDATE     = "post.update"
 	CMD_POST_DELETE     = "post.delete"
+	CMD_POST_GET        = "post.get"
 	CMD_POST_FETCH      = "post.fetch"
 	CMD_POST_SEARCH     = "post.search"
 	CMD_POST_TIMELINE   = "post.timeline"
