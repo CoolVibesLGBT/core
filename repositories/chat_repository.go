@@ -297,7 +297,7 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, request map[s
 		return nil, err
 	}
 
-	_createdPost, err := r.postRepo.CreateContentablePost(context, request, files, author, "chat", &chatObj.ID)
+	_createdPost, err := r.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindChat), &chatObj.ID)
 	if err != nil {
 		return nil, err
 	}

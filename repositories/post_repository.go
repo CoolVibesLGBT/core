@@ -641,6 +641,7 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 		Preload("Poll").
 		Preload("Poll.Choices").
 		Preload("Event").
+		Preload("Parent").
 		Preload("Event.Location").
 		Preload("Event.Attendees").
 		Preload("Author").
@@ -649,7 +650,7 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", filters.UserUUID, "post").
+		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", filters.UserUUID, filters.PostKind).
 		Order("public_id DESC").
 		Limit(filters.Limit)
 
