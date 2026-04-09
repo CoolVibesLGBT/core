@@ -120,10 +120,12 @@ const (
 	CMD_POST_LIKE       = "post.like"
 	CMD_POST_DISLIKE    = "post.dislike"
 	CMD_POST_BOOKMARK   = "post.bookmark"
-	CMD_POST_REPORT     = "post.report"
-	CMD_POST_VIEW       = "post.view"
-	CMD_POST_BANANA     = "post.banana"
-	CMD_POST_TIP        = "post.tip"
+	CMD_POST_SUBSCRIBE  = "post.subscribe"
+
+	CMD_POST_REPORT = "post.report"
+	CMD_POST_VIEW   = "post.view"
+	CMD_POST_BANANA = "post.banana"
+	CMD_POST_TIP    = "post.tip"
 
 	//MATCH EKRANI
 	CMD_MATCH_CREATE = "match.create" // Yeni eşleşme oluşturma (örneğin karşılıklı like)

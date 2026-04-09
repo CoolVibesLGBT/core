@@ -75,18 +75,24 @@ const (
 	ErrPostUnlikeFailed     ErrorCode = "POST_UNLIKE_FAILED"
 	ErrPostBookmarkFailed   ErrorCode = "POST_BOOKMARK_FAILED"
 	ErrPostUnbookmarkFailed ErrorCode = "POST_UNBOOKMARK_FAILED"
-	ErrInsufficientBalance  ErrorCode = "INSUFFICIENT_BALANCE"
-	ErrInvalidAmount        ErrorCode = "INVALID_AMOUNT"
 	ErrFailedToBookmarkPost ErrorCode = "FAILED_TO_BOOKMARK_POST"
-	ErrFailedToDislikePost  ErrorCode = "FAILED_TO_DISLIKE_POST"
-	ErrFailedToLikePost     ErrorCode = "FAILED_TO_LIKE_POST"
-	ErrFailedToReportPost   ErrorCode = "FAILED_TO_REPORT_POST"
-	ErrFailedToSavePost     ErrorCode = "FAILED_TO_SAVE_POST"
-	ErrFailedToUnsavePost   ErrorCode = "FAILED_TO_UNSAVE_POST"
-	ErrFailedToSharePost    ErrorCode = "FAILED_TO_SHARE_POST"
-	ErrFailedToUnlikePost   ErrorCode = "FAILED_TO_UNLIKE_POST"
-	ErrFailedToBananaPost   ErrorCode = "FAILED_TO_BANANA_POST"
-	ErrCannotTipOwnPost     ErrorCode = "CANNOT_TIP_OWN_POST"
+
+	ErrPostSubscribeFailed     ErrorCode = "POST_SUBSCRIBE_FAILED"
+	ErrPostUnsubscribeFailed   ErrorCode = "POST_UNSUBSCRIBE_FAILED"
+	ErrFailedToSubscribePost   ErrorCode = "FAILED_TO_SUBSCRIBE_POST"
+	ErrFailedToUnsubscribePost ErrorCode = "FAILED_TO_UNSUBSCRIBE_POST"
+
+	ErrInsufficientBalance ErrorCode = "INSUFFICIENT_BALANCE"
+	ErrInvalidAmount       ErrorCode = "INVALID_AMOUNT"
+	ErrFailedToDislikePost ErrorCode = "FAILED_TO_DISLIKE_POST"
+	ErrFailedToLikePost    ErrorCode = "FAILED_TO_LIKE_POST"
+	ErrFailedToReportPost  ErrorCode = "FAILED_TO_REPORT_POST"
+	ErrFailedToSavePost    ErrorCode = "FAILED_TO_SAVE_POST"
+	ErrFailedToUnsavePost  ErrorCode = "FAILED_TO_UNSAVE_POST"
+	ErrFailedToSharePost   ErrorCode = "FAILED_TO_SHARE_POST"
+	ErrFailedToUnlikePost  ErrorCode = "FAILED_TO_UNLIKE_POST"
+	ErrFailedToBananaPost  ErrorCode = "FAILED_TO_BANANA_POST"
+	ErrCannotTipOwnPost    ErrorCode = "CANNOT_TIP_OWN_POST"
 
 	// Place
 	ErrPlaceNotFound     ErrorCode = "PLACE_NOT_FOUND"
@@ -184,22 +190,26 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrVoteFailed:       "Failed to register your vote. Please try again.",
 
 	// Post
-	ErrPostNotFound:         "Post not found.",
-	ErrPostDeleteDenied:     "You are not allowed to delete this post.",
-	ErrPostDeleteFailed:     "Failed to delete the post.",
-	ErrInsufficientBalance:  "Insufficient balance.",
-	ErrInvalidAmount:        "Invalid amount provided.",
-	ErrPostCreateFailed:     "Failed to create post",
-	ErrFailedToBookmarkPost: "Failed to bookmark post",
-	ErrFailedToDislikePost:  "Failed to dislike post",
-	ErrFailedToLikePost:     "Failed to like post",
-	ErrFailedToUnlikePost:   "Failed to unlike post",
-	ErrFailedToReportPost:   "Failed to report post",
-	ErrFailedToSavePost:     "Failed to save post",
-	ErrFailedToUnsavePost:   "Failed to unsave post",
-	ErrFailedToSharePost:    "Failed to share post",
-	ErrCannotTipOwnPost:     "You cannot tip your own post.",
-	ErrFailedToBananaPost:   "Failed to banana post",
+	ErrPostNotFound:            "Post not found.",
+	ErrPostDeleteDenied:        "You are not allowed to delete this post.",
+	ErrPostDeleteFailed:        "Failed to delete the post.",
+	ErrInsufficientBalance:     "Insufficient balance.",
+	ErrInvalidAmount:           "Invalid amount provided.",
+	ErrPostCreateFailed:        "Failed to create post",
+	ErrFailedToBookmarkPost:    "Failed to bookmark post",
+	ErrFailedToDislikePost:     "Failed to dislike post",
+	ErrFailedToLikePost:        "Failed to like post",
+	ErrFailedToUnlikePost:      "Failed to unlike post",
+	ErrFailedToReportPost:      "Failed to report post",
+	ErrFailedToSavePost:        "Failed to save post",
+	ErrFailedToUnsavePost:      "Failed to unsave post",
+	ErrFailedToSharePost:       "Failed to share post",
+	ErrCannotTipOwnPost:        "You cannot tip your own post.",
+	ErrFailedToBananaPost:      "Failed to banana post",
+	ErrPostSubscribeFailed:     "Failed to subscribe to post",
+	ErrPostUnsubscribeFailed:   "Failed to unsubscribe from post",
+	ErrFailedToSubscribePost:   "Failed to subscribe to post",
+	ErrFailedToUnsubscribePost: "Failed to unsubscribe from post",
 	// Place
 	ErrPlaceCreateFailed: "Failed to create place",
 	ErrPlaceNotFound:     "Place not found",

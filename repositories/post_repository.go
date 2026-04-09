@@ -1560,6 +1560,75 @@ func (r *PostRepository) Bookmark(filters types.Filter) error {
 	return nil
 }
 
+func (r *PostRepository) Subscribe(filters types.Filter) error {
+	post, err := r.FindPostByPublicID(filters.PostID)
+	if err != nil {
+		return err
+	}
+	if post != nil {
+		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindSubscribe, post.ID, models.EngagementContentableTypePost)
+		if err != nil {
+			return err
+		}
+
+		if isOk {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "New Subscribe",
+					Body:  "Someone subscribed your post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Post Subscribed",
+					Body:  "You subscribed this post",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		} else {
+
+			if err := r.SendNotification(
+				filters.Context,
+				filters.AuthUser.ID,
+				post.AuthorID,
+				notifications.NotificationPayload{
+					Title: "Subscibe Removed",
+					Body:  "Someone removed their subscibe",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+			if err := r.SendNotification(
+				filters.Context,
+				post.AuthorID,
+				filters.AuthUser.ID,
+				notifications.NotificationPayload{
+					Title: "Subscibe Removed",
+					Body:  "You removed your subscibe",
+				},
+			); err != nil {
+				helpers.Println("notification error:", err)
+			}
+
+		}
+
+	}
+	return nil
+}
+
 func (r *PostRepository) View(filters types.Filter) error {
 	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {

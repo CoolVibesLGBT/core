@@ -162,6 +162,10 @@ func (s *PostService) Bookmark(filters types.Filter) error {
 	return s.postRepo.Bookmark(filters)
 }
 
+func (s *PostService) Subscribe(filters types.Filter) error {
+	return s.postRepo.Subscribe(filters)
+}
+
 func (s *PostService) View(filters types.Filter) error {
 	return s.postRepo.View(filters)
 }

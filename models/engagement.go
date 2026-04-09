@@ -44,9 +44,10 @@ const (
 	EngagementKindBlocking  EngagementKind = "blocking"   // senin engellediklerin
 	EngagementKindView      EngagementKind = "view"
 
-	EngagementKindBookmark EngagementKind = "bookmark"
-	EngagementKindRating   EngagementKind = "rating"
-	EngagementKindTip      EngagementKind = "tip"
+	EngagementKindSubscribe EngagementKind = "subscribe"
+	EngagementKindBookmark  EngagementKind = "bookmark"
+	EngagementKindRating    EngagementKind = "rating"
+	EngagementKindTip       EngagementKind = "tip"
 
 	EngagementKindGift     EngagementKind = "gift"
 	EngagementKindReport   EngagementKind = "report"
@@ -90,14 +91,15 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindBlockedBy: {"blocked_by_count", ""},
 	EngagementKindBlocking:  {"blocking_count", ""},
 
-	EngagementKindView:     {"view_count", ""},
-	EngagementKindBookmark: {"bookmark_count", ""},
-	EngagementKindRating:   {"rating_count", "rating_sum"},
-	EngagementKindTip:      {"tip_count", "tip_amount"},
-	EngagementKindGift:     {"gift_count", "gift_amount"},
-	EngagementKindReport:   {"report_count", ""},
-	EngagementKindDeposit:  {"deposit_count", "deposit_amount"},
-	EngagementKindWithdraw: {"withdraw_count", "withdraw_amount"},
+	EngagementKindView:      {"view_count", ""},
+	EngagementKindBookmark:  {"bookmark_count", ""},
+	EngagementKindSubscribe: {"subscribe_count", ""},
+	EngagementKindRating:    {"rating_count", "rating_sum"},
+	EngagementKindTip:       {"tip_count", "tip_amount"},
+	EngagementKindGift:      {"gift_count", "gift_amount"},
+	EngagementKindReport:    {"report_count", ""},
+	EngagementKindDeposit:   {"deposit_count", "deposit_amount"},
+	EngagementKindWithdraw:  {"withdraw_count", "withdraw_amount"},
 
 	EngagementKindReferral:             {"referral_count", "referral_amount"},
 	EngagementKindMessageDeletedForMe:  {"message_deleted_for_me_count", ""},
@@ -167,6 +169,7 @@ func (e EngagementKind) IsValid() bool {
 		EngagementKindBlocking,
 		EngagementKindView,
 		EngagementKindBookmark,
+		EngagementKindSubscribe,
 		EngagementKindRating,
 		EngagementKindTip,
 		EngagementKindGift,
