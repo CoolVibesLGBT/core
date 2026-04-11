@@ -366,10 +366,10 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, engagerID u
 func (r *EngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableId uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
 	engagement, err := r.GetEngagement(ctx, contentableId, contentableType)
 	if err != nil {
+
 		return []models.EngagementDetail{}, nil, err
 	}
 
-	fmt.Println("engagement", engagement.ID, engagement.ContentableID)
 	return r.GetEngagementDetailsWithCursor(ctx, engagement.ID, &engagementKind, cursor, limit)
 }
 
