@@ -150,9 +150,6 @@ func main() {
 	mediaworker.StartProcessor(app.DB, app.SnowFlakeNode)
 
 	if *botFlag {
-		workers.ExecuteBot(context.Background())
-		//workers.ExecuteBotWithDispatcher(context.Background(),dispatcher)
-		//broadcast.StartFetcher(dispatcher, app)
 		fmt.Println("Bot Flag")
 		return
 	}
