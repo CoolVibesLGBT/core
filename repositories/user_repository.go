@@ -831,3 +831,11 @@ func (r *UserRepository) AddBalance(ctx context.Context, userID uuid.UUID, amoun
 
 	return &newBalance, nil
 }
+
+func (r *UserRepository) GetPreferences() (*models.PreferencesData, error) {
+	var preferences models.PreferencesData
+	if err := r.DB().Model(&models.Preferences{}).Select("data").First(&preferences).Error; err != nil {
+		return nil, err
+	}
+	return &preferences, nil
+}

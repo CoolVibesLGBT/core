@@ -15,8 +15,10 @@ import (
 	"strings"
 
 	fiber "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/static"
+	html "github.com/gofiber/template/html/v2"
 	"github.com/google/wire"
 	"github.com/oschwald/maxminddb-golang"
 	"gorm.io/gorm"
@@ -87,12 +89,13 @@ func NewRouter(
 		helpers.Error("Telegram disabled: %v", err)
 		tg = nil
 	}
-
+	engine := html.New("./views", ".html")
 	r := &Router{
 		action:          router.NewActionRouter(db),
 		db:              db,
 		TelegramService: tg,
 		fiber: fiber.New(fiber.Config{
+			Views:           engine,
 			ReadBufferSize:  8192,
 			WriteBufferSize: 8192,
 			BodyLimit:       2 * 1024 * 1024 * 1024,
@@ -124,6 +127,7 @@ func NewRouter(
 	}))
 
 	r.fiber.Use("/static", static.New("./static"))
+
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
 
@@ -253,11 +257,21 @@ func NewRouter(
 	r.fiber.All("/signin-oidc", r.handlePacket)
 	r.fiber.All("/signout-callback-oidc", r.handlePacket)
 
-	// hepsi için packet handler
-	r.fiber.All("/", r.handlePacket)
-
 	r.fiber.All("/test", r.handlePacket)
 	r.fiber.All("/packet", r.handlePacket)
+
+	//r.action.Register(constants.CMD_UNPIN_MESSAGE, handlers.HandleUnpinMessage(chatService), middleware.WebMiddleware(postService))
+
+	// API ROUTERS
+	api := r.fiber.Group("/api")
+	api.All("/", r.handlePacket)
+
+	// WEB ROUTES
+
+	r.fiber.Use(middleware.WebMiddleware(r.PostService))
+	r.fiber.Use(compress.New(compress.Config{
+		Level: compress.LevelBestCompression,
+	}))
 
 	r.fiber.All("/sitemap.xml", func(c fiber.Ctx) error {
 		xml, err := sitemapRepo.GenerateSitemapIndex(GetApiURL(c))
@@ -289,18 +303,8 @@ func NewRouter(
 		return c.Send(xml)
 	})
 
-	r.fiber.All("/sitemap-pillars.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GeneratePillarSitemap(c.Context(), GetFrontendURL(c))
-		if err != nil {
-			return c.Status(500).SendString(err.Error())
-		}
-
-		c.Type("xml")
-		return c.Send(xml)
-	})
-
-	r.fiber.All("/sitemap-clusters.xml", func(c fiber.Ctx) error {
-		xml, err := sitemapRepo.GenerateClusterSitemap(c.Context(), GetFrontendURL(c))
+	r.fiber.All("/sitemap-categories.xml", func(c fiber.Ctx) error {
+		xml, err := sitemapRepo.GenerateCategoriesSitemap(c.Context(), GetFrontendURL(c))
 		if err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
@@ -326,6 +330,15 @@ func NewRouter(
 		c.Type("xml")
 		return c.Send(xmlData)
 	})
+
+	r.fiber.Get("/", handlers.HandleHomePage())
+	r.fiber.Get("/categories", handlers.HandleCategoriesPage())
+	r.fiber.Get("/models", handlers.HandleModelsPage())
+	r.fiber.Get("/models/:slug", handlers.HandleModelDetailsPage())
+	r.fiber.Get("/video/:slug", handlers.HandleVideoPage())
+	r.fiber.Get("/:slug", handlers.HandleCategoriesPage())
+	r.fiber.Get("/:pillar/:cluster", handlers.HandleCategoriesDetailPage())
+
 	return r
 }
 

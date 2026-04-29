@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+func getParam(c fiber.Ctx, key string) string {
+	v := c.Params(key)
+	if v == "" {
+		v = c.Query(key)
+	}
+	if v == "" {
+		v = c.FormValue(key)
+	}
+	return v
+}
+
 func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	filter := types.Filter{
 		AuthUser: authUser,
@@ -78,37 +89,31 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Search = &search
 	}
 
-	//slug
-	slug := c.Query("slug")
-	if slug == "" {
-		slug = c.Query("slug")
-	}
-	if slug == "" {
-		slug = c.FormValue("slug")
-	}
-	if slug == "" {
-		slug = c.FormValue("slug")
-	}
-	if slug != "" {
+	if slug := getParam(c, "slug"); slug != "" {
 		filter.Slug = &slug
 	}
 
-	if category := c.FormValue("category"); category != "" {
+	if pillar := getParam(c, "pillar"); pillar != "" {
+		filter.Pillar = &pillar
+	}
+
+	if cluster := getParam(c, "cluster"); cluster != "" {
+		filter.Cluster = &cluster
+	}
+
+	if category := getParam(c, "category"); category != "" {
 		filter.Category = &category
 	}
 
-	// Name
-	if name := c.FormValue("name"); name != "" {
+	if name := getParam(c, "name"); name != "" {
 		filter.Name = &name
 	}
 
-	// City
-	if city := c.FormValue("city"); city != "" {
+	if city := getParam(c, "city"); city != "" {
 		filter.City = &city
 	}
 
-	// Country
-	if country := c.FormValue("country"); country != "" {
+	if country := getParam(c, "country"); country != "" {
 		filter.Country = &country
 	}
 
@@ -159,5 +164,6 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Domain = &kind
 	}
 
+	fmt.Println("GELEN DOMAIN", host, *filter.Domain)
 	return filter, nil
 }

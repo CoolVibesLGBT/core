@@ -120,7 +120,7 @@ func (r *SitemapRepository) BuildNewsSitemap(
 		}
 
 		urlSet.URLs = append(urlSet.URLs, sitemap.NewsURL{
-			Loc: fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
+			Loc: fmt.Sprintf("%s/%s/%s", baseURL, p.PostKind, *p.Slug),
 			News: sitemap.NewsMeta{
 				Publication: sitemap.Publication{
 					Name:     siteName,
@@ -208,7 +208,7 @@ func (r *SitemapRepository) BuildPostSitemap(
 		}
 
 		urlSet.URLs = append(urlSet.URLs, sitemap.URL{
-			Loc:        fmt.Sprintf("%s/news/%s", baseURL, *p.Slug),
+			Loc:        fmt.Sprintf("%s/%s/%s", baseURL, p.PostKind, *p.Slug),
 			LastMod:    p.UpdatedAt.UTC().Format(time.RFC3339),
 			Priority:   priority,
 			ChangeFreq: map[bool]string{true: "hourly", false: "daily"}[age <= 24*time.Hour],
@@ -223,20 +223,36 @@ func (r *SitemapRepository) BuildPostSitemap(
 	return append([]byte(xml.Header), output...), nil
 }
 
-func (r *SitemapRepository) GeneratePillarSitemap(ctx context.Context, baseURL string) ([]byte, error) {
+func (r *SitemapRepository) GenerateCategoriesSitemap(ctx context.Context, baseURL string) ([]byte, error) {
 
 	var pillars []taxonomy.Pillar
 	r.db.Find(&pillars)
+
+	err := r.db.
+		Preload("Clusters").
+		Find(&pillars).Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	builder := sitemap.NewSitemapBuilder(baseURL)
 
 	var items []sitemap.SitemapItem
 
 	for _, p := range pillars {
+
 		items = append(items, sitemap.SitemapItem{
-			Loc:     builder.BuildLoc("pillar/" + p.Slug),
+			Loc:     builder.BuildLoc("/" + p.Slug),
 			LastMod: p.UpdatedAt.UTC().Format(time.RFC3339),
 		})
+
+		for _, c := range p.Clusters {
+			items = append(items, sitemap.SitemapItem{
+				Loc:     builder.BuildLoc("/" + p.Slug + "/" + c.Slug),
+				LastMod: c.UpdatedAt.UTC().Format(time.RFC3339),
+			})
+		}
 	}
 
 	return builder.BuildURLSitemap(items)

@@ -32,6 +32,10 @@ func (s *PostService) ServiceName() string {
 	return "PostService"
 }
 
+func (s *PostService) UserRepo() *repositories.UserRepository {
+	return s.userRepo
+}
+
 func (s *PostService) CreatePost(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, postKind post.PostKind) (*post.Post, error) {
 	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(postKind), nil)
 	if err != nil {
