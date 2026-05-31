@@ -1,6 +1,6 @@
 module core
 
-go 1.26.1
+go 1.26.3
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
