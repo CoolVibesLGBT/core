@@ -18,7 +18,7 @@ func WebMiddleware(s *services.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		if cachedCategories == nil || cachedStars == nil || cachedPreferences == nil {
-			domain := "porn"
+			domain := "coolvies"
 
 			categories, err := s.GetPillarsWithClusters(types.Filter{
 				Domain: &domain,

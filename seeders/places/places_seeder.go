@@ -915,7 +915,9 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			return err
 		}
 
-		postCluster, err := postRepo.FindClusterBySlug(context.Background(), pillarEntry.ID, p.Tag)
+		tag := helpers.GenerateSlug(p.Tag)
+
+		postCluster, err := postRepo.FindClusterBySlug(context.Background(), pillarEntry.ID, tag)
 
 		if err != nil {
 			fmt.Println("cluster not found:", p.Tag, err)

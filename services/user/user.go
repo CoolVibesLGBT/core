@@ -56,14 +56,16 @@ func (s *UserService) UserRepository() *repositories.UserRepository {
 func (s *UserService) Register(context context.Context, request map[string][]string) (*models.User, string, error) {
 
 	type RegisterForm struct {
-		Name     string `form:"name"`
-		Nickname string `form:"nickname"`
-		Password string `form:"password"`
-		Domain   string `form:"domain"`
-		Email    string `form:"email"`
-		Captcha  string `form:"recaptchaToken"`
-		Referral string `form:"referralCode"`
+		Name           string `form:"name"`
+		Nickname       string `form:"nickname"`
+		Password       string `form:"password"`
+		Domain         string `form:"domain"`
+		Email          string `form:"email"`
+		Captcha        string `form:"captcha"`
+		RecaptchaToken string `form:"recaptchaToken"`
+		Referral       string `form:"referralCode"`
 	}
+
 	decoder := form.NewDecoder()
 	var formData RegisterForm
 
@@ -76,7 +78,12 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 		log.Println("ENV CAPTCHA_SECRET_KEY is not set")
 	}
 
-	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, formData.Captcha)
+	captchaToken := formData.RecaptchaToken
+	if captchaToken == "" {
+		captchaToken = formData.Captcha
+	}
+
+	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, captchaToken)
 	if captchaErr != nil {
 		return nil, "", errors.New(captchaErr.Error())
 	}
