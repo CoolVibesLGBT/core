@@ -35,7 +35,6 @@ require (
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/google/subcommands v1.2.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
 	github.com/googleapis/gax-go/v2 v2.20.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -65,11 +64,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.42.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/image v0.38.0 // indirect
-	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
-	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/api v0.273.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/grpc v1.79.3 // indirect
@@ -87,7 +84,6 @@ require (
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/google/wire v0.7.0
 	github.com/gosimple/slug v1.15.0
 	github.com/lib/pq v1.12.0
 	github.com/mmcdole/gofeed v1.3.0
@@ -104,5 +100,3 @@ require (
 	gorm.io/datatypes v1.2.7
 	gorm.io/gorm v1.31.1
 )
-
-tool github.com/google/wire/cmd/wire

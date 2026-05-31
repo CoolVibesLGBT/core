@@ -79,13 +79,8 @@ go run . -install
 golangci-lint run ./...
 ```
 
-### 7. Wire Injections
-```bash
-go tool wire ./application
-```
-```bash
-go run github.com/google/wire/cmd/wire ./application
-```
+### 7. Dependency Composition
+Dependency wiring is maintained manually in `infrastructure/bootstrap/bootstrap.go`.
 
 ### 8. Coverage
 ```bash

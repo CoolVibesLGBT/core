@@ -1,7 +1,7 @@
 package test
 
 import (
-	app "core/application"
+	app "core/infrastructure/bootstrap"
 	"os"
 	"testing"
 

@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/google/wire"
 )
 
 type Provider string
@@ -74,8 +72,6 @@ type Registry struct {
 	defaultProvider Provider
 	clients         map[Provider]Client
 }
-
-var ProviderSet = wire.NewSet(NewConfig, NewHTTPClient, NewRegistry)
 
 func NewConfig() Config {
 	defaultProvider, _ := parseProvider(firstNonEmpty(

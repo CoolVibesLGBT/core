@@ -108,7 +108,7 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
 
 	currentDirectory, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		t.Fatalf("get working directory: %v", err)
 	}
 
 	testAvatarFile := currentDirectory + "/static/samples/test2.jpeg"

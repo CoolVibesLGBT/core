@@ -855,7 +855,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	for _, p := range places {
 		lexicalJSON, err := placeToLexical(p)
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("failed to build place content for %q: %w", p.Name, err)
 		}
 
 		newP := PlaceDB(p)

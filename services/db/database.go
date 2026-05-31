@@ -22,14 +22,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/wire"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-var ProviderSet = wire.NewSet(NewDatabase)
 
 var DB *gorm.DB // Global değişken olarak veritabanı bağlantısı
 
@@ -52,7 +49,7 @@ func InitDB() error {
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		panic("DATABASE_URL is required")
+		return fmt.Errorf("DATABASE_URL is required")
 	}
 
 	errorOnlyLogger := logger.New(
@@ -69,12 +66,12 @@ func InitDB() error {
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{Logger: errorOnlyLogger})
 	if err != nil {
-		panic("failed to connect database")
+		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		panic("failed to get sql db")
+		return fmt.Errorf("failed to get sql db: %w", err)
 	}
 
 	sqlDB.SetMaxIdleConns(10)           // Boşta bekleyen bağlantıların maksimum sayısı

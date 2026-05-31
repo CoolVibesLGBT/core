@@ -3,7 +3,7 @@ package broadcast
 import (
 	"bytes"
 	"context"
-	app "core/application"
+	app "core/infrastructure/bootstrap"
 	"core/models"
 	"core/models/utils"
 	"time"

@@ -20,12 +20,9 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/paginate"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	html "github.com/gofiber/template/html/v2"
-	"github.com/google/wire"
 	"github.com/oschwald/maxminddb-golang"
 	"gorm.io/gorm"
 )
-
-var ProviderSet = wire.NewSet(NewRouter, GeoIPDBProvider)
 
 type Router struct {
 	fiber         *fiber.App

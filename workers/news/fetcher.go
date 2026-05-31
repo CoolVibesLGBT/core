@@ -1,8 +1,8 @@
 package news
 
 import (
-	"core/application"
 	"core/helpers"
+	"core/infrastructure/bootstrap"
 	"core/workers"
 	"encoding/json"
 	"fmt"
@@ -301,7 +301,7 @@ func extractSubAndDomainWithoutTLD(rawurl string) (string, error) {
 	return hostWithoutTLD, nil
 }
 
-func processFeedItem(item *gofeed.Item, app *application.App) error {
+func processFeedItem(item *gofeed.Item, app *bootstrap.App) error {
 	// Burada senin extractArticle vb. işlemler olabilir.
 	fmt.Printf("Processing: %s - %s\n", item.Title, item.Link)
 
@@ -419,7 +419,7 @@ func processFeedItem(item *gofeed.Item, app *application.App) error {
 	return nil
 }
 
-func processFeedsRoundRobin(feedFiles []string, app *application.App) error {
+func processFeedsRoundRobin(feedFiles []string, app *bootstrap.App) error {
 	// feedMap: key: feed dosyası, value: feed içindeki item listesi
 	feedMap := make(map[string][]*gofeed.Item)
 	maxLen := 0
@@ -477,7 +477,7 @@ func processFeedsRoundRobin(feedFiles []string, app *application.App) error {
 	return nil
 }
 
-func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *application.App) error {
+func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *bootstrap.App) error {
 
 	sources := DefaultRSSSources
 	feedFiles := make([]string, 0, len(sources))

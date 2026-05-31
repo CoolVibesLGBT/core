@@ -2,9 +2,9 @@ package news
 
 import (
 	"context"
-	"core/application"
 	"core/constants"
 	"core/helpers"
+	"core/infrastructure/bootstrap"
 	"core/models/post"
 	"core/types"
 	"core/utils"
@@ -91,7 +91,7 @@ func ArticleToNewsRequest(article *ArticleResult) (map[string][]string, error) {
 	}, nil
 }
 
-func CreateNew(article *ArticleResult, app *application.App) (*post.Post, error) {
+func CreateNew(article *ArticleResult, app *bootstrap.App) (*post.Post, error) {
 	request, err := ArticleToNewsRequest(article)
 	if err != nil {
 		return nil, err

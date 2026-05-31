@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	app "core/application"
 	"core/constants"
 	"core/helpers"
+	app "core/infrastructure/bootstrap"
 	"core/repositories"
 	"core/services/db"
 	"core/services/socket"

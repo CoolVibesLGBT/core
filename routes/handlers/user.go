@@ -29,7 +29,16 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
-		userObj, token, err := s.Register(c.Context(), form.Value)
+		userObj, token, err := s.RegisterUser(c.Context(), services.RegisterInput{
+			Name:           multipartValue(form.Value, "name"),
+			Nickname:       multipartValue(form.Value, "nickname"),
+			Password:       multipartValue(form.Value, "password"),
+			Domain:         multipartValue(form.Value, "domain"),
+			Email:          multipartValue(form.Value, "email"),
+			Captcha:        multipartValue(form.Value, "captcha"),
+			RecaptchaToken: multipartValue(form.Value, "recaptchaToken"),
+			Referral:       multipartValue(form.Value, "referralCode"),
+		})
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUserExists, err.Error())
 		}
@@ -48,7 +57,10 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		userObj, token, err := s.Login(c.Context(), form.Value)
+		userObj, token, err := s.LoginUser(c.Context(), services.LoginInput{
+			UserName: multipartValue(form.Value, "nickname"),
+			Password: multipartValue(form.Value, "password"),
+		})
 		if err != nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
@@ -59,6 +71,14 @@ func HandleLogin(s *services.UserService) fiber.Handler {
 		}
 		return utils.SendSuccess(c, fiber.StatusOK, payload)
 	}
+}
+
+func multipartValue(values map[string][]string, key string) string {
+	items := values[key]
+	if len(items) == 0 {
+		return ""
+	}
+	return items[0]
 }
 
 func HandleAuthCheck(s *services.UserService) fiber.Handler {

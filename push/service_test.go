@@ -13,7 +13,8 @@ func ExampleNewService() {
 
 	pb, err := NewService(opts)
 	if err != nil {
-		panic(err)
+		log.Println(err)
+		return
 	}
 
 	subscriptionEndpoint := "https://fcm.googleapis.com/fcm/send/e2CN0r8ft38:APA91bES3NaBHe_GgsRp_3Ir7f18L38wA5XYRoqZCbjMPEWnkKa07uxheWE5MGZncsPOr0_34zLaFljVqmNqW76KhPSrjdy_pdInnHPEIYAZpdcIYk8oIfo1F_84uKMSqIDXRhngL76S"

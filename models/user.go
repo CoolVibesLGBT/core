@@ -2,12 +2,10 @@ package models
 
 import (
 	"core/constants"
+	domainuser "core/domain/user"
 	"core/models/media"
 	"core/models/utils"
-	"errors"
-	"math/big"
 
-	"encoding/hex"
 	"encoding/json"
 	"strconv"
 
@@ -160,55 +158,25 @@ func (CountryVisit) TableName() string {
 }
 
 func (u *User) SetPreference(bitIndex int) error {
-	if bitIndex < 0 {
-		return errors.New("bitIndex must be non-negative")
+	flags, err := domainuser.PreferenceFlags(u.PreferencesFlags).Set(bitIndex)
+	if err != nil {
+		return err
 	}
 
-	flags := big.NewInt(0)
-	if u.PreferencesFlags != "" {
-		bytes, err := hex.DecodeString(u.PreferencesFlags)
-		if err != nil {
-			return err
-		}
-		flags.SetBytes(bytes)
-	}
-	flags.SetBit(flags, bitIndex, 1)
-
-	u.PreferencesFlags = hex.EncodeToString(flags.Bytes())
+	u.PreferencesFlags = string(flags)
 	return nil
 }
 
 func (u *User) IsPreferenceSet(bitIndex int) (bool, error) {
-	if bitIndex < 0 {
-		return false, errors.New("bitIndex must be non-negative")
-	}
-
-	flags := big.NewInt(0)
-	if u.PreferencesFlags != "" {
-		bytes, err := hex.DecodeString(u.PreferencesFlags)
-		if err != nil {
-			return false, err
-		}
-		flags.SetBytes(bytes)
-	}
-
-	return flags.Bit(bitIndex) == 1, nil
+	return domainuser.PreferenceFlags(u.PreferencesFlags).IsSet(bitIndex)
 }
 
 func (u *User) UnsetPreference(bitIndex int) error {
-	if bitIndex < 0 {
-		return errors.New("bitIndex must be non-negative")
+	flags, err := domainuser.PreferenceFlags(u.PreferencesFlags).Unset(bitIndex)
+	if err != nil {
+		return err
 	}
-	flags := big.NewInt(0)
-	if u.PreferencesFlags != "" {
-		bytes, err := hex.DecodeString(u.PreferencesFlags)
-		if err != nil {
-			return err
-		}
-		flags.SetBytes(bytes)
-	}
-	flags.SetBit(flags, bitIndex, 0)
 
-	u.PreferencesFlags = hex.EncodeToString(flags.Bytes())
+	u.PreferencesFlags = string(flags)
 	return nil
 }

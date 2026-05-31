@@ -10,14 +10,10 @@ import (
 	"core/models/utils"
 	"core/types"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/big"
 	"net"
-	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -610,40 +606,6 @@ func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, e
 	}
 
 	return users, nil
-}
-
-func (r *UserRepository) VerifyCaptcha(secret string, response string) (bool, error) {
-	type recaptchaResponse struct {
-		Success bool `json:"success"`
-	}
-
-	if response == constants.APPLICATION_NAME {
-		return true, nil
-	}
-
-	resp, err := http.PostForm("https://www.google.com/recaptcha/api/siteverify",
-		url.Values{"secret": {secret}, "response": {response}})
-	if err != nil {
-		return false, err
-	}
-	defer func() {
-		if cerr := resp.Body.Close(); err == nil {
-			err = cerr
-		}
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return false, err
-	}
-
-	var captchaResponse recaptchaResponse
-	err = json.Unmarshal(body, &captchaResponse)
-	if err != nil {
-		return false, err
-	}
-
-	return captchaResponse.Success, nil
 }
 
 func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {

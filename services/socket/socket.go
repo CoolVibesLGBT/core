@@ -16,7 +16,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
 	"github.com/google/uuid"
-	"github.com/google/wire"
 	"github.com/rs/cors"
 	socketio "github.com/vchitai/go-socket.io/v4"
 	"github.com/vchitai/go-socket.io/v4/engineio"
@@ -25,11 +24,6 @@ import (
 	"github.com/vchitai/go-socket.io/v4/engineio/transport/websocket"
 	socketlogger "github.com/vchitai/go-socket.io/v4/logger"
 	"gorm.io/gorm"
-)
-
-var ProviderSet = wire.NewSet(
-	NewSocketService,
-	managers.NewNotificationManager,
 )
 
 var Server *socketio.Server

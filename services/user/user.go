@@ -3,7 +3,9 @@ package services
 import (
 	"bytes"
 	"context"
+	"core/application/ports"
 	"core/constants"
+	domainuser "core/domain/user"
 	"core/extensions"
 	"core/helpers"
 	"core/models"
@@ -16,26 +18,61 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	form "github.com/go-playground/form/v4"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
 	mediaRepo        *repositories.MediaRepository
 	userRepo         *repositories.UserRepository
+	accountRepo      ports.UserAccountRepository
 	postRepo         *repositories.PostRepository
 	engagementRepo   *repositories.EngagementRepository
 	notificationRepo *repositories.NotificationRepository
+	captchaVerifier  ports.CaptchaVerifier
+	passwordHasher   ports.PasswordHasher
+	tokenIssuer      ports.TokenIssuer
+	publicIDGen      ports.PublicIDGenerator
+	eventPublisher   ports.EventPublisher
+}
+
+type UserServiceOption func(*UserService)
+
+func WithCaptchaVerifier(verifier ports.CaptchaVerifier) UserServiceOption {
+	return func(s *UserService) {
+		s.captchaVerifier = verifier
+	}
+}
+
+func WithPasswordHasher(hasher ports.PasswordHasher) UserServiceOption {
+	return func(s *UserService) {
+		s.passwordHasher = hasher
+	}
+}
+
+func WithTokenIssuer(issuer ports.TokenIssuer) UserServiceOption {
+	return func(s *UserService) {
+		s.tokenIssuer = issuer
+	}
+}
+
+func WithPublicIDGenerator(generator ports.PublicIDGenerator) UserServiceOption {
+	return func(s *UserService) {
+		s.publicIDGen = generator
+	}
+}
+
+func WithEventPublisher(publisher ports.EventPublisher) UserServiceOption {
+	return func(s *UserService) {
+		s.eventPublisher = publisher
+	}
 }
 
 func NewUserService(
@@ -44,92 +81,101 @@ func NewUserService(
 	mediaRepo *repositories.MediaRepository,
 	engagementRepo *repositories.EngagementRepository,
 	notificationRepo *repositories.NotificationRepository,
+	options ...UserServiceOption,
 ) *UserService {
-	return &UserService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo, notificationRepo: notificationRepo, engagementRepo: engagementRepo}
+	service := &UserService{
+		postRepo:         postRepo,
+		mediaRepo:        mediaRepo,
+		userRepo:         userRepo,
+		accountRepo:      userRepo,
+		notificationRepo: notificationRepo,
+		engagementRepo:   engagementRepo,
+		eventPublisher:   ports.NoopEventPublisher(),
+	}
+
+	for _, option := range options {
+		option(service)
+	}
+
+	return service
 }
 
 func (s *UserService) UserRepository() *repositories.UserRepository {
 	return s.userRepo
 }
 
-// Register işlemi
-func (s *UserService) Register(context context.Context, request map[string][]string) (*models.User, string, error) {
+type RegisterInput struct {
+	Name           string `form:"name"`
+	Nickname       string `form:"nickname"`
+	Password       string `form:"password"`
+	Domain         string `form:"domain"`
+	Email          string `form:"email"`
+	Captcha        string `form:"captcha"`
+	RecaptchaToken string `form:"recaptchaToken"`
+	Referral       string `form:"referralCode"`
+}
 
-	type RegisterForm struct {
-		Name           string `form:"name"`
-		Nickname       string `form:"nickname"`
-		Password       string `form:"password"`
-		Domain         string `form:"domain"`
-		Email          string `form:"email"`
-		Captcha        string `form:"captcha"`
-		RecaptchaToken string `form:"recaptchaToken"`
-		Referral       string `form:"referralCode"`
-	}
+type LoginInput struct {
+	UserName string `form:"nickname"`
+	Password string `form:"password"`
+}
 
+func (s *UserService) Register(ctx context.Context, request map[string][]string) (*models.User, string, error) {
 	decoder := form.NewDecoder()
-	var formData RegisterForm
-
-	if err := decoder.Decode(&formData, request); err != nil {
+	var input RegisterInput
+	if err := decoder.Decode(&input, request); err != nil {
 		return nil, "", err
 	}
 
-	captchaSecret := os.Getenv("CAPTCHA_SECRET_KEY")
-	if len(captchaSecret) == 0 {
-		log.Println("ENV CAPTCHA_SECRET_KEY is not set")
+	return s.RegisterUser(ctx, input)
+}
+
+func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*models.User, string, error) {
+	registration, err := domainuser.NewRegistration(domainuser.RegistrationInput{
+		Name:     input.Name,
+		Nickname: input.Nickname,
+		Password: input.Password,
+		Domain:   input.Domain,
+		Email:    input.Email,
+	})
+	if err != nil {
+		return nil, "", err
 	}
 
-	captchaToken := formData.RecaptchaToken
+	captchaToken := input.RecaptchaToken
 	if captchaToken == "" {
-		captchaToken = formData.Captcha
+		captchaToken = input.Captcha
 	}
 
-	captchaValid, captchaErr := s.userRepo.VerifyCaptcha(captchaSecret, captchaToken)
-	if captchaErr != nil {
-		return nil, "", errors.New(captchaErr.Error())
+	captchaValid, err := s.verifyCaptcha(ctx, captchaToken)
+	if err != nil {
+		return nil, "", err
 	}
-
 	if !captchaValid {
 		return nil, "", errors.New("invalid captcha")
 	}
 
-	formData.Nickname = strings.ToLower(formData.Nickname)
-	formData.Password = strings.ToLower(formData.Password)
-	formData.Email = strings.ToLower(formData.Email)
-
-	if len(formData.Email) > 0 {
-		if !helpers.IsValidEmail(formData.Email) {
-			return nil, "", errors.New("invalid email")
-		}
-	}
-
-	domain := models.GetDomainKind(formData.Domain)
-
-	if !models.IsValidDomainByKind(domain) {
-		return nil, "", errors.New("invalid domain")
-	}
-
-	hash, err := helpers.HashPasswordArgon2id(formData.Password)
+	hash, err := s.hashPassword(registration.Password)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
 	}
 
-	existingUser, err := s.userRepo.GetByUserNameOrEmailOrUsername(formData.Nickname)
-	if err == nil && existingUser != nil {
-		return nil, "", errors.New("username already exists")
-	}
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	exists, err := s.accountRepo.ExistsByNameOrMail(registration.Nickname)
+	if err != nil {
 		return nil, "", err
 	}
+	if exists {
+		return nil, "", errors.New("username already exists")
+	}
 
-	UserID := uuid.New()
-
+	userID := uuid.New()
 	userObj := &models.User{
-		ID:          UserID,
-		PublicID:    s.userRepo.Node().Generate().Int64(),
-		Domain:      models.GetDomainKind(formData.Domain),
-		UserName:    formData.Name,
-		DisplayName: formData.Nickname,
-		Email:       formData.Email,
+		ID:          userID,
+		PublicID:    s.generatePublicID(),
+		Domain:      models.DomainKind(registration.Domain),
+		UserName:    registration.Name,
+		DisplayName: registration.Nickname,
+		Email:       registration.Email,
 		Password:    hash,
 		UserRole:    constants.UserRoleUser,
 		IsLive:      false,
@@ -137,7 +183,7 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 		IsPremium:   false,
 	}
 
-	if err := s.userRepo.Create(userObj); err != nil {
+	if err := s.accountRepo.Create(userObj); err != nil {
 		return nil, "", err
 	}
 
@@ -146,26 +192,15 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 		return nil, "", err
 	}
 
-	if len(formData.Referral) > 0 {
-		referralId, err := helpers.StrToInt64(formData.Referral)
-		if err == nil {
-			referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: context, UserID: referralId})
-			if err == nil {
-				reward := constants.DEFAULT_REFERRAL_REWARD
-				newBalance, err := s.userRepo.AddReferral(context, referralUser.ID, userInfo.ID, reward)
-				if err != nil {
-					fmt.Println("REFERRAL ERROR3", err)
-				}
-				fmt.Println("NEW BALANCE", newBalance)
-			} else {
-				fmt.Println("REFERRAL ERROR2", err)
-			}
-		} else {
-			fmt.Println("REFERRAL ERROR1", err)
-		}
+	if input.Referral != "" {
+		s.applyReferral(ctx, input.Referral, userInfo.ID)
 	}
 
-	token, err := helpers.GenerateUserJWT(userObj.ID, userObj.PublicID)
+	if err := s.publishEvent(ctx, domainuser.NewRegisteredEvent(userObj.ID.String(), userObj.PublicID, registration.Domain, time.Now().UTC())); err != nil {
+		return nil, "", err
+	}
+
+	token, err := s.generateToken(userObj.ID, userObj.PublicID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -173,54 +208,47 @@ func (s *UserService) Register(context context.Context, request map[string][]str
 	return userInfo, token, nil
 }
 
-func (s *UserService) Login(context context.Context, request map[string][]string) (*models.User, string, error) {
-	// Form yapısı
-	type LoginForm struct {
-		UserName string `form:"nickname"`
-		Password string `form:"password"`
-	}
-
+func (s *UserService) Login(ctx context.Context, request map[string][]string) (*models.User, string, error) {
 	decoder := form.NewDecoder()
-	var formData LoginForm
-
-	if err := decoder.Decode(&formData, request); err != nil {
+	var input LoginInput
+	if err := decoder.Decode(&input, request); err != nil {
 		return nil, "", err
 	}
 
-	formData.Password = strings.ToLower(formData.Password)
-	formData.UserName = strings.ToLower(formData.UserName)
+	return s.LoginUser(ctx, input)
+}
 
-	// Kullanıcıyı username ile bul (repo'da buna uygun fonksiyon olmalı)
-	userObj, err := s.userRepo.GetByUserNameOrEmailOrUsername(formData.UserName)
-	fmt.Println(err)
+func (s *UserService) LoginUser(ctx context.Context, input LoginInput) (*models.User, string, error) {
+	credentials := domainuser.NewCredentials(input.UserName, input.Password)
+
+	userObj, err := s.accountRepo.GetByUserNameOrEmailOrUsername(credentials.UserName)
 	if err != nil {
 		return nil, "", errors.New("invalid username/email/nickname or password")
 	}
 
 	if userObj.IsBot && userObj.Password == "" {
-		if formData.Password == "" {
+		if credentials.Password == "" {
 			return nil, "", errors.New("password cannot be empty")
 		}
-		hash, err := helpers.HashPasswordArgon2id(formData.Password)
+		hash, err := s.hashPassword(credentials.Password)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to hash password: %w", err)
 		}
 		userObj.Password = hash
-		if err := s.userRepo.UpdateUser(userObj); err != nil {
+		if err := s.accountRepo.UpdateUser(userObj); err != nil {
 			return nil, "", fmt.Errorf("failed to update bot password: %w", err)
 		}
 	} else {
-		ok, err := helpers.ComparePasswordArgon2id(userObj.Password, formData.Password)
+		ok, err := s.comparePassword(userObj.Password, credentials.Password)
 		if err != nil {
-			return nil, "", err // Karşılaştırma sırasında hata
+			return nil, "", err
 		}
 		if !ok {
-			return nil, "", errors.New("invalid credentials") // Şifre yanlış
+			return nil, "", errors.New("invalid credentials")
 		}
 	}
 
-	// Token üret
-	token, err := helpers.GenerateUserJWT(userObj.ID, userObj.PublicID)
+	token, err := s.generateToken(userObj.ID, userObj.PublicID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -228,8 +256,71 @@ func (s *UserService) Login(context context.Context, request map[string][]string
 	return userObj, token, nil
 }
 
+func (s *UserService) verifyCaptcha(ctx context.Context, token string) (bool, error) {
+	if s.captchaVerifier == nil {
+		return true, nil
+	}
+	return s.captchaVerifier.VerifyCaptcha(ctx, token)
+}
+
+func (s *UserService) hashPassword(password string) (string, error) {
+	if s.passwordHasher == nil {
+		return helpers.HashPasswordArgon2id(password)
+	}
+	return s.passwordHasher.HashPassword(password)
+}
+
+func (s *UserService) comparePassword(hashed string, raw string) (bool, error) {
+	if s.passwordHasher == nil {
+		return helpers.ComparePasswordArgon2id(hashed, raw)
+	}
+	return s.passwordHasher.ComparePassword(hashed, raw)
+}
+
+func (s *UserService) generateToken(userID uuid.UUID, publicID int64) (string, error) {
+	if s.tokenIssuer == nil {
+		return helpers.GenerateUserJWT(userID, publicID)
+	}
+	return s.tokenIssuer.GenerateUserToken(userID, publicID)
+}
+
+func (s *UserService) generatePublicID() int64 {
+	if s.publicIDGen != nil {
+		return s.publicIDGen.GeneratePublicID()
+	}
+	return s.userRepo.Node().Generate().Int64()
+}
+
+func (s *UserService) publishEvent(ctx context.Context, event domainuser.RegisteredEvent) error {
+	if s.eventPublisher == nil {
+		return nil
+	}
+	return s.eventPublisher.Publish(ctx, event)
+}
+
+func (s *UserService) applyReferral(ctx context.Context, referral string, userID uuid.UUID) {
+	referralID, err := helpers.StrToInt64(referral)
+	if err != nil {
+		fmt.Println("REFERRAL ERROR1", err)
+		return
+	}
+
+	referralUser, err := s.accountRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: referralID})
+	if err != nil {
+		fmt.Println("REFERRAL ERROR2", err)
+		return
+	}
+
+	newBalance, err := s.accountRepo.AddReferral(ctx, referralUser.ID, userID, constants.DEFAULT_REFERRAL_REWARD)
+	if err != nil {
+		fmt.Println("REFERRAL ERROR3", err)
+		return
+	}
+	fmt.Println("NEW BALANCE", newBalance)
+}
+
 func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
-	return s.userRepo.GetByID(id)
+	return s.accountRepo.GetByID(id)
 }
 
 func (s *UserService) FetchUserProfileByUsername(username string) (*models.User, error) {
@@ -238,7 +329,7 @@ func (s *UserService) FetchUserProfileByUsername(username string) (*models.User,
 
 func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (*models.User, error) {
 	userObj.ID = uuid.New()
-	userObj.PublicID = s.userRepo.Node().Generate().Int64()
+	userObj.PublicID = s.generatePublicID()
 	userObj.PrivacyLevel = constants.PrivacyPublic
 	userObj.UserRole = constants.UserRoleUser
 	userObj.IsBot = true
@@ -559,7 +650,7 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 	}
 
 	if formData.CurrentPassword != "" {
-		ok, err := helpers.ComparePasswordArgon2id(authUser.Password, formData.CurrentPassword)
+		ok, err := s.comparePassword(authUser.Password, formData.CurrentPassword)
 		if err != nil {
 			return nil, err
 		}

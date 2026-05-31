@@ -110,7 +110,7 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 
 	pb, err := push.NewService(opts)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create push service: %w", err)
 	}
 
 	// Her subscription için push notification gönder

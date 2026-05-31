@@ -9,11 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/google/wire"
 )
-
-var ProviderSet = wire.NewSet(NewDefaultNode)
 
 func NewDefaultNode() (*Node, error) {
 	return NewNode(1)
