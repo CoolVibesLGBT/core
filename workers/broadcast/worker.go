@@ -8,8 +8,8 @@ import (
 	"core/models/utils"
 	"time"
 
-	"core/repositories"
-	userservice "core/services/user"
+	userservice "core/application/usecases"
+	"core/infrastructure/repositories"
 	"core/workers"
 	"encoding/json"
 	"fmt"

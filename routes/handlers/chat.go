@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 
@@ -12,14 +12,14 @@ import (
 )
 
 type ChatHandler struct {
-	chatService *services.ChatService
+	chatService *usecases.ChatService
 }
 
-func NewChatHandler(chatService *services.ChatService) *ChatHandler {
+func NewChatHandler(chatService *usecases.ChatService) *ChatHandler {
 	return &ChatHandler{chatService: chatService}
 }
 
-func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
+func HandleSendTypingEvent(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -50,7 +50,7 @@ func HandleSendTypingEvent(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleSendMessage(s *services.ChatService) fiber.Handler {
+func HandleSendMessage(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -79,7 +79,7 @@ func HandleSendMessage(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleCreateChat(s *services.ChatService) fiber.Handler {
+func HandleCreateChat(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -115,7 +115,7 @@ func HandleCreateChat(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleChatMessageRead(s *services.ChatService) fiber.Handler {
+func HandleChatMessageRead(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -167,7 +167,7 @@ func HandleChatMessageRead(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
+func HandleGetChatsByUserID(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -185,7 +185,7 @@ func HandleGetChatsByUserID(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
+func HandleGetMessagesByChatID(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -223,7 +223,7 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandlePinMessage(s *services.ChatService) fiber.Handler {
+func HandlePinMessage(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -258,7 +258,7 @@ func HandlePinMessage(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
+func HandleUnpinMessage(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -293,7 +293,7 @@ func HandleUnpinMessage(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
+func HandleDeleteMessageForUser(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -328,7 +328,7 @@ func HandleDeleteMessageForUser(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
+func HandleDeleteMessageForAll(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -366,7 +366,7 @@ func HandleDeleteMessageForAll(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
+func HandleDeleteChatForUser(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -395,7 +395,7 @@ func HandleDeleteChatForUser(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
+func HandleDeleteChatForAll(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -422,7 +422,7 @@ func HandleDeleteChatForAll(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteChat(s *services.ChatService) fiber.Handler {
+func HandleDeleteChat(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)
@@ -450,7 +450,7 @@ func HandleDeleteChat(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
+func HandleDeleteMessage(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -483,7 +483,7 @@ func HandleDeleteMessage(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleClearChatHistoryForUser(s *services.ChatService) fiber.Handler {
+func HandleClearChatHistoryForUser(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {
@@ -510,7 +510,7 @@ func HandleClearChatHistoryForUser(s *services.ChatService) fiber.Handler {
 	}
 }
 
-func HandleClearChatHistoryForAll(s *services.ChatService) fiber.Handler {
+func HandleClearChatHistoryForAll(s *usecases.ChatService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)
 		if !ok || authUser == nil {

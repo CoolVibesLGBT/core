@@ -2,15 +2,15 @@
 package routes
 
 import (
+	"core/application/ports"
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/helpers"
+	telegramService "core/infrastructure/bot/telegram"
 	"core/mcp"
 	"core/middleware"
-	"core/repositories"
 	"core/router"
 	"core/routes/handlers"
-	telegramService "core/services/bot/telegram"
-	services "core/services/user"
 	"fmt"
 	"strings"
 
@@ -34,15 +34,15 @@ type Router struct {
 
 	TelegramService *telegramService.Service
 
-	NewsService         *services.NewsService
-	PostService         *services.PostService
-	UserService         *services.UserService
-	NotificationService *services.NotificationsService
-	PlaceService        *services.PlaceService
-	ChatService         *services.ChatService
-	PaymentService      *services.PaymentService
-	ClassifiedService   *services.ClassifiedService
-	MatchesService      *services.MatchesService
+	NewsService         *usecases.NewsService
+	PostService         *usecases.PostService
+	UserService         *usecases.UserService
+	NotificationService *usecases.NotificationsService
+	PlaceService        *usecases.PlaceService
+	ChatService         *usecases.ChatService
+	PaymentService      *usecases.PaymentService
+	ClassifiedService   *usecases.ClassifiedService
+	MatchesService      *usecases.MatchesService
 }
 
 func GeoIPDBProvider() (*maxminddb.Reader, error) {
@@ -66,18 +66,18 @@ func NewRouter(
 	db *gorm.DB,
 	snowFlakeNode *helpers.Node,
 	mcpServer *mcp.MCPServer,
-	userService *services.UserService,
-	postService *services.PostService,
-	placeService *services.PlaceService,
-	newsService *services.NewsService,
-	classifiedService *services.ClassifiedService,
-	matchesService *services.MatchesService,
-	chatService *services.ChatService,
-	notificationService *services.NotificationsService,
-	paymentService *services.PaymentService,
-	userRepo *repositories.UserRepository,
-	notificationRepo *repositories.NotificationRepository,
-	sitemapRepo *repositories.SitemapRepository,
+	userService *usecases.UserService,
+	postService *usecases.PostService,
+	placeService *usecases.PlaceService,
+	newsService *usecases.NewsService,
+	classifiedService *usecases.ClassifiedService,
+	matchesService *usecases.MatchesService,
+	chatService *usecases.ChatService,
+	notificationService *usecases.NotificationsService,
+	paymentService *usecases.PaymentService,
+	systemService *usecases.SystemService,
+	userRepo ports.UserRepository,
+	sitemapRepo ports.SitemapRepository,
 	geoIPDB *maxminddb.Reader,
 
 ) *Router {
@@ -136,11 +136,11 @@ func NewRouter(
 
 	r.fiber.Use("/static", static.New("./static"))
 
-	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(r.db))
+	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(systemService))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
 
-	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(r.db))
-	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(r.db), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_GET_VAPID_PUBLIC_KEY, handlers.HandleVapidGetKey(systemService))
+	r.action.Register(constants.CMD_SET_VAPID_SUBSCRIBE, handlers.HandleVapidSubscribe(systemService), middleware.AuthMiddleware(userRepo))
 
 	r.action.Register(constants.CMD_AUTH_CHECK, handlers.HandleAuthCheck(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_AUTH_REGISTER, handlers.HandleRegister(userService))
@@ -151,7 +151,7 @@ func NewRouter(
 	r.action.Register(constants.CMD_SEARCH_TRENDS, handlers.HandleGetTrends(postService))
 
 	r.action.Register(constants.CMD_AUTH_USER_INFO, handlers.HandleUserInfo(userService), middleware.AuthMiddleware(userRepo))
-	r.action.Register(constants.CMD_PAYMENT_METHODS, handlers.HandleFetchPaymentMethods(db))
+	r.action.Register(constants.CMD_PAYMENT_METHODS, handlers.HandleFetchPaymentMethods(systemService))
 	r.action.Register(constants.CMD_GET_NOTIFICATIONS, handlers.HandleGetNotifications(notificationService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_GET_NOTIFICATIONS, handlers.HandleUserNotifications(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UPDATE_PREFERENCES, handlers.HandleSetUserPreferences(userService), middleware.AuthMiddleware(userRepo))

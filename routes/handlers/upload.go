@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/models/media"
-	services "core/services/user"
 	"core/utils"
 
 	"github.com/gofiber/fiber/v3"
@@ -11,14 +11,14 @@ import (
 )
 
 type UploadHandler struct {
-	service *services.MediaService
+	service *usecases.MediaService
 }
 
-func NewUploadHandler(service *services.MediaService) *UploadHandler {
+func NewUploadHandler(service *usecases.MediaService) *UploadHandler {
 	return &UploadHandler{service: service}
 }
 
-func (h *UploadHandler) HandleUploadMedia(s *services.MediaService) fiber.Handler {
+func (h *UploadHandler) HandleUploadMedia(s *usecases.MediaService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		ownerIDStr := c.FormValue("owner_id")
 		ownerTypeStr := c.FormValue("owner_type")

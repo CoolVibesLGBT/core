@@ -15,7 +15,7 @@ import (
 
 func TestMCPHTTPTransportLifecycle(t *testing.T) {
 	server := mcp.NewMCPServer()
-	server.RegisterTool(mcp.NewTool(
+	if err := server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        "test.echo",
 			Description: "Echo a value.",
@@ -26,7 +26,9 @@ func TestMCPHTTPTransportLifecycle(t *testing.T) {
 		func(ctx context.Context, req mcp.CallToolRequest) (any, error) {
 			return map[string]any{"echo": req.Arguments["value"]}, nil
 		},
-	))
+	)); err != nil {
+		t.Fatalf("RegisterTool() error = %v", err)
+	}
 
 	app := fiber.New()
 	app.All("/mcp", HandleMCPTransport(server))
@@ -193,7 +195,7 @@ func TestMCPHTTPTransportRejectsNullID(t *testing.T) {
 
 func TestMCPHTTPTransportSupportsBatchForProtocol20250326(t *testing.T) {
 	server := mcp.NewMCPServer()
-	server.RegisterTool(mcp.NewTool(
+	if err := server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        "test.echo",
 			Description: "Echo a value.",
@@ -202,7 +204,9 @@ func TestMCPHTTPTransportSupportsBatchForProtocol20250326(t *testing.T) {
 		func(ctx context.Context, req mcp.CallToolRequest) (any, error) {
 			return map[string]any{"echo": req.Arguments["value"]}, nil
 		},
-	))
+	)); err != nil {
+		t.Fatalf("RegisterTool() error = %v", err)
+	}
 
 	app := fiber.New()
 	app.All("/mcp", HandleMCPTransport(server))

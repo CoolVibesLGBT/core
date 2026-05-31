@@ -3,21 +3,21 @@ package handlers
 import (
 	"fmt"
 
-	services "core/services/user"
+	usecases "core/application/usecases"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type PaymentHandler struct {
-	service *services.PaymentService
+	service *usecases.PaymentService
 }
 
-func NewPaymentHandler(service *services.PaymentService) *PaymentHandler {
+func NewPaymentHandler(service *usecases.PaymentService) *PaymentHandler {
 	return &PaymentHandler{service: service}
 }
 
 // /stripe/thin
-func HandleStripeThin(s *services.PaymentService) fiber.Handler {
+func HandleStripeThin(s *usecases.PaymentService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		fmt.Println("STRIPE_THIN_EXECUTED")
 		return c.SendStatus(fiber.StatusOK)
@@ -25,7 +25,7 @@ func HandleStripeThin(s *services.PaymentService) fiber.Handler {
 }
 
 // /stripe/snapshot
-func HandleStripeSnapshot(s *services.PaymentService) fiber.Handler {
+func HandleStripeSnapshot(s *usecases.PaymentService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		fmt.Println("STRIPE_SNAPSHOT_EXECUTED")
 		return c.SendStatus(fiber.StatusOK)

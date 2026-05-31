@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
 	"core/models"
-	services "core/services/user"
 	"core/types"
 	"core/utils"
 	"fmt"
@@ -15,21 +15,21 @@ import (
 )
 
 type UserHandler struct {
-	service *services.UserService
+	service *usecases.UserService
 }
 
-func NewUserHandler(service *services.UserService) *UserHandler {
+func NewUserHandler(service *usecases.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-func HandleRegister(s *services.UserService) fiber.Handler {
+func HandleRegister(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		form, err := c.MultipartForm()
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
-		userObj, token, err := s.RegisterUser(c.Context(), services.RegisterInput{
+		userObj, token, err := s.RegisterUser(c.Context(), usecases.RegisterInput{
 			Name:           multipartValue(form.Value, "name"),
 			Nickname:       multipartValue(form.Value, "nickname"),
 			Password:       multipartValue(form.Value, "password"),
@@ -50,14 +50,14 @@ func HandleRegister(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleLogin(s *services.UserService) fiber.Handler {
+func HandleLogin(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		form, err := c.MultipartForm()
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		userObj, token, err := s.LoginUser(c.Context(), services.LoginInput{
+		userObj, token, err := s.LoginUser(c.Context(), usecases.LoginInput{
 			UserName: multipartValue(form.Value, "nickname"),
 			Password: multipartValue(form.Value, "password"),
 		})
@@ -81,7 +81,7 @@ func multipartValue(values map[string][]string, key string) string {
 	return items[0]
 }
 
-func HandleAuthCheck(s *services.UserService) fiber.Handler {
+func HandleAuthCheck(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -91,7 +91,7 @@ func HandleAuthCheck(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
+func HandleFetchUserProfile(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		username := c.FormValue("nickname")
 		if username == "" {
@@ -111,7 +111,7 @@ func HandleFetchUserProfile(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUploadAvatar(s *services.UserService) fiber.Handler {
+func HandleUploadAvatar(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -142,7 +142,7 @@ func HandleUploadAvatar(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUploadCover(s *services.UserService) fiber.Handler {
+func HandleUploadCover(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Dosyayı al
 		fileHeader, err := c.FormFile("cover")
@@ -176,7 +176,7 @@ func HandleUploadCover(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUploadStory(s *services.UserService) fiber.Handler {
+func HandleUploadStory(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Dosyayı al (multipart form otomatik parse edilir)
 		fileHeader, err := c.FormFile("story")
@@ -200,7 +200,7 @@ func HandleUploadStory(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserInfo(s *services.UserService) fiber.Handler {
+func HandleUserInfo(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -218,7 +218,7 @@ func HandleUserInfo(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
+func HandleSetUserPreferences(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -261,7 +261,7 @@ func HandleSetUserPreferences(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchStories(s *services.UserService) fiber.Handler {
+func HandleFetchStories(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -278,7 +278,7 @@ func HandleFetchStories(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
+func HandleFetchNearbyUsers(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, _ := middleware.GetAuthenticatedUser(c)
@@ -310,7 +310,7 @@ func HandleFetchNearbyUsers(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFollow(s *services.UserService) fiber.Handler {
+func HandleFollow(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -344,7 +344,7 @@ func HandleFollow(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUnfollow(s *services.UserService) fiber.Handler {
+func HandleUnfollow(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -378,7 +378,7 @@ func HandleUnfollow(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleToggleFollow(s *services.UserService) fiber.Handler {
+func HandleToggleFollow(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -425,7 +425,7 @@ func HandleToggleFollow(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
+func HandleGetUsersStartingWith(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		searchStr := c.FormValue("query")
 		limit := 15
@@ -441,7 +441,7 @@ func HandleGetUsersStartingWith(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
+func HandleUpdateUserProfile(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -454,9 +454,29 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid form data")
 		}
 
-		formValues := form.Value // map[string][]string olarak direkt kullan
-
-		user, err := s.UpdateUserProfile(c.Context(), *auth_user, formValues)
+		user, err := s.UpdateUserProfile(c.Context(), *auth_user, usecases.UpdateUserProfileInput{
+			UserName:                multipartValue(form.Value, "username"),
+			Password:                multipartValue(form.Value, "password"),
+			CurrentPassword:         multipartValue(form.Value, "current_password"),
+			NewPassword:             multipartValue(form.Value, "new_password"),
+			NewPasswordConfirmation: multipartValue(form.Value, "new_password_confirmation"),
+			Email:                   multipartValue(form.Value, "email"),
+			DisplayName:             multipartValue(form.Value, "displayname"),
+			Bio:                     multipartValue(form.Value, "bio"),
+			Website:                 multipartValue(form.Value, "website"),
+			DateOfBirth:             multipartValue(form.Value, "date_of_birth"),
+			PrivacyLevel:            multipartValue(form.Value, "privacy_level"),
+			LocationContentableType: multipartValue(form.Value, "location[contentable_type]"),
+			LocationCountryCode:     multipartValue(form.Value, "location[country_code]"),
+			LocationAddress:         multipartValue(form.Value, "location[address]"),
+			LocationCity:            multipartValue(form.Value, "location[city]"),
+			LocationCountry:         multipartValue(form.Value, "location[country]"),
+			LocationRegion:          multipartValue(form.Value, "location[region]"),
+			LocationTimezone:        multipartValue(form.Value, "location[timezone]"),
+			LocationDisplay:         multipartValue(form.Value, "location[display]"),
+			LocationLatitude:        multipartValue(form.Value, "location[latitude]"),
+			LocationLongitude:       multipartValue(form.Value, "location[longitude]"),
+		})
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 		}
@@ -468,7 +488,7 @@ func HandleUpdateUserProfile(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
+func HandleFetchUserEngagements(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -502,7 +522,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 			limit = parsedLimit
 		}
 
-		engageeUser, err := s.UserRepository().GetUserByPublicIdWithoutRelations(types.Filter{Context: c.Context(), UserID: engageeId})
+		engageeUser, err := s.GetUserByPublicID(c.Context(), engageeId)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
@@ -532,7 +552,7 @@ func HandleFetchUserEngagements(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserLike(s *services.UserService) fiber.Handler {
+func HandleUserLike(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -563,7 +583,7 @@ func HandleUserLike(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserDislike(s *services.UserService) fiber.Handler {
+func HandleUserDislike(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -593,7 +613,7 @@ func HandleUserDislike(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Handler {
+func HandleUserToggleLikeDislike(s *usecases.UserService, isLike bool) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -638,7 +658,7 @@ func HandleUserToggleLikeDislike(s *services.UserService, isLike bool) fiber.Han
 	}
 }
 
-func HandleUserBlock(s *services.UserService) fiber.Handler {
+func HandleUserBlock(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -667,7 +687,7 @@ func HandleUserBlock(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserUnblock(s *services.UserService) fiber.Handler {
+func HandleUserUnblock(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -696,7 +716,7 @@ func HandleUserUnblock(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
+func HandleUserToggleBlock(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -733,7 +753,7 @@ func HandleUserToggleBlock(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserToggleSubscribe(s *services.UserService) fiber.Handler {
+func HandleUserToggleSubscribe(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -770,7 +790,7 @@ func HandleUserToggleSubscribe(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserNotifications(s *services.UserService) fiber.Handler {
+func HandleUserNotifications(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -813,7 +833,7 @@ func HandleUserNotifications(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleUserDelete(s *services.UserService) fiber.Handler {
+func HandleUserDelete(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)

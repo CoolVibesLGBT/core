@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 
@@ -11,14 +11,14 @@ import (
 )
 
 type ClassifiedsHandler struct {
-	service *services.ClassifiedService
+	service *usecases.ClassifiedService
 }
 
-func NewClassifiedsHandler(service *services.ClassifiedService) *ClassifiedsHandler {
+func NewClassifiedsHandler(service *usecases.ClassifiedService) *ClassifiedsHandler {
 	return &ClassifiedsHandler{service: service}
 }
 
-func HandleCreateClassified(s *services.ClassifiedService) fiber.Handler {
+func HandleCreateClassified(s *usecases.ClassifiedService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
@@ -47,7 +47,7 @@ func HandleCreateClassified(s *services.ClassifiedService) fiber.Handler {
 	}
 }
 
-func HandleFetchJobOffers(s *services.ClassifiedService) fiber.Handler {
+func HandleFetchJobOffers(s *usecases.ClassifiedService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
@@ -69,7 +69,7 @@ func HandleFetchJobOffers(s *services.ClassifiedService) fiber.Handler {
 	}
 }
 
-func HandleFetchJobSearches(s *services.ClassifiedService) fiber.Handler {
+func HandleFetchJobSearches(s *usecases.ClassifiedService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
@@ -91,7 +91,7 @@ func HandleFetchJobSearches(s *services.ClassifiedService) fiber.Handler {
 	}
 }
 
-func HandleGetClassified(s *services.ClassifiedService) fiber.Handler {
+func HandleGetClassified(s *usecases.ClassifiedService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)

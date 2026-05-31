@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"bytes"
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/types"
 	"core/utils"
 	"encoding/json"
@@ -17,14 +17,14 @@ import (
 )
 
 type BroadcastHandler struct {
-	service *services.UserService
+	service *usecases.UserService
 }
 
-func NewBroadcastHandler(service *services.UserService) *BroadcastHandler {
+func NewBroadcastHandler(service *usecases.UserService) *BroadcastHandler {
 	return &BroadcastHandler{service: service}
 }
 
-func HandleFetchBroadcastsH(s *services.UserService) fiber.Handler {
+func HandleFetchBroadcastsH(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, _ := middleware.GetAuthenticatedUser(c)
@@ -94,7 +94,7 @@ func HandleFetchBroadcastsH(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchBroadcastsG(s *services.UserService) fiber.Handler {
+func HandleFetchBroadcastsG(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, _ := middleware.GetAuthenticatedUser(c)
@@ -191,7 +191,7 @@ func HandleFetchBroadcastsG(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
+func HandleFetchBroadcasts(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -227,7 +227,7 @@ func HandleFetchBroadcasts(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleCreateBroadcast(s *services.UserService) fiber.Handler {
+func HandleCreateBroadcast(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		streamDescription := c.FormValue("streamDescription")
@@ -285,7 +285,7 @@ func HandleCreateBroadcast(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleViewBroadcast(s *services.UserService) fiber.Handler {
+func HandleViewBroadcast(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		broadcastId := c.FormValue("broadcastId")
@@ -350,7 +350,7 @@ func HandleViewBroadcast(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleBroadcastsJoinRequest(s *services.UserService) fiber.Handler {
+func HandleBroadcastsJoinRequest(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, _ := middleware.GetAuthenticatedUser(c)
@@ -427,7 +427,7 @@ func HandleBroadcastsJoinRequest(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleLikeBroadcast(s *services.UserService) fiber.Handler {
+func HandleLikeBroadcast(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		broadcastId := c.FormValue("broadcastId")

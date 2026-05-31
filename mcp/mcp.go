@@ -46,8 +46,8 @@ func (r *MCPServer) Router() *Router {
 	return r.router
 }
 
-func (r *MCPServer) RegisterTool(tool Tool) {
-	r.registry.Register(tool)
+func (r *MCPServer) RegisterTool(tool Tool) error {
+	return r.registry.Register(tool)
 }
 
 func (r *MCPServer) Call(ctx context.Context, req CallToolRequest) (CallToolResult, error) {

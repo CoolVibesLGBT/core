@@ -3,9 +3,9 @@ package test
 import (
 	"bytes"
 	"context"
+	usecases "core/application/usecases"
 	"core/helpers"
-	"core/repositories"
-	services "core/services/user"
+	"core/infrastructure/repositories"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -97,7 +97,7 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
 	userRepo := repositories.NewUserRepository(db, nil, snowFlakeNode, engagementRepo, notificationRepo)
 	mediaRepo := repositories.NewMediaRepository(db, snowFlakeNode)
 	postRepo := repositories.NewPostRepository(db, snowFlakeNode, mediaRepo, userRepo, notificationRepo)
-	userService := services.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
+	userService := usecases.NewUserService(userRepo, postRepo, mediaRepo, engagementRepo, notificationRepo)
 
 	user, err := userService.GetUserByID(uuid.MustParse("e6717509-ad80-433b-bf7e-8f1b4d338c8e"))
 	if err != nil {

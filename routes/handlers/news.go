@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 
@@ -11,14 +11,14 @@ import (
 )
 
 type NewsHandler struct {
-	service *services.NewsService
+	service *usecases.NewsService
 }
 
-func NewNewsHandler(service *services.NewsService) *NewsHandler {
+func NewNewsHandler(service *usecases.NewsService) *NewsHandler {
 	return &NewsHandler{service: service}
 }
 
-func HandleCreateNews(s *services.NewsService) fiber.Handler {
+func HandleCreateNews(s *usecases.NewsService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
@@ -47,7 +47,7 @@ func HandleCreateNews(s *services.NewsService) fiber.Handler {
 	}
 }
 
-func HandleFetchNews(s *services.NewsService) fiber.Handler {
+func HandleFetchNews(s *usecases.NewsService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)

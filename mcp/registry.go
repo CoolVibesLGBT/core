@@ -1,9 +1,15 @@
 package mcp
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
+)
+
+var (
+	ErrToolNameRequired      = errors.New("mcp tool name is required")
+	ErrToolAlreadyRegistered = errors.New("mcp tool already registered")
 )
 
 type Registry struct {
@@ -16,18 +22,19 @@ func NewRegistry() *Registry {
 	}
 }
 
-func (r *Registry) Register(tool Tool) {
+func (r *Registry) Register(tool Tool) error {
 	definition := tool.Definition()
 	name := strings.TrimSpace(definition.Name)
 	if name == "" {
-		panic("mcp tool name is required")
+		return ErrToolNameRequired
 	}
 	if _, exists := r.tools[name]; exists {
-		panic(fmt.Sprintf("mcp tool already registered: %s", name))
+		return fmt.Errorf("%w: %s", ErrToolAlreadyRegistered, name)
 	}
 
 	definition.Name = name
 	r.tools[name] = NewTool(definition, tool.Call)
+	return nil
 }
 
 func (r *Registry) Get(name string) (Tool, bool) {

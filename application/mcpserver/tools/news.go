@@ -7,12 +7,12 @@ import (
 	"core/mcp"
 	"fmt"
 
-	services "core/services/user"
+	usecases "core/application/usecases"
 	"github.com/google/uuid"
 )
 
-func RegisterNews(server *mcp.MCPServer, newsService *services.NewsService) {
-	server.RegisterTool(mcp.NewTool(
+func RegisterNews(server *mcp.MCPServer, newsService *usecases.NewsService) error {
+	if err := server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        constants.CMD_NEWS_FETCH,
 			Title:       "Fetch News",
@@ -36,9 +36,11 @@ func RegisterNews(server *mcp.MCPServer, newsService *services.NewsService) {
 				"cursor": postResult.Cursor,
 			}, nil
 		},
-	))
+	)); err != nil {
+		return err
+	}
 
-	server.RegisterTool(mcp.NewTool(
+	if err := server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        constants.CMD_NEWS_GET,
 			Title:       "Get News Item",
@@ -58,9 +60,11 @@ func RegisterNews(server *mcp.MCPServer, newsService *services.NewsService) {
 
 			return newsService.Get(filters)
 		},
-	))
+	)); err != nil {
+		return err
+	}
 
-	server.RegisterTool(mcp.NewTool(
+	return server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        constants.CMD_NEWS_CATEGORIES,
 			Title:       "List News Categories",

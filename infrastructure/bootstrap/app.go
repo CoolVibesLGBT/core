@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
-	"core/ai"
 	"core/helpers"
+	"core/infrastructure/ai"
 	"core/mcp"
 	"core/routes"
 

@@ -61,6 +61,13 @@ func (Location) TableName() string {
 	return "locations"
 }
 
+func NewLocationPoint(lat, lon float64) *extensions.PostGISPoint {
+	return &extensions.PostGISPoint{
+		Lat: lat,
+		Lng: lon,
+	}
+}
+
 func (l *Location) DistanceTo(lat, lon float64) float64 {
 	const R = 6371000 // Dünya yarıçapı metre cinsinden
 	lat1 := *l.Latitude * math.Pi / 180

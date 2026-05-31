@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
 	"core/models/post"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 	"strconv"
@@ -16,14 +16,14 @@ import (
 )
 
 type PostHandler struct {
-	service *services.PostService
+	service *usecases.PostService
 }
 
-func NewPostHandler(service *services.PostService) *PostHandler {
+func NewPostHandler(service *usecases.PostService) *PostHandler {
 	return &PostHandler{service: service}
 }
 
-func HandleCreate(s *services.PostService) fiber.Handler {
+func HandleCreate(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
@@ -60,7 +60,7 @@ func HandleCreate(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleVote(s *services.PostService) fiber.Handler {
+func HandleVote(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -104,7 +104,7 @@ func HandleVote(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostDelete(s *services.PostService) fiber.Handler {
+func HandlePostDelete(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -125,7 +125,7 @@ func HandlePostDelete(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostLike(s *services.PostService) fiber.Handler {
+func HandlePostLike(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		// authenticated user
@@ -149,7 +149,7 @@ func HandlePostLike(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostBanana(s *services.PostService) fiber.Handler {
+func HandlePostBanana(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -167,7 +167,7 @@ func HandlePostBanana(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostDislike(s *services.PostService) fiber.Handler {
+func HandlePostDislike(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -187,7 +187,7 @@ func HandlePostDislike(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostBookmark(s *services.PostService) fiber.Handler {
+func HandlePostBookmark(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
@@ -208,7 +208,7 @@ func HandlePostBookmark(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostReport(s *services.PostService) fiber.Handler {
+func HandlePostReport(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -238,7 +238,7 @@ func HandlePostReport(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostView(s *services.PostService) fiber.Handler {
+func HandlePostView(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		//todo:without middleware
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -260,7 +260,7 @@ func HandlePostView(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandlePostTip(s *services.PostService) fiber.Handler {
+func HandlePostTip(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -299,7 +299,7 @@ func HandlePostTip(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleFetchPost(s *services.PostService) fiber.Handler {
+func HandleFetchPost(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -354,7 +354,7 @@ func HandleFetchPost(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetByID(s *services.PostService) fiber.Handler {
+func HandleGetByID(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -370,7 +370,7 @@ func HandleGetByID(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetBySlug(s *services.PostService) fiber.Handler {
+func HandleGetBySlug(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -386,7 +386,7 @@ func HandleGetBySlug(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetByPublicID(s *services.PostService) fiber.Handler {
+func HandleGetByPublicID(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -400,7 +400,7 @@ func HandleGetByPublicID(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleTimeline(s *services.PostService) fiber.Handler {
+func HandleTimeline(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -414,7 +414,7 @@ func HandleTimeline(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleSearchPost(s *services.PostService) fiber.Handler {
+func HandleSearchPost(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -428,7 +428,7 @@ func HandleSearchPost(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleTimelineVibes(s *services.PostService) fiber.Handler {
+func HandleTimelineVibes(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -444,7 +444,7 @@ func HandleTimelineVibes(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
+func HandleGetPostsByUser(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -460,7 +460,7 @@ func HandleGetPostsByUser(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
+func HandleGetRepliesByUser(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
@@ -476,7 +476,7 @@ func HandleGetRepliesByUser(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
+func HandleGetAllMediasByUser(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -506,7 +506,7 @@ func HandleGetAllMediasByUser(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
+func HandleGetAllLikesByUser(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		idStr := c.FormValue("id")
 		if idStr == "" {
@@ -527,7 +527,7 @@ func HandleGetAllLikesByUser(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetTrends(s *services.PostService) fiber.Handler {
+func HandleGetTrends(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)
@@ -547,7 +547,7 @@ func HandleGetTrends(s *services.PostService) fiber.Handler {
 	}
 }
 
-func HandleGetCategories(s *services.PostService) fiber.Handler {
+func HandleGetCategories(s *usecases.PostService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		filters, err := ParseFilters(c, nil)

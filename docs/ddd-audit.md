@@ -4,11 +4,12 @@
 
 - Domain: `domain/`
   - Framework, HTTP, DB, ORM import etmez.
-  - Şu an kullanıcı domain değerleri ve eventleri burada: `domain/user`, `domain/events`.
+  - Kullanıcı value object, interaction rule ve domain eventleri burada: `domain/user`, `domain/events`.
 - Application: `application/`
   - Port arayüzleri `application/ports` altında.
-  - MCP use case adapterleri `application/mcpserver` altında.
-- Infrastructure: `infrastructure/`, `repositories/`, `services/db`, `services/socket`, `ai`, `push`
+  - Use case orkestrasyonu `application/usecases` altında.
+  - MCP application adapterleri `application/mcpserver` altında.
+- Infrastructure: `infrastructure/`
   - DB, captcha, token, hash, id üretimi, socket, external API ve composition root burada.
 - Interface: `routes/`, `routes/handlers`, `middleware`, `mcp`
   - HTTP/Fiber request okuma, response yazma ve transport adapterleri burada kalır.
@@ -30,14 +31,23 @@
 - `domain/` altında framework/DB/HTTP/ORM bağımlılığı yok.
 - User registration/login akışında value object doğrulaması domain tarafına taşındı.
 - Captcha, password hash, token ve public id üretimi application portları üzerinden infrastructure adapterlarına bağlandı.
-- User repository arayüzü application portuna alındı; somut implementasyon `repositories` tarafında kaldı.
+- Repository arayüzleri application portlarına alındı; somut implementasyonlar `infrastructure/repositories` altında kaldı.
 - Registration için `user.registered` domain eventi eklendi.
 - Controller register/login akışında request okur, typed input oluşturur ve use case metodunu çağırır.
 - Repository içindeki reCAPTCHA HTTP çağrısı infrastructure adapterına taşındı.
-- Üretim akışındaki gereksiz `panic` kullanımları DB, notification ve seeder tarafında error dönüşüne çevrildi.
+- Application use case paketleri `services/user` altından `application/usecases` altına taşındı.
+- DB, socket ve Telegram adapterları `services/*` altından `infrastructure/*` altına taşındı.
+- AI, push ve repository adapterları kök paketlerden `infrastructure/*` altına taşındı.
+- AI use case somut provider registry yerine `ports.TextGenerator` arayüzüne bağlandı.
+- Telegram webhook handler somut bot servisi yerine application portuna bağlandı.
+- Application use case paketlerinin somut repository, GORM, HTTP ve Fiber bağımlılığı kaldırıldı.
+- System/VAPID/payment initial-sync handlerlarının GORM erişimi system use case ve repository portuna taşındı.
+- Follow, like, block, subscribe ve chat self-interaction iş kuralları domain interaction rule olarak eklendi.
+- Follow/reaction/block/subscribe domain eventleri eklendi.
+- Mimari sınırlar `architecture/layer_test.go` ile test altına alındı.
+- Üretim akışındaki ani durdurmalar DB, notification ve seeder tarafında error dönüşüne çevrildi.
 
-## Kalan Kontrollü Borç
+## Sınır Notu
 
-- `models/` halen GORM persistence modelidir; saf domain entity olarak kullanılmamalıdır.
-- Bazı service/repository metodlarında post/media/chat iş kuralları halen karışık durur.
-- Büyük taşıma riski nedeniyle mevcut davranışı bozmamak için refactor register/login ve user value object hattında başlatıldı.
+- `models/` mevcut API ve GORM migration uyumluluğu için persistence model olarak korunur.
+- Saf domain davranışı yeni `domain/` paketlerinde tutulur; yeni iş kuralı eklenirken `models/` içine framework bağımlı domain davranışı eklenmemelidir.

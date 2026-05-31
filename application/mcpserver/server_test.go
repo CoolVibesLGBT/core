@@ -1,16 +1,19 @@
 package mcpserver
 
 import (
-	aiConfig "core/ai"
-	services "core/services/user"
+	usecases "core/application/usecases"
+	aiConfig "core/infrastructure/ai"
 	"net/http"
 	"testing"
 )
 
 func TestNewServerSkipsAIWhenClientIsNotConfigured(t *testing.T) {
-	aiService := services.NewAIService(nil)
+	aiService := usecases.NewAIService(nil)
 
-	server := NewServer(aiService, nil, nil)
+	server, err := NewServer(aiService, nil, nil)
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
 	tools := server.ListTools()
 
 	for _, tool := range tools {
@@ -32,8 +35,11 @@ func TestNewServerRegistersAIWhenProviderIsConfigured(t *testing.T) {
 		t.Fatalf("NewRegistry() error = %v", err)
 	}
 
-	aiService := services.NewAIService(registry)
-	server := NewServer(aiService, nil, nil)
+	aiService := usecases.NewAIService(registry)
+	server, err := NewServer(aiService, nil, nil)
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
 
 	for _, tool := range server.ListTools() {
 		if tool.Name == "ai.generate_text" {

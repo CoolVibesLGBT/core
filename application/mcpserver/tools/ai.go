@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 	"core/application/mcpserver/internal/shared"
+	usecases "core/application/usecases"
 	"core/mcp"
-	services "core/services/user"
 	"strings"
 )
 
@@ -16,9 +16,9 @@ type generateTextArguments struct {
 	Temperature       *float32 `json:"temperature,omitempty"`
 }
 
-func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
+func RegisterAI(server *mcp.MCPServer, aiService *usecases.AIService) error {
 	if aiService == nil || !aiService.IsConfigured() {
-		return
+		return nil
 	}
 
 	providers := aiService.Providers()
@@ -27,7 +27,7 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 		providerSchema["enum"] = providers
 	}
 
-	server.RegisterTool(mcp.NewTool(
+	return server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        "ai.generate_text",
 			Title:       "Generate Text",
@@ -83,7 +83,7 @@ func RegisterAI(server *mcp.MCPServer, aiService *services.AIService) {
 				model = aiService.DefaultModel(args.Provider)
 			}
 
-			result, err := aiService.GenerateText(ctx, services.GenerateTextInput{
+			result, err := aiService.GenerateText(ctx, usecases.GenerateTextInput{
 				Provider:          args.Provider,
 				Prompt:            args.Prompt,
 				Model:             model,

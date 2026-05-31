@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	services "core/services/user"
+	usecases "core/application/usecases"
 	"core/types"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-func WebMiddleware(s *services.PostService) fiber.Handler {
+func WebMiddleware(s *usecases.PostService) fiber.Handler {
 
 	var (
 		cachedCategories  any
@@ -24,12 +24,12 @@ func WebMiddleware(s *services.PostService) fiber.Handler {
 				Domain: &domain,
 			})
 
-			stars, _, userErr := s.UserRepo().FetchNearbyUsers(types.Filter{
+			stars, _, userErr := s.FetchNearbyUsers(types.Filter{
 				Domain: &domain,
 				Limit:  20,
 			})
 
-			preferences, prefErr := s.UserRepo().GetPreferences()
+			preferences, prefErr := s.GetPreferences()
 
 			if err == nil {
 				cachedCategories = categories

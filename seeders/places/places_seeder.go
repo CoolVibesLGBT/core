@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/helpers"
+	"core/infrastructure/repositories"
 	"core/models/taxonomy"
 	"core/models/utils"
-	"core/repositories"
-	services "core/services/user"
 	globalUtils "core/utils"
 
 	"github.com/google/uuid"
@@ -132,7 +132,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	mediaRepo := repositories.NewMediaRepository(db, node)
 	postRepo := repositories.NewPostRepository(db, node, mediaRepo, userRepo, notificationRepo)
 	placesRepo := repositories.NewPlaceRepository(db, node, mediaRepo, userRepo, notificationRepo, postRepo)
-	placeService := services.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
+	placeService := usecases.NewPlaceService(userRepo, postRepo, mediaRepo, placesRepo)
 
 	pillarInfo := taxonomy.Pillar{
 		ID:   uuid.New(),
@@ -443,7 +443,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 				"tr": "Masaj ve Rahatlama",
 			},
 			MetaDescription: &utils.LocalizedString{
-				"en": "Find professional massage therapists and relaxation services.",
+				"en": "Find professional massage therapists and relaxation usecases.",
 				"tr": "Profesyonel masaj ve rahatlama hizmetlerini keşfedin.",
 			},
 			Slug: "massage", IsActive: true,
@@ -635,7 +635,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 
 	file, err := os.Open(placesJSONFile)
 	if err != nil {
-		log.Fatalf("Dosya açılamadı: %v", err)
+		return fmt.Errorf("dosya açılamadı: %w", err)
 	}
 	defer func() {
 		if cerr := file.Close(); cerr != nil && err == nil {
@@ -646,12 +646,12 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 	// Dosya içeriğini oku
 	bytes, err := io.ReadAll(file)
 	if err != nil {
-		log.Fatalf("Dosya okunamadı: %v", err)
+		return fmt.Errorf("dosya okunamadı: %w", err)
 	}
 
 	err = json.Unmarshal(bytes, &places)
 	if err != nil {
-		log.Fatalf("JSON parse edilemedi: %v", err)
+		return fmt.Errorf("JSON parse edilemedi: %w", err)
 	}
 
 	authUser, err := userRepo.GetUserByNameOrEmailOrNickname(constants.SystemUserExplorer)

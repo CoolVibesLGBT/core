@@ -10,7 +10,7 @@ import (
 
 func TestLifecycleRequiresInitializedNotification(t *testing.T) {
 	server := NewMCPServer()
-	server.RegisterTool(NewTool(
+	if err := server.RegisterTool(NewTool(
 		ToolDefinition{
 			Name:        "test.echo",
 			Description: "Echo a value.",
@@ -19,7 +19,9 @@ func TestLifecycleRequiresInitializedNotification(t *testing.T) {
 		func(ctx context.Context, req CallToolRequest) (any, error) {
 			return map[string]any{"echo": req.Arguments["value"]}, nil
 		},
-	))
+	)); err != nil {
+		t.Fatalf("RegisterTool() error = %v", err)
+	}
 
 	connection := server.NewConnection()
 
@@ -128,7 +130,7 @@ func TestHandleMessageRejectsNullID(t *testing.T) {
 
 func TestServeStdioSupportsBatchForProtocol20250326(t *testing.T) {
 	server := NewMCPServer()
-	server.RegisterTool(NewTool(
+	if err := server.RegisterTool(NewTool(
 		ToolDefinition{
 			Name:        "test.echo",
 			Description: "Echo a value.",
@@ -137,7 +139,9 @@ func TestServeStdioSupportsBatchForProtocol20250326(t *testing.T) {
 		func(ctx context.Context, req CallToolRequest) (any, error) {
 			return map[string]any{"echo": req.Arguments["value"]}, nil
 		},
-	))
+	)); err != nil {
+		t.Fatalf("RegisterTool() error = %v", err)
+	}
 
 	input := strings.Join([]string{
 		`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0.0"}}}`,
@@ -179,20 +183,18 @@ func TestServeStdioSupportsBatchForProtocol20250326(t *testing.T) {
 	}
 }
 
-func TestRegistryRegisterPanicsOnDuplicateName(t *testing.T) {
+func TestRegistryRegisterReturnsErrorOnDuplicateName(t *testing.T) {
 	registry := NewRegistry()
 	tool := NewTool(
 		ToolDefinition{Name: "test.echo", InputSchema: JSONSchema{Type: "object"}},
 		func(ctx context.Context, req CallToolRequest) (any, error) { return "ok", nil },
 	)
 
-	registry.Register(tool)
+	if err := registry.Register(tool); err != nil {
+		t.Fatalf("Register() error = %v", err)
+	}
 
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected duplicate registration to panic")
-		}
-	}()
-
-	registry.Register(tool)
+	if err := registry.Register(tool); err == nil {
+		t.Fatal("expected duplicate registration error")
+	}
 }

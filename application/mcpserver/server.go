@@ -2,21 +2,26 @@ package mcpserver
 
 import (
 	"core/application/mcpserver/tools"
+	usecases "core/application/usecases"
 	"core/mcp"
-	services "core/services/user"
+	"errors"
 )
 
 func NewServer(
-	aiService *services.AIService,
-	newsService *services.NewsService,
-	placeService *services.PlaceService,
-) *mcp.MCPServer {
+	aiService *usecases.AIService,
+	newsService *usecases.NewsService,
+	placeService *usecases.PlaceService,
+) (*mcp.MCPServer, error) {
 	server := mcp.NewMCPServer()
 	server.SetInstructions("Initialize the session, send notifications/initialized, inspect tools/list, then call tools/call with one of the registered tool names.")
 
-	tools.RegisterAI(server, aiService)
-	tools.RegisterNews(server, newsService)
-	tools.RegisterPlace(server, placeService)
+	if err := errors.Join(
+		tools.RegisterAI(server, aiService),
+		tools.RegisterNews(server, newsService),
+		tools.RegisterPlace(server, placeService),
+	); err != nil {
+		return nil, err
+	}
 
-	return server
+	return server, nil
 }

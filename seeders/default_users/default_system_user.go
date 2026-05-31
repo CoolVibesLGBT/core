@@ -3,8 +3,8 @@ package default_users
 import (
 	"core/constants"
 	"core/helpers"
+	"core/infrastructure/repositories"
 	"core/models"
-	"core/repositories"
 	"fmt"
 
 	"github.com/google/uuid"

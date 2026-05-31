@@ -1,0 +1,815 @@
+package usecases
+
+import (
+	"context"
+	"core/application/ports"
+	"core/constants"
+	domainevents "core/domain/events"
+	domainuser "core/domain/user"
+	"core/helpers"
+	"core/models"
+	"core/models/media"
+	"core/models/notifications"
+	"core/models/post"
+	"core/models/utils"
+	"core/types"
+	"errors"
+	"fmt"
+	"mime/multipart"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type UserService struct {
+	mediaRepo        ports.MediaRepository
+	userRepo         ports.UserRepository
+	postRepo         ports.PostRepository
+	engagementRepo   ports.EngagementRepository
+	notificationRepo ports.NotificationRepository
+	captchaVerifier  ports.CaptchaVerifier
+	passwordHasher   ports.PasswordHasher
+	tokenIssuer      ports.TokenIssuer
+	publicIDGen      ports.PublicIDGenerator
+	remoteImage      ports.RemoteImageFetcher
+	eventPublisher   ports.EventPublisher
+}
+
+type UserServiceOption func(*UserService)
+
+func WithCaptchaVerifier(verifier ports.CaptchaVerifier) UserServiceOption {
+	return func(s *UserService) {
+		s.captchaVerifier = verifier
+	}
+}
+
+func WithPasswordHasher(hasher ports.PasswordHasher) UserServiceOption {
+	return func(s *UserService) {
+		s.passwordHasher = hasher
+	}
+}
+
+func WithTokenIssuer(issuer ports.TokenIssuer) UserServiceOption {
+	return func(s *UserService) {
+		s.tokenIssuer = issuer
+	}
+}
+
+func WithPublicIDGenerator(generator ports.PublicIDGenerator) UserServiceOption {
+	return func(s *UserService) {
+		s.publicIDGen = generator
+	}
+}
+
+func WithRemoteImageFetcher(fetcher ports.RemoteImageFetcher) UserServiceOption {
+	return func(s *UserService) {
+		s.remoteImage = fetcher
+	}
+}
+
+func WithEventPublisher(publisher ports.EventPublisher) UserServiceOption {
+	return func(s *UserService) {
+		s.eventPublisher = publisher
+	}
+}
+
+func NewUserService(
+	userRepo ports.UserRepository,
+	postRepo ports.PostRepository,
+	mediaRepo ports.MediaRepository,
+	engagementRepo ports.EngagementRepository,
+	notificationRepo ports.NotificationRepository,
+	options ...UserServiceOption,
+) *UserService {
+	service := &UserService{
+		postRepo:         postRepo,
+		mediaRepo:        mediaRepo,
+		userRepo:         userRepo,
+		notificationRepo: notificationRepo,
+		engagementRepo:   engagementRepo,
+		eventPublisher:   ports.NoopEventPublisher(),
+	}
+
+	for _, option := range options {
+		option(service)
+	}
+
+	return service
+}
+
+type RegisterInput struct {
+	Name           string `form:"name"`
+	Nickname       string `form:"nickname"`
+	Password       string `form:"password"`
+	Domain         string `form:"domain"`
+	Email          string `form:"email"`
+	Captcha        string `form:"captcha"`
+	RecaptchaToken string `form:"recaptchaToken"`
+	Referral       string `form:"referralCode"`
+}
+
+type LoginInput struct {
+	UserName string `form:"nickname"`
+	Password string `form:"password"`
+}
+
+func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*models.User, string, error) {
+	registration, err := domainuser.NewRegistration(domainuser.RegistrationInput{
+		Name:     input.Name,
+		Nickname: input.Nickname,
+		Password: input.Password,
+		Domain:   input.Domain,
+		Email:    input.Email,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+
+	captchaToken := input.RecaptchaToken
+	if captchaToken == "" {
+		captchaToken = input.Captcha
+	}
+
+	captchaValid, err := s.verifyCaptcha(ctx, captchaToken)
+	if err != nil {
+		return nil, "", err
+	}
+	if !captchaValid {
+		return nil, "", errors.New("invalid captcha")
+	}
+
+	hash, err := s.hashPassword(registration.Password)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
+	}
+
+	exists, err := s.userRepo.ExistsByNameOrMail(registration.Nickname)
+	if err != nil {
+		return nil, "", err
+	}
+	if exists {
+		return nil, "", errors.New("username already exists")
+	}
+
+	userID := uuid.New()
+	userObj := &models.User{
+		ID:          userID,
+		PublicID:    s.generatePublicID(),
+		Domain:      models.DomainKind(registration.Domain),
+		UserName:    registration.Name,
+		DisplayName: registration.Nickname,
+		Email:       registration.Email,
+		Password:    hash,
+		UserRole:    constants.UserRoleUser,
+		IsLive:      false,
+		IsBot:       false,
+		IsPremium:   false,
+	}
+
+	if err := s.userRepo.Create(userObj); err != nil {
+		return nil, "", err
+	}
+
+	userInfo, err := s.GetUserByID(userObj.ID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if input.Referral != "" {
+		s.applyReferral(ctx, input.Referral, userInfo.ID)
+	}
+
+	if err := s.publishEvent(ctx, domainuser.NewRegisteredEvent(userObj.ID.String(), userObj.PublicID, registration.Domain, time.Now().UTC())); err != nil {
+		return nil, "", err
+	}
+
+	token, err := s.generateToken(userObj.ID, userObj.PublicID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return userInfo, token, nil
+}
+
+func (s *UserService) LoginUser(ctx context.Context, input LoginInput) (*models.User, string, error) {
+	credentials := domainuser.NewCredentials(input.UserName, input.Password)
+
+	userObj, err := s.userRepo.GetByUserNameOrEmailOrUsername(credentials.UserName)
+	if err != nil {
+		return nil, "", errors.New("invalid username/email/nickname or password")
+	}
+
+	if userObj.IsBot && userObj.Password == "" {
+		if credentials.Password == "" {
+			return nil, "", errors.New("password cannot be empty")
+		}
+		hash, err := s.hashPassword(credentials.Password)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to hash password: %w", err)
+		}
+		userObj.Password = hash
+		if err := s.userRepo.UpdateUser(userObj); err != nil {
+			return nil, "", fmt.Errorf("failed to update bot password: %w", err)
+		}
+	} else {
+		ok, err := s.comparePassword(userObj.Password, credentials.Password)
+		if err != nil {
+			return nil, "", err
+		}
+		if !ok {
+			return nil, "", errors.New("invalid credentials")
+		}
+	}
+
+	token, err := s.generateToken(userObj.ID, userObj.PublicID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return userObj, token, nil
+}
+
+func (s *UserService) verifyCaptcha(ctx context.Context, token string) (bool, error) {
+	if s.captchaVerifier == nil {
+		return true, nil
+	}
+	return s.captchaVerifier.VerifyCaptcha(ctx, token)
+}
+
+func (s *UserService) hashPassword(password string) (string, error) {
+	if s.passwordHasher == nil {
+		return helpers.HashPasswordArgon2id(password)
+	}
+	return s.passwordHasher.HashPassword(password)
+}
+
+func (s *UserService) comparePassword(hashed string, raw string) (bool, error) {
+	if s.passwordHasher == nil {
+		return helpers.ComparePasswordArgon2id(hashed, raw)
+	}
+	return s.passwordHasher.ComparePassword(hashed, raw)
+}
+
+func (s *UserService) generateToken(userID uuid.UUID, publicID int64) (string, error) {
+	if s.tokenIssuer == nil {
+		return helpers.GenerateUserJWT(userID, publicID)
+	}
+	return s.tokenIssuer.GenerateUserToken(userID, publicID)
+}
+
+func (s *UserService) generatePublicID() int64 {
+	if s.publicIDGen != nil {
+		return s.publicIDGen.GeneratePublicID()
+	}
+	return time.Now().UnixNano()
+}
+
+func (s *UserService) publishEvent(ctx context.Context, event domainevents.Event) error {
+	if s.eventPublisher == nil {
+		return nil
+	}
+	return s.eventPublisher.Publish(ctx, event)
+}
+
+func (s *UserService) applyReferral(ctx context.Context, referral string, userID uuid.UUID) {
+	referralID, err := helpers.StrToInt64(referral)
+	if err != nil {
+		fmt.Println("REFERRAL ERROR1", err)
+		return
+	}
+
+	referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: referralID})
+	if err != nil {
+		fmt.Println("REFERRAL ERROR2", err)
+		return
+	}
+
+	newBalance, err := s.userRepo.AddReferral(ctx, referralUser.ID, userID, constants.DEFAULT_REFERRAL_REWARD)
+	if err != nil {
+		fmt.Println("REFERRAL ERROR3", err)
+		return
+	}
+	fmt.Println("NEW BALANCE", newBalance)
+}
+
+func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
+	return s.userRepo.GetByID(id)
+}
+
+func (s *UserService) FetchUserProfileByUsername(username string) (*models.User, error) {
+	return s.userRepo.GetByUserNameOrEmailOrUsername(username)
+}
+
+func (s *UserService) GetUserByPublicID(ctx context.Context, publicID int64) (*models.User, error) {
+	return s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: publicID})
+}
+
+func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (*models.User, error) {
+	userObj.ID = uuid.New()
+	userObj.PublicID = s.generatePublicID()
+	userObj.PrivacyLevel = constants.PrivacyPublic
+	userObj.UserRole = constants.UserRoleUser
+	userObj.IsBot = true
+	userObj.IsLive = true
+	userObj.IsOnline = true
+	userObj.IsActive = true
+
+	if err := s.userRepo.Create(userObj); err != nil {
+		return nil, err
+	}
+	return userObj, nil
+}
+
+func (s *UserService) UpdateAvatar(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
+	newMedia, err := s.mediaRepo.AddMedia(
+		user.ID,
+		media.OwnerUser,
+		user.ID,
+		media.RoleAvatar,
+		file,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+
+	// User tablosunu güncelle
+	user.AvatarID = &newMedia.ID
+	user.Avatar = newMedia
+
+	if err := s.userRepo.UpdateUser(user); err != nil {
+		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+	}
+	return newMedia, nil
+}
+
+func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, user *models.User) (*media.Media, error) {
+	if s.remoteImage == nil {
+		return nil, errors.New("remote image fetcher is not configured")
+	}
+
+	file, err := s.remoteImage.FetchImage(ctx, imgUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.UpdateAvatar(ctx, file, user)
+}
+
+func (s *UserService) UpdateCover(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
+	//
+	newMedia, err := s.mediaRepo.AddMedia(
+		user.ID,
+		media.OwnerUser,
+		user.ID,
+		media.RoleCover,
+		file,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+	user.CoverID = &newMedia.ID
+	user.Cover = newMedia
+
+	if err := s.userRepo.UpdateUser(user); err != nil {
+		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+	}
+	return newMedia, nil
+}
+
+func (s *UserService) AddStory(ctx context.Context, file *multipart.FileHeader, user *models.User) (*models.Story, error) {
+	storyMedia, err := s.mediaRepo.AddMedia(
+		user.ID,
+		media.OwnerUser,
+		user.ID,
+		media.RoleStory,
+		file,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+
+	story := &models.Story{
+		ID:         uuid.New(),
+		UserID:     user.ID,
+		MediaID:    storyMedia.ID,
+		Caption:    nil,                            // istersen ekleyebilirsin
+		ExpiresAt:  time.Now().Add(24 * time.Hour), // örneğin 24 saat sonra silinecek
+		IsExpired:  false,
+		IsArchived: false,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	if err := s.userRepo.AddStory(user.ID, story); err != nil {
+		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+	}
+	story.Media = storyMedia
+	return story, nil
+}
+
+func (s *UserService) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
+	err := s.userRepo.UpsertUserPreference(ctx, user, preferenceItemId, bitIndexStr, enabled)
+	if err != nil {
+		return fmt.Errorf("failed to upsert user attribute: %w", err)
+	}
+	return err
+}
+
+func (s *UserService) GetAllStories(filters types.Filter) ([]*models.Story, error) {
+	return s.userRepo.GetAllStories(filters)
+}
+
+func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, *float64, error) {
+	return s.userRepo.FetchNearbyUsers(filters)
+}
+
+func (s *UserService) FetchLiveUsers(filters types.Filter) ([]*models.User, error) {
+	return s.userRepo.FetchLiveUsers(filters)
+}
+
+func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
+	return s.userRepo.GetUsersStartingWith(letter, limit)
+}
+
+func (s *UserService) Follow(ctx context.Context, followerID, followeeID int64) (bool, error) {
+	return s.HandleFollow(ctx, followerID, followeeID, true)
+}
+
+func (s *UserService) Unfollow(ctx context.Context, followerID, followeeID int64) (bool, error) {
+	return s.HandleFollow(ctx, followerID, followeeID, false)
+}
+
+func (s *UserService) HandleFollow(ctx context.Context, followerID, followeeID int64, isFollow bool) (bool, error) {
+	return s.ToggleFollow(ctx, followerID, followeeID)
+}
+
+func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID int64) (bool, error) {
+	if err := domainuser.EnsureDifferentPublicUsers(followerID, followeeID, domainuser.InteractionFollow); err != nil {
+		return false, err
+	}
+
+	followerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: followerID})
+	if err != nil {
+		return false, err
+	}
+	followeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: followeeID})
+	if err != nil {
+		return false, err
+	}
+
+	//takip et
+	_, err = s.engagementRepo.ToggleEngagement(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing, followerUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return false, err
+	}
+	// takipcilere yaz
+	_, err = s.engagementRepo.ToggleEngagement(ctx, followeeUser.ID, followerUser.ID, models.EngagementKindFollower, followeeUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return false, err
+	}
+
+	isFollowing, err := s.engagementRepo.HasUserEngaged(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Println("isFollowing:", isFollowing)
+
+	if isFollowing {
+		// Follow started
+		notificationTitleToFollowee := "New Follower"
+		notificationBodyToFollowee := followerUser.UserName + " started following you."
+
+		payloadToFollowee := notifications.NotificationPayload{
+			Title: notificationTitleToFollowee,
+			Body:  notificationBodyToFollowee,
+		}
+		err := s.notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+		}
+
+		notificationTitleToFollower := "Follow Started"
+		notificationBodyToFollower := "You started following " + followeeUser.UserName + "."
+
+		payloadToFollower := notifications.NotificationPayload{
+			Title: notificationTitleToFollower,
+			Body:  notificationBodyToFollower,
+		}
+		err = s.notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+		}
+
+	} else {
+		// Follow stopped
+		notificationTitleToFollowee := "Unfollowed"
+		notificationBodyToFollowee := followerUser.UserName + " unfollowed you."
+
+		payloadToFollowee := notifications.NotificationPayload{
+			Title: notificationTitleToFollowee,
+			Body:  notificationBodyToFollowee,
+		}
+		err := s.notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeUnFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+		}
+
+		notificationTitleToFollower := "Unfollowed"
+		notificationBodyToFollower := "You unfollowed " + followeeUser.UserName + "."
+
+		payloadToFollower := notifications.NotificationPayload{
+			Title: notificationTitleToFollower,
+			Body:  notificationBodyToFollower,
+		}
+		err = s.notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeUnFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+		if err != nil {
+			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+		}
+	}
+
+	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(followerID, followeeID, domainuser.InteractionFollow, isFollowing, time.Now().UTC())); err != nil {
+		return false, err
+	}
+
+	return isFollowing, nil
+}
+
+type UpdateUserProfileInput struct {
+	UserName                string
+	Password                string
+	CurrentPassword         string
+	NewPassword             string
+	NewPasswordConfirmation string
+	Email                   string
+	DisplayName             string
+	Bio                     string
+	Website                 string
+	DateOfBirth             string
+	PrivacyLevel            string
+	LocationContentableType string
+	LocationCountryCode     string
+	LocationAddress         string
+	LocationCity            string
+	LocationCountry         string
+	LocationRegion          string
+	LocationTimezone        string
+	LocationDisplay         string
+	LocationLatitude        string
+	LocationLongitude       string
+}
+
+func (s *UserService) UpdateUserProfile(context context.Context, authUser models.User, input UpdateUserProfileInput) (*models.User, error) {
+	existsUser, err := s.userRepo.GetByNameOrMailWithoutRelations(input.UserName)
+	if err == nil && existsUser.ID != authUser.ID {
+		return nil, errors.New(constants.ErrUsernameTaken.String())
+	}
+
+	userInfo, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: context, UserUUID: authUser.ID})
+	if err != nil {
+		return nil, err
+	}
+
+	if input.CurrentPassword != "" {
+		ok, err := s.comparePassword(authUser.Password, input.CurrentPassword)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, errors.New(constants.ErrInvalidPassword.String())
+		}
+	}
+
+	if input.DateOfBirth != "" {
+		dateOfBirth, err := time.Parse("2006-01-02", input.DateOfBirth)
+		if err == nil {
+			userInfo.DateOfBirth = &dateOfBirth
+		}
+	}
+
+	userInfo.UserName = helpers.DefaultIfEmpty(input.UserName, userInfo.UserName)
+	userInfo.DisplayName = helpers.DefaultIfEmpty(input.DisplayName, userInfo.DisplayName)
+
+	userInfo.Bio = utils.MakeLocalizedString(userInfo.DefaultLanguage, helpers.DefaultIfEmpty(input.Bio, userInfo.Bio.GetLocalizedString(userInfo.DefaultLanguage)))
+
+	//userObj.Website = formData.Website
+
+	userInfo.PrivacyLevel = constants.PrivacyLevel(input.PrivacyLevel)
+
+	if err := s.userRepo.UpdateUser(userInfo); err != nil {
+		return nil, err
+	}
+
+	if input.LocationLatitude != "" && input.LocationLongitude != "" {
+
+		lat, err := helpers.ParseFloat(input.LocationLatitude)
+		if err != nil {
+			return nil, errors.New(constants.ErrInvalidLatitude.String())
+		}
+		lng, err := helpers.ParseFloat(input.LocationLongitude)
+		if err != nil {
+			return nil, errors.New(constants.ErrInvalidLongitude.String())
+		}
+
+		locationUser := &utils.Location{
+			ID:              uuid.New(),
+			ContentableType: utils.LocationOwnerUser,
+			ContentableID:   userInfo.ID,
+			CountryCode:     &input.LocationCountryCode,
+			Country:         &input.LocationCountry,
+			City:            &input.LocationCity,
+			Region:          &input.LocationRegion,
+			Display:         &input.LocationDisplay,
+			Timezone:        &input.LocationTimezone,
+			Address:         &input.LocationAddress,
+			Latitude:        &lat,
+			Longitude:       &lng,
+			LocationPoint:   utils.NewLocationPoint(lat, lng),
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+
+		if err := s.userRepo.UpsertLocation(locationUser); err != nil {
+			return nil, err
+		}
+	}
+
+	return s.GetUserByID(authUser.ID)
+}
+
+// return Params : bool isLike, bool success, error
+func (s *UserService) Like(ctx context.Context, authUser models.User, likerId, likeeId int64) (bool, bool, error) {
+	return s.HandleLike(ctx, authUser, likerId, likeeId, true)
+}
+
+func (s *UserService) Dislike(ctx context.Context, authUser models.User, likerId, likeeId int64) (bool, bool, error) {
+	return s.HandleLike(ctx, authUser, likerId, likeeId, false)
+}
+
+func (s *UserService) HandleLike(ctx context.Context, authUser models.User, likerId, likeeId int64, isLike bool) (bool, bool, error) {
+	return s.ToggleLike(ctx, authUser, likerId, likeeId, isLike)
+}
+
+func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, likerId, likeeId int64, isLike bool) (bool, bool, error) {
+	if err := domainuser.EnsureDifferentPublicUsers(likerId, likeeId, domainuser.InteractionLike); err != nil {
+		return isLike, false, err
+	}
+
+	likerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: likerId})
+	if err != nil {
+		return isLike, false, errors.New(err.Error())
+	}
+	likeeUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: likeeId})
+	if err != nil {
+		return isLike, false, errors.New(err.Error())
+	}
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	switch {
+	case isLike:
+		engagementKindGiven = models.EngagementKindLikeGiven
+		engagementKindReceived = models.EngagementKindLikeReceived
+	default:
+		engagementKindGiven = models.EngagementKindDislikeGiven
+		engagementKindReceived = models.EngagementKindDisLikeReceived
+
+	}
+
+	status, err := s.engagementRepo.ToggleEngagement(ctx, likerUser.ID, likeeUser.ID, engagementKindGiven, likerUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return isLike, status, err
+	}
+
+	status, err = s.engagementRepo.ToggleEngagement(ctx, likeeUser.ID, likerUser.ID, engagementKindReceived, likeeUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return isLike, status, err
+	}
+
+	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(likerId, likeeId, domainuser.InteractionLike, true, time.Now().UTC())); err != nil {
+		return isLike, false, err
+	}
+
+	return isLike, true, nil
+}
+
+// return Params : bool isLike, bool success, error
+func (s *UserService) Block(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+	return s.HandleBlock(ctx, authUser, blockerId, blockedId, true)
+}
+
+func (s *UserService) Unblock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+	return s.HandleBlock(ctx, authUser, blockerId, blockedId, false)
+}
+
+func (s *UserService) HandleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64, isBlock bool) (bool, error) {
+	return s.ToggleBlock(ctx, authUser, blockerId, blockedId)
+}
+
+func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blockerId, blockedId int64) (bool, error) {
+
+	if err := domainuser.EnsureDifferentPublicUsers(blockerId, blockedId, domainuser.InteractionBlock); err != nil {
+		return false, err
+	}
+
+	blockerUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockerId})
+	if err != nil {
+		return false, err
+	}
+	blockedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: blockedId})
+	if err != nil {
+		return false, err
+	}
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	engagementKindGiven = models.EngagementKindBlocking
+	engagementKindReceived = models.EngagementKindBlockedBy
+
+	isBlocked, _ := s.engagementRepo.HasUserEngaged(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven)
+
+	status, err := s.engagementRepo.ToggleEngagement(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven, blockerUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	status, err = s.engagementRepo.ToggleEngagement(ctx, blockedUser.ID, blockerUser.ID, engagementKindReceived, blockedUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	enabled := !isBlocked
+	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(blockerId, blockedId, domainuser.InteractionBlock, enabled, time.Now().UTC())); err != nil {
+		return false, err
+	}
+
+	return enabled, nil
+}
+
+func (s *UserService) ToggleSubscribe(ctx context.Context, authUser models.User, subscriberId, subscribedId int64) (bool, error) {
+
+	if err := domainuser.EnsureDifferentPublicUsers(subscriberId, subscribedId, domainuser.InteractionSubscribe); err != nil {
+		return false, err
+	}
+
+	subscriberUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: subscriberId})
+	if err != nil {
+		return false, err
+	}
+	subscribedUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: subscribedId})
+	if err != nil {
+		return false, err
+	}
+
+	var engagementKindGiven models.EngagementKind
+	var engagementKindReceived models.EngagementKind
+
+	engagementKindGiven = models.EngagementKindSubscribing
+	engagementKindReceived = models.EngagementKindSubscribedBy
+
+	isBlocked, _ := s.engagementRepo.HasUserEngaged(ctx, subscriberUser.ID, subscribedUser.ID, engagementKindGiven)
+
+	status, err := s.engagementRepo.ToggleEngagement(ctx, subscriberUser.ID, subscribedUser.ID, engagementKindGiven, subscriberUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	status, err = s.engagementRepo.ToggleEngagement(ctx, subscribedUser.ID, subscriberUser.ID, engagementKindReceived, subscribedUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return status, err
+	}
+
+	enabled := !isBlocked
+	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(subscriberId, subscribedId, domainuser.InteractionSubscribe, enabled, time.Now().UTC())); err != nil {
+		return false, err
+	}
+
+	return enabled, nil
+}
+
+func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *models.User, cursor *time.Time, limit int) (items []*notifications.Notification, nextCursor *time.Time, err error) {
+	return s.userRepo.FetchUserNotifications(ctx, authUser, cursor, limit)
+}
+
+func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
+}
+
+func (s *UserService) CheckIn(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, postKind post.PostKind) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(postKind), nil)
+	if err != nil {
+		return nil, err
+	}
+	return s.postRepo.GetPostByID(_post.ID)
+}
+
+func (s *UserService) FetchCheckIns(filters types.Filter) (types.PostsResult, error) {
+	return s.postRepo.GetPostsByKind(filters)
+}
+
+func (s *UserService) DeleteUser(filters types.Filter) error {
+	return s.userRepo.DeleteUser(filters)
+
+}

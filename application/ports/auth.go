@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	domainevents "core/domain/events"
+	"mime/multipart"
 
 	"github.com/google/uuid"
 )
@@ -22,6 +23,10 @@ type TokenIssuer interface {
 
 type PublicIDGenerator interface {
 	GeneratePublicID() int64
+}
+
+type RemoteImageFetcher interface {
+	FetchImage(ctx context.Context, imageURL string) (*multipart.FileHeader, error)
 }
 
 type EventPublisher interface {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"core/application/ports"
 	"core/helpers"
 	"core/models"
-	"core/repositories"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -36,7 +36,7 @@ func GetClientIP(c fiber.Ctx) string {
 	return c.IP()
 }
 
-func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
+func AuthMiddleware(userRepo ports.UserRepository) func(fiber.Handler) fiber.Handler {
 	return func(next fiber.Handler) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			authHeader := c.Get("Authorization")
@@ -76,7 +76,7 @@ func AuthMiddleware(userRepo *repositories.UserRepository) func(fiber.Handler) f
 	}
 }
 
-func AuthMiddlewareWithoutCheck(userRepo *repositories.UserRepository) func(fiber.Handler) fiber.Handler {
+func AuthMiddlewareWithoutCheck(userRepo ports.UserRepository) func(fiber.Handler) fiber.Handler {
 	return func(next fiber.Handler) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			authHeader := c.Get("Authorization")

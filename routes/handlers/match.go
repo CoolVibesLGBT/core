@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/types"
 	"core/utils"
 	"strconv"
@@ -13,14 +13,14 @@ import (
 )
 
 type MatchHandler struct {
-	service *services.MatchesService
+	service *usecases.MatchesService
 }
 
-func NewMatchHandler(service *services.MatchesService) *MatchHandler {
+func NewMatchHandler(service *usecases.MatchesService) *MatchHandler {
 	return &MatchHandler{service: service}
 }
 
-func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
+func HandleGetUnseenUsers(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		user, ok := middleware.GetAuthenticatedUser(c)
@@ -39,7 +39,7 @@ func HandleGetUnseenUsers(s *services.MatchesService) fiber.Handler {
 	}
 }
 
-func HandleRecordView(s *services.MatchesService) fiber.Handler {
+func HandleRecordView(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -58,7 +58,7 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
 
-		targetUserId, err := s.UserRepo().GetUserUUIDByPublicID(userId)
+		targetUserId, err := s.GetUserUUIDByPublicID(userId)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrInvalidInput)
 		}
@@ -83,7 +83,7 @@ func HandleRecordView(s *services.MatchesService) fiber.Handler {
 	}
 }
 
-func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
+func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -136,7 +136,7 @@ func HandleGetMatchesAfter(s *services.MatchesService) fiber.Handler {
 	}
 }
 
-func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
+func HandleGetPassesAfter(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -187,7 +187,7 @@ func HandleGetPassesAfter(s *services.MatchesService) fiber.Handler {
 	}
 }
 
-func HandleGetLikesAfter(s *services.MatchesService) fiber.Handler {
+func HandleGetLikesAfter(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, ok := middleware.GetAuthenticatedUser(c)

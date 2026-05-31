@@ -68,3 +68,13 @@ func TestPreferenceFlags(t *testing.T) {
 		t.Fatal("bit 3 is still set")
 	}
 }
+
+func TestEnsureDifferentPublicUsers(t *testing.T) {
+	if err := EnsureDifferentPublicUsers(1, 1, InteractionBlock); err == nil {
+		t.Fatal("expected self interaction error")
+	}
+
+	if err := EnsureDifferentPublicUsers(1, 2, InteractionBlock); err != nil {
+		t.Fatalf("EnsureDifferentPublicUsers() error = %v", err)
+	}
+}

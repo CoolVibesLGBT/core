@@ -1,17 +1,17 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
 	"core/models/post"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-func HandleUserCheckIn(s *services.UserService) fiber.Handler {
+func HandleUserCheckIn(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
@@ -51,7 +51,7 @@ func HandleUserCheckIn(s *services.UserService) fiber.Handler {
 	}
 }
 
-func HandleFetchCheckIns(s *services.UserService) fiber.Handler {
+func HandleFetchCheckIns(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		auth_user, ok := middleware.GetAuthenticatedUser(c)

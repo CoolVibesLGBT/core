@@ -4,8 +4,8 @@ import (
 	"context"
 	"core/faker"
 	"core/helpers"
-	"core/repositories"
-	"core/services/socket"
+	"core/infrastructure/repositories"
+	"core/infrastructure/socket"
 	"core/types"
 	"fmt"
 

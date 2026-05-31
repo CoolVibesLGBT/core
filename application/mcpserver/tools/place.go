@@ -6,11 +6,11 @@ import (
 	"core/constants"
 	"core/mcp"
 
-	services "core/services/user"
+	usecases "core/application/usecases"
 )
 
-func RegisterPlace(server *mcp.MCPServer, placeService *services.PlaceService) {
-	server.RegisterTool(mcp.NewTool(
+func RegisterPlace(server *mcp.MCPServer, placeService *usecases.PlaceService) error {
+	if err := server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        constants.CMD_PLACE_FETCH,
 			Title:       "Fetch Places",
@@ -34,9 +34,11 @@ func RegisterPlace(server *mcp.MCPServer, placeService *services.PlaceService) {
 				"cursor": cursorInfo,
 			}, nil
 		},
-	))
+	)); err != nil {
+		return err
+	}
 
-	server.RegisterTool(mcp.NewTool(
+	return server.RegisterTool(mcp.NewTool(
 		mcp.ToolDefinition{
 			Name:        constants.CMD_PLACE_CATEGORIES,
 			Title:       "List Place Categories",

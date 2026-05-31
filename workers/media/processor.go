@@ -2,7 +2,7 @@ package media
 
 import (
 	"core/helpers"
-	"core/repositories"
+	"core/infrastructure/repositories"
 	"log"
 	"time"
 

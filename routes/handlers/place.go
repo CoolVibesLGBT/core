@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
-	services "core/services/user"
 	"core/utils"
 	"mime/multipart"
 
@@ -11,14 +11,14 @@ import (
 )
 
 type PlaceHandler struct {
-	service *services.PlaceService
+	service *usecases.PlaceService
 }
 
-func NewPlaceHandler(service *services.PlaceService) *PlaceHandler {
+func NewPlaceHandler(service *usecases.PlaceService) *PlaceHandler {
 	return &PlaceHandler{service: service}
 }
 
-func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
+func HandleCreatePlace(s *usecases.PlaceService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		form, err := c.MultipartForm()
@@ -47,7 +47,7 @@ func HandleCreatePlace(s *services.PlaceService) fiber.Handler {
 	}
 }
 
-func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
+func HandleGetNearByPlaces(s *usecases.PlaceService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
 		authUser, _ := middleware.GetAuthenticatedUser(c)
@@ -69,7 +69,7 @@ func HandleGetNearByPlaces(s *services.PlaceService) fiber.Handler {
 	}
 }
 
-func HandleGetPlaceCategories(s *services.PlaceService) fiber.Handler {
+func HandleGetPlaceCategories(s *usecases.PlaceService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		filters, err := ParseFilters(c, nil)
 		if err != nil {
