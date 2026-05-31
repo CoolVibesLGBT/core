@@ -254,7 +254,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("post with slug %s not found", &filters.Slug)
+		return nil, fmt.Errorf("post with slug %s not found", *filters.Slug)
 	}
 
 	var posts []post.Post
@@ -290,7 +290,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("no posts found for slug %s", &filters.Slug)
+		return nil, fmt.Errorf("no posts found for slug %s", *filters.Slug)
 	}
 
 	// map oluştur
