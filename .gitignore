@@ -17,18 +17,14 @@ static/samples
 ./bot/
 /bot/
 
-./workers/porn
-workers/porn
-workers/executor.go
-./workers/executor.go
-./workers/temp
+ 
 workers/temp
 ./build
 build
 ./.gocache
 .gocache
 
-./seeders/taxonomy/porn.go
+ 
 ./seeders/taxonomy
 seeders/taxonomy
-seeders/taxonomy/porn.go
+ 

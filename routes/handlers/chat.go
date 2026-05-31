@@ -214,7 +214,7 @@ func HandleGetMessagesByChatID(s *services.ChatService) fiber.Handler {
 		// service call
 		messages, err := s.GetMessagesByChatID(authUser.ID, chatId)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages, err.Error())
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{

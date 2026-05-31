@@ -23,6 +23,7 @@ var domainToKind = map[string]DomainKind{
 	"api.coolvibes.lgbt": CoolVibes,
 	"api.coolvibes.app":  CoolVibes,
 	"api.coolvibes.io":   CoolVibes,
+	"192.168.0.14":       CoolVibes,
 
 	// KewlSwap
 	"kewl":             KewlSwap,
