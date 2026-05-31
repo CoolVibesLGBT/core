@@ -17,6 +17,7 @@ import (
 	fiber "github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/paginate"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	html "github.com/gofiber/template/html/v2"
 	"github.com/google/wire"
@@ -125,6 +126,16 @@ func NewRouter(
 		},
 		AllowCredentials: false,
 	}))
+
+	r.fiber.Use(paginate.New(
+		paginate.Config{
+			PageKey:      "page",
+			LimitKey:     "limit",
+			DefaultPage:  1,
+			DefaultLimit: constants.DEFAULT_LIMIT,
+			MaxLimit:     constants.MAXIMUM_LIMIT,
+		},
+	))
 
 	r.fiber.Use("/static", static.New("./static"))
 

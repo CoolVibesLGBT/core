@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/paginate"
 	"github.com/google/uuid"
 	"github.com/oschwald/maxminddb-golang"
 	"github.com/shopspring/decimal"
@@ -838,4 +840,91 @@ func (r *UserRepository) GetPreferences() (*models.PreferencesData, error) {
 		return nil, err
 	}
 	return &preferences, nil
+}
+
+func (r *UserRepository) GetPaginatedUsers(filters *types.Filter) (types.PageResult[models.User], error) {
+	pageInfo, ok := paginate.FromContext(filters.Context)
+	if !ok {
+		return types.PageResult[models.User]{}, fiber.NewError(fiber.StatusInternalServerError, "Pagination configuration error")
+	}
+
+	var users []models.User
+	var total int64
+
+	query := r.db.Model(&models.User{}).
+		Where(map[string]interface{}{
+			"is_bot":       true,
+			"is_processed": true,
+		})
+
+	query = query.Order("updated_at DESC")
+
+	if err := query.Count(&total).Error; err != nil {
+		return types.PageResult[models.User]{}, err
+	}
+
+	for _, s := range pageInfo.Sort {
+		direction := "ASC"
+		if s.Order == paginate.DESC {
+			direction = "DESC"
+		}
+		query = query.Order(fmt.Sprintf("%s %s", s.Field, direction))
+	}
+
+	currentOffset := (pageInfo.Page - 1) * pageInfo.Limit
+	if currentOffset < 0 {
+		currentOffset = 0
+	}
+
+	// 3. SAYFALAMA (Limit & Offset)
+	// Middleware; ?page=2&limit=10 bilgisini alıp
+	// otomatik olarak pageInfo.Offset = 10, pageInfo.Limit = 10 yapar.
+	err := query.Limit(pageInfo.Limit).Offset(currentOffset).Find(&users).Error
+	if err != nil {
+		return types.PageResult[models.User]{}, err
+	}
+
+	lastPage := int((total + int64(pageInfo.Limit) - 1) / int64(pageInfo.Limit))
+	prevPage := 0
+	if pageInfo.Page > 1 {
+		prevPage = pageInfo.Page - 1
+	}
+	nextPage := 0
+	if pageInfo.Page < lastPage {
+		nextPage = pageInfo.Page + 1
+	}
+
+	// Sayfa numaralarını oluştur (Maksimum 7-9 sayfa göster)
+	pageNumbers := []int{}
+	startPage := pageInfo.Page - 3
+	if startPage < 1 {
+		startPage = 1
+	}
+	endPage := startPage + 6
+	if endPage > lastPage {
+		endPage = lastPage
+		startPage = endPage - 6
+		if startPage < 1 {
+			startPage = 1
+		}
+	}
+
+	for i := startPage; i <= endPage; i++ {
+		pageNumbers = append(pageNumbers, i)
+	}
+
+	result := types.PageResult[models.User]{
+		Data: users,
+		Meta: types.Meta{
+			CurrentPage: pageInfo.Page,
+			PerPage:     pageInfo.Limit,
+			Total:       int(total),
+			LastPage:    lastPage,
+			PrevPage:    prevPage,
+			NextPage:    nextPage,
+			PageNumbers: pageNumbers,
+		},
+	}
+
+	return result, nil
 }
