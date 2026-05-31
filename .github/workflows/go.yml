@@ -55,10 +55,10 @@ jobs:
 
       - name: Run seed
         run: go run . --seed
-
+        
       - name: Lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest
+          curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b ./bin v2.12.2
           ./bin/golangci-lint run ./...
 
       - name: Build
