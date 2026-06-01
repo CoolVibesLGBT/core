@@ -770,18 +770,18 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 		EventIsOnline    string `form:"event[is_online]"`
 		EventIsOnlineURL string `form:"event[online_url]"`
 
-		LocationAddress string            `form:"location[address]"`
-		LocationLat     float64           `form:"location[lat]"`
-		LocationLng     float64           `form:"location[lng]"`
-		CountryCode     string            `form:"location[country_code]"`
-		Region          string            `form:"location[region]"`
-		City            string            `form:"location[city]"`
-		ZipCode         string            `form:"location[zip_code]"`
-		Province        string            `form:"location[province]"`
-		Town            string            `form:"location[town]"`
-		Postcode        string            `form:"location[postcode]"`
-		Country         string            `form:"location[country]"`
-		Extras          map[string]string `form:"extras"`
+		LocationAddress string  `form:"location[address]"`
+		LocationLat     float64 `form:"location[lat]"`
+		LocationLng     float64 `form:"location[lng]"`
+		CountryCode     string  `form:"location[country_code]"`
+		Region          string  `form:"location[region]"`
+		City            string  `form:"location[city]"`
+		ZipCode         string  `form:"location[zip_code]"`
+		Province        string  `form:"location[province]"`
+		Town            string  `form:"location[town]"`
+		Postcode        string  `form:"location[postcode]"`
+		Country         string  `form:"location[country]"`
+		Extras          string  `form:"extras"`
 	}
 
 	decoder := form.NewDecoder()
@@ -1112,20 +1112,19 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 		newPost.Hashtags = append(newPost.Hashtags, &hashtagItem)
 	}
 
-	if len(postForm.Extras) > 0 {
-		extras := make(map[string]any)
-
-		for key, val := range postForm.Extras {
-			var parsed any
-			if err := json.Unmarshal([]byte(val), &parsed); err == nil {
-				extras[key] = parsed
-			}
+	if postForm.Extras != "" {
+		var extras any
+		if err := json.Unmarshal([]byte(postForm.Extras), &extras); err != nil {
+			tx.Rollback()
+			return nil, err
 		}
-
 		extrasBytes, err := json.Marshal(extras)
-		if err == nil {
-			newPost.Extras = datatypes.JSON(extrasBytes)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
 		}
+		newPost.Extras = datatypes.JSON(extrasBytes)
+
 	}
 
 	if err := tx.Save(newPost).Error; err != nil {
