@@ -4,7 +4,7 @@
 
 - Domain: `domain/`
   - Framework, HTTP, DB, ORM import etmez.
-  - Kullanıcı value object, interaction rule ve domain eventleri burada: `domain/user`, `domain/events`.
+  - Kullanıcı, post ve media value object/invariantları burada: `domain/user`, `domain/post`, `domain/media`, `domain/events`.
 - Application: `application/`
   - Port arayüzleri `application/ports` altında.
   - Use case orkestrasyonu `application/usecases` altında.
@@ -31,6 +31,7 @@
 - `domain/` altında framework/DB/HTTP/ORM bağımlılığı yok.
 - User registration/login akışında value object doğrulaması domain tarafına taşındı.
 - Captcha, password hash, token ve public id üretimi application portları üzerinden infrastructure adapterlarına bağlandı.
+- Multipart/form transport tipleri application portlarından çıkarıldı; use case ve repository portları `ports.UploadedFile` / `ports.FormData` ile çalışır.
 - Repository arayüzleri application portlarına alındı; somut implementasyonlar `infrastructure/repositories` altında kaldı.
 - Registration için `user.registered` domain eventi eklendi.
 - Controller register/login akışında request okur, typed input oluşturur ve use case metodunu çağırır.
@@ -43,7 +44,12 @@
 - Application use case paketlerinin somut repository, GORM, HTTP ve Fiber bağımlılığı kaldırıldı.
 - System/VAPID/payment initial-sync handlerlarının GORM erişimi system use case ve repository portuna taşındı.
 - Follow, like, block, subscribe ve chat self-interaction iş kuralları domain interaction rule olarak eklendi.
+- Follow, like/dislike, block ve subscribe engagement pair mapping'i domain kuralına taşındı.
+- User profile privacy, birth date ve coordinate invariantları domain value objectlerine taşındı.
+- Post kind doğrulaması `domain/post` tarafına taşındı.
+- Media upload filename/size invariantları `domain/media` tarafına taşındı.
 - Follow/reaction/block/subscribe domain eventleri eklendi.
+- Like/dislike toggle eventi gerçek enabled/disabled durumunu yayınlayacak şekilde düzeltildi.
 - Mimari sınırlar `architecture/layer_test.go` ile test altına alındı.
 - Üretim akışındaki ani durdurmalar DB, notification ve seeder tarafında error dönüşüne çevrildi.
 

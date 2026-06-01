@@ -7,8 +7,6 @@ import (
 	"core/models/post"
 	"core/types"
 	"fmt"
-
-	"mime/multipart"
 )
 
 type ClassifiedService struct {
@@ -32,8 +30,8 @@ func (s *ClassifiedService) ServiceName() string {
 	return "ClassifiedService"
 }
 
-func (s *ClassifiedService) CreateClassified(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindClassified), nil)
+func (s *ClassifiedService) CreateClassified(context context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(post.PostKindClassified), nil)
 	if err != nil {
 		return nil, err
 	}

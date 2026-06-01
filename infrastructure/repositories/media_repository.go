@@ -2,12 +2,13 @@ package repositories
 
 import (
 	"bytes"
+	"core/application/ports"
+	domainmedia "core/domain/media"
 	"core/helpers"
 	"core/models/media"
 	"core/models/utils"
 	"errors"
 	"fmt"
-	"mime/multipart"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -203,7 +204,7 @@ func (r *MediaRepository) MakeSureDirectoryPathExists(path string) error {
 	return os.MkdirAll(dir, os.ModePerm)
 }
 
-func (r *MediaRepository) SaveUploadedFile(file *multipart.FileHeader, path string) error {
+func (r *MediaRepository) SaveUploadedFile(file ports.UploadedFile, path string) error {
 	if err := r.MakeSureDirectoryPathExists(path); err != nil {
 		return err
 	}
@@ -630,8 +631,16 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 	}
 }
 
-func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error) {
-	ext := filepath.Ext(file.Filename)
+func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file ports.UploadedFile) (*media.Media, error) {
+	if file == nil {
+		return nil, domainmedia.ErrEmptyFile
+	}
+	upload, err := domainmedia.NewUploadedFile(file.Filename(), file.Size(), file.ContentType())
+	if err != nil {
+		return nil, err
+	}
+
+	ext := filepath.Ext(upload.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 	storagePath := r.GenerateStoragePath(userId, ownerID, ownerType, role, newFileName)
 
@@ -639,17 +648,14 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		return nil, err
 	}
 
-	mimeType := file.Header.Get("Content-Type")
-	if mimeType == "" {
-		mimeType = file.Header.Get("Content-type")
-	}
+	mimeType := upload.ContentType
 
 	status := media.ProcessingStatusReady
 	if shouldProcessAsync(mimeType) {
 		status = media.ProcessingStatusPending
 	}
 
-	variants := initialFileVariants(mimeType, storagePath, ext, file.Size)
+	variants := initialFileVariants(mimeType, storagePath, ext, upload.Size)
 
 	media := media.Media{
 		ID:               uuid.New(),
@@ -666,8 +672,8 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 			URL:         publicFileURL(storagePath),
 			StoragePath: storagePath,
 			MimeType:    mimeType,
-			Size:        file.Size,
-			Name:        file.Filename,
+			Size:        upload.Size,
+			Name:        upload.Filename,
 			Variants:    variants,
 			CreatedAt:   time.Now(),
 		},

@@ -123,7 +123,7 @@ func HandleUploadAvatar(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		newAvatar, err := s.UpdateAvatar(c.Context(), fileHeader, user)
+		newAvatar, err := s.UpdateAvatar(c.Context(), uploadedFile(fileHeader), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
@@ -156,7 +156,7 @@ func HandleUploadCover(s *usecases.UserService) fiber.Handler {
 		}
 
 		// UpdateCover fonksiyonunu çağır
-		newCover, err := s.UpdateCover(c.Context(), fileHeader, user)
+		newCover, err := s.UpdateCover(c.Context(), uploadedFile(fileHeader), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
@@ -189,7 +189,7 @@ func HandleUploadStory(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		newStory, err := s.AddStory(c.Context(), fileHeader, user)
+		newStory, err := s.AddStory(c.Context(), uploadedFile(fileHeader), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}

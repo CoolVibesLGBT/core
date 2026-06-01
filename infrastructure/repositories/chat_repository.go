@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	"core/helpers"
 	"core/models"
@@ -13,7 +14,6 @@ import (
 
 	"core/models/post"
 	"log"
-	"mime/multipart"
 	"time"
 
 	"github.com/go-playground/form/v4"
@@ -274,7 +274,7 @@ func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) 
 	return message, nil
 }
 
-func (r *ChatRepository) AddMessageToChat(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
+func (r *ChatRepository) AddMessageToChat(context context.Context, formData ports.FormData, author *models.User) (*post.Post, error) {
 
 	type PostForm struct {
 		ChatID string `form:"chat_id"`
@@ -282,7 +282,7 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, request map[s
 	decoder := form.NewDecoder()
 	postForm := PostForm{}
 
-	if err := decoder.Decode(&postForm, request); err != nil {
+	if err := decoder.Decode(&postForm, formData.Values); err != nil {
 		fmt.Println("Form decode error:", err)
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, request map[s
 		return nil, err
 	}
 
-	_createdPost, err := r.postRepo.CreateContentablePost(context, request, files, author, string(post.PostKindChat), &chatObj.ID)
+	_createdPost, err := r.postRepo.CreateContentablePost(context, formData, author, string(post.PostKindChat), &chatObj.ID)
 	if err != nil {
 		return nil, err
 	}

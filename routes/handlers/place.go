@@ -5,7 +5,6 @@ import (
 	"core/constants"
 	"core/middleware"
 	"core/utils"
-	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -30,15 +29,12 @@ func HandleCreatePlace(s *usecases.PlaceService) fiber.Handler {
 		images := form.File["images[]"]
 		videos := form.File["videos[]"]
 
-		files := append([]*multipart.FileHeader{}, images...)
-		files = append(files, videos...)
-
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
-		post, err := s.CreatePlace(c.Context(), formParams, files, user)
+		post, err := s.CreatePlace(c.Context(), uploadedFormData(formParams, images, videos), user)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPlaceCreateFailed, "Failed to create post: "+err.Error())
 		}

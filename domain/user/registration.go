@@ -46,7 +46,7 @@ func NewRegistration(input RegistrationInput) (Registration, error) {
 	return Registration{
 		Name:     strings.TrimSpace(input.Name),
 		Nickname: strings.ToLower(strings.TrimSpace(input.Nickname)),
-		Password: strings.ToLower(input.Password),
+		Password: input.Password,
 		Domain:   domain,
 		Email:    email,
 	}, nil
@@ -55,7 +55,7 @@ func NewRegistration(input RegistrationInput) (Registration, error) {
 func NewCredentials(userName, password string) Credentials {
 	return Credentials{
 		UserName: strings.ToLower(strings.TrimSpace(userName)),
-		Password: strings.ToLower(password),
+		Password: password,
 	}
 }
 

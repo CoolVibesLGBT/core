@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"mime/multipart"
 
 	"github.com/google/uuid"
 )
@@ -89,8 +88,8 @@ func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
 	return s.chatRepo.GetChatsByUserID(userID)
 }
 
-func (s *ChatService) AddMessageToChat(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error) {
-	_post, err := s.chatRepo.AddMessageToChat(context, request, files, author)
+func (s *ChatService) AddMessageToChat(context context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
+	_post, err := s.chatRepo.AddMessageToChat(context, form, author)
 	if err != nil {
 		return nil, err
 	}

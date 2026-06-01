@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	"core/extensions"
 	"core/helpers"
@@ -18,7 +19,6 @@ import (
 
 	post_payloads "core/models/post/payloads"
 	"core/types"
-	"mime/multipart"
 	"sort"
 
 	"fmt"
@@ -734,7 +734,7 @@ func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.Hashta
 	return results, err
 }
 
-func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+func (r *PostRepository) CreateContentablePost(ctx context.Context, formData ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	type PollForm struct {
 		ID            string   `form:"id"`
 		Question      string   `form:"question"`
@@ -787,7 +787,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 	decoder := form.NewDecoder()
 	postForm := PostForm{}
 
-	if err := decoder.Decode(&postForm, request); err != nil {
+	if err := decoder.Decode(&postForm, formData.Values); err != nil {
 		return nil, err
 	}
 
@@ -884,7 +884,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, request map[
 		return nil, err
 	}
 
-	for _, f := range files {
+	for _, f := range formData.Files {
 		var ownerType media.OwnerType
 		var role media.MediaRole
 

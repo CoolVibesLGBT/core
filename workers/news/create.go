@@ -2,9 +2,11 @@ package news
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	"core/helpers"
 	"core/infrastructure/bootstrap"
+	infraMedia "core/infrastructure/media"
 	"core/models/post"
 	"core/types"
 	"core/utils"
@@ -133,7 +135,10 @@ func CreateNew(article *ArticleResult, app *bootstrap.App) (*post.Post, error) {
 
 	request["extras[source]"] = []string{string(articleJSON)}
 	if !isExists {
-		return app.Router.NewsService.CreateNews(context.Background(), request, files, authUser)
+		return app.Router.NewsService.CreateNews(context.Background(), ports.FormData{
+			Values: request,
+			Files:  infraMedia.NewMultipartUploadedFiles(files),
+		}, authUser)
 	} else {
 		helpers.Println("AlreadyExists: %s", *filters.Search)
 	}

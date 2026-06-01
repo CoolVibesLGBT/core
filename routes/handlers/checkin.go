@@ -6,7 +6,6 @@ import (
 	"core/middleware"
 	"core/models/post"
 	"core/utils"
-	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -34,15 +33,12 @@ func HandleUserCheckIn(s *usecases.UserService) fiber.Handler {
 		images := form.File["images[]"]
 		videos := form.File["videos[]"]
 
-		files := append([]*multipart.FileHeader{}, images...)
-		files = append(files, videos...)
-
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		post, err := s.CheckIn(c.Context(), formParams, files, user, post.PostKindCheckIn)
+		post, err := s.CheckIn(c.Context(), uploadedFormData(formParams, images, videos), user, post.PostKindCheckIn)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedtoCheckIn)
 		}

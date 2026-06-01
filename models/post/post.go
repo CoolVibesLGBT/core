@@ -1,6 +1,7 @@
 package post
 
 import (
+	domainpost "core/domain/post"
 	"core/models"
 	"core/models/media"
 	"core/models/taxonomy"
@@ -131,25 +132,5 @@ func (p Post) MarshalJSON() ([]byte, error) {
 }
 
 func IsValidPostKind(kind string) bool {
-	switch PostKind(kind) {
-	case
-		PostKindStatus,
-		PostKindTimeline,
-		PostKindPlace,
-		PostKindClassified,
-		PostKindGeneric,
-		PostKindNews,
-		PostKindStory,
-		PostKindChat,
-		PostKindMessage,
-		PostKindPost,
-		PostKindVideo,
-		PostKindEvent,
-		PostKindCheckIn,
-		PostKindJobOffer,
-		PostKindJobSearch:
-		return true
-	default:
-		return false
-	}
+	return domainpost.Kind(kind).IsValid()
 }

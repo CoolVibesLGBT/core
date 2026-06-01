@@ -12,7 +12,6 @@ import (
 	"core/models/taxonomy"
 	"core/models/utils"
 	"core/types"
-	"mime/multipart"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,11 +44,11 @@ type UserRepository interface {
 }
 
 type MediaRepository interface {
-	AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file *multipart.FileHeader) (*media.Media, error)
+	AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file UploadedFile) (*media.Media, error)
 }
 
 type PostRepository interface {
-	CreateContentablePost(ctx context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error)
+	CreateContentablePost(ctx context.Context, form FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error)
 	GetPostByID(id uuid.UUID) (*post.Post, error)
 	GetPostBySlug(filters types.Filter) (*post.Post, error)
 	GetPostByPublicID(id int64) (*post.Post, error)
@@ -116,7 +115,7 @@ type ChatRepository interface {
 	GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) (*chat.Chat, error)
 	CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Chat, error)
 	GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
-	AddMessageToChat(ctx context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User) (*post.Post, error)
+	AddMessageToChat(ctx context.Context, form FormData, author *models.User) (*post.Post, error)
 	GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error)
 	PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error
 	UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error

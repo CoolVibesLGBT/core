@@ -39,7 +39,7 @@ func (h *UploadHandler) HandleUploadMedia(s *usecases.MediaService) fiber.Handle
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "No file uploaded")
 		}
 
-		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), files[0])
+		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), uploadedFile(files[0]))
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed, "Media upload failed")
 		}

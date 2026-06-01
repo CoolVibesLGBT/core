@@ -5,6 +5,7 @@ import (
 	"context"
 	usecases "core/application/usecases"
 	"core/helpers"
+	infraMedia "core/infrastructure/media"
 	"core/infrastructure/repositories"
 	"fmt"
 	"io"
@@ -119,14 +120,14 @@ func testImage(db *gorm.DB, snowFlakeNode *helpers.Node, t *testing.T) {
 		return
 	}
 
-	avatarMedia, avatarErr := userService.UpdateAvatar(context.Background(), testAvatarFileHader, user)
+	avatarMedia, avatarErr := userService.UpdateAvatar(context.Background(), infraMedia.NewMultipartUploadedFile(testAvatarFileHader), user)
 	if avatarErr != nil {
 		fmt.Println("TEST:AVATAR_FILE_ERR", avatarErr)
 		return
 	}
 	fmt.Printf("AVATAR_SAMPLE\n%+v\n", avatarMedia)
 
-	coverMedia, coverErr := userService.UpdateCover(context.Background(), testAvatarFileHader, user)
+	coverMedia, coverErr := userService.UpdateCover(context.Background(), infraMedia.NewMultipartUploadedFile(testAvatarFileHader), user)
 	if coverErr != nil {
 		fmt.Println("TEST:AVATAR_FILE_ERR", avatarErr)
 		return

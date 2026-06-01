@@ -6,7 +6,6 @@ import (
 	"core/middleware"
 	"core/models/post"
 	"core/utils"
-	"mime/multipart"
 	"strconv"
 	"time"
 
@@ -37,9 +36,6 @@ func HandleCreate(s *usecases.PostService) fiber.Handler {
 		images := form.File["images[]"]
 		videos := form.File["videos[]"]
 
-		files := append([]*multipart.FileHeader{}, images...)
-		files = append(files, videos...)
-
 		user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
@@ -51,7 +47,7 @@ func HandleCreate(s *usecases.PostService) fiber.Handler {
 			postKind = post.PostKind(kind)
 		}
 
-		post, err := s.CreatePost(c.Context(), formParams, files, user, postKind)
+		post, err := s.CreatePost(c.Context(), uploadedFormData(formParams, images, videos), user, postKind)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostCreateFailed)
 		}

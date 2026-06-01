@@ -15,7 +15,6 @@ import (
 	"core/types"
 	"errors"
 	"fmt"
-	"mime/multipart"
 	"time"
 
 	"github.com/google/uuid"
@@ -320,7 +319,7 @@ func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (
 	return userObj, nil
 }
 
-func (s *UserService) UpdateAvatar(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
+func (s *UserService) UpdateAvatar(ctx context.Context, file ports.UploadedFile, user *models.User) (*media.Media, error) {
 	newMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
 		media.OwnerUser,
@@ -355,7 +354,7 @@ func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, us
 	return s.UpdateAvatar(ctx, file, user)
 }
 
-func (s *UserService) UpdateCover(ctx context.Context, file *multipart.FileHeader, user *models.User) (*media.Media, error) {
+func (s *UserService) UpdateCover(ctx context.Context, file ports.UploadedFile, user *models.User) (*media.Media, error) {
 	//
 	newMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
@@ -376,7 +375,7 @@ func (s *UserService) UpdateCover(ctx context.Context, file *multipart.FileHeade
 	return newMedia, nil
 }
 
-func (s *UserService) AddStory(ctx context.Context, file *multipart.FileHeader, user *models.User) (*models.Story, error) {
+func (s *UserService) AddStory(ctx context.Context, file ports.UploadedFile, user *models.User) (*models.Story, error) {
 	storyMedia, err := s.mediaRepo.AddMedia(
 		user.ID,
 		media.OwnerUser,
@@ -457,18 +456,23 @@ func (s *UserService) ToggleFollow(ctx context.Context, followerID, followeeID i
 		return false, err
 	}
 
-	//takip et
-	_, err = s.engagementRepo.ToggleEngagement(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing, followerUser.ID, models.EngagementContentableTypeUser)
-	if err != nil {
-		return false, err
-	}
-	// takipcilere yaz
-	_, err = s.engagementRepo.ToggleEngagement(ctx, followeeUser.ID, followerUser.ID, models.EngagementKindFollower, followeeUser.ID, models.EngagementContentableTypeUser)
+	pair, err := domainuser.InteractionEngagementPair(domainuser.InteractionFollow, true)
 	if err != nil {
 		return false, err
 	}
 
-	isFollowing, err := s.engagementRepo.HasUserEngaged(ctx, followerUser.ID, followeeUser.ID, models.EngagementKindFollowing)
+	//takip et
+	_, err = s.engagementRepo.ToggleEngagement(ctx, followerUser.ID, followeeUser.ID, models.EngagementKind(pair.Given), followerUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return false, err
+	}
+	// takipcilere yaz
+	_, err = s.engagementRepo.ToggleEngagement(ctx, followeeUser.ID, followerUser.ID, models.EngagementKind(pair.Received), followeeUser.ID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return false, err
+	}
+
+	isFollowing, err := s.engagementRepo.HasUserEngaged(ctx, followerUser.ID, followeeUser.ID, models.EngagementKind(pair.Given))
 	if err != nil {
 		return false, err
 	}
@@ -560,9 +564,12 @@ type UpdateUserProfileInput struct {
 }
 
 func (s *UserService) UpdateUserProfile(context context.Context, authUser models.User, input UpdateUserProfileInput) (*models.User, error) {
-	existsUser, err := s.userRepo.GetByNameOrMailWithoutRelations(input.UserName)
-	if err == nil && existsUser.ID != authUser.ID {
-		return nil, errors.New(constants.ErrUsernameTaken.String())
+	username := domainuser.NormalizeUsername(input.UserName)
+	if username != "" {
+		existsUser, err := s.userRepo.GetByNameOrMailWithoutRelations(username)
+		if err == nil && existsUser.ID != authUser.ID {
+			return nil, errors.New(constants.ErrUsernameTaken.String())
+		}
 	}
 
 	userInfo, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: context, UserUUID: authUser.ID})
@@ -580,21 +587,28 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 		}
 	}
 
-	if input.DateOfBirth != "" {
-		dateOfBirth, err := time.Parse("2006-01-02", input.DateOfBirth)
-		if err == nil {
-			userInfo.DateOfBirth = &dateOfBirth
-		}
+	dateOfBirth, err := domainuser.ParseBirthDate(input.DateOfBirth, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	if dateOfBirth != nil {
+		userInfo.DateOfBirth = dateOfBirth
 	}
 
-	userInfo.UserName = helpers.DefaultIfEmpty(input.UserName, userInfo.UserName)
-	userInfo.DisplayName = helpers.DefaultIfEmpty(input.DisplayName, userInfo.DisplayName)
+	userInfo.UserName = helpers.DefaultIfEmpty(username, userInfo.UserName)
+	userInfo.DisplayName = helpers.DefaultIfEmpty(domainuser.NormalizeDisplayName(input.DisplayName), userInfo.DisplayName)
 
 	userInfo.Bio = utils.MakeLocalizedString(userInfo.DefaultLanguage, helpers.DefaultIfEmpty(input.Bio, userInfo.Bio.GetLocalizedString(userInfo.DefaultLanguage)))
 
 	//userObj.Website = formData.Website
 
-	userInfo.PrivacyLevel = constants.PrivacyLevel(input.PrivacyLevel)
+	privacyLevel, hasPrivacyLevel, err := domainuser.ParsePrivacyLevel(input.PrivacyLevel)
+	if err != nil {
+		return nil, err
+	}
+	if hasPrivacyLevel {
+		userInfo.PrivacyLevel = constants.PrivacyLevel(privacyLevel)
+	}
 
 	if err := s.userRepo.UpdateUser(userInfo); err != nil {
 		return nil, err
@@ -611,6 +625,11 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 			return nil, errors.New(constants.ErrInvalidLongitude.String())
 		}
 
+		coordinates, err := domainuser.NewCoordinates(lat, lng)
+		if err != nil {
+			return nil, err
+		}
+
 		locationUser := &utils.Location{
 			ID:              uuid.New(),
 			ContentableType: utils.LocationOwnerUser,
@@ -622,9 +641,9 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 			Display:         &input.LocationDisplay,
 			Timezone:        &input.LocationTimezone,
 			Address:         &input.LocationAddress,
-			Latitude:        &lat,
-			Longitude:       &lng,
-			LocationPoint:   utils.NewLocationPoint(lat, lng),
+			Latitude:        &coordinates.Latitude,
+			Longitude:       &coordinates.Longitude,
+			LocationPoint:   utils.NewLocationPoint(coordinates.Latitude, coordinates.Longitude),
 			CreatedAt:       time.Now(),
 			UpdatedAt:       time.Now(),
 		}
@@ -664,34 +683,29 @@ func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, like
 		return isLike, false, errors.New(err.Error())
 	}
 
-	var engagementKindGiven models.EngagementKind
-	var engagementKindReceived models.EngagementKind
-
-	switch {
-	case isLike:
-		engagementKindGiven = models.EngagementKindLikeGiven
-		engagementKindReceived = models.EngagementKindLikeReceived
-	default:
-		engagementKindGiven = models.EngagementKindDislikeGiven
-		engagementKindReceived = models.EngagementKindDisLikeReceived
-
+	pair, err := domainuser.InteractionEngagementPair(domainuser.InteractionLike, isLike)
+	if err != nil {
+		return isLike, false, err
 	}
+	engagementKindGiven := models.EngagementKind(pair.Given)
+	engagementKindReceived := models.EngagementKind(pair.Received)
 
 	status, err := s.engagementRepo.ToggleEngagement(ctx, likerUser.ID, likeeUser.ID, engagementKindGiven, likerUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return isLike, status, err
 	}
+	enabled := status
 
 	status, err = s.engagementRepo.ToggleEngagement(ctx, likeeUser.ID, likerUser.ID, engagementKindReceived, likeeUser.ID, models.EngagementContentableTypeUser)
 	if err != nil {
 		return isLike, status, err
 	}
 
-	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(likerId, likeeId, domainuser.InteractionLike, true, time.Now().UTC())); err != nil {
+	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(likerId, likeeId, domainuser.InteractionLike, enabled, time.Now().UTC())); err != nil {
 		return isLike, false, err
 	}
 
-	return isLike, true, nil
+	return isLike, enabled, nil
 }
 
 // return Params : bool isLike, bool success, error
@@ -722,11 +736,12 @@ func (s *UserService) ToggleBlock(ctx context.Context, authUser models.User, blo
 		return false, err
 	}
 
-	var engagementKindGiven models.EngagementKind
-	var engagementKindReceived models.EngagementKind
-
-	engagementKindGiven = models.EngagementKindBlocking
-	engagementKindReceived = models.EngagementKindBlockedBy
+	pair, err := domainuser.InteractionEngagementPair(domainuser.InteractionBlock, true)
+	if err != nil {
+		return false, err
+	}
+	engagementKindGiven := models.EngagementKind(pair.Given)
+	engagementKindReceived := models.EngagementKind(pair.Received)
 
 	isBlocked, _ := s.engagementRepo.HasUserEngaged(ctx, blockerUser.ID, blockedUser.ID, engagementKindGiven)
 
@@ -763,11 +778,12 @@ func (s *UserService) ToggleSubscribe(ctx context.Context, authUser models.User,
 		return false, err
 	}
 
-	var engagementKindGiven models.EngagementKind
-	var engagementKindReceived models.EngagementKind
-
-	engagementKindGiven = models.EngagementKindSubscribing
-	engagementKindReceived = models.EngagementKindSubscribedBy
+	pair, err := domainuser.InteractionEngagementPair(domainuser.InteractionSubscribe, true)
+	if err != nil {
+		return false, err
+	}
+	engagementKindGiven := models.EngagementKind(pair.Given)
+	engagementKindReceived := models.EngagementKind(pair.Received)
 
 	isBlocked, _ := s.engagementRepo.HasUserEngaged(ctx, subscriberUser.ID, subscribedUser.ID, engagementKindGiven)
 
@@ -797,8 +813,8 @@ func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models
 	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
 }
 
-func (s *UserService) CheckIn(context context.Context, request map[string][]string, files []*multipart.FileHeader, author *models.User, postKind post.PostKind) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, request, files, author, string(postKind), nil)
+func (s *UserService) CheckIn(context context.Context, form ports.FormData, author *models.User, postKind post.PostKind) (*post.Post, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(postKind), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -3,11 +3,10 @@ package media
 import (
 	"bytes"
 	"context"
+	"core/application/ports"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"path/filepath"
 	"strings"
 	"time"
@@ -24,7 +23,30 @@ func NewRemoteImageFetcher(client *http.Client) *RemoteImageFetcher {
 	return &RemoteImageFetcher{client: client}
 }
 
-func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (*multipart.FileHeader, error) {
+type memoryUploadedFile struct {
+	filename    string
+	size        int64
+	contentType string
+	data        []byte
+}
+
+func (f memoryUploadedFile) Filename() string {
+	return f.filename
+}
+
+func (f memoryUploadedFile) Size() int64 {
+	return f.size
+}
+
+func (f memoryUploadedFile) ContentType() string {
+	return f.contentType
+}
+
+func (f memoryUploadedFile) Open() (io.ReadCloser, error) {
+	return io.NopCloser(bytes.NewReader(f.data)), nil
+}
+
+func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (ports.UploadedFile, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, imageURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create image request: %w", err)
@@ -59,33 +81,10 @@ func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (*
 		mimeType = http.DetectContentType(data)
 	}
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	header := make(textproto.MIMEHeader)
-	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, filename))
-	header.Set("Content-Type", mimeType)
-
-	part, err := writer.CreatePart(header)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create form file: %w", err)
-	}
-	if _, err := part.Write(data); err != nil {
-		return nil, fmt.Errorf("failed to write data: %w", err)
-	}
-	if err := writer.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close writer: %w", err)
-	}
-
-	reader := multipart.NewReader(body, writer.Boundary())
-	form, err := reader.ReadForm(int64(len(data) + 1024))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read form: %w", err)
-	}
-
-	fileHeaders := form.File["file"]
-	if len(fileHeaders) == 0 {
-		return nil, fmt.Errorf("file header is empty")
-	}
-	return fileHeaders[0], nil
+	return memoryUploadedFile{
+		filename:    filename,
+		size:        int64(len(data)),
+		contentType: mimeType,
+		data:        data,
+	}, nil
 }

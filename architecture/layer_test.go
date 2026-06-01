@@ -35,6 +35,22 @@ func TestApplicationUsecasesDependOnPortsNotInfrastructure(t *testing.T) {
 		"core/infrastructure/socket",
 		"github.com/gofiber",
 		"gorm.io/",
+		"mime/multipart",
+		"net/http",
+	})
+}
+
+func TestApplicationPortsHaveNoTransportOrInfrastructureDependencies(t *testing.T) {
+	imports := listPackageImports(t)
+
+	assertNoImports(t, imports, "core/application/ports", []string{
+		"core/infrastructure",
+		"core/routes",
+		"core/repositories",
+		"core/services",
+		"github.com/gofiber",
+		"gorm.io/",
+		"mime/multipart",
 		"net/http",
 	})
 }

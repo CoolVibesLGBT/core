@@ -5,7 +5,6 @@ import (
 	"core/constants"
 	"core/middleware"
 	"core/utils"
-	"mime/multipart"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -65,10 +64,8 @@ func HandleSendMessage(s *usecases.ChatService) fiber.Handler {
 		images := form.File["images[]"]
 		videos := form.File["videos[]"]
 		formParams := form.Value
-		files := append([]*multipart.FileHeader{}, images...)
-		files = append(files, videos...)
 
-		_post, err := s.AddMessageToChat(c.Context(), formParams, files, user)
+		_post, err := s.AddMessageToChat(c.Context(), uploadedFormData(formParams, images, videos), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
