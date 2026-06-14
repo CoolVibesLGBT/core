@@ -33,8 +33,12 @@ type Filter struct {
 	Latitude  *float64
 	Longitude *float64
 	Distance  *float64
-	Cursor    *int64
-	Limit     int
+
+	Cursor  *int64
+	Page    *int
+	PerPage *int
+	Mode    string // "offset" | "cursor"
+	Limit   int
 }
 
 func (f Filter) PillarStr() string {
