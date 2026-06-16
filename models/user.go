@@ -19,24 +19,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Story struct {
-	ID     uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
-	User   *User     `gorm:"foreignKey:UserID" json:"user,omitempty"`
-
-	MediaID uuid.UUID    `gorm:"type:uuid;not null" json:"media_id"`
-	Media   *media.Media `gorm:"constraint:OnDelete:CASCADE;foreignKey:MediaID;references:ID" json:"media"`
-
-	Caption    *string   `gorm:"type:text" json:"caption,omitempty"`
-	ExpiresAt  time.Time `gorm:"index" json:"expires_at"`
-	IsExpired  bool      `gorm:"default:false" json:"is_expired"`
-	IsArchived bool      `gorm:"default:false" json:"is_archived"`
-
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-}
-
 type TravelData struct {
 	VisitedCountries pq.StringArray `gorm:"type:text[]" json:"visited_countries"`
 	TravelFrequency  string         `json:"travel_frequency"`                   // örn: "aylık"
@@ -111,7 +93,6 @@ type User struct {
 	Avatar           *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
 	CoverID          *uuid.UUID             `json:"cover_id,omitempty"`
 	Cover            *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
-	Stories          []Story                `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stories,omitempty"`
 	Languages        pq.StringArray         `gorm:"type:text[]" json:"languages"`
 	Hobbies          pq.StringArray         `gorm:"type:text[]" json:"hobbies,omitempty"`
 	MoviesGenres     pq.StringArray         `gorm:"type:text[]" json:"movies_genres,omitempty"`

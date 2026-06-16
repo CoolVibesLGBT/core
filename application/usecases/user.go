@@ -13,8 +13,10 @@ import (
 	"core/models/post"
 	"core/models/utils"
 	"core/types"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -271,24 +273,30 @@ func (s *UserService) publishEvent(ctx context.Context, event domainevents.Event
 }
 
 func (s *UserService) applyReferral(ctx context.Context, referral string, userID uuid.UUID) {
-	referralID, err := helpers.StrToInt64(referral)
+	referralUser, err := s.resolveReferralUser(ctx, referral)
 	if err != nil {
-		fmt.Println("REFERRAL ERROR1", err)
+		return
+	}
+	if referralUser.ID == userID {
 		return
 	}
 
-	referralUser, err := s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: referralID})
-	if err != nil {
-		fmt.Println("REFERRAL ERROR2", err)
+	if _, err := s.userRepo.AddReferral(ctx, referralUser.ID, userID, constants.DEFAULT_REFERRAL_REWARD); err != nil {
 		return
+	}
+}
+
+func (s *UserService) resolveReferralUser(ctx context.Context, referral string) (*models.User, error) {
+	referral = strings.TrimSpace(referral)
+	if referral == "" {
+		return nil, errors.New("referral is empty")
 	}
 
-	newBalance, err := s.userRepo.AddReferral(ctx, referralUser.ID, userID, constants.DEFAULT_REFERRAL_REWARD)
-	if err != nil {
-		fmt.Println("REFERRAL ERROR3", err)
-		return
+	if referralID, err := helpers.StrToInt64(referral); err == nil {
+		return s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: referralID})
 	}
-	fmt.Println("NEW BALANCE", newBalance)
+
+	return s.userRepo.GetByNameOrMailWithoutRelations(referral)
 }
 
 func (s *UserService) GetUserByID(id uuid.UUID) (*models.User, error) {
@@ -375,35 +383,55 @@ func (s *UserService) UpdateCover(ctx context.Context, file ports.UploadedFile, 
 	return newMedia, nil
 }
 
-func (s *UserService) AddStory(ctx context.Context, file ports.UploadedFile, user *models.User) (*models.Story, error) {
-	storyMedia, err := s.mediaRepo.AddMedia(
-		user.ID,
-		media.OwnerUser,
-		user.ID,
-		media.RoleStory,
-		file,
-	)
+func (s *UserService) AddStory(ctx context.Context, form ports.FormData, user *models.User) (*post.Post, error) {
+	form.Values = cloneFormValues(form.Values)
+	if form.Values == nil {
+		form.Values = make(map[string][]string)
+	}
+
+	if caption := firstFormValue(form.Values, "caption"); caption != "" && firstFormValue(form.Values, "content") == "" {
+		form.Values["content"] = []string{caption}
+	}
+	if firstFormValue(form.Values, "audience") == "" {
+		form.Values["audience"] = []string{"public"}
+	}
+	if firstFormValue(form.Values, "slug") == "" && firstFormValue(form.Values, "title") == "" {
+		form.Values["slug"] = []string{fmt.Sprintf("story-%d", time.Now().UnixNano())}
+	}
+	if firstFormValue(form.Values, "extras") == "" {
+		extras, err := json.Marshal(map[string]string{
+			"expires_at": time.Now().Add(24 * time.Hour).UTC().Format(time.RFC3339),
+		})
+		if err != nil {
+			return nil, err
+		}
+		form.Values["extras"] = []string{string(extras)}
+	}
+
+	createdPost, err := s.postRepo.CreateContentablePost(ctx, form, user, string(post.PostKindStory), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+		return nil, err
 	}
+	return s.postRepo.GetPostByID(createdPost.ID)
+}
 
-	story := &models.Story{
-		ID:         uuid.New(),
-		UserID:     user.ID,
-		MediaID:    storyMedia.ID,
-		Caption:    nil,                            // istersen ekleyebilirsin
-		ExpiresAt:  time.Now().Add(24 * time.Hour), // örneğin 24 saat sonra silinecek
-		IsExpired:  false,
-		IsArchived: false,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+func cloneFormValues(values map[string][]string) map[string][]string {
+	if values == nil {
+		return nil
 	}
+	cloned := make(map[string][]string, len(values))
+	for key, items := range values {
+		cloned[key] = append([]string(nil), items...)
+	}
+	return cloned
+}
 
-	if err := s.userRepo.AddStory(user.ID, story); err != nil {
-		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+func firstFormValue(values map[string][]string, key string) string {
+	items := values[key]
+	if len(items) == 0 {
+		return ""
 	}
-	story.Media = storyMedia
-	return story, nil
+	return items[0]
 }
 
 func (s *UserService) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
@@ -414,8 +442,9 @@ func (s *UserService) UpsertUserPreference(ctx context.Context, user models.User
 	return err
 }
 
-func (s *UserService) GetAllStories(filters types.Filter) ([]*models.Story, error) {
-	return s.userRepo.GetAllStories(filters)
+func (s *UserService) GetAllStories(filters types.Filter) (types.PostsResult, error) {
+	filters.PostKind = post.PostKindStory
+	return s.postRepo.GetPostsByKind(filters)
 }
 
 func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]*models.User, *float64, error) {

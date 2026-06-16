@@ -128,6 +128,12 @@ const (
 	CMD_POST_BANANA = "post.banana"
 	CMD_POST_TIP    = "post.tip"
 
+	// MODERATION
+	CMD_MODERATION_REPORTS_FETCH  = "moderation.reports.fetch"
+	CMD_MODERATION_REPORT_RESOLVE = "moderation.report.resolve"
+	CMD_MODERATION_POST_HIDE      = "moderation.post.hide"
+	CMD_MODERATION_POST_UNHIDE    = "moderation.post.unhide"
+
 	//MATCH EKRANI
 	CMD_MATCH_CREATE = "match.create" // Yeni eşleşme oluşturma (örneğin karşılıklı like)
 	CMD_MATCH_DELETE = "match.delete" // Eşleşmeyi kaldırma

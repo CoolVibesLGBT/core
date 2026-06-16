@@ -79,7 +79,9 @@ func InitializeApp() (*App, error) {
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)
 	systemRepository := repositories.NewSystemRepository(gormDB)
 	systemService := usecases.NewSystemService(systemRepository)
-	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, systemService, userRepository, sitemapRepository, reader)
+	moderationRepository := repositories.NewModerationRepository(gormDB)
+	moderationService := usecases.NewModerationService(moderationRepository)
+	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, systemService, moderationService, userRepository, sitemapRepository, reader)
 
 	return &App{
 		DB:            gormDB,

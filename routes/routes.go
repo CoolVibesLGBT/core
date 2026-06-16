@@ -43,6 +43,7 @@ type Router struct {
 	PaymentService      *usecases.PaymentService
 	ClassifiedService   *usecases.ClassifiedService
 	MatchesService      *usecases.MatchesService
+	ModerationService   *usecases.ModerationService
 }
 
 func GeoIPDBProvider() (*maxminddb.Reader, error) {
@@ -76,6 +77,7 @@ func NewRouter(
 	notificationService *usecases.NotificationsService,
 	paymentService *usecases.PaymentService,
 	systemService *usecases.SystemService,
+	moderationService *usecases.ModerationService,
 	userRepo ports.UserRepository,
 	sitemapRepo ports.SitemapRepository,
 	geoIPDB *maxminddb.Reader,
@@ -111,6 +113,7 @@ func NewRouter(
 		MatchesService:      matchesService,
 		ChatService:         chatService,
 		PaymentService:      paymentService,
+		ModerationService:   moderationService,
 	}
 
 	r.fiber.Use(cors.New(cors.Config{
@@ -197,6 +200,11 @@ func NewRouter(
 	r.action.Register(constants.CMD_POST_FETCH, handlers.HandleFetchPost(postService))
 	r.action.Register(constants.CMD_POST_GET, handlers.HandleGetBySlug(postService))
 
+	r.action.Register(constants.CMD_MODERATION_REPORTS_FETCH, handlers.HandleModerationFetchReports(moderationService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_MODERATION_REPORT_RESOLVE, handlers.HandleModerationResolveReport(moderationService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_MODERATION_POST_HIDE, handlers.HandleModerationHidePost(moderationService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_MODERATION_POST_UNHIDE, handlers.HandleModerationUnhidePost(moderationService), middleware.AuthMiddleware(userRepo))
+
 	r.action.Register(constants.CMD_POST_DELETE, handlers.HandlePostDelete(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIP, handlers.HandlePostTip(postService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_POST_TIMELINE, handlers.HandleTimeline(postService))
@@ -236,10 +244,12 @@ func NewRouter(
 	r.action.Register(constants.CMD_CLEAR_CHAT_HISTORY_FOR_ALL, handlers.HandleClearChatHistoryForAll(chatService), middleware.AuthMiddleware(userRepo))
 
 	//PLACE EKRANI ICIN
+	r.action.Register(constants.CMD_PLACE_CREATE, handlers.HandleCreatePlace(placeService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_PLACE_FETCH, handlers.HandleGetNearByPlaces(placeService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 	r.action.Register(constants.CMD_PLACE_CATEGORIES, handlers.HandleGetPlaceCategories(placeService))
 
 	//NEWS EKRANI
+	r.action.Register(constants.CMD_NEWS_CREATE, handlers.HandleCreateNews(newsService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_NEWS_FETCH, handlers.HandleFetchNews(newsService), middleware.AuthMiddlewareWithoutCheck(userRepo))
 
 	//CLASSIFIELDS
@@ -265,6 +275,15 @@ func NewRouter(
 	r.fiber.All("/signin-oidc", r.handlePacket)
 	r.fiber.All("/signout-callback-oidc", r.handlePacket)
 
+	r.fiber.Get("/swagger", handlers.HandleSwaggerUI())
+	r.fiber.Get("/swagger/", handlers.HandleSwaggerUI())
+	r.fiber.Get("/docs", handlers.HandleSwaggerUI())
+	r.fiber.Get("/docs/", handlers.HandleSwaggerUI())
+	r.fiber.Get("/swagger/openapi.yaml", handlers.HandleOpenAPIYAML())
+	r.fiber.Get("/swagger/openapi.json", handlers.HandleOpenAPIJSON())
+	r.fiber.Get("/docs/openapi.yaml", handlers.HandleOpenAPIYAML())
+	r.fiber.Get("/docs/openapi.json", handlers.HandleOpenAPIJSON())
+
 	r.fiber.All("/test", r.handlePacket)
 	r.fiber.All("/packet", r.handlePacket)
 
@@ -272,6 +291,7 @@ func NewRouter(
 
 	// API ROUTERS
 	api := r.fiber.Group("/api")
+	api.All("/actions/:action", r.handleActionAlias)
 	api.All("/", r.handlePacket)
 
 	// WEB ROUTES
@@ -398,6 +418,19 @@ func (r *Router) handlePacket(c fiber.Ctx) error {
 		return c.SendString("Default handler executed")
 	}
 
+	return r.dispatchAction(c, action)
+}
+
+func (r *Router) handleActionAlias(c fiber.Ctx) error {
+	action := c.Params("action")
+	if action == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("Unknown action")
+	}
+
+	return r.dispatchAction(c, action)
+}
+
+func (r *Router) dispatchAction(c fiber.Ctx, action string) error {
 	route, ok := r.action.GetHandler(action)
 	if !ok {
 		return c.Status(fiber.StatusBadRequest).SendString("Unknown action")

@@ -257,7 +257,6 @@ func Migrate(db *gorm.DB) error {
 
 		&media.Media{},
 
-		&models.Story{},
 		&models.Engagement{},
 		&models.EngagementDetail{},
 

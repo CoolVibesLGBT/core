@@ -20,6 +20,7 @@ const (
 	NotificationTypeEventReminder = "event_reminder" // Etkinlik hatırlatıcısı
 	NotificationTypeSystemAlert   = "system_alert"   // Sistem uyarısı veya güncelleme
 	NotificationTypeLike          = "like"           // Profil beğenisi bildirimi
+	NotificationTypeComment       = "comment"        // Post yorum bildirimi
 	NotificationTypeGiftReceived  = "gift"           // Profil beğenisi bildirimi
 	NotificationTypeFollow        = "follow"         // Takip bildirimi (eğer varsa)
 	NotificationTypeUnFollow      = "unfollow"       // Takip birakma bildirimi (eğer varsa)

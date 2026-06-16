@@ -33,8 +33,6 @@ type UserRepository interface {
 	DeleteUser(filters types.Filter) error
 	UpdateLocation(ctx context.Context, user *models.User, ip string) error
 	UpsertLocation(location *utils.Location) error
-	AddStory(userID uuid.UUID, story *models.Story) error
-	GetAllStories(filters types.Filter) ([]*models.Story, error)
 	UpsertUserPreference(ctx context.Context, user models.User, preferenceItemID string, bitIndex string, enabled bool) error
 	FetchNearbyUsers(filters types.Filter) ([]*models.User, *float64, error)
 	FetchLiveUsers(filters types.Filter) ([]*models.User, error)
@@ -70,6 +68,40 @@ type PostRepository interface {
 	View(filters types.Filter) error
 	Tip(ctx context.Context, postID int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error)
 	GetPillarsWithClusters(filters types.Filter) ([]taxonomy.Pillar, error)
+}
+
+type ModerationReportFilter struct {
+	Status           models.ReportStatus
+	PostPublicID     int64
+	ReporterPublicID int64
+	Limit            int
+	Cursor           *time.Time
+}
+
+type ModerationReportItem struct {
+	Report models.Report `json:"report"`
+	Post   *post.Post    `json:"post,omitempty"`
+}
+
+type ModerationReportPage struct {
+	Items  []ModerationReportItem `json:"items"`
+	Cursor *string                `json:"cursor,omitempty"`
+	Count  int                    `json:"count"`
+	Limit  int                    `json:"limit"`
+}
+
+type ModerationResolveInput struct {
+	ReportID     uuid.UUID
+	Status       models.ReportStatus
+	ReviewedByID uuid.UUID
+	Resolution   string
+	PublishPost  *bool
+}
+
+type ModerationRepository interface {
+	FetchReports(ctx context.Context, filter ModerationReportFilter) (ModerationReportPage, error)
+	ResolveReport(ctx context.Context, input ModerationResolveInput) (*models.Report, error)
+	SetPostPublished(ctx context.Context, postPublicID int64, published bool, moderatorID uuid.UUID, resolution string) (*post.Post, error)
 }
 
 type EngagementRepository interface {

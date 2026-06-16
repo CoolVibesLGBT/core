@@ -215,8 +215,11 @@ func HandleFetchBroadcasts(s *usecases.UserService) fiber.Handler {
 		var cursorObj types.Cursor
 		if len(users) > 0 {
 			last := users[len(users)-1]
-			str := fmt.Sprintf("%d", last.PublicID)
-			cursorObj.Next = &str
+			nextCursor, err := types.NewPublicIDDistanceCursor(last.PublicID, filters.Distance)
+			if err != nil {
+				return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
+			}
+			cursorObj.Next = nextCursor
 			cursorObj.Distance = filters.Distance
 		}
 

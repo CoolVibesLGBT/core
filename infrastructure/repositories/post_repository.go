@@ -386,7 +386,7 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindStatus), string(post.PostKindVideo)}).
+		Where("post_kind IN ?", []string{string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindStatus), string(post.PostKindVideo)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).
@@ -427,8 +427,11 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 
 	var nextCursor *string
 	if len(posts) > 0 {
-		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
-		nextCursor = &s
+		var cursorErr error
+		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
+		if cursorErr != nil {
+			return types.TimelineResult{}, cursorErr
+		}
 	}
 
 	return types.TimelineResult{
@@ -453,7 +456,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Preload("Engagements.EngagementDetails.Engagee").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("contentable_type IN ?", []string{string(post.PostKindPost), string(post.PostKindStatus)}).
+		Where("post_kind IN ?", []string{string(post.PostKindPost), string(post.PostKindStatus)}).
 		//Where("published = ?", true).
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
@@ -471,8 +474,11 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 
 	var nextCursor *string
 	if len(posts) > 0 {
-		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
-		nextCursor = &s
+		var cursorErr error
+		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
+		if cursorErr != nil {
+			return types.TimelineResult{}, cursorErr
+		}
 	}
 
 	return types.TimelineResult{
@@ -484,9 +490,31 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult, error) {
 	var posts []post.Post
 
+	query := r.postsByKindQuery(filters)
+
+	if err := query.Find(&posts).Error; err != nil {
+		return types.PostsResult{}, err
+	}
+
+	var nextCursor *string
+	if len(posts) > 0 {
+		var cursorErr error
+		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
+		if cursorErr != nil {
+			return types.PostsResult{}, cursorErr
+		}
+	}
+
+	return types.PostsResult{
+		Posts:  posts,
+		Cursor: nextCursor,
+	}, nil
+}
+
+func (r *PostRepository) postsByKindQuery(filters types.Filter) *gorm.DB {
 	query := r.db.Model(&post.Post{}).
 		//Where("published = ?", true).
-		Where("contentable_type IN ?", []string{string(filters.PostKind)}).
+		Where("post_kind = ?", filters.PostKind).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).
@@ -517,24 +545,15 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult
 
 	query = applyTaxonomyCategoryFilter(query, filters.Category)
 
+	if filters.PostKind == post.PostKindStory {
+		query = query.Where("created_at > ?", time.Now().Add(-24*time.Hour))
+	}
+
 	if filters.Cursor != nil {
 		query = query.Where("public_id < ?", *filters.Cursor)
 	}
 
-	if err := query.Find(&posts).Error; err != nil {
-		return types.PostsResult{}, err
-	}
-
-	var nextCursor *string
-	if len(posts) > 0 {
-		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
-		nextCursor = &s
-	}
-
-	return types.PostsResult{
-		Posts:  posts,
-		Cursor: nextCursor,
-	}, nil
+	return query
 }
 
 func (r *PostRepository) FindPostsByKind(filters types.Filter) (types.PostsResult, error) {
@@ -544,7 +563,7 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (types.PostsResul
 	query := r.db.Model(&post.Post{}).
 		Where("published = ?", true).
 		Where("domain = ?", *filters.Domain).
-		Where("contentable_type IN ?", []string{string(filters.PostKind), string(post.PostKindVideo), string(post.PostKindStatus), string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindClassified), string(post.PostKindPlace)}).
+		Where("post_kind IN ?", []string{string(filters.PostKind), string(post.PostKindVideo), string(post.PostKindStatus), string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindClassified), string(post.PostKindPlace)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(filters.Limit).
@@ -592,8 +611,11 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (types.PostsResul
 
 	var nextCursor *string
 	if len(posts) > 0 {
-		s := strconv.FormatInt(int64(posts[len(posts)-1].PublicID), 10)
-		nextCursor = &s
+		var cursorErr error
+		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
+		if cursorErr != nil {
+			return types.PostsResult{}, cursorErr
+		}
 	}
 
 	return types.PostsResult{
@@ -618,7 +640,7 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL and contentable_type = ?", userId, filters.PostKind).
+		Where("author_id = ? AND parent_id IS NULL and post_kind = ?", userId, filters.PostKind).
 		Order("public_id DESC").
 		Limit(filters.Limit)
 
@@ -650,7 +672,7 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NOT NULL and contentable_type = ? ", filters.UserUUID, filters.PostKind).
+		Where("author_id = ? AND parent_id IS NOT NULL and post_kind = ? ", filters.UserUUID, filters.PostKind).
 		Order("public_id DESC").
 		Limit(filters.Limit)
 
@@ -716,6 +738,52 @@ func (r *PostRepository) GetUserMedias(filters types.Filter) ([]types.MediaWithU
 	}
 
 	return results, lastCursor, nil
+}
+
+func postKindForContentableType(contentableType string) (post.PostKind, bool) {
+	switch contentableType {
+	case "chat":
+		return post.PostKindMessage, true
+	case "post":
+		return post.PostKindPost, true
+	case "event":
+		return post.PostKindEvent, true
+	case "status":
+		return post.PostKindStatus, true
+	case "classified":
+		return post.PostKindClassified, true
+	case "job_offer":
+		return post.PostKindJobOffer, true
+	case "job_search":
+		return post.PostKindJobSearch, true
+	case "news":
+		return post.PostKindNews, false
+	case "place":
+		return post.PostKindPlace, true
+	case "checkin":
+		return post.PostKindCheckIn, true
+	case "video":
+		return post.PostKindVideo, true
+	case "story":
+		return post.PostKindStory, true
+	default:
+		return post.PostKindStatus, false
+	}
+}
+
+func mediaOwnerForContentableType(contentableType string) (media.OwnerType, media.MediaRole) {
+	switch contentableType {
+	case "chat":
+		return media.OwnerChat, media.RoleChatMedia
+	case "news":
+		return media.OwnerNews, media.RolePost
+	case "video":
+		return media.OwnerVideo, media.RoleVideo
+	case "story":
+		return media.OwnerPost, media.RoleStory
+	default:
+		return media.OwnerPost, media.RolePost
+	}
 }
 
 func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error) {
@@ -813,45 +881,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 
 	defaultLanguage := helpers.DefaultIfEmpty(postForm.Language, author.DefaultLanguage)
 
-	var postKindType post.PostKind
-	var isPublished = false
-	switch contentableType {
-	case "chat":
-		postKindType = post.PostKindMessage
-		isPublished = true
-	case "post":
-		postKindType = post.PostKindPost
-		isPublished = true
-	case "event":
-		postKindType = post.PostKindEvent
-		isPublished = true
-	case "status":
-		postKindType = post.PostKindStatus
-		isPublished = true
-	case "classified":
-		postKindType = post.PostKindClassified
-		isPublished = true
-	case "job_offer":
-		postKindType = post.PostKindJobOffer
-		isPublished = true
-	case "job_search":
-		postKindType = post.PostKindJobSearch
-		isPublished = true
-	case "news":
-		postKindType = post.PostKindNews
-		isPublished = false
-	case "place":
-		postKindType = post.PostKindPlace
-		isPublished = true
-	case "checkin":
-		postKindType = post.PostKindCheckIn
-		isPublished = true
-	case "video":
-		postKindType = post.PostKindVideo
-		isPublished = true
-	default:
-		postKindType = post.PostKindStatus
-	}
+	postKindType, isPublished := postKindForContentableType(contentableType)
 
 	postForm.Slug = helpers.GenerateSlug(
 		func() string {
@@ -885,26 +915,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 	}
 
 	for _, f := range formData.Files {
-		var ownerType media.OwnerType
-		var role media.MediaRole
-
-		switch contentableType {
-		case "chat":
-			ownerType = media.OwnerChat
-			role = media.RoleChatMedia
-		case "post":
-			ownerType = media.OwnerPost
-			role = media.RolePost
-		case "news":
-			ownerType = media.OwnerNews
-			role = media.RolePost
-		case "video":
-			ownerType = media.OwnerVideo
-			role = media.RoleVideo
-		default:
-			ownerType = media.OwnerPost
-			role = media.RolePost
-		}
+		ownerType, role := mediaOwnerForContentableType(contentableType)
 
 		mediaModel, err := r.mediaRepo.AddMedia(newPost.ID, ownerType, author.ID, role, f)
 		if err != nil {
@@ -1138,9 +1149,20 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 	}
 
 	if parentPost != nil {
-		err := r.userRepo.engagementRepo.AddEngagement(context.Background(), author.ID, parentPost.AuthorID, models.EngagementKindComment, parentPost.ID, models.EngagementContentableTypePost)
+		err := r.userRepo.engagementRepo.AddEngagement(ctx, author.ID, parentPost.AuthorID, models.EngagementKindComment, parentPost.ID, models.EngagementContentableTypePost)
 		if err != nil {
 			return nil, err
+		}
+		if author.ID != parentPost.AuthorID {
+			if err := r.sendNotificationWithType(
+				ctx,
+				author.ID,
+				parentPost.AuthorID,
+				notifications.NotificationTypeComment,
+				commentNotificationPayload(author, parentPost, newPost),
+			); err != nil {
+				helpers.Println("comment notification error:", err)
+			}
 		}
 	}
 
@@ -1247,6 +1269,10 @@ func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
 }
 
 func (r *PostRepository) SendNotification(ctx context.Context, senderUserUUID uuid.UUID, receiverUserUUID uuid.UUID, notificationPayload notifications.NotificationPayload) error {
+	return r.sendNotificationWithType(ctx, senderUserUUID, receiverUserUUID, notifications.NotificationTypeReferral, notificationPayload)
+}
+
+func (r *PostRepository) sendNotificationWithType(ctx context.Context, senderUserUUID uuid.UUID, receiverUserUUID uuid.UUID, notificationType string, notificationPayload notifications.NotificationPayload) error {
 	canSendNotification := true
 	senderUser, err := r.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: senderUserUUID})
 	if err != nil {
@@ -1258,7 +1284,7 @@ func (r *PostRepository) SendNotification(ctx context.Context, senderUserUUID uu
 	}
 
 	if canSendNotification {
-		err = r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notifications.NotificationTypeReferral, notificationPayload.Title, notificationPayload.Body, notificationPayload)
+		err = r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notificationType, notificationPayload.Title, notificationPayload.Body, notificationPayload)
 		if err != nil {
 			fmt.Printf("Bildirim gönderilemedi user %s -> %s: %v\n", senderUserUUID, receiverUserUUID, err)
 			return err
@@ -1266,6 +1292,33 @@ func (r *PostRepository) SendNotification(ctx context.Context, senderUserUUID uu
 	}
 	return nil
 }
+
+func commentNotificationPayload(author *models.User, parentPost *post.Post, comment *post.Post) notifications.NotificationPayload {
+	body := "Someone commented on your post"
+	if author != nil {
+		name := strings.TrimSpace(author.DisplayName)
+		if name == "" {
+			name = strings.TrimSpace(author.UserName)
+		}
+		if name != "" {
+			body = name + " commented on your post"
+		}
+	}
+
+	return notifications.NotificationPayload{
+		Title: "New Comment",
+		Body:  body,
+		Tag:   fmt.Sprintf("post-comment-%d", parentPost.PublicID),
+		Data: map[string]any{
+			"post_id":      parentPost.PublicID,
+			"comment_id":   comment.PublicID,
+			"post_uuid":    parentPost.ID.String(),
+			"comment_uuid": comment.ID.String(),
+			"type":         notifications.NotificationTypeComment,
+		},
+	}
+}
+
 func (r *PostRepository) Like(filters types.Filter) error {
 	post, err := r.FindPostByPublicID(filters.PostID)
 	if err != nil {
@@ -1479,11 +1532,6 @@ func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, 
 			ReportKindKey:   kind,
 			Reason:          description,
 			Status:          "pending",
-		}
-
-		err = r.userRepo.engagementRepo.AddEngagement(context.Background(), authUser.ID, post.AuthorID, models.EngagementKindReport, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
 		}
 
 		if err := r.db.WithContext(ctx).Create(&report).Error; err != nil {

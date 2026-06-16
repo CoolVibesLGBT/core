@@ -6,6 +6,7 @@ import (
 	"core/middleware"
 	"core/types"
 	"core/utils"
+	"errors"
 	"strconv"
 	"time"
 
@@ -91,17 +92,11 @@ func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		// ---- cursor ----
-		cursorStr := c.FormValue("cursor")
-		var cursor *time.Time
-		if cursorStr != "" {
-			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"message": "invalid cursor format",
-				})
-			}
-			cursor = &parsedTime
+		cursor, err := parseTimeCursor(c.FormValue("cursor"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid cursor format",
+			})
 		}
 
 		// ---- limit ----
@@ -122,11 +117,13 @@ func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
-		// ---- pagination cursor ----
-		nextCursor := ""
+		var nextCursor *string
 		if len(matches) > 0 {
 			lastMatch := matches[len(matches)-1]
-			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
+			nextCursor, err = types.NewTimeCursor(lastMatch.CreatedAt)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
+			}
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -144,15 +141,9 @@ func HandleGetPassesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		// ---- cursor ----
-		cursorStr := c.FormValue("cursor")
-		var cursor *time.Time
-		if cursorStr != "" {
-			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
-			if err != nil {
-				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
-			}
-			cursor = &parsedTime
+		cursor, err := parseTimeCursor(c.FormValue("cursor"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		// ---- limit ----
@@ -173,11 +164,13 @@ func HandleGetPassesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
-		// ---- pagination cursor ----
-		nextCursor := ""
+		var nextCursor *string
 		if len(passes) > 0 {
 			last := passes[len(passes)-1]
-			nextCursor = last.CreatedAt.Format(time.RFC3339)
+			nextCursor, err = types.NewTimeCursor(last.CreatedAt)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
+			}
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -195,14 +188,9 @@ func HandleGetLikesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		cursorStr := c.Query("cursor", "")
-		var cursor *time.Time
-		if cursorStr != "" {
-			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
-			if err != nil {
-				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
-			}
-			cursor = &parsedTime
+		cursor, err := parseTimeCursor(c.Query("cursor", ""))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		limitStr := c.Query("limit", "")
@@ -218,10 +206,13 @@ func HandleGetLikesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 		}
 
-		nextCursor := ""
+		var nextCursor *string
 		if len(likes) > 0 {
 			lastMatch := likes[len(likes)-1]
-			nextCursor = lastMatch.CreatedAt.Format(time.RFC3339)
+			nextCursor, err = types.NewTimeCursor(lastMatch.CreatedAt)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
+			}
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -229,4 +220,44 @@ func HandleGetLikesAfter(s *usecases.MatchesService) fiber.Handler {
 			"cursor": nextCursor,
 		})
 	}
+}
+
+func parseTimeCursor(raw string) (*time.Time, error) {
+	if raw == "" {
+		return nil, nil
+	}
+	if values, ok := types.DecodePaginationCursor(raw); ok {
+		if createdAt, ok := types.CursorCreatedAt(values); ok {
+			return &createdAt, nil
+		}
+		return nil, errors.New("invalid cursor")
+	}
+	parsedTime, err := time.Parse(time.RFC3339, raw)
+	if err != nil {
+		parsedTime, err = time.Parse(time.RFC3339Nano, raw)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &parsedTime, nil
+}
+
+func encodeTimeCursorPair(prev *time.Time, next *time.Time) (*string, *string, error) {
+	var prevCursor *string
+	var nextCursor *string
+	var err error
+
+	if prev != nil {
+		prevCursor, err = types.NewTimeCursor(*prev)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	if next != nil {
+		nextCursor, err = types.NewTimeCursor(*next)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return prevCursor, nextCursor, nil
 }

@@ -225,7 +225,7 @@ func (r *UserRepository) GetUserByUUIDdWithoutRelations(filters types.Filter) (*
 func (r *UserRepository) GetByNameOrMailWithoutRelations(input string) (*models.User, error) {
 	var userObj models.User
 	err := r.db.
-		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?)", input, input).
+		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?) OR LOWER(display_name) = LOWER(?)", input, input, input).
 		First(&userObj).Error
 	if err != nil {
 		return nil, err
@@ -278,45 +278,6 @@ func (r *UserRepository) UpsertLocation(location *utils.Location) error {
 	// Güncelle
 	location.ID = existing.ID
 	return r.db.Model(&existing).Updates(location).Error
-}
-
-func (r *UserRepository) AddStory(userID uuid.UUID, story *models.Story) error {
-	story.UserID = userID
-	return r.db.Create(story).Error
-}
-
-func (r *UserRepository) GetUserStories(userID uuid.UUID, limit int) ([]*models.Story, error) {
-	var stories []*models.Story
-	if err := r.db.Preload("Media").
-		Where("user_id = ? AND is_expired = false", userID).
-		Order("created_at DESC").
-		Limit(limit).
-		Find(&stories).Error; err != nil {
-		return nil, err
-	}
-	return stories, nil
-}
-
-func (r *UserRepository) GetAllStories(filters types.Filter) ([]*models.Story, error) {
-	var stories []*models.Story
-	if err := r.db.WithContext(filters.Context).
-		Preload("Media.File").
-		Preload("User").
-		Preload("User.Avatar.File").
-		Preload("User.Cover.File").
-		Where("is_expired = false").
-		Order("created_at DESC").
-		Limit(filters.Limit).
-		Find(&stories).Error; err != nil {
-		return nil, err
-	}
-	return stories, nil
-}
-
-func (r *UserRepository) ExpireOldStories() error {
-	return r.db.Model(&models.Story{}).
-		Where("expires_at <= ? AND is_expired = false", gorm.Expr("NOW()")).
-		Update("is_expired", true).Error
 }
 
 func (r *UserRepository) UpsertUserPreferenceEx(ctx context.Context, user models.User, preferenceItemId string, bitIndexStr string, enabled bool) error {
@@ -585,6 +546,20 @@ func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, e
 		return users, nil
 	}
 
+	q := r.liveUsersWithoutLocationQuery(filters)
+
+	if err := q.
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) liveUsersWithoutLocationQuery(filters types.Filter) *gorm.DB {
 	q := r.db.Model(&models.User{})
 
 	if filters.IsLive != nil {
@@ -597,15 +572,7 @@ func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, e
 		q = q.Where("public_id > ?", *filters.Cursor)
 	}
 
-	if err := q.
-		Preload("Location").
-		Preload("Avatar.File").
-		Preload("Cover.File").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
+	return q
 }
 
 func (r *UserRepository) UpdateUserSocket(userID int64, socketID string) error {

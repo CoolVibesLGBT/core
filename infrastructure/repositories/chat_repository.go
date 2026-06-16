@@ -474,19 +474,7 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 		return nil, err
 	}
 
-	query := r.db.Model(&post.Post{}).
-		Where("posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindChat, chatID).
-		Joins(`LEFT JOIN engagements e 
-			ON e.contentable_id = posts.id AND e.contentable_type = ?`, post.PostKindMessage).
-		Joins(`LEFT JOIN engagement_details ed 
-			ON ed.engagement_id = e.id 
-			AND ((ed.kind = ? AND ed.engager_id = ?) OR ed.kind = ?)`,
-			models.EngagementKindMessageDeletedForMe, userID, models.EngagementKindMessageDeletedForAll).
-		Where("ed.id IS NULL")
-
-	if participant.ClearedAt != nil {
-		query = query.Where("posts.created_at > ?", *participant.ClearedAt)
-	}
+	query := r.messagesByChatIDQuery(userID, chatID, participant.ClearedAt)
 
 	err := query.
 		Order("posts.created_at ASC").
@@ -528,6 +516,24 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 	}
 
 	return messages, nil
+}
+
+func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUID, clearedAt *time.Time) *gorm.DB {
+	query := r.db.Model(&post.Post{}).
+		Where("posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindChat, chatID).
+		Joins(`LEFT JOIN engagements e 
+			ON e.contentable_id = posts.id AND e.contentable_type = ?`, post.PostKindMessage).
+		Joins(`LEFT JOIN engagement_details ed 
+			ON ed.engagement_id = e.id 
+			AND ((ed.kind = ? AND ed.engager_id = ?) OR ed.kind = ?)`,
+			models.EngagementKindMessageDeletedForMe, userID, models.EngagementKindMessageDeletedForAll).
+		Where("ed.id IS NULL")
+
+	if clearedAt != nil {
+		query = query.Where("posts.created_at > ?", *clearedAt)
+	}
+
+	return query
 }
 
 func (r *ChatRepository) GetMessagesByChatIDWithCursor(userID uuid.UUID, chatID uuid.UUID, limit int, cursor *int64) ([]post.Post, error) {

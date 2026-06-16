@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/paginate"
 	"github.com/google/uuid"
 )
 
@@ -28,6 +29,12 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		AuthUser: authUser,
 		Context:  c.Context(),
 		Limit:    constants.DEFAULT_LIMIT,
+	}
+	if pageInfo, ok := paginate.FromContext(c); ok {
+		if pageInfo.Limit > 0 {
+			filter.Limit = pageInfo.Limit
+		}
+		applyCursorValues(&filter, pageInfo.CursorValues())
 	}
 
 	// user_id
@@ -66,12 +73,16 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	}
 
 	// cursor
-	if cursorStr := c.FormValue("cursor"); cursorStr != "" {
-		cVal, err := strconv.ParseInt(cursorStr, 10, 64)
-		if err != nil {
-			return filter, fmt.Errorf("invalid cursor")
+	if cursorStr := getParam(c, "cursor"); cursorStr != "" {
+		if values, ok := types.DecodePaginationCursor(cursorStr); ok {
+			applyCursorValues(&filter, values)
+		} else {
+			cVal, err := strconv.ParseInt(cursorStr, 10, 64)
+			if err != nil {
+				return filter, fmt.Errorf("invalid cursor")
+			}
+			filter.Cursor = &cVal
 		}
-		filter.Cursor = &cVal
 	}
 
 	//search
@@ -166,4 +177,16 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 
 	fmt.Println("GELEN DOMAIN", host, *filter.Domain)
 	return filter, nil
+}
+
+func applyCursorValues(filter *types.Filter, values map[string]any) {
+	if len(values) == 0 {
+		return
+	}
+	if publicID, ok := types.CursorPublicID(values); ok {
+		filter.Cursor = &publicID
+	}
+	if distance, ok := types.CursorDistance(values); ok {
+		filter.Distance = &distance
+	}
 }

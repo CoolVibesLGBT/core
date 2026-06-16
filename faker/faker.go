@@ -57,8 +57,6 @@ func CreateUser(db *gorm.DB, snowFlakeNode *helpers.Node) models.User {
 		CoverID: nil,
 		Cover:   nil,
 
-		Stories: nil,
-
 		Languages:     []string{"en", "tr"},
 		Hobbies:       []string{"reading", "gaming"},
 		MoviesGenres:  []string{"action", "comedy"},

@@ -9,7 +9,6 @@ import (
 	"core/models/utils"
 	"core/types"
 	"fmt"
-	"strconv"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -86,6 +85,64 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 		limit = constants.DEFAULT_LIMIT
 	}
 
+	lat := filters.Latitude
+	lon := filters.Longitude
+
+	query := r.nearByPlacesQuery(filters, limit)
+
+	if err := query.Find(&posts).Error; err != nil {
+		return nil, types.Cursor{}, err
+	}
+
+	var nextCursor *string
+	var nextDistance *float64
+
+	if len(posts) > 0 {
+
+		last := posts[len(posts)-1]
+
+		if lat != nil && lon != nil {
+			var dist float64
+			r.db.Raw(`
+				SELECT ST_Distance(
+					location_point::geography,
+					ST_SetSRID(ST_GeomFromText(?), 4326)::geography
+				)
+				FROM locations
+				WHERE contentable_id = ?
+				AND contentable_type = ?
+			`, fmt.Sprintf("POINT(%f %f)", *lon, *lat),
+				last.ID,
+				utils.LocationOwnerPost,
+			).Scan(&dist)
+
+			nextDistance = &dist
+		}
+
+		var cursorErr error
+		nextCursor, cursorErr = types.NewPublicIDDistanceCursor(last.PublicID, nextDistance)
+		if cursorErr != nil {
+			return nil, types.Cursor{}, cursorErr
+		}
+	}
+
+	var prevCursor *string
+	if filters.Cursor != nil {
+		var cursorErr error
+		prevCursor, cursorErr = types.NewPublicIDDistanceCursor(*filters.Cursor, filters.Distance)
+		if cursorErr != nil {
+			return nil, types.Cursor{}, cursorErr
+		}
+	}
+
+	return posts, types.Cursor{
+		Prev:     prevCursor,
+		Next:     nextCursor,
+		Distance: nextDistance,
+	}, nil
+}
+
+func (r *PlaceRepository) nearByPlacesQuery(filters types.Filter, limit int) *gorm.DB {
 	cursorID := filters.Cursor
 	cursorDistance := filters.Distance
 	lat := filters.Latitude
@@ -169,45 +226,5 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 		query = query.Order("posts.public_id DESC")
 	}
 
-	if err := query.Find(&posts).Error; err != nil {
-		return nil, types.Cursor{}, err
-	}
-
-	var nextCursor *string
-	var nextDistance *float64
-
-	if len(posts) > 0 && lat != nil && lon != nil {
-
-		last := posts[len(posts)-1]
-
-		var dist float64
-		r.db.Raw(`
-			SELECT ST_Distance(
-				location_point::geography,
-				ST_SetSRID(ST_GeomFromText(?), 4326)::geography
-			)
-			FROM locations
-			WHERE contentable_id = ?
-			AND contentable_type = ?
-		`, fmt.Sprintf("POINT(%f %f)", *lon, *lat),
-			last.ID,
-			utils.LocationOwnerPost,
-		).Scan(&dist)
-
-		idStr := strconv.FormatInt(last.PublicID, 10)
-		nextCursor = &idStr
-		nextDistance = &dist
-	}
-
-	var prevCursor *string
-	if filters.Cursor != nil {
-		s := strconv.FormatInt(*filters.Cursor, 10)
-		prevCursor = &s
-	}
-
-	return posts, types.Cursor{
-		Prev:     prevCursor,
-		Next:     nextCursor,
-		Distance: nextDistance,
-	}, nil
+	return query
 }

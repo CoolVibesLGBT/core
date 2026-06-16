@@ -9,7 +9,6 @@ import (
 	"core/utils"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -178,9 +177,14 @@ func HandleUploadCover(s *usecases.UserService) fiber.Handler {
 
 func HandleUploadStory(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		// Dosyayı al (multipart form otomatik parse edilir)
-		fileHeader, err := c.FormFile("story")
+		form, err := c.MultipartForm()
 		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMediaInvalidFile)
+		}
+		storyFiles := append(form.File["story"], form.File["story[]"]...)
+		images := form.File["images[]"]
+		videos := form.File["videos[]"]
+		if len(storyFiles)+len(images)+len(videos) == 0 {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMediaInvalidFile)
 		}
 
@@ -189,7 +193,7 @@ func HandleUploadStory(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		newStory, err := s.AddStory(c.Context(), uploadedFile(fileHeader), user)
+		newStory, err := s.AddStory(c.Context(), uploadedFormData(form.Value, storyFiles, images, videos), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
@@ -273,7 +277,8 @@ func HandleFetchStories(s *usecases.UserService) fiber.Handler {
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
-			"stories": stories,
+			"stories": stories.Posts,
+			"cursor":  stories.Cursor,
 		}, "Stories fetched successfully")
 	}
 }
@@ -296,9 +301,12 @@ func HandleFetchNearbyUsers(s *usecases.UserService) fiber.Handler {
 		var cursorObj *types.Cursor
 		if len(users) > 0 {
 			last := users[len(users)-1]
-			str := fmt.Sprintf("%d", last.PublicID)
+			nextCursor, err := types.NewPublicIDDistanceCursor(last.PublicID, lastDistance)
+			if err != nil {
+				return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
+			}
 			cursorObj = &types.Cursor{
-				Next:     &str,
+				Next:     nextCursor,
 				Distance: lastDistance,
 			}
 		}
@@ -502,14 +510,9 @@ func HandleFetchUserEngagements(s *usecases.UserService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid engagee ID")
 		}
 
-		var cursor *time.Time
-		cursorStr := c.FormValue("cursor")
-		if cursorStr != "" {
-			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
-			if err != nil {
-				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid cursor format. Use RFC3339 format.")
-			}
-			cursor = &parsedTime
+		cursor, err := parseTimeCursor(c.FormValue("cursor"))
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid cursor format.")
 		}
 
 		limit := 100 // default limit
@@ -541,12 +544,16 @@ func HandleFetchUserEngagements(s *usecases.UserService) fiber.Handler {
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrEngagementNotFound, "Engagement not found")
 		}
+		prevCursorToken, nextCursorToken, err := encodeTimeCursorPair(cursor, nextCursor)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInternalServer, err.Error())
+		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"engagements": engagements,
 			"cursor": fiber.Map{
-				"prev": cursor,
-				"next": nextCursor,
+				"prev": prevCursorToken,
+				"next": nextCursorToken,
 			},
 		}, "Engagements fetched successfully")
 	}
@@ -559,27 +566,40 @@ func HandleUserLike(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		// Fiber'da ParseForm yok, doğrudan c.FormValue kullan
-		engagement_type := c.FormValue("engagement_type")
-		userIdStr := c.FormValue("user_id")
+		likeeIdStr := c.FormValue("likee_id")
+		if likeeIdStr == "" {
+			likeeIdStr = c.FormValue("user_id")
+		}
+		if likeeIdStr == "" {
+			likeeIdStr = c.Query("likee_id")
+		}
+		if likeeIdStr == "" {
+			likeeIdStr = c.Query("user_id")
+		}
 
-		authUserId := auth_user.PublicID
-		requestUserId, err := strconv.ParseInt(userIdStr, 10, 64)
+		likerId := auth_user.PublicID
+		likeeId, err := strconv.ParseInt(likeeIdStr, 10, 64)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
-		//todo: not implemented
 
-		fmt.Println("engagement_type", engagement_type)
-		fmt.Println("authUserId", authUserId)
-		fmt.Println("requestUserId", requestUserId)
+		if likerId == 0 || likeeId == 0 || likeeId == likerId {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
 
-		/*utils.SendJSON(c, fiber.StatusOK, map[string]interface{}{
-			"message": "User liked successfully",
-			"status":  true,
-		})*/
-		return utils.SendError(c, fiber.StatusBadRequest, constants.ErrMethodNotImplemented)
+		_, status, err := s.Like(c.Context(), *auth_user, likerId, likeeId)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+		}
 
+		message := "User liked successfully"
+		if !status {
+			message = "User unliked successfully"
+		}
+
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
+			"status": status,
+		}, message)
 	}
 }
 
@@ -808,26 +828,25 @@ func HandleUserNotifications(s *usecases.UserService) fiber.Handler {
 			limit = parsedLimit
 		}
 
-		var cursor *time.Time
-		cursorStr := c.FormValue("cursor")
-		if cursorStr != "" {
-			parsedTime, err := time.Parse(time.RFC3339, cursorStr)
-			if err != nil {
-				return utils.SendError(c, fiber.StatusBadRequest, "Invalid cursor format. Use RFC3339 format.")
-			}
-			cursor = &parsedTime
+		cursor, err := parseTimeCursor(c.FormValue("cursor"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, "Invalid cursor format.")
 		}
 
 		notifications, nextCursor, err := s.FetchUserNotifications(c.Context(), auth_user, cursor, limit)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to fetch notifications")
 		}
+		prevCursorToken, nextCursorToken, err := encodeTimeCursorPair(cursor, nextCursor)
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to encode cursor")
+		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
 			"notifications": notifications,
 			"cursor": fiber.Map{
-				"prev": cursor,
-				"next": nextCursor,
+				"prev": prevCursorToken,
+				"next": nextCursorToken,
 			},
 		}, "Notifications fetched successfully")
 	}

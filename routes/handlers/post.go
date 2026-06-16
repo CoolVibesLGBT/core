@@ -5,6 +5,7 @@ import (
 	"core/constants"
 	"core/middleware"
 	"core/models/post"
+	"core/types"
 	"core/utils"
 	"strconv"
 	"time"
@@ -485,11 +486,12 @@ func HandleGetAllMediasByUser(s *usecases.PostService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get medias: "+err.Error())
 		}
 
-		var nextCursorStr string
+		var nextCursorStr *string
 		if nextCursor != nil {
-			nextCursorStr = strconv.FormatInt(*nextCursor, 10)
-		} else {
-			nextCursorStr = "0"
+			nextCursorStr, err = types.NewPublicIDCursor(*nextCursor)
+			if err != nil {
+				return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to encode cursor: "+err.Error())
+			}
 		}
 
 		response := fiber.Map{

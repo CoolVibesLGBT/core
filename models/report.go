@@ -56,6 +56,27 @@ type ReportKind struct {
 	UpdatedAt    time.Time             `json:"updated_at"`
 }
 
+type ReportStatus string
+
+const (
+	ReportStatusPending  ReportStatus = "pending"
+	ReportStatusReviewed ReportStatus = "reviewed"
+	ReportStatusRejected ReportStatus = "rejected"
+	ReportStatusActioned ReportStatus = "actioned"
+)
+
+func (s ReportStatus) IsValid() bool {
+	switch s {
+	case ReportStatusPending,
+		ReportStatusReviewed,
+		ReportStatusRejected,
+		ReportStatusActioned:
+		return true
+	default:
+		return false
+	}
+}
+
 type Report struct {
 	ID              uuid.UUID                 `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
 	ContentableID   uuid.UUID                 `gorm:"type:uuid;not null;index" json:"contentable_id"`
@@ -68,7 +89,11 @@ type Report struct {
 	ReportKind    *ReportKind `gorm:"foreignKey:ReportKindKey;references:Key" json:"report_kind,omitempty"`
 	Reason        string      `gorm:"type:text" json:"reason"` // Kullanıcı açıklaması
 
-	Status string
+	Status       ReportStatus `gorm:"type:varchar(32);not null;default:'pending';index" json:"status"`
+	ReviewedByID *uuid.UUID   `gorm:"type:uuid;index" json:"reviewed_by_id,omitempty"`
+	ReviewedBy   *User        `gorm:"foreignKey:ReviewedByID;references:ID" json:"reviewed_by,omitempty"`
+	ReviewedAt   *time.Time   `json:"reviewed_at,omitempty"`
+	Resolution   string       `gorm:"type:text" json:"resolution,omitempty"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
