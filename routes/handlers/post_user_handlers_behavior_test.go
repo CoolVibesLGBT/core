@@ -61,7 +61,8 @@ func (r *handlerPostRepo) GetPostsByKind(filters types.Filter) (types.PostsResul
 
 type handlerUserRepo struct {
 	ports.UserRepository
-	byPublicID map[int64]*models.User
+	byPublicID    map[int64]*models.User
+	deletedFilter types.Filter
 }
 
 func (r *handlerUserRepo) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
@@ -76,6 +77,11 @@ func (r *handlerUserRepo) GetUserByPublicIdWithoutRelations(filters types.Filter
 }
 
 func (r *handlerUserRepo) UpdateLocation(ctx context.Context, user *models.User, ip string) error {
+	return nil
+}
+
+func (r *handlerUserRepo) DeleteUser(filters types.Filter) error {
+	r.deletedFilter = filters
 	return nil
 }
 
@@ -257,6 +263,35 @@ func TestHandleFetchStoriesReturnsPostsAndCursor(t *testing.T) {
 	}
 	if body.Data.Cursor == nil {
 		t.Fatalf("expected cursor in response")
+	}
+}
+
+func TestHandleUserDeleteUsesAuthenticatedUserID(t *testing.T) {
+	authUser := &models.User{ID: uuid.New(), PublicID: 10}
+	submittedID := uuid.New()
+	userRepo := &handlerUserRepo{}
+	service := usecases.NewUserService(userRepo, &handlerPostRepo{}, &handlerMediaRepo{}, &handlerEngagementRepo{}, &handlerNotificationRepo{})
+
+	app := fiber.New()
+	app.Post("/", func(c fiber.Ctx) error {
+		c.Locals("authenticatedUser", authUser)
+		return HandleUserDelete(service)(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("user_id="+submittedID.String()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != fiber.StatusOK {
+		t.Fatalf("expected status 200, got %d", resp.StatusCode)
+	}
+	if userRepo.deletedFilter.UserUUID != authUser.ID {
+		t.Fatalf("expected delete user uuid %s, got %s", authUser.ID, userRepo.deletedFilter.UserUUID)
+	}
+	if userRepo.deletedFilter.AuthUser == nil || userRepo.deletedFilter.AuthUser.ID != authUser.ID {
+		t.Fatalf("expected authenticated user in filter, got %#v", userRepo.deletedFilter.AuthUser)
 	}
 }
 

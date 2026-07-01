@@ -175,7 +175,6 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 		filter.Domain = &kind
 	}
 
-	fmt.Println("GELEN DOMAIN", host, *filter.Domain)
 	return filter, nil
 }
 

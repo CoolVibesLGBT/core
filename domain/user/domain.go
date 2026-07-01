@@ -2,6 +2,8 @@ package user
 
 import (
 	"errors"
+	"net"
+	"strconv"
 	"strings"
 )
 
@@ -25,6 +27,10 @@ var domainToKind = map[string]DomainKind{
 	"api.coolvibes.app":  CoolVibes,
 	"api.coolvibes.io":   CoolVibes,
 	"192.168.0.14":       CoolVibes,
+	"localhost":          CoolVibes,
+	"127.0.0.1":          CoolVibes,
+	"0.0.0.0":            CoolVibes,
+	"::1":                CoolVibes,
 
 	"kewl":             KewlSwap,
 	"kewlswap.com":     KewlSwap,
@@ -48,6 +54,13 @@ func NormalizeDomain(input string) string {
 
 	input = strings.ToLower(input)
 	input = strings.TrimPrefix(input, "www.")
+	if host, _, err := net.SplitHostPort(input); err == nil {
+		input = strings.Trim(host, "[]")
+	} else if colonIdx := strings.LastIndex(input, ":"); colonIdx > 0 && strings.Count(input, ":") == 1 {
+		if _, err := strconv.Atoi(input[colonIdx+1:]); err == nil {
+			input = input[:colonIdx]
+		}
+	}
 	return input
 }
 

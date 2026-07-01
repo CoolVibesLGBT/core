@@ -34,6 +34,14 @@ func TestNewRegistrationNormalizesAndValidates(t *testing.T) {
 	}
 }
 
+func TestGetDomainKindTreatsLocalhostAsCoolVibes(t *testing.T) {
+	for _, host := range []string{"localhost", "localhost:3000", "127.0.0.1:5173", "[::1]:3000"} {
+		if got := GetDomainKind(host); got != CoolVibes {
+			t.Fatalf("GetDomainKind(%q) = %q, want %q", host, got, CoolVibes)
+		}
+	}
+}
+
 func TestCredentialsPreservePasswordCase(t *testing.T) {
 	credentials := NewCredentials("  CoolUser  ", "SecretPASS")
 	if credentials.UserName != "cooluser" {

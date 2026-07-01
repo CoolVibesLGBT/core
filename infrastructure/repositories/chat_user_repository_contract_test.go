@@ -75,6 +75,41 @@ func TestLiveUsersWithoutLocationQueryAppliesLiveCursorAndOrder(t *testing.T) {
 	}
 }
 
+func TestDeleteUserIDUsesAuthenticatedUserUUID(t *testing.T) {
+	authID := uuid.New()
+	submittedID := uuid.New()
+
+	got, err := deleteUserID(types.Filter{
+		AuthUser: &models.User{ID: authID},
+		UserUUID: submittedID,
+		UserID:   0,
+	})
+	if err != nil {
+		t.Fatalf("deleteUserID() error = %v", err)
+	}
+	if got != authID {
+		t.Fatalf("expected authenticated user id %s, got %s", authID, got)
+	}
+}
+
+func TestDeleteUserIDAcceptsExplicitUUIDWithoutAuthenticatedUser(t *testing.T) {
+	userID := uuid.New()
+
+	got, err := deleteUserID(types.Filter{UserUUID: userID})
+	if err != nil {
+		t.Fatalf("deleteUserID() error = %v", err)
+	}
+	if got != userID {
+		t.Fatalf("expected explicit user uuid %s, got %s", userID, got)
+	}
+}
+
+func TestDeleteUserIDRejectsMissingUUID(t *testing.T) {
+	if _, err := deleteUserID(types.Filter{UserID: 0}); err == nil {
+		t.Fatalf("expected missing uuid error")
+	}
+}
+
 func stringifyVars(values []interface{}) string {
 	parts := make([]string, 0, len(values))
 	for _, value := range values {

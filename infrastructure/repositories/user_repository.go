@@ -115,9 +115,29 @@ func (r *UserRepository) UpdateUser(u *models.User) error {
 }
 
 func (r *UserRepository) DeleteUser(filters types.Filter) error {
-	return r.db.
-		Where("id = ?", filters.UserID).
+	userID, err := deleteUserID(filters)
+	if err != nil {
+		return err
+	}
+
+	db := r.db
+	if filters.Context != nil {
+		db = db.WithContext(filters.Context)
+	}
+
+	return db.
+		Where("id = ?", userID).
 		Delete(&models.User{}).Error
+}
+
+func deleteUserID(filters types.Filter) (uuid.UUID, error) {
+	if filters.AuthUser != nil && filters.AuthUser.ID != uuid.Nil {
+		return filters.AuthUser.ID, nil
+	}
+	if filters.UserUUID != uuid.Nil {
+		return filters.UserUUID, nil
+	}
+	return uuid.Nil, errors.New("missing user uuid for delete")
 }
 
 func (r *UserRepository) Login(username string, password string) error {

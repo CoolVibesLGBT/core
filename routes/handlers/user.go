@@ -864,9 +864,10 @@ func HandleUserDelete(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		filters, err := ParseFilters(c, auth_user)
-		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to parse filters")
+		filters := types.Filter{
+			AuthUser: auth_user,
+			Context:  c.Context(),
+			UserUUID: auth_user.ID,
 		}
 		delUserError := s.DeleteUser(filters)
 		if delUserError != nil {
