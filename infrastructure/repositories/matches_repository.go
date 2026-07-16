@@ -1,0 +1,291 @@
+package repositories
+
+import (
+	"context"
+	"core/helpers"
+	"core/models"
+	"core/models/notifications"
+	"core/types"
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type MatchesRepository struct {
+	db               *gorm.DB
+	engagementRepo   *EngagementRepository
+	notificationRepo *NotificationRepository
+}
+
+func NewMatchesRepository(db *gorm.DB, engagementRepo *EngagementRepository, notificationRepo *NotificationRepository) *MatchesRepository {
+	return &MatchesRepository{
+		db:               db,
+		engagementRepo:   engagementRepo,
+		notificationRepo: notificationRepo,
+	}
+}
+
+func (m *MatchesRepository) RecordView(ctx context.Context, fromUserId uuid.UUID, toUserId uuid.UUID, reaction types.ReactionType) (bool, error) {
+
+	var kindGiven models.EngagementKind
+	var kindReceived models.EngagementKind
+
+	switch reaction {
+	case types.ReactionLike:
+		kindGiven = models.EngagementKindLikeGiven
+		kindReceived = models.EngagementKindLikeReceived
+
+	case types.ReactionDislike:
+		kindGiven = models.EngagementKindDislikeGiven
+		kindReceived = models.EngagementKindDisLikeReceived
+
+	default:
+		return false, nil
+	}
+	kindMatched := models.EngagementKindMatched
+
+	engageeId := toUserId
+	engagerId := fromUserId
+
+	_, err := m.addEngagementPair(ctx, engageeId, engagerId, kindGiven)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = m.addEngagementPair(ctx, engagerId, engageeId, kindReceived)
+	if err != nil {
+		return false, err
+	}
+
+	isMatched, err := m.IsMatched(ctx, fromUserId, toUserId)
+	if err != nil {
+		return false, err
+	}
+
+	if isMatched {
+		_, err := m.addEngagementPair(ctx, engageeId, engagerId, kindMatched)
+		if err != nil {
+			return false, err
+		}
+
+		_, err = m.addEngagementPair(ctx, engagerId, engageeId, kindMatched)
+		if err != nil {
+			return false, err
+		}
+
+		// Create notification for the user who initiated the match
+		payload1 := notifications.NotificationPayload{
+			Data: map[string]string{"match_user_id": toUserId.String()},
+		}
+		_, err = m.notificationRepo.CreateNotification(toUserId, fromUserId, string(notifications.NotificationTypeNewMatch), "It's a Match!", "You have a new match.", payload1)
+		if err != nil {
+			helpers.Println("Failed to create match notification for user", fromUserId, ":", err)
+		}
+
+		// Create notification for the other user
+		payload2 := notifications.NotificationPayload{
+			Data: map[string]string{"match_user_id": fromUserId.String()},
+		}
+		_, err = m.notificationRepo.CreateNotification(fromUserId, toUserId, string(notifications.NotificationTypeNewMatch), "It's a Match!", "You have a new match.", payload2)
+		if err != nil {
+			helpers.Println("Failed to create match notification for user", toUserId, ":", err)
+		}
+	}
+
+	_, err = m.addEngagementPair(ctx, engageeId, engagerId, models.EngagementKindViewGiven)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = m.addEngagementPair(ctx, engagerId, engageeId, models.EngagementKindViewReceived)
+	if err != nil {
+		return false, err
+	}
+
+	return isMatched, nil
+}
+
+func (m *MatchesRepository) IsMatched(ctx context.Context, fromUserId, toUserId uuid.UUID) (bool, error) {
+
+	a, err := m.engagementRepo.HasUserEngaged(ctx, fromUserId, toUserId, models.EngagementKindLikeGiven)
+	if err != nil {
+		return false, err
+	}
+
+	b, err := m.engagementRepo.HasUserEngaged(ctx, toUserId, fromUserId, models.EngagementKindLikeGiven)
+	if err != nil {
+		return false, err
+	}
+
+	return a && b, nil
+}
+
+func (m *MatchesRepository) addEngagementPair(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error) {
+	status, err := m.engagementRepo.ToggleEngagement(ctx, engageeID, engagerID, kind, engagerID, "user")
+	if err != nil {
+		return status, err
+	}
+
+	return true, err
+}
+
+func (m *MatchesRepository) RemoveEngagementPair(ctx context.Context, userID, targetID uuid.UUID, kindGiven, kindReceived models.EngagementKind) error {
+	_, err := m.engagementRepo.ToggleEngagement(ctx, targetID, userID, kindGiven, targetID, "user")
+	if err != nil {
+		return err
+	}
+	_, err = m.engagementRepo.ToggleEngagement(ctx, userID, targetID, kindReceived, userID, "user")
+	return err
+}
+
+func (m *MatchesRepository) WasSeenRecently(ctx context.Context,
+	userID, targetID uuid.UUID,
+	hours int,
+) (bool, error) {
+
+	var count int64
+	since := time.Now().Add(-time.Duration(hours) * time.Hour)
+
+	err := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Where(`
+			engager_id = ? AND engagee_id = ? 
+			AND created_at >= ? 
+			AND kind IN ('like_given','dislike_given')
+		`, userID, targetID, since).
+		Count(&count).Error
+
+	return count > 0, err
+}
+
+func (m *MatchesRepository) GetLikesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
+
+	var users []models.User
+
+	q := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Select("users.*").
+		Joins("JOIN users ON users.id = engagement_details.engagee_id").
+		Where("engager_id = ? AND kind = ?", userID, models.EngagementKindLikeGiven)
+
+	if cursor != nil {
+		q = q.Where("engagement_details.created_at < ?", *cursor)
+	}
+
+	err := q.
+		Order("engagement_details.created_at DESC").
+		Limit(limit).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Scan(&users).Error
+
+	return users, err
+}
+
+func (m *MatchesRepository) GetMatchesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
+
+	// Karşılıklı beğenme (match)
+	sub := m.db.
+		Table("engagement_details AS a").
+		Select("a.engagee_id").
+		Joins(`
+			INNER JOIN engagement_details b 
+			ON a.engagee_id = b.engager_id 
+			AND a.engager_id = b.engagee_id
+			AND a.kind = 'like_given'
+			AND b.kind = 'like_given'
+		`).
+		Where("a.engager_id = ?", userID)
+
+	if cursor != nil {
+		sub = sub.Where("a.created_at < ?", *cursor)
+	}
+
+	var users []models.User
+	err := m.db.
+		Model(&models.User{}).
+		Where("id IN (?)", sub).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&users).Error
+
+	return users, err
+}
+
+// -----------------------------------------------
+// 🔍 Geçen 24 saatte görmediğin kullanıcılar
+// -----------------------------------------------
+
+func (m *MatchesRepository) GetUnseenUsers(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit int,
+) ([]models.User, error) {
+
+	sub := m.db.
+		Table("engagement_details").
+		Select("engagee_id").
+		Where("engager_id = ? AND created_at >= NOW() - INTERVAL '24 hours' AND kind = ?", userID, models.EngagementKindViewGiven)
+
+	var users []models.User
+	err := m.db.
+		Model(&models.User{}).
+		Where("id != ?", userID).
+		Where("id NOT IN (?)", sub).
+		Where("deleted_at IS NULL").
+		Order("RANDOM()").
+		Limit(limit).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Find(&users).Error
+
+	return users, err
+}
+
+func (m *MatchesRepository) GetPassesAfter(
+	ctx context.Context,
+	userID uuid.UUID,
+	cursor *time.Time,
+	limit int,
+) ([]models.User, error) {
+
+	// Öncelikle dislike edilen kullanıcıların ID'lerini engagement_details tablosundan alıyoruz
+	subQuery := m.db.WithContext(ctx).
+		Model(&models.EngagementDetail{}).
+		Select("engagee_id").
+		Where("engager_id = ?", userID).
+		Where("kind = ?", models.EngagementKindDislikeGiven) // dislike türü
+	if cursor != nil {
+		subQuery = subQuery.Where("created_at < ?", *cursor)
+	}
+
+	// Ardından bu ID'lere göre kullanıcıları çekiyoruz
+	var users []models.User
+	err := m.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id IN (?)", subQuery).
+		Preload("Location").
+		Preload("Avatar.File").
+		Preload("Cover.File").
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&users).Error
+
+	return users, err
+}
