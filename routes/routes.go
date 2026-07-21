@@ -24,6 +24,13 @@ import (
 	"gorm.io/gorm"
 )
 
+func requestBodyLimit() int {
+	// Fiber and fasthttp represent BodyLimit as an int and replace zero with
+	// their 4 MiB default. MaxInt-1 is therefore the largest safe no-limit
+	// sentinel; the multipart parser may add one while constructing a reader.
+	return int(^uint(0)>>1) - 1
+}
+
 type Router struct {
 	fiber         *fiber.App
 	action        *router.ActionRouter
@@ -95,11 +102,12 @@ func NewRouter(
 		db:              db,
 		TelegramService: tg,
 		fiber: fiber.New(fiber.Config{
-			Views:           engine,
-			ReadBufferSize:  8192,
-			WriteBufferSize: 8192,
-			BodyLimit:       2 * 1024 * 1024 * 1024,
-			ProxyHeader:     fiber.HeaderXForwardedFor,
+			Views:             engine,
+			ReadBufferSize:    8192,
+			WriteBufferSize:   8192,
+			BodyLimit:         requestBodyLimit(),
+			StreamRequestBody: true,
+			ProxyHeader:       fiber.HeaderXForwardedFor,
 		}),
 		GEOIPDB:             geoIPDB,
 		MCPServer:           mcpServer,
@@ -137,6 +145,7 @@ func NewRouter(
 		},
 	))
 
+	r.fiber.Use("/static/uploads", handleMediaFile(db))
 	r.fiber.Use("/static", static.New("./static"))
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(systemService))
@@ -187,6 +196,7 @@ func NewRouter(
 	r.action.Register(constants.CMD_USER_BLOCK, handlers.HandleUserBlock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_UNBLOCK, handlers.HandleUserUnblock(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_TOGGLE_BLOCK, handlers.HandleUserToggleBlock(userService), middleware.AuthMiddleware(userRepo))
+	r.action.Register(constants.CMD_USER_REPORT, handlers.HandleUserReport(userService), middleware.AuthMiddleware(userRepo))
 	r.action.Register(constants.CMD_USER_TOGGLE_SUBSCRIBE, handlers.HandleUserToggleSubscribe(userService), middleware.AuthMiddleware(userRepo))
 
 	// POST

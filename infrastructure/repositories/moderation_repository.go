@@ -7,10 +7,12 @@ import (
 	"core/models"
 	"core/models/post"
 	"core/types"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ModerationRepository struct {
@@ -30,37 +32,10 @@ func (r *ModerationRepository) FetchReports(ctx context.Context, filter ports.Mo
 		limit = constants.MAXIMUM_LIMIT
 	}
 
-	query := r.db.WithContext(ctx).
-		Model(&models.Report{}).
-		Where("reports.contentable_type = ?", models.EngagementContentableTypePost).
-		Preload("Reporter").
-		Preload("Reporter.Avatar").
-		Preload("Reporter.Avatar.File").
-		Preload("ReportKind").
-		Preload("ReviewedBy").
-		Preload("ReviewedBy.Avatar").
-		Preload("ReviewedBy.Avatar.File")
-
-	if filter.Status != "" {
-		query = query.Where("reports.status = ?", filter.Status)
-	}
-	if filter.Cursor != nil {
-		query = query.Where("reports.created_at < ?", *filter.Cursor)
-	}
-	if filter.PostPublicID != 0 {
-		query = query.Joins(
-			"JOIN posts moderation_posts ON moderation_posts.id = reports.contentable_id AND reports.contentable_type = ?",
-			models.EngagementContentableTypePost,
-		).Where("moderation_posts.public_id = ?", filter.PostPublicID)
-	}
-	if filter.ReporterPublicID != 0 {
-		query = query.Joins(
-			"JOIN users moderation_reporters ON moderation_reporters.id = reports.reporter_id",
-		).Where("moderation_reporters.public_id = ?", filter.ReporterPublicID)
-	}
+	query := r.reportQueueQuery(ctx, filter)
 
 	var reports []models.Report
-	if err := query.Order("reports.created_at DESC").Limit(limit + 1).Find(&reports).Error; err != nil {
+	if err := query.Order("reports.created_at DESC, reports.id DESC").Limit(limit + 1).Find(&reports).Error; err != nil {
 		return ports.ModerationReportPage{}, err
 	}
 
@@ -73,18 +48,23 @@ func (r *ModerationRepository) FetchReports(ctx context.Context, filter ports.Mo
 	if err != nil {
 		return ports.ModerationReportPage{}, err
 	}
+	users, err := r.usersForReports(ctx, reports)
+	if err != nil {
+		return ports.ModerationReportPage{}, err
+	}
 
 	items := make([]ports.ModerationReportItem, 0, len(reports))
 	for _, report := range reports {
 		items = append(items, ports.ModerationReportItem{
 			Report: report,
 			Post:   posts[report.ContentableID],
+			User:   users[report.ContentableID],
 		})
 	}
 
 	var cursor *string
 	if hasMore && len(reports) > 0 {
-		cursor, err = types.NewTimeCursor(reports[len(reports)-1].CreatedAt)
+		cursor, err = types.NewTimeUUIDCursor(reports[len(reports)-1].CreatedAt, reports[len(reports)-1].ID)
 		if err != nil {
 			return ports.ModerationReportPage{}, err
 		}
@@ -98,20 +78,85 @@ func (r *ModerationRepository) FetchReports(ctx context.Context, filter ports.Mo
 	}, nil
 }
 
+func (r *ModerationRepository) reportQueueQuery(ctx context.Context, filter ports.ModerationReportFilter) *gorm.DB {
+	query := r.db.WithContext(ctx).
+		Model(&models.Report{}).
+		Preload("Reporter").
+		Preload("Reporter.Avatar").
+		Preload("Reporter.Avatar.File").
+		Preload("ReportKind").
+		Preload("ReviewedBy").
+		Preload("ReviewedBy.Avatar").
+		Preload("ReviewedBy.Avatar.File")
+
+	if filter.ContentableType != "" {
+		query = query.Where("reports.contentable_type = ?", filter.ContentableType)
+	}
+	if filter.Status != "" {
+		query = query.Where("reports.status = ?", filter.Status)
+	}
+	if filter.Cursor != nil {
+		if filter.CursorID != nil {
+			query = query.Where(
+				"(reports.created_at < ? OR (reports.created_at = ? AND reports.id < ?))",
+				*filter.Cursor,
+				*filter.Cursor,
+				*filter.CursorID,
+			)
+		} else {
+			query = query.Where("reports.created_at < ?", *filter.Cursor)
+		}
+	}
+	if filter.PostPublicID != 0 {
+		query = query.Joins(
+			"JOIN posts moderation_posts ON moderation_posts.id = reports.contentable_id AND reports.contentable_type = ?",
+			models.EngagementContentableTypePost,
+		).Where("moderation_posts.public_id = ?", filter.PostPublicID)
+	}
+	if filter.UserPublicID != 0 {
+		query = query.Joins(
+			"JOIN users moderation_targets ON moderation_targets.id = reports.contentable_id AND reports.contentable_type = ?",
+			models.EngagementContentableTypeUser,
+		).Where("moderation_targets.public_id = ?", filter.UserPublicID)
+	}
+	if filter.ReporterPublicID != 0 {
+		query = query.Joins(
+			"JOIN users moderation_reporters ON moderation_reporters.id = reports.reporter_id",
+		).Where("moderation_reporters.public_id = ?", filter.ReporterPublicID)
+	}
+	return query
+}
+
 func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.ModerationResolveInput) (*models.Report, error) {
 	now := time.Now().UTC()
 	reviewerID := input.ReviewedByID
 
 	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var report models.Report
-		if err := tx.First(&report, "id = ?", input.ReportID).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&report, "id = ?", input.ReportID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ports.ErrReportNotFound
+			}
 			return err
 		}
+		if !report.Status.CanTransitionTo(input.Status) {
+			return ports.ErrInvalidReportTransition
+		}
+		if input.PublishPost != nil && report.ContentableType != models.EngagementContentableTypePost {
+			return ports.ErrInvalidModerationAction
+		}
+		if report.Status == input.Status {
+			return nil
+		}
 
-		if input.PublishPost != nil && report.ContentableType == models.EngagementContentableTypePost {
+		if input.PublishPost != nil {
 			updates := postPublishUpdates(*input.PublishPost, now)
-			if err := tx.Model(&post.Post{}).Where("id = ?", report.ContentableID).Updates(updates).Error; err != nil {
-				return err
+			result := tx.Model(&post.Post{}).Where("id = ?", report.ContentableID).Updates(updates)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return ports.ErrReportTargetNotFound
 			}
 		}
 
@@ -143,6 +188,9 @@ func (r *ModerationRepository) SetPostPublished(ctx context.Context, postPublicI
 	var postModel post.Post
 	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.First(&postModel, "public_id = ?", postPublicID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ports.ErrReportTargetNotFound
+			}
 			return err
 		}
 
@@ -225,6 +273,41 @@ func (r *ModerationRepository) postsForReports(ctx context.Context, reports []mo
 
 	for i := range posts {
 		result[posts[i].ID] = &posts[i]
+	}
+	return result, nil
+}
+
+func (r *ModerationRepository) usersForReports(ctx context.Context, reports []models.Report) (map[uuid.UUID]*models.User, error) {
+	ids := make([]uuid.UUID, 0, len(reports))
+	seen := make(map[uuid.UUID]struct{}, len(reports))
+	for _, report := range reports {
+		if report.ContentableType != models.EngagementContentableTypeUser {
+			continue
+		}
+		if _, ok := seen[report.ContentableID]; ok {
+			continue
+		}
+		seen[report.ContentableID] = struct{}{}
+		ids = append(ids, report.ContentableID)
+	}
+
+	result := make(map[uuid.UUID]*models.User, len(ids))
+	if len(ids) == 0 {
+		return result, nil
+	}
+
+	var users []models.User
+	if err := r.db.WithContext(ctx).
+		Preload("Avatar").
+		Preload("Avatar.File").
+		Preload("Cover").
+		Preload("Cover.File").
+		Where("id IN ?", ids).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	for i := range users {
+		result[users[i].ID] = &users[i]
 	}
 	return result, nil
 }

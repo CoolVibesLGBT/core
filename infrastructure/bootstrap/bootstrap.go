@@ -13,6 +13,7 @@ import (
 	"core/infrastructure/socket"
 	"core/mcp"
 	"core/routes"
+	"errors"
 	"os"
 )
 
@@ -21,6 +22,12 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	initialized := false
+	defer func() {
+		if !initialized {
+			_ = db.Close(gormDB)
+		}
+	}()
 	node, err := helpers.NewDefaultNode()
 	if err != nil {
 		return nil, err
@@ -37,6 +44,11 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if !initialized {
+			_ = reader.Close()
+		}
+	}()
 
 	engagementRepository := repositories.NewEngagementRepository(gormDB)
 	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
@@ -83,34 +95,52 @@ func InitializeApp() (*App, error) {
 	moderationService := usecases.NewModerationService(moderationRepository)
 	router := routes.NewRouter(gormDB, node, mcpServer, userService, postService, placeService, newsService, classifiedService, matchesService, chatService, notificationsService, paymentService, systemService, moderationService, userRepository, sitemapRepository, reader)
 
-	return &App{
+	application := &App{
 		DB:            gormDB,
 		Router:        router,
 		MCPServer:     mcpServer,
 		SnowFlakeNode: node,
 		AIRegistry:    registry,
-	}, nil
+	}
+	initialized = true
+	return application, nil
 }
 
 func InitializeMCPOnly() (*mcp.MCPServer, error) {
+	server, _, err := InitializeMCPOnlyWithCleanup()
+	return server, err
+}
+
+func InitializeMCPOnlyWithCleanup() (*mcp.MCPServer, func() error, error) {
 	config := ai.NewConfig()
 	client := ai.NewHTTPClient()
 	registry, err := ai.NewRegistry(config, client)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	aiService := usecases.NewAIService(registry)
 	gormDB, err := db.NewDatabase()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	initialized := false
+	defer func() {
+		if !initialized {
+			_ = db.Close(gormDB)
+		}
+	}()
 	reader, err := routes.GeoIPDBProvider()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	defer func() {
+		if !initialized {
+			_ = reader.Close()
+		}
+	}()
 	node, err := helpers.NewDefaultNode()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	engagementRepository := repositories.NewEngagementRepository(gormDB)
 	notificationRepository := repositories.NewNotificationRepository(gormDB, node)
@@ -121,5 +151,13 @@ func InitializeMCPOnly() (*mcp.MCPServer, error) {
 	newsRepository := repositories.NewNewsRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	newsService := usecases.NewNewsService(userRepository, postRepository, mediaRepository, placeRepository, newsRepository)
 	placeService := usecases.NewPlaceService(userRepository, postRepository, mediaRepository, placeRepository)
-	return mcpserver.NewServer(aiService, newsService, placeService)
+	server, err := mcpserver.NewServer(aiService, newsService, placeService)
+	if err != nil {
+		return nil, nil, err
+	}
+	initialized = true
+	cleanup := func() error {
+		return errors.Join(reader.Close(), db.Close(gormDB))
+	}
+	return server, cleanup, nil
 }

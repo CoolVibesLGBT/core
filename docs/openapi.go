@@ -1,6 +1,7 @@
 package docs
 
 import (
+	"core/constants"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -186,12 +187,17 @@ func OpenAPIYAML() ([]byte, error) {
 
 func actionOperation(action ActionDoc, includeAction bool) map[string]any {
 	params := actionParams(action)
+	schema := schemaForParams(params, action.Action, includeAction)
+	body := formBody(actionSchemaName(action, includeAction), schema)
+	if actionSupportsJSON(action.Action) {
+		body["content"].(map[string]any)["application/json"] = map[string]any{"schema": schema}
+	}
 	return operation(
 		action.Tag,
 		action.Summary,
 		action.Description,
 		queryParams(params),
-		formBody(actionSchemaName(action, includeAction), schemaForParams(params, action.Action, includeAction)),
+		body,
 		action.Auth,
 		action.Deprecated,
 		successStatus(action.SuccessStatus),
@@ -216,7 +222,7 @@ func packetPathItem(actions []ActionDoc, description string) map[string]any {
 			"application/json": map[string]any{
 				"schema": map[string]any{
 					"type":        "object",
-					"description": "JSON packet support is currently used only to read the action field; action handlers generally read parameters from form data.",
+					"description": "Reporting and moderation actions accept their documented scalar fields as JSON; other action handlers may require form data.",
 					"required":    []string{"action"},
 					"properties": map[string]any{
 						"action": map[string]any{
@@ -233,6 +239,20 @@ func packetPathItem(actions []ActionDoc, description string) map[string]any {
 	return map[string]any{
 		"get":  operation("Packet", "Dispatch action by query string", description+" For GET, pass action in the query string; most action parameters are still handler-specific.", []Param{queryParam("action", "Registered action command.", "string", true)}, nil, AuthOptional, false, 200),
 		"post": operation("Packet", "Dispatch action by form packet", description, nil, body, AuthOptional, false, 200),
+	}
+}
+
+func actionSupportsJSON(action string) bool {
+	switch action {
+	case constants.CMD_POST_REPORT,
+		constants.CMD_USER_REPORT,
+		constants.CMD_MODERATION_REPORTS_FETCH,
+		constants.CMD_MODERATION_REPORT_RESOLVE,
+		constants.CMD_MODERATION_POST_HIDE,
+		constants.CMD_MODERATION_POST_UNHIDE:
+		return true
+	default:
+		return false
 	}
 }
 

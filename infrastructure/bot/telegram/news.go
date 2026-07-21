@@ -10,8 +10,13 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	telegramPackage "gopkg.in/telebot.v4"
@@ -20,16 +25,32 @@ import (
 type Service struct {
 	Bot        *telegramPackage.Bot
 	TopicStore *TopicStore
+
+	webhookMode atomic.Bool
+}
+
+const telegramHTTPTimeout = 5 * time.Second
+
+var telegramWebhookSecretPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,256}$`)
+
+func botSettings(token string) telegramPackage.Settings {
+	return telegramPackage.Settings{
+		Token:   token,
+		Poller:  &telegramPackage.LongPoller{Timeout: 10 * time.Second},
+		Client:  &http.Client{Timeout: telegramHTTPTimeout},
+		Offline: true,
+	}
 }
 
 func New() (*Service, error) {
-
-	pref := telegramPackage.Settings{
-		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
-		Poller: &telegramPackage.LongPoller{Timeout: 10 * time.Second},
+	token := strings.TrimSpace(os.Getenv("TELEGRAM_BOT_TOKEN"))
+	if token == "" {
+		return nil, nil
 	}
 
-	bot, err := telegramPackage.NewBot(pref)
+	// Offline prevents telebot.NewBot from calling getMe. Telegram is an
+	// optional integration and must never delay application readiness.
+	bot, err := telegramPackage.NewBot(botSettings(token))
 	if err != nil {
 		helpers.Error("Error:telegramPackage: %s", err.Error())
 		return nil, err
@@ -51,22 +72,33 @@ func New() (*Service, error) {
 }
 
 func (s *Service) RegisterWebhook() error {
-	if s.Bot == nil {
+	if s == nil || s.Bot == nil {
 		return errors.New("Error:RegisterWebhook:Telegram service cannot be started")
 	}
-	if err := s.Bot.RemoveWebhook(); err != nil {
-		helpers.Error("Error:RemoveWebhook : %s", err.Error())
+
+	webhookURL := strings.TrimSpace(os.Getenv("TELEGRAM_WEBHOOK_URL"))
+	parsedURL, err := url.ParseRequestURI(webhookURL)
+	if err != nil || parsedURL.Scheme != "https" || parsedURL.Host == "" {
+		return errors.New("TELEGRAM_WEBHOOK_URL must be a valid https URL")
+	}
+
+	secret := strings.TrimSpace(os.Getenv("TELEGRAM_WEBHOOK_SECRET"))
+	if !telegramWebhookSecretPattern.MatchString(secret) {
+		return errors.New("TELEGRAM_WEBHOOK_SECRET must contain 1-256 letters, digits, underscores, or hyphens")
+	}
+
+	err = s.Bot.SetWebhook(&telegramPackage.Webhook{
+		Endpoint: &telegramPackage.WebhookEndpoint{
+			PublicURL: webhookURL,
+		},
+		SecretToken: secret,
+	})
+	if err != nil {
 		return err
 	}
-	err := s.Bot.SetWebhook(&telegramPackage.Webhook{
-		Endpoint: &telegramPackage.WebhookEndpoint{
-			PublicURL: constants.TELEGRAM_WEBHOOK_PUBLIC_URL,
-			//PublicURL: "https://api.coolvibes.lgbt/webhook/bot/telegram/",
-		},
-		SecretToken: os.Getenv("TELEGRAM_WEBHOOK_SECRET"),
-	})
 
-	return err
+	s.webhookMode.Store(true)
+	return nil
 }
 
 func (s *Service) TestMessage() error {
@@ -259,11 +291,15 @@ _, err := s.Bot.Send(chat, photo)
 */
 
 func (s *Service) Start() {
-	if s.Bot != nil {
-		s.Bot.Start()
-		helpers.Info("Start:Telegram service started.")
-	} else {
+	if s == nil || s.Bot == nil {
 		helpers.Info("Start:Telegram service cannot be started.")
-
+		return
 	}
+	if s.webhookMode.Load() {
+		helpers.Info("Start:Telegram webhook mode enabled; long polling is disabled.")
+		return
+	}
+
+	s.Bot.Start()
+	helpers.Info("Start:Telegram long polling stopped.")
 }

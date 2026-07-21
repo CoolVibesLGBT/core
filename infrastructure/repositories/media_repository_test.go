@@ -1,6 +1,9 @@
 package repositories
 
-import "testing"
+import (
+	"core/models/media"
+	"testing"
+)
 
 func TestShouldProcessAsync(t *testing.T) {
 	if !shouldProcessAsync("image/jpeg") {
@@ -34,5 +37,16 @@ func TestInitialFileVariantsForImage(t *testing.T) {
 func TestInitialFileVariantsForNonImage(t *testing.T) {
 	if variants := initialFileVariants("video/mp4", "./static/uploads/a.mp4", ".mp4", 1234); variants != nil {
 		t.Fatalf("expected nil variants for non-image upload, got %#v", variants)
+	}
+}
+
+func TestChatMediaRolesArePrivate(t *testing.T) {
+	for _, role := range []media.MediaRole{media.RoleChatImage, media.RoleChatMedia, media.RoleChatVideo} {
+		if isPublicMediaRole(role) {
+			t.Fatalf("chat role %q was marked public", role)
+		}
+	}
+	if !isPublicMediaRole(media.RolePost) {
+		t.Fatal("regular post media should be public")
 	}
 }

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: postgis/postgis:17-3.6-alpine
     container_name: coolvibes-postgres
     restart: always
     environment:
@@ -11,14 +11,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d databasename"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
 
   app:
     build: .
     container_name: coolvibes-app
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: host=db port=5432 user=postgres password=password dbname=databasename sslmode=disable
+      DB_CONNECT_TIMEOUT: 3s
+      DB_MAX_OPEN_CONNS: 50
+      DB_MAX_IDLE_CONNS: 10
       SITE_URI: https://api.coolvibes.lgbt
       APP_BASE_URL: http://localhost:3001
       RIG_JWT_SECRET: hzpCaBhUx..CINk2Rklm
@@ -26,13 +37,17 @@ services:
       STREAM_FOLDER: ./.streams
       DEBUG_MODE: "true"
       API_URL: http://localhost:1337
-      WSS_URL: http://localhost:1337
+      WSS_URL: http://localhost:3002
       PORT: :3001
       SOCKET_PORT: :3002
       AUTH_TOKEN: Bareer eyJhbGciOiJIUzI1Ni...
 
     ports:
       - "3001:3001"
+      - "3002:3002"
+    volumes:
+      - uploads_data:/app/static/uploads
 
 volumes:
   postgres_data:
+  uploads_data:

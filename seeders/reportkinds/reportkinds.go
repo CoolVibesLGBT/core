@@ -3,12 +3,29 @@ package reportkinds
 import (
 	report "core/models"
 	"core/models/utils"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 func SeedReportKinds(db *gorm.DB) error {
-	kinds := []report.ReportKind{
+	return db.Transaction(func(tx *gorm.DB) error {
+		return seedReportKinds(tx, reportKindSeeds())
+	})
+}
+
+func seedReportKinds(db *gorm.DB, kinds []report.ReportKind) error {
+	for i := range kinds {
+		kind := &kinds[i]
+		if err := db.Where(report.ReportKind{Key: kind.Key}).Assign(*kind).FirstOrCreate(kind).Error; err != nil {
+			return fmt.Errorf("seed report kind %s: %w", kind.Key, err)
+		}
+	}
+	return nil
+}
+
+func reportKindSeeds() []report.ReportKind {
+	return []report.ReportKind{
 		{
 			Key:          report.ReportKindSpam,
 			DisplayOrder: 1,
@@ -1009,9 +1026,4 @@ func SeedReportKinds(db *gorm.DB) error {
 			},
 		},
 	}
-	for _, k := range kinds {
-		db.Where(report.ReportKind{Key: k.Key}).Assign(k).FirstOrCreate(&k)
-	}
-
-	return nil
 }

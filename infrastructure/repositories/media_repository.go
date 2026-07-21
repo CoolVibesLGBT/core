@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"bytes"
+	"context"
 	"core/application/ports"
 	domainmedia "core/domain/media"
 	"core/helpers"
@@ -26,6 +27,65 @@ import (
 type MediaRepository struct {
 	db            *gorm.DB
 	snowFlakeNode *helpers.Node
+}
+
+func (r *MediaRepository) FindMediaFileAccess(ctx context.Context, storagePrefix string) (ports.MediaFileAccess, error) {
+	var access ports.MediaFileAccess
+	result := r.db.WithContext(ctx).
+		Table("file_metadata AS f").
+		Select(`
+			f.storage_path,
+			m.is_public,
+			m.owner_id,
+			m.owner_type,
+			m.role,
+			p.id AS post_id,
+			p.author_id AS post_author_id,
+			COALESCE(p.post_kind, '') AS post_kind,
+			COALESCE(p.contentable_type, '') AS contentable_type,
+			p.contentable_id AS chat_id,
+			COALESCE(p.published, FALSE) AS published,
+			p.audience
+		`).
+		Joins("JOIN medias m ON m.file_id = f.id").
+		Joins("LEFT JOIN posts p ON p.id = m.owner_id AND p.deleted_at IS NULL").
+		Where("f.storage_path = ? OR f.storage_path LIKE ?", storagePrefix, storagePrefix+".%").
+		Limit(1).
+		Scan(&access)
+	if result.Error != nil {
+		return ports.MediaFileAccess{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ports.MediaFileAccess{}, ports.ErrNotFound
+	}
+	return access, nil
+}
+
+func (r *MediaRepository) FindMediaAccessPrincipal(ctx context.Context, publicID int64) (ports.MediaAccessPrincipal, error) {
+	var principal ports.MediaAccessPrincipal
+	result := r.db.WithContext(ctx).
+		Table("users").
+		Select("id, user_role AS role").
+		Where("public_id = ? AND deleted_at IS NULL", publicID).
+		Where("user_role NOT IN ?", []string{"banned", "deleted"}).
+		Limit(1).
+		Scan(&principal)
+	if result.Error != nil {
+		return ports.MediaAccessPrincipal{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ports.MediaAccessPrincipal{}, ports.ErrNotFound
+	}
+	return principal, nil
+}
+
+func (r *MediaRepository) IsActiveChatParticipant(ctx context.Context, chatID, userID uuid.UUID) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Table("chat_participants").
+		Where("chat_id = ? AND user_id = ? AND left_at IS NULL", chatID, userID).
+		Count(&count).Error
+	return count > 0, err
 }
 
 func NewMediaRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *MediaRepository {
@@ -665,7 +725,7 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		UserID:           userId,
 		OwnerType:        ownerType,
 		Role:             role,
-		IsPublic:         true,
+		IsPublic:         isPublicMediaRole(role),
 		ProcessingStatus: status,
 		File: utils.FileMetadata{
 			ID:          uuid.New(),
@@ -691,4 +751,8 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	}
 
 	return &media, nil
+}
+
+func isPublicMediaRole(role media.MediaRole) bool {
+	return role != media.RoleChatImage && role != media.RoleChatMedia && role != media.RoleChatVideo
 }

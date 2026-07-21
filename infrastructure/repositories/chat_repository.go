@@ -195,9 +195,9 @@ func (r *ChatRepository) GetChatByID(id uuid.UUID) (*chat.Chat, error) {
 	return &chatObj, nil
 }
 
-func (r *ChatRepository) GetChatByIDWithoutRelations(id uuid.UUID) (*chat.Chat, error) {
+func (r *ChatRepository) GetChatByIDWithoutRelations(chatID uuid.UUID) (*chat.Chat, error) {
 	var chatObj chat.Chat
-	err := r.db.Where("id = ?", id).First(&chatObj).Error
+	err := r.db.Where("id = ?", chatID).First(&chatObj).Error
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +496,7 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, formData port
 	if err != nil {
 		return nil, err
 	}
-	chatPost, err := r.postRepo.GetPostByID(_createdPost.ID)
+	chatPost, err := r.postRepo.GetPostByIDIncludingUnpublished(_createdPost.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +529,7 @@ func (r *ChatRepository) PinMessage(ctx context.Context, authUser *models.User, 
 	if err != nil {
 		return err
 	}
-	message, err := r.postRepo.GetPostByID(messageID)
+	message, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
 	if err != nil {
 		return err
 	}
@@ -559,7 +559,7 @@ func (r *ChatRepository) UnpinMessage(ctx context.Context, authUser *models.User
 func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
 	fmt.Println("HERE", authUser.ID, chatID, userID, messageID)
 
-	post, err := r.postRepo.GetPostByID(messageID)
+	post, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return err
@@ -577,7 +577,7 @@ func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *mod
 }
 
 func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	post, err := r.postRepo.GetPostByID(messageID)
+	post, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
 	if err != nil {
 		return err
 	}

@@ -1,16 +1,21 @@
 package socket
 
 import (
+	"context"
 	"core/constants"
 	"core/helpers"
 	"core/infrastructure/socket/managers"
 	userModel "core/models"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -29,8 +34,51 @@ import (
 var Server *socketio.Server
 var userConnections = make(map[string]socketio.Conn)
 var userPublicIDs = make(map[string]int64) // map[socketID]publicID
+var serverMu sync.RWMutex
+var connectionsMu sync.RWMutex
 var allowOriginFunc = func(r *http.Request) bool {
 	return true
+}
+
+type Runtime struct {
+	socketServer        *socketio.Server
+	httpServer          *http.Server
+	listener            net.Listener
+	errors              chan error
+	done                chan struct{}
+	wg                  sync.WaitGroup
+	shutdownOnce        sync.Once
+	shutdownErr         error
+	hijackedMu          sync.Mutex
+	hijackedConnections map[net.Conn]struct{}
+}
+
+func (r *Runtime) SocketServer() *socketio.Server {
+	if r == nil {
+		return nil
+	}
+	return r.socketServer
+}
+
+func (r *Runtime) Addr() net.Addr {
+	if r == nil || r.listener == nil {
+		return nil
+	}
+	return r.listener.Addr()
+}
+
+func (r *Runtime) Errors() <-chan error {
+	if r == nil {
+		return nil
+	}
+	return r.errors
+}
+
+func (r *Runtime) Done() <-chan struct{} {
+	if r == nil {
+		return nil
+	}
+	return r.done
 }
 
 type socketLogFilter struct {
@@ -85,6 +133,46 @@ func configureSocketLogger() {
 	socketlogger.ReplaceLogger(logr.New(&socketLogFilter{inner: base.GetSink()}))
 }
 
+func rememberConnection(conn socketio.Conn) {
+	connectionsMu.Lock()
+	userConnections[conn.ID()] = conn
+	connectionsMu.Unlock()
+}
+
+func rememberPublicID(socketID string, publicID int64) {
+	connectionsMu.Lock()
+	userPublicIDs[socketID] = publicID
+	connectionsMu.Unlock()
+}
+
+func forgetConnection(socketID string) (int64, bool) {
+	connectionsMu.Lock()
+	defer connectionsMu.Unlock()
+
+	delete(userConnections, socketID)
+	publicID, ok := userPublicIDs[socketID]
+	delete(userPublicIDs, socketID)
+	return publicID, ok
+}
+
+func snapshotConnections() []socketio.Conn {
+	connectionsMu.RLock()
+	defer connectionsMu.RUnlock()
+
+	connections := make([]socketio.Conn, 0, len(userConnections))
+	for _, conn := range userConnections {
+		connections = append(connections, conn)
+	}
+	return connections
+}
+
+func clearConnections() {
+	connectionsMu.Lock()
+	userConnections = make(map[string]socketio.Conn)
+	userPublicIDs = make(map[string]int64)
+	connectionsMu.Unlock()
+}
+
 func updateUserPresence(db *gorm.DB, socketID string, publicID int64, online bool) error {
 	now := time.Now()
 	updateData := map[string]any{
@@ -104,11 +192,17 @@ func updateUserPresence(db *gorm.DB, socketID string, publicID int64, online boo
 }
 
 func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) error {
-	var chatIDs []uuid.UUID
-
 	if err := updateUserPresence(db, s.ID(), publicID, join); err != nil {
 		return err
 	}
+	// go-socket.io removes a disconnecting connection from every room before
+	// invoking OnDisconnect, so querying every chat merely to leave again is
+	// redundant and makes shutdown proportional to each user's chat count.
+	if !join {
+		return nil
+	}
+
+	var chatIDs []uuid.UUID
 
 	err := db.
 		Table("chat_participants AS cp").
@@ -122,158 +216,314 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 		return err
 	}
 
-	// İşlem fonksiyonu: Join veya Leave
-	operation := s.Leave
-	if join {
-		operation = s.Join
-	}
-
 	for _, chatID := range chatIDs {
-		operation(chatID.String())
+		s.Join(chatID.String())
 	}
 
-	operation("news")
-	operation("notice")
-	operation("broadcast")
-	operation("system")
+	s.Join("news")
+	s.Join("notice")
+	s.Join("broadcast")
+	s.Join("system")
 
 	return nil
 }
 
-func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) (*socketio.Server, error) {
-	configureSocketLogger()
-
-	Server = socketio.NewServer(&engineio.Options{
-		PingInterval: 25 * time.Second, // Sunucunun istemciye ping atma sıklığı
-		PingTimeout:  90 * time.Second, // Maksimum bekleme süresi (cevap gelmezse bağlantıyı kopar)
+func newSocketServer(db *gorm.DB, notificationManager *managers.NotificationManager) *socketio.Server {
+	server := socketio.NewServer(&engineio.Options{
+		PingInterval: 25 * time.Second,
+		PingTimeout:  90 * time.Second,
 		Transports: []transport.Transport{
-			&polling.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
-			&websocket.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
+			&polling.Transport{CheckOrigin: allowOriginFunc},
+			&websocket.Transport{CheckOrigin: allowOriginFunc},
 		},
 	})
 
-	Server.OnConnect("/", func(s socketio.Conn, m map[string]interface{}) error {
+	server.OnConnect("/", func(s socketio.Conn, _ map[string]interface{}) error {
 		fmt.Println("connected:", s.ID())
-		userConnections[s.ID()] = s
+		rememberConnection(s)
 		s.Emit("auth", s.ID())
 		return nil
 	})
 
-	Server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
 		log.Println("notice:", msg)
 		s.Emit("reply", "have "+msg)
 	})
 
-	Server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
-		authHeader := msg
-		if authHeader == "" {
-			fmt.Printf("Invalid Auth Header")
+	server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
+		if msg == "" {
+			fmt.Print("Invalid Auth Header")
 			return
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
+		parts := strings.SplitN(msg, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			fmt.Printf("Invalid Auth Header")
+			fmt.Print("Invalid Auth Header")
 			return
 		}
 
-		tokenString := parts[1]
-
-		claims, err := helpers.DecodeUserJWT(tokenString)
+		claims, err := helpers.DecodeUserJWT(parts[1])
 		if err != nil {
-			fmt.Printf("Invalid JWT Token:")
+			fmt.Print("Invalid JWT Token:")
 			return
 		}
 
-		userPublicIDs[s.ID()] = claims.PublicID
-		err = updateUserRooms(s, db, claims.PublicID, true)
-		if err != nil {
-			fmt.Printf("Error updating user rooms: %v\n", err)
+		rememberPublicID(s.ID(), claims.PublicID)
+		if db != nil {
+			if err := updateUserRooms(s, db, claims.PublicID, true); err != nil {
+				fmt.Printf("Error updating user rooms: %v\n", err)
+			}
 		}
-
 	})
 
-	Server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
 		fmt.Println("chatJoin:", msg)
 		s.Emit("auth", "have "+msg)
 	})
-
-	Server.OnEvent("/", "init", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", "init", func(_ socketio.Conn, msg string) {
 		fmt.Println("chatInit:", msg)
 	})
-
-	Server.OnEvent("/", "leave", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", "leave", func(_ socketio.Conn, msg string) {
 		fmt.Println("chatLeave:", msg)
 	})
 
-	Server.OnEvent("/", "notifications", func(s socketio.Conn, msg string) {
-
-		type NotificationMessage struct {
+	server.OnEvent("/", "notifications", func(_ socketio.Conn, msg string) {
+		type notificationMessage struct {
 			Action         string `json:"action"`
 			Token          string `json:"token"`
 			NotificationID string `json:"notification_id"`
 		}
 
-		var notificationMsg NotificationMessage
-		err := json.Unmarshal([]byte(msg), &notificationMsg)
-		if err != nil {
+		var notification notificationMessage
+		if err := json.Unmarshal([]byte(msg), &notification); err != nil {
 			fmt.Println("Error unmarshalling JSON:", err)
 			return
 		}
-		if notificationMsg.Action == constants.CMD_USER_MARK_NOTIFICATIONS_SEEN {
-			err := notificationManager.MarkNotificationAsRead(notificationMsg.NotificationID)
-			if err != nil {
+		if notification.Action == constants.CMD_USER_MARK_NOTIFICATIONS_SEEN && notificationManager != nil {
+			if err := notificationManager.MarkNotificationAsRead(notification.NotificationID); err != nil {
 				fmt.Println("Error marking notification as read:", err)
 			}
 		}
-
 	})
 
-	Server.OnDisconnect("/", func(s socketio.Conn, reason string, m map[string]interface{}) {
-		delete(userConnections, s.ID())
-		publicID, ok := userPublicIDs[s.ID()]
-		if ok {
-			err := updateUserRooms(s, db, publicID, false) // false = leave rooms
-			if err != nil {
+	server.OnDisconnect("/", func(s socketio.Conn, reason string, _ map[string]interface{}) {
+		publicID, ok := forgetConnection(s.ID())
+		if ok && db != nil {
+			if err := updateUserRooms(s, db, publicID, false); err != nil {
 				fmt.Printf("Error updating user rooms: %v\n", err)
 			}
-			delete(userPublicIDs, s.ID())
 		}
 		fmt.Printf("Disconnected: %s reason=%s\n", s.ID(), reason)
 	})
 
-	go func() {
-		if err := Server.Serve(); err != nil {
-			log.Printf("socketio listen error: %s\n", err)
-		}
-	}()
-	defer func() {
-		if err := Server.Close(); err != nil {
-			log.Printf("socketio close error: %v\n", err)
-		}
-	}()
+	return server
+}
+
+func StartServer(addr string, db *gorm.DB, notificationManager *managers.NotificationManager) (*Runtime, error) {
+	if strings.TrimSpace(addr) == "" {
+		return nil, errors.New("socket listen address is required")
+	}
+
+	serverMu.Lock()
+	if Server != nil {
+		serverMu.Unlock()
+		return nil, errors.New("socket server is already running")
+	}
+
+	configureSocketLogger()
+	server := newSocketServer(db, notificationManager)
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		serverMu.Unlock()
+		_ = server.Close()
+		return nil, fmt.Errorf("listen on socket address %q: %w", addr, err)
+	}
+
+	clearConnections()
+	Server = server
+	serverMu.Unlock()
 
 	mux := http.NewServeMux()
-
-	mux.Handle("/socket.io/", Server)
-
-	handler := cors.Default().Handler(mux)
-	c := cors.New(cors.Options{
+	mux.Handle("/socket.io/", server)
+	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
+	}).Handler(mux)
+	httpServer := &http.Server{
+		Addr:              addr,
+		Handler:           corsHandler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	runtime := &Runtime{
+		socketServer:        server,
+		httpServer:          httpServer,
+		listener:            listener,
+		errors:              make(chan error, 2),
+		done:                make(chan struct{}),
+		hijackedConnections: make(map[net.Conn]struct{}),
+	}
+	httpServer.ConnState = runtime.trackHTTPConnection
+	runtime.start()
+	return runtime, nil
+}
+
+func (r *Runtime) trackHTTPConnection(conn net.Conn, state http.ConnState) {
+	if r == nil || conn == nil {
+		return
+	}
+	r.hijackedMu.Lock()
+	defer r.hijackedMu.Unlock()
+	switch state {
+	case http.StateHijacked:
+		r.hijackedConnections[conn] = struct{}{}
+	case http.StateClosed:
+		delete(r.hijackedConnections, conn)
+	}
+}
+
+func (r *Runtime) closeHijackedConnections() error {
+	if r == nil {
+		return nil
+	}
+	r.hijackedMu.Lock()
+	connections := make([]net.Conn, 0, len(r.hijackedConnections))
+	for conn := range r.hijackedConnections {
+		connections = append(connections, conn)
+	}
+	r.hijackedConnections = make(map[net.Conn]struct{})
+	r.hijackedMu.Unlock()
+
+	var result error
+	for _, conn := range connections {
+		if err := conn.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+			result = errors.Join(result, err)
+		}
+	}
+	return result
+}
+
+func (r *Runtime) start() {
+	r.wg.Add(2)
+
+	go func() {
+		defer r.wg.Done()
+		if err := r.socketServer.Serve(); err != nil && !errors.Is(err, io.EOF) {
+			r.publishError(fmt.Errorf("serve socket.io: %w", err))
+			_ = r.httpServer.Close()
+		}
+	}()
+
+	go func() {
+		defer r.wg.Done()
+		if err := r.httpServer.Serve(r.listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			r.publishError(fmt.Errorf("serve socket HTTP: %w", err))
+			_ = r.socketServer.Close()
+		}
+	}()
+
+	go func() {
+		r.wg.Wait()
+		close(r.done)
+		close(r.errors)
+	}()
+}
+
+func (r *Runtime) publishError(err error) {
+	if err == nil {
+		return
+	}
+	select {
+	case r.errors <- err:
+	default:
+		log.Printf("socket server error: %v", err)
+	}
+}
+
+func closeTrackedConnections(ctx context.Context) error {
+	connections := snapshotConnections()
+	if len(connections) == 0 {
+		return nil
+	}
+
+	results := make(chan error, len(connections))
+	for _, conn := range connections {
+		go func(conn socketio.Conn) {
+			results <- conn.Close()
+		}(conn)
+	}
+
+	var closeErrors []error
+	for range connections {
+		select {
+		case err := <-results:
+			if err != nil {
+				closeErrors = append(closeErrors, err)
+			}
+		case <-ctx.Done():
+			return errors.Join(errors.Join(closeErrors...), ctx.Err())
+		}
+	}
+	return errors.Join(closeErrors...)
+}
+
+func (r *Runtime) Shutdown(ctx context.Context) error {
+	if r == nil {
+		return nil
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	r.shutdownOnce.Do(func() {
+		// Shutdown closes the listener before waiting for HTTP requests. Run it
+		// concurrently so active long-poll and websocket clients can be closed
+		// immediately instead of consuming the entire shutdown deadline.
+		httpResult := make(chan error, 1)
+		go func() {
+			httpResult <- r.httpServer.Shutdown(ctx)
+		}()
+
+		connectionErr := closeTrackedConnections(ctx)
+		hijackedErr := r.closeHijackedConnections()
+		httpErr := <-httpResult
+		remainingConnectionErr := closeTrackedConnections(ctx)
+		remainingHijackedErr := r.closeHijackedConnections()
+		socketErr := r.socketServer.Close()
+
+		var waitErr error
+		select {
+		case <-r.done:
+		case <-ctx.Done():
+			waitErr = ctx.Err()
+		}
+
+		serverMu.Lock()
+		if Server == r.socketServer {
+			Server = nil
+		}
+		serverMu.Unlock()
+		clearConnections()
+
+		r.shutdownErr = errors.Join(httpErr, connectionErr, hijackedErr, remainingConnectionErr, remainingHijackedErr, socketErr, waitErr)
 	})
 
-	handler = c.Handler(handler)
-	if err := http.ListenAndServe(os.Getenv("SOCKET_PORT"), handler); err != nil {
+	return r.shutdownErr
+}
+
+// ListenServer preserves the old blocking API while callers migrate to
+// StartServer and Runtime.Shutdown.
+func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager) (*socketio.Server, error) {
+	runtime, err := StartServer(os.Getenv("SOCKET_PORT"), db, notificationManager)
+	if err != nil {
 		return nil, err
 	}
 
-	return Server, nil
-
+	serveErr, ok := <-runtime.Errors()
+	if !ok {
+		return runtime.SocketServer(), nil
+	}
+	_ = runtime.Shutdown(context.Background())
+	return runtime.SocketServer(), serveErr
 }
 
 type SocketService struct {
@@ -284,17 +534,25 @@ func NewSocketService(db *gorm.DB) *SocketService {
 	return &SocketService{db: db}
 }
 
+func currentSocketServer() *socketio.Server {
+	serverMu.RLock()
+	defer serverMu.RUnlock()
+	return Server
+}
+
 func (socketService *SocketService) BroadcastToRoom(namespace string, room string, event string, msg string) error {
-	if Server == nil {
+	server := currentSocketServer()
+	if server == nil {
 		return fmt.Errorf("socket server is not initialized")
 	}
-	Server.BroadcastToRoom(namespace, room, event, msg)
+	server.BroadcastToRoom(namespace, room, event, msg)
 
 	return nil
 }
 
 func (socketService *SocketService) BroadcastToNamespace(namespace string, event string, msg string) bool {
-	return Server.BroadcastToNamespace(namespace, event, msg)
+	server := currentSocketServer()
+	return server != nil && server.BroadcastToNamespace(namespace, event, msg)
 
 }
 
@@ -313,11 +571,14 @@ func (socketService *SocketService) SendMessageToUser(userId uuid.UUID, event st
 }
 
 func (s *SocketService) UpdateUserRooms(conn socketio.Conn, publicID int64, join bool) error {
-	var chatIDs []uuid.UUID
-
 	if err := updateUserPresence(s.db, conn.ID(), publicID, join); err != nil {
 		return err
 	}
+	if !join {
+		return nil
+	}
+
+	var chatIDs []uuid.UUID
 
 	err := s.db.
 		Table("chat_participants AS cp").
@@ -331,19 +592,14 @@ func (s *SocketService) UpdateUserRooms(conn socketio.Conn, publicID int64, join
 		return err
 	}
 
-	operation := conn.Leave
-	if join {
-		operation = conn.Join
-	}
-
 	for _, chatID := range chatIDs {
-		operation(chatID.String())
+		conn.Join(chatID.String())
 	}
 
-	operation("news")
-	operation("notice")
-	operation("broadcast")
-	operation("system")
+	conn.Join("news")
+	conn.Join("notice")
+	conn.Join("broadcast")
+	conn.Join("system")
 
 	return nil
 }

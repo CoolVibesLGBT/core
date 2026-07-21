@@ -8,6 +8,11 @@ import (
 	"io"
 )
 
+type stdioScanResult struct {
+	line []byte
+	err  error
+}
+
 func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.Writer) error {
 	connection := r.NewConnection()
 
@@ -16,14 +21,41 @@ func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.W
 
 	writer := bufio.NewWriter(output)
 
-	for scanner.Scan() {
+	scanResults := make(chan stdioScanResult)
+	go func() {
+		defer close(scanResults)
+		for scanner.Scan() {
+			line := append([]byte(nil), scanner.Bytes()...)
+			select {
+			case scanResults <- stdioScanResult{line: line}:
+			case <-ctx.Done():
+				return
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			select {
+			case scanResults <- stdioScanResult{err: err}:
+			case <-ctx.Done():
+			}
+		}
+	}()
+
+	for {
+		var scanResult stdioScanResult
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
+		case result, ok := <-scanResults:
+			if !ok {
+				return nil
+			}
+			scanResult = result
+		}
+		if scanResult.err != nil {
+			return scanResult.err
 		}
 
-		line := scanner.Bytes()
+		line := scanResult.line
 		if len(line) == 0 {
 			continue
 		}
@@ -65,8 +97,6 @@ func (r *MCPServer) ServeStdio(ctx context.Context, input io.Reader, output io.W
 			return err
 		}
 	}
-
-	return scanner.Err()
 }
 
 func writeStdioMessages(writer *bufio.Writer, messages []*JSONRPCMessage, isBatch bool) error {

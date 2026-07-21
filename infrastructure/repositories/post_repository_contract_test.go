@@ -110,6 +110,9 @@ func TestPostsByKindQueryUsesPostKindAndStoryWindow(t *testing.T) {
 	if !strings.Contains(sql, "created_at >") {
 		t.Fatalf("expected story query to include 24-hour created_at window, got %s", sql)
 	}
+	if !strings.Contains(strings.ToLower(sql), "published") {
+		t.Fatalf("expected public post query to filter published posts, got %s", sql)
+	}
 }
 
 func TestCommentNotificationPayloadIncludesPostAndCommentIDs(t *testing.T) {

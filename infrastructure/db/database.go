@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -28,28 +30,56 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var DB *gorm.DB // Global değişken olarak veritabanı bağlantısı
+var (
+	DB   *gorm.DB // Global değişken olarak veritabanı bağlantısı
+	dbMu sync.Mutex
+)
+
+const (
+	defaultConnectTimeout = 3 * time.Second
+	defaultMaxIdleConns   = 10
+	defaultMaxOpenConns   = 50
+)
 
 func NewDatabase() (*gorm.DB, error) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+
 	if DB == nil {
-		err := InitDB()
+		database, err := openDatabase()
 		if err != nil {
 			return nil, err
 		}
+		DB = database
 	}
 	return DB, nil
 }
 
 func InitDB() error {
-	err := godotenv.Load()
+	dbMu.Lock()
+	defer dbMu.Unlock()
 
+	if DB != nil {
+		return nil
+	}
+	database, err := openDatabase()
 	if err != nil {
-		log.Println(".env not found, using system env")
+		return err
+	}
+	DB = database
+	return nil
+}
+
+func openDatabase() (*gorm.DB, error) {
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) == "" {
+		if err := godotenv.Load(); err != nil {
+			log.Println(".env not found, using system env")
+		}
 	}
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		return fmt.Errorf("DATABASE_URL is required")
+		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
 
 	errorOnlyLogger := logger.New(
@@ -64,22 +94,77 @@ func InitDB() error {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
 		PreferSimpleProtocol: true,
-	}), &gorm.Config{Logger: errorOnlyLogger})
+	}), &gorm.Config{
+		Logger:               errorOnlyLogger,
+		DisableAutomaticPing: true,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to connect database: %w", err)
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get sql db: %w", err)
+		return nil, fmt.Errorf("failed to get sql db: %w", err)
 	}
 
-	sqlDB.SetMaxIdleConns(10)           // Boşta bekleyen bağlantıların maksimum sayısı
-	sqlDB.SetMaxOpenConns(0)            // Aynı anda açık olabilecek maksimum bağlantı sayısı
+	sqlDB.SetMaxIdleConns(envInt("DB_MAX_IDLE_CONNS", defaultMaxIdleConns))
+	sqlDB.SetMaxOpenConns(envInt("DB_MAX_OPEN_CONNS", defaultMaxOpenConns))
 	sqlDB.SetConnMaxLifetime(time.Hour) // Bağlantının yeniden kullanılabilir olacağı maksimum süre
 
-	DB = db
+	pingTimeout := envDuration("DB_CONNECT_TIMEOUT", defaultConnectTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), pingTimeout)
+	defer cancel()
+	if err := sqlDB.PingContext(ctx); err != nil {
+		_ = sqlDB.Close()
+		return nil, fmt.Errorf("failed to connect database within %s: %w", pingTimeout, err)
+	}
+
+	return db, nil
+}
+
+func Close(database *gorm.DB) error {
+	if database == nil {
+		return nil
+	}
+	dbMu.Lock()
+	if DB == database {
+		DB = nil
+	}
+	dbMu.Unlock()
+
+	sqlDB, err := database.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get sql db for close: %w", err)
+	}
+	if err := sqlDB.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %w", err)
+	}
+
 	return nil
+}
+
+func envInt(name string, fallback int) int {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value < 0 {
+		return fallback
+	}
+	return value
+}
+
+func envDuration(name string, fallback time.Duration) time.Duration {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback
+	}
+	value, err := time.ParseDuration(raw)
+	if err != nil || value <= 0 {
+		return fallback
+	}
+	return value
 }
 
 func EnableExtension(db *gorm.DB, name string) error {
@@ -133,6 +218,7 @@ func MigrateIndexes(db *gorm.DB) error {
 	dropQueries := []string{
 		"DROP INDEX IF EXISTS idx_synonyms_slug;",
 		"DROP INDEX IF EXISTS idx_posts_active_chat_message_expiry;",
+		"DROP INDEX IF EXISTS idx_reports_moderation_queue;",
 	}
 
 	for _, query := range dropQueries {
@@ -199,6 +285,7 @@ func MigrateIndexes(db *gorm.DB) error {
 			Condition: "opened_at IS NOT NULL AND expires_at IS NOT NULL AND deleted_at IS NULL AND post_kind = 'message' AND contentable_type = 'chat'",
 		},
 	}
+	indexes = append(indexes, reportIndexDefinitions()...)
 
 	for _, idx := range indexes {
 		createIndex := "CREATE INDEX IF NOT EXISTS"
@@ -230,6 +317,29 @@ func MigrateIndexes(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func reportIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		{
+			Name:    "idx_reports_status_queue",
+			Table:   "reports",
+			Using:   "btree",
+			Columns: []string{"status", "created_at DESC", "id DESC"},
+		},
+		{
+			Name:    "idx_reports_type_status_queue",
+			Table:   "reports",
+			Using:   "btree",
+			Columns: []string{"contentable_type", "status", "created_at DESC", "id DESC"},
+		},
+		{
+			Name:    "idx_reports_target_status",
+			Table:   "reports",
+			Using:   "btree",
+			Columns: []string{"contentable_type", "contentable_id", "status"},
+		},
+	}
 }
 
 func MigrateLegacyChatMediaOwnership(db *gorm.DB) error {

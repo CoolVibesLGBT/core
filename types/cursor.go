@@ -1,17 +1,25 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v3/middleware/paginate"
+	"github.com/google/uuid"
 )
+
+const maxCursorLength = 2048
+
+var ErrCursorEncode = errors.New("failed to encode pagination cursor")
 
 const (
 	CursorKeyPublicID  = "public_id"
 	CursorKeyDistance  = "distance"
 	CursorKeyCreatedAt = "created_at"
+	CursorKeyUUID      = "id"
 )
 
 type Cursor struct {
@@ -21,11 +29,15 @@ type Cursor struct {
 }
 
 func NewPaginationCursor(values map[string]any) (*string, error) {
-	pageInfo := paginate.NewPageInfo(1, 1, 0, nil)
-	if err := pageInfo.SetNextCursor(values); err != nil {
-		return nil, err
+	data, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCursorEncode, err)
 	}
-	return &pageInfo.NextCursor, nil
+	encoded := base64.RawURLEncoding.EncodeToString(data)
+	if len(encoded) > maxCursorLength {
+		return nil, fmt.Errorf("%w: token exceeds %d bytes", ErrCursorEncode, maxCursorLength)
+	}
+	return &encoded, nil
 }
 
 func NewPublicIDCursor(publicID int64) (*string, error) {
@@ -50,13 +62,26 @@ func NewTimeCursor(createdAt time.Time) (*string, error) {
 	})
 }
 
+func NewTimeUUIDCursor(createdAt time.Time, id uuid.UUID) (*string, error) {
+	return NewPaginationCursor(map[string]any{
+		CursorKeyCreatedAt: createdAt.UTC().Format(time.RFC3339Nano),
+		CursorKeyUUID:      id.String(),
+	})
+}
+
 func DecodePaginationCursor(raw string) (map[string]any, bool) {
-	if raw == "" {
+	if raw == "" || len(raw) > maxCursorLength {
 		return nil, false
 	}
-	pageInfo := &paginate.PageInfo{Cursor: raw}
-	values := pageInfo.CursorValues()
-	return values, values != nil
+	data, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		return nil, false
+	}
+	var values map[string]any
+	if err := json.Unmarshal(data, &values); err != nil || values == nil {
+		return nil, false
+	}
+	return values, true
 }
 
 func CursorPublicID(values map[string]any) (int64, bool) {
@@ -103,6 +128,19 @@ func CursorCreatedAt(values map[string]any) (time.Time, bool) {
 	default:
 		return time.Time{}, false
 	}
+}
+
+func CursorUUID(values map[string]any) (uuid.UUID, bool) {
+	value, ok := values[CursorKeyUUID]
+	if !ok {
+		return uuid.Nil, false
+	}
+	raw, ok := value.(string)
+	if !ok {
+		return uuid.Nil, false
+	}
+	id, err := uuid.Parse(raw)
+	return id, err == nil
 }
 
 func cursorInt64(values map[string]any, key string) (int64, bool) {

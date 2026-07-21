@@ -92,6 +92,19 @@ func TestModerationServiceFetchReportsRejectsInvalidStatus(t *testing.T) {
 	}
 }
 
+func TestModerationServiceFetchReportsDefaultsToPending(t *testing.T) {
+	repo := &fakeModerationRepository{}
+	service := NewModerationService(repo)
+
+	_, err := service.FetchReports(context.Background(), &models.User{UserRole: constants.UserRoleModerator}, ports.ModerationReportFilter{})
+	if err != nil {
+		t.Fatalf("FetchReports() error = %v", err)
+	}
+	if repo.fetchFilter.Status != models.ReportStatusPending {
+		t.Fatalf("status = %q, want pending", repo.fetchFilter.Status)
+	}
+}
+
 func TestModerationServiceResolveReportSetsReviewer(t *testing.T) {
 	repo := &fakeModerationRepository{}
 	service := NewModerationService(repo)
@@ -114,6 +127,30 @@ func TestModerationServiceResolveReportSetsReviewer(t *testing.T) {
 	}
 	if repo.resolveIn.ReviewedByID != moderatorID {
 		t.Fatalf("expected reviewer id %s, got %s", moderatorID, repo.resolveIn.ReviewedByID)
+	}
+}
+
+func TestModerationServiceResolveRejectsPendingAndContradictoryVisibility(t *testing.T) {
+	repo := &fakeModerationRepository{}
+	service := NewModerationService(repo)
+	moderator := &models.User{ID: uuid.New(), UserRole: constants.UserRoleModerator}
+
+	_, err := service.ResolveReport(context.Background(), moderator, ports.ModerationResolveInput{
+		ReportID: uuid.New(),
+		Status:   models.ReportStatusPending,
+	})
+	if !errors.Is(err, ErrInvalidReportStatus) {
+		t.Fatalf("pending resolve error = %v", err)
+	}
+
+	publish := false
+	_, err = service.ResolveReport(context.Background(), moderator, ports.ModerationResolveInput{
+		ReportID:    uuid.New(),
+		Status:      models.ReportStatusRejected,
+		PublishPost: &publish,
+	})
+	if !errors.Is(err, ports.ErrInvalidModerationAction) {
+		t.Fatalf("contradictory visibility error = %v", err)
 	}
 }
 

@@ -39,15 +39,43 @@ type UserRepository interface {
 	FetchUserNotifications(ctx context.Context, authUser *models.User, cursor *time.Time, limit int) ([]*notifications.Notification, *time.Time, error)
 	GetPreferences() (*models.PreferencesData, error)
 	AddReferral(ctx context.Context, referrerID uuid.UUID, referredUserID uuid.UUID, rewardAmount decimal.Decimal) (*decimal.Decimal, error)
+	Report(ctx context.Context, userPublicID int64, kind string, description string, authUser *models.User) error
 }
 
 type MediaRepository interface {
 	AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file UploadedFile) (*media.Media, error)
 }
 
+type MediaFileAccess struct {
+	StoragePath     string
+	IsPublic        bool
+	OwnerID         uuid.UUID
+	OwnerType       string
+	Role            string
+	PostID          *uuid.UUID
+	PostAuthorID    *uuid.UUID
+	PostKind        string
+	ContentableType string
+	ChatID          *uuid.UUID
+	Published       bool
+	Audience        *string
+}
+
+type MediaAccessPrincipal struct {
+	ID   uuid.UUID
+	Role string
+}
+
+type MediaAccessRepository interface {
+	FindMediaFileAccess(ctx context.Context, storagePrefix string) (MediaFileAccess, error)
+	FindMediaAccessPrincipal(ctx context.Context, publicID int64) (MediaAccessPrincipal, error)
+	IsActiveChatParticipant(ctx context.Context, chatID, userID uuid.UUID) (bool, error)
+}
+
 type PostRepository interface {
 	CreateContentablePost(ctx context.Context, form FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error)
 	GetPostByID(id uuid.UUID) (*post.Post, error)
+	GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error)
 	GetPostBySlug(filters types.Filter) (*post.Post, error)
 	GetPostByPublicID(id int64) (*post.Post, error)
 	GetTimeline(filters types.Filter) (types.TimelineResult, error)
@@ -73,15 +101,20 @@ type PostRepository interface {
 
 type ModerationReportFilter struct {
 	Status           models.ReportStatus
+	AllStatuses      bool
+	ContentableType  models.EngagementContentableType
 	PostPublicID     int64
+	UserPublicID     int64
 	ReporterPublicID int64
 	Limit            int
 	Cursor           *time.Time
+	CursorID         *uuid.UUID
 }
 
 type ModerationReportItem struct {
 	Report models.Report `json:"report"`
 	Post   *post.Post    `json:"post,omitempty"`
+	User   *models.User  `json:"user,omitempty"`
 }
 
 type ModerationReportPage struct {

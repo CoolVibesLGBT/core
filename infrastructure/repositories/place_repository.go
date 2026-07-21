@@ -150,6 +150,8 @@ func (r *PlaceRepository) nearByPlacesQuery(filters types.Filter, limit int) *go
 
 	query := r.db.Model(&post.Post{}).
 		Where("posts.contentable_type = ?", string(post.PostKindPlace)).
+		Where("posts.published = TRUE").
+		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
 		Where("parent_id IS NULL").
 		Limit(limit).
 		Preload("Clusters").

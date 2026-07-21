@@ -107,6 +107,11 @@ type fakeUserRepository struct {
 	referralReferrerID  uuid.UUID
 	referralReferredID  uuid.UUID
 	referralReward      decimal.Decimal
+	reportUserPublicID  int64
+	reportKind          string
+	reportDescription   string
+	reportAuthUser      *models.User
+	reportErr           error
 }
 
 type upsertPreferenceCall struct {
@@ -188,6 +193,14 @@ func (r *fakeUserRepository) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, e
 		return id, nil
 	}
 	return uuid.Nil, errors.New("user not found")
+}
+
+func (r *fakeUserRepository) Report(ctx context.Context, userPublicID int64, kind string, description string, authUser *models.User) error {
+	r.reportUserPublicID = userPublicID
+	r.reportKind = kind
+	r.reportDescription = description
+	r.reportAuthUser = authUser
+	return r.reportErr
 }
 
 func (r *fakeUserRepository) UpdateUser(user *models.User) error {
@@ -376,6 +389,10 @@ func (r *fakePostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 		kind = post.PostKind(r.createContentableType)
 	}
 	return &post.Post{ID: id, PostKind: kind}, nil
+}
+
+func (r *fakePostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
+	return r.GetPostByID(id)
 }
 
 func (r *fakePostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error) {

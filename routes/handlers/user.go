@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"core/application/ports"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
@@ -14,6 +15,39 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 )
+
+func HandleUserReport(s *usecases.UserService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		userID, err := strconv.ParseInt(requestField(c, "user_id"), 10, 64)
+		if err != nil || userID <= 0 {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, usecases.ErrUserIDRequired.Error())
+		}
+		kind, description := reportFields(c)
+		if kind == "" {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, ports.ErrInvalidReportKind.Error())
+		}
+		if err := validateReportFields(kind, description); err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+
+		err = s.Report(c.Context(), userID, kind, description, authUser)
+		switch {
+		case err == nil:
+			return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "User reported successfully")
+		case errors.Is(err, usecases.ErrCannotReportSelf), errors.Is(err, usecases.ErrUserIDRequired), errors.Is(err, ports.ErrInvalidReportKind):
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		case errors.Is(err, ports.ErrReportTargetNotFound):
+			return utils.SendError(c, fiber.StatusNotFound, constants.ErrUserNotFound)
+		default:
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrDatabaseError)
+		}
+	}
+}
 
 type UserHandler struct {
 	service *usecases.UserService

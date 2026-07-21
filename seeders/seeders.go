@@ -33,11 +33,6 @@ func Seed(db *gorm.DB, node *helpers.Node) error {
 		return err
 	}
 
-	err = reportkinds.SeedReportKinds(db)
-	if err != nil {
-		return err
-	}
-
 	err = payments.SeedPackagesAndPaymentMethods(db)
 	if err != nil {
 		return err

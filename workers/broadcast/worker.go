@@ -9,6 +9,7 @@ import (
 	"time"
 
 	userservice "core/application/usecases"
+	"core/infrastructure/identity"
 	"core/infrastructure/repositories"
 	"core/workers"
 	"encoding/json"
@@ -148,7 +149,14 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 
 	repo := repositories.NewMediaRepository(a.DB, a.SnowFlakeNode)
 	userRepo := repositories.NewUserRepository(a.DB, nil, a.SnowFlakeNode, nil, nil)
-	userService := userservice.NewUserService(userRepo, nil, repo, nil, nil)
+	userService := userservice.NewUserService(
+		userRepo,
+		nil,
+		repo,
+		nil,
+		nil,
+		userservice.WithPublicIDGenerator(identity.NewSnowflakePublicIDGenerator(a.SnowFlakeNode)),
+	)
 
 	for _, b := range resp.Result.Broadcasts {
 		b["provider"] = provider

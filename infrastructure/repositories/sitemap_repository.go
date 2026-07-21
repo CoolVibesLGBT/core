@@ -38,6 +38,7 @@ func (r *SitemapRepository) GetSitemapPosts(
 		Where("published = ?", true).
 		Where("deleted_at IS NULL").
 		Where("post_kind NOT IN ?", []string{"chat", "message"}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Order("updated_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -72,8 +73,10 @@ func (r *SitemapRepository) CountPublishedPosts(ctx context.Context) (int64, err
 
 	err := r.db.WithContext(ctx).
 		Model(&post.Post{}).
-		Where("is_published = ?", true).
+		Where("published = ?", true).
 		Where("deleted_at IS NULL").
+		Where("post_kind NOT IN ?", []string{"chat", "message"}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Count(&count).Error
 
 	return count, err
@@ -88,6 +91,8 @@ func (r *SitemapRepository) GetLatestNewsPosts(ctx context.Context) ([]post.Post
 	err := r.db.WithContext(ctx).
 		Where("published = ?", true).
 		Where("deleted_at IS NULL").
+		Where("post_kind = ?", post.PostKindNews).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Where("published_at >= ?", cutoff).
 		Order("published_at DESC").
 		Limit(1000).
@@ -301,6 +306,8 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, frontendUR
 		Where("posts.published = ?", true).
 		Where("posts.deleted_at IS NULL").
 		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
+		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
+		Where("medias.is_public = TRUE").
 		Where("file_metadata.mime_type LIKE ?", "image/%").
 		Preload("Author").
 		Preload("Attachments").
@@ -356,6 +363,8 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, frontendUR
 		Where("posts.published = ?", true).
 		Where("posts.deleted_at IS NULL").
 		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
+		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
+		Where("medias.is_public = TRUE").
 		Where("file_metadata.mime_type LIKE ?", "video/%").
 		Preload("Attachments.File").
 		Preload("Author").

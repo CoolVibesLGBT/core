@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"core/application/ports"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/middleware"
@@ -254,7 +255,7 @@ func HandlePostReport(s *usecases.PostService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		postIdStr := c.FormValue("post_id")
+		postIdStr := requestField(c, "post_id")
 		if postIdStr == "" {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrPostNotFound)
 		}
@@ -264,12 +265,24 @@ func HandlePostReport(s *usecases.PostService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrPostNotFound)
 		}
 
-		reason := c.FormValue("reason")
-		description := c.FormValue("description")
-
-		err = s.Report(c.Context(), postId, reason, description, user)
-		if err != nil {
+		kind, description := reportFields(c)
+		if kind == "" {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, ports.ErrInvalidReportKind.Error())
+		}
+		if err := validateReportFields(kind, description); err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+
+		err = s.Report(c.Context(), postId, kind, description, user)
+		if err != nil {
+			switch {
+			case errors.Is(err, ports.ErrInvalidReportKind):
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+			case errors.Is(err, ports.ErrReportTargetNotFound):
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+			default:
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrDatabaseError)
+			}
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post reported successfully")
@@ -367,6 +380,9 @@ func HandleFetchPost(s *usecases.PostService) fiber.Handler {
 		}
 
 		if err != nil {
+			if errors.Is(err, ports.ErrNotFound) {
+				return utils.SendErrorWithMessage(c, fiber.StatusNotFound, constants.ErrPostNotFound, "post not found")
+			}
 			return utils.SendErrorWithMessage(
 				c,
 				fiber.StatusInternalServerError,
@@ -406,6 +422,9 @@ func HandleGetByID(s *usecases.PostService) fiber.Handler {
 		}
 		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
+			if errors.Is(err, ports.ErrNotFound) {
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+			}
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
 
@@ -422,6 +441,9 @@ func HandleGetBySlug(s *usecases.PostService) fiber.Handler {
 		}
 		post, err := s.GetPostBySlug(filters)
 		if err != nil {
+			if errors.Is(err, ports.ErrNotFound) {
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+			}
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
 
@@ -437,6 +459,9 @@ func HandleGetByPublicID(s *usecases.PostService) fiber.Handler {
 		}
 		post, err := s.GetPostByPublicID(filters.PostID)
 		if err != nil {
+			if errors.Is(err, ports.ErrNotFound) {
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+			}
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, "failed to get post: "+err.Error())
 		}
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, post, "Post fetched successfully")

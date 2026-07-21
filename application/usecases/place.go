@@ -36,7 +36,7 @@ func (s *PlaceService) CreatePlace(context context.Context, form ports.FormData,
 	if err != nil {
 		return nil, err
 	}
-	return s.GetPostByID(_post.ID)
+	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *PlaceService) GetPostByID(id uuid.UUID) (*post.Post, error) {

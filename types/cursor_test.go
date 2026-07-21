@@ -1,9 +1,31 @@
 package types
 
 import (
+	"encoding/base64"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+func TestPaginationCursorKeepsLegacyFiberWireFormat(t *testing.T) {
+	values := map[string]any{CursorKeyPublicID: "42"}
+	cursor, err := NewPaginationCursor(values)
+	if err != nil {
+		t.Fatalf("NewPaginationCursor() error = %v", err)
+	}
+	want := base64.RawURLEncoding.EncodeToString([]byte(`{"public_id":"42"}`))
+	if cursor == nil || *cursor != want {
+		t.Fatalf("cursor = %#v, want %q", cursor, want)
+	}
+}
+
+func TestPaginationCursorRejectsOversizedToken(t *testing.T) {
+	if _, ok := DecodePaginationCursor(strings.Repeat("a", maxCursorLength+1)); ok {
+		t.Fatal("oversized cursor must be rejected")
+	}
+}
 
 func TestPublicIDDistanceCursorRoundTrip(t *testing.T) {
 	publicID := int64(9223372036854775000)
@@ -27,6 +49,27 @@ func TestPublicIDDistanceCursorRoundTrip(t *testing.T) {
 	gotDistance, ok := CursorDistance(values)
 	if !ok || gotDistance != distance {
 		t.Fatalf("expected distance %v, got %v ok=%v", distance, gotDistance, ok)
+	}
+}
+
+func TestTimeUUIDCursorRoundTrip(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	id := uuid.New()
+	cursor, err := NewTimeUUIDCursor(now, id)
+	if err != nil {
+		t.Fatalf("NewTimeUUIDCursor() error = %v", err)
+	}
+	values, ok := DecodePaginationCursor(*cursor)
+	if !ok {
+		t.Fatal("cursor could not be decoded")
+	}
+	createdAt, ok := CursorCreatedAt(values)
+	if !ok || !createdAt.Equal(now) {
+		t.Fatalf("created_at = %v, %v", createdAt, ok)
+	}
+	gotID, ok := CursorUUID(values)
+	if !ok || gotID != id {
+		t.Fatalf("id = %v, %v", gotID, ok)
 	}
 }
 

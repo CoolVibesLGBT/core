@@ -6,7 +6,6 @@ import (
 	"core/constants"
 	domainevents "core/domain/events"
 	domainuser "core/domain/user"
-	"core/helpers"
 	"core/models"
 	"core/models/media"
 	"core/models/notifications"
@@ -16,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,7 +36,15 @@ type UserService struct {
 	eventPublisher   ports.EventPublisher
 }
 
-var ErrPrivateViewEngagements = errors.New("profile view engagements are private")
+var (
+	ErrPrivateViewEngagements   = errors.New("profile view engagements are private")
+	ErrCannotReportSelf         = errors.New("users cannot report themselves")
+	ErrUserIDRequired           = errors.New("user_id is required")
+	ErrCaptchaNotConfigured     = errors.New("captcha verifier is not configured")
+	ErrPasswordNotConfigured    = errors.New("password hasher is not configured")
+	ErrTokenIssuerNotConfigured = errors.New("token issuer is not configured")
+	ErrPublicIDNotConfigured    = errors.New("public ID generator is not configured")
+)
 
 type UserServiceOption func(*UserService)
 
@@ -154,10 +162,14 @@ func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*m
 		return nil, "", errors.New("username already exists")
 	}
 
+	publicID, err := s.generatePublicID()
+	if err != nil {
+		return nil, "", err
+	}
 	userID := uuid.New()
 	userObj := &models.User{
 		ID:          userID,
-		PublicID:    s.generatePublicID(),
+		PublicID:    publicID,
 		Domain:      models.DomainKind(registration.Domain),
 		UserName:    registration.Name,
 		DisplayName: registration.Nickname,
@@ -234,37 +246,37 @@ func (s *UserService) LoginUser(ctx context.Context, input LoginInput) (*models.
 
 func (s *UserService) verifyCaptcha(ctx context.Context, token string) (bool, error) {
 	if s.captchaVerifier == nil {
-		return true, nil
+		return false, ErrCaptchaNotConfigured
 	}
 	return s.captchaVerifier.VerifyCaptcha(ctx, token)
 }
 
 func (s *UserService) hashPassword(password string) (string, error) {
 	if s.passwordHasher == nil {
-		return helpers.HashPasswordArgon2id(password)
+		return "", ErrPasswordNotConfigured
 	}
 	return s.passwordHasher.HashPassword(password)
 }
 
 func (s *UserService) comparePassword(hashed string, raw string) (bool, error) {
 	if s.passwordHasher == nil {
-		return helpers.ComparePasswordArgon2id(hashed, raw)
+		return false, ErrPasswordNotConfigured
 	}
 	return s.passwordHasher.ComparePassword(hashed, raw)
 }
 
 func (s *UserService) generateToken(userID uuid.UUID, publicID int64) (string, error) {
 	if s.tokenIssuer == nil {
-		return helpers.GenerateUserJWT(userID, publicID)
+		return "", ErrTokenIssuerNotConfigured
 	}
 	return s.tokenIssuer.GenerateUserToken(userID, publicID)
 }
 
-func (s *UserService) generatePublicID() int64 {
-	if s.publicIDGen != nil {
-		return s.publicIDGen.GeneratePublicID()
+func (s *UserService) generatePublicID() (int64, error) {
+	if s.publicIDGen == nil {
+		return 0, ErrPublicIDNotConfigured
 	}
-	return time.Now().UnixNano()
+	return s.publicIDGen.GeneratePublicID(), nil
 }
 
 func (s *UserService) publishEvent(ctx context.Context, event domainevents.Event) error {
@@ -294,7 +306,7 @@ func (s *UserService) resolveReferralUser(ctx context.Context, referral string) 
 		return nil, errors.New("referral is empty")
 	}
 
-	if referralID, err := helpers.StrToInt64(referral); err == nil {
+	if referralID, err := strconv.ParseInt(referral, 10, 64); err == nil {
 		return s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: referralID})
 	}
 
@@ -342,8 +354,12 @@ func (s *UserService) ViewProfile(ctx context.Context, authUser *models.User, ta
 }
 
 func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (*models.User, error) {
+	publicID, err := s.generatePublicID()
+	if err != nil {
+		return nil, err
+	}
 	userObj.ID = uuid.New()
-	userObj.PublicID = s.generatePublicID()
+	userObj.PublicID = publicID
 	userObj.PrivacyLevel = constants.PrivacyPublic
 	userObj.UserRole = constants.UserRoleUser
 	userObj.IsBot = true
@@ -442,7 +458,7 @@ func (s *UserService) AddStory(ctx context.Context, form ports.FormData, user *m
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByID(createdPost.ID)
+	return s.postRepo.GetPostByIDIncludingUnpublished(createdPost.ID)
 }
 
 func cloneFormValues(values map[string][]string) map[string][]string {
@@ -668,10 +684,10 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 		userInfo.DateOfBirth = dateOfBirth
 	}
 
-	userInfo.UserName = helpers.DefaultIfEmpty(username, userInfo.UserName)
-	userInfo.DisplayName = helpers.DefaultIfEmpty(domainuser.NormalizeDisplayName(input.DisplayName), userInfo.DisplayName)
+	userInfo.UserName = defaultIfEmpty(username, userInfo.UserName)
+	userInfo.DisplayName = defaultIfEmpty(domainuser.NormalizeDisplayName(input.DisplayName), userInfo.DisplayName)
 
-	userInfo.Bio = utils.MakeLocalizedString(userInfo.DefaultLanguage, helpers.DefaultIfEmpty(input.Bio, userInfo.Bio.GetLocalizedString(userInfo.DefaultLanguage)))
+	userInfo.Bio = utils.MakeLocalizedString(userInfo.DefaultLanguage, defaultIfEmpty(input.Bio, userInfo.Bio.GetLocalizedString(userInfo.DefaultLanguage)))
 
 	//userObj.Website = formData.Website
 
@@ -689,11 +705,11 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 
 	if input.LocationLatitude != "" && input.LocationLongitude != "" {
 
-		lat, err := helpers.ParseFloat(input.LocationLatitude)
+		lat, err := strconv.ParseFloat(input.LocationLatitude, 64)
 		if err != nil {
 			return nil, errors.New(constants.ErrInvalidLatitude.String())
 		}
-		lng, err := helpers.ParseFloat(input.LocationLongitude)
+		lng, err := strconv.ParseFloat(input.LocationLongitude, 64)
 		if err != nil {
 			return nil, errors.New(constants.ErrInvalidLongitude.String())
 		}
@@ -727,6 +743,13 @@ func (s *UserService) UpdateUserProfile(context context.Context, authUser models
 	}
 
 	return s.GetUserByID(authUser.ID)
+}
+
+func defaultIfEmpty(value, fallback string) string {
+	if value == "" {
+		return fallback
+	}
+	return value
 }
 
 // return Params : bool isLike, bool success, error
@@ -882,6 +905,19 @@ func (s *UserService) FetchUserNotifications(ctx context.Context, authUser *mode
 	return s.userRepo.FetchUserNotifications(ctx, authUser, cursor, limit)
 }
 
+func (s *UserService) Report(ctx context.Context, userPublicID int64, kind string, description string, authUser *models.User) error {
+	if userPublicID <= 0 {
+		return ErrUserIDRequired
+	}
+	if authUser == nil {
+		return errors.New("authenticated user is required")
+	}
+	if authUser.PublicID == userPublicID {
+		return ErrCannotReportSelf
+	}
+	return s.userRepo.Report(ctx, userPublicID, kind, description, authUser)
+}
+
 func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
 	if (engagementKind == models.EngagementKindViewGiven || engagementKind == models.EngagementKindViewReceived) &&
 		(authUser == nil || authUser.ID != contentableID) {
@@ -895,7 +931,7 @@ func (s *UserService) CheckIn(context context.Context, form ports.FormData, auth
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByID(_post.ID)
+	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *UserService) FetchCheckIns(filters types.Filter) (types.PostsResult, error) {

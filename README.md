@@ -14,7 +14,7 @@ A Go-based backend application with WebSocket support, PostgreSQL database, and 
 
 ## Prerequisites
 
-- Go 1.23.0 or higher
+- Go 1.26.3 or higher
 - PostgreSQL 15+ with PostGIS extension
 - Git
 
@@ -55,23 +55,38 @@ cp env.sample .env
 go mod download
 ```
 
-### 5. Run database migrations
+### 5. Initialize the database and start
+
+Run migrations and seed data together on first install:
+
 ```bash
-go run .
+./start.sh -install
+```
+
+Run migration or seed independently when needed:
+
+```bash
+./start.sh -migrate
 ```
 
 ```bash
-go run .  -migrate
+./start.sh -seed
 ```
 
+Start the server:
 
 ```bash
-go run . -seed
+./start.sh
 ```
 
+The launcher fingerprints the Go source tree, builds an optimized native
+binary only when it changes, and executes the cached binary on later starts.
+
+Grant moderation access to an existing, usable account by public ID:
 
 ```bash
-go run . -install
+./start.sh -grant-admin 123456789
+./start.sh -grant-moderator 987654321
 ```
 
 ### 6. Lint
@@ -84,7 +99,7 @@ Dependency wiring is maintained manually in `infrastructure/bootstrap/bootstrap.
 
 ### 8. Coverage
 ```bash
-go test -race -cover
+go test -race -cover ./...
 ```
 
 ### 9. Test
@@ -122,7 +137,7 @@ core/
 The application uses JWT tokens for authentication. Include the token in the Authorization header:
 
 ```
-Authorization: <your-jwt-token>
+Authorization: Bearer <your-jwt-token>
 ```
 
 ## WebSocket
@@ -134,10 +149,13 @@ WebSocket server runs alongside the HTTP server and handles real-time communicat
 To run the application in development mode:
 
 ```bash
-go run main.go
+./start.sh
 ```
 
 The server will start on the port specified in your `.env` file.
+File uploads have no application-level size limit. Large multipart files are
+spooled to temporary files instead of being retained entirely in memory.
+Private and chat upload URLs require an authorized bearer token.
 
 ## Dependencies
 
@@ -148,9 +166,6 @@ The server will start on the port specified in your `.env` file.
 - **JWT** - JSON Web Token implementation
 - **CORS** - Cross-Origin Resource Sharing middleware
 
-
-## Known Errors
-- Chats.go PinnedMsg   *Message   `gorm:"foreignKey:PinnedMsgID;references:ID"`
 
 ## License
 This project is free to use, open for everyone, and can be developed by anyone.

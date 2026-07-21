@@ -21,6 +21,7 @@ func TestNearByPlacesQueryWithoutCoordinatesUsesPublicIDCursor(t *testing.T) {
 	sql := tx.Statement.SQL.String()
 	for _, fragment := range []string{
 		"posts.contentable_type",
+		"posts.published",
 		"parent_id IS NULL",
 		"posts.public_id <",
 		"ORDER BY posts.public_id DESC",

@@ -17,6 +17,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,6 +37,10 @@ type handlerPostRepo struct {
 	eventRSVPPostID       int64
 	eventRSVPUserID       uuid.UUID
 	eventRSVPStatus       *postpayloads.EventAttendanceStatus
+	reportPostID          int64
+	reportKind            string
+	reportDescription     string
+	reportAuthUser        *models.User
 }
 
 func (r *handlerPostRepo) CreateContentablePost(ctx context.Context, form ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
@@ -47,6 +52,10 @@ func (r *handlerPostRepo) CreateContentablePost(ctx context.Context, form ports.
 
 func (r *handlerPostRepo) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return &post.Post{ID: id, PublicID: 1001, PostKind: post.PostKind(r.createContentableType)}, nil
+}
+
+func (r *handlerPostRepo) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
+	return r.GetPostByID(id)
 }
 
 func (r *handlerPostRepo) Like(filters types.Filter) error {
@@ -73,10 +82,22 @@ func (r *handlerPostRepo) GetPostsByKind(filters types.Filter) (types.PostsResul
 	}, nil
 }
 
+func (r *handlerPostRepo) Report(ctx context.Context, postID int64, kind string, description string, authUser *models.User) error {
+	r.reportPostID = postID
+	r.reportKind = kind
+	r.reportDescription = description
+	r.reportAuthUser = authUser
+	return nil
+}
+
 type handlerUserRepo struct {
 	ports.UserRepository
 	byPublicID    map[int64]*models.User
 	deletedFilter types.Filter
+	reportUserID  int64
+	reportKind    string
+	reportDetails string
+	reportAuth    *models.User
 }
 
 func (r *handlerUserRepo) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
@@ -96,6 +117,14 @@ func (r *handlerUserRepo) UpdateLocation(ctx context.Context, user *models.User,
 
 func (r *handlerUserRepo) DeleteUser(filters types.Filter) error {
 	r.deletedFilter = filters
+	return nil
+}
+
+func (r *handlerUserRepo) Report(ctx context.Context, userPublicID int64, kind string, description string, authUser *models.User) error {
+	r.reportUserID = userPublicID
+	r.reportKind = kind
+	r.reportDetails = description
+	r.reportAuth = authUser
 	return nil
 }
 
@@ -192,6 +221,114 @@ func TestHandlePostLikeParsesFilterAndAuthUser(t *testing.T) {
 	}
 	if postRepo.likeFilter.AuthUser == nil || postRepo.likeFilter.AuthUser.ID != authUser.ID {
 		t.Fatalf("expected auth user in filter, got %#v", postRepo.likeFilter.AuthUser)
+	}
+}
+
+func TestHandlePostReportAcceptsJSONCanonicalKind(t *testing.T) {
+	postRepo := &handlerPostRepo{}
+	service := usecases.NewPostService(&handlerUserRepo{}, postRepo, &handlerMediaRepo{})
+	authUser := &models.User{ID: uuid.New(), PublicID: 10}
+
+	app := fiber.New()
+	app.Post("/", func(c fiber.Ctx) error {
+		c.Locals("authenticatedUser", authUser)
+		return HandlePostReport(service)(c)
+	})
+	body, _ := json.Marshal(map[string]any{
+		"post_id":         123,
+		"report_kind_key": models.ReportKindSpam,
+		"description":     "automated posts",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != fiber.StatusOK {
+		t.Fatalf("expected status 200, got %d", resp.StatusCode)
+	}
+	if postRepo.reportPostID != 123 || postRepo.reportKind != models.ReportKindSpam || postRepo.reportDescription != "automated posts" || postRepo.reportAuthUser != authUser {
+		t.Fatalf("unexpected report arguments: %#v", postRepo)
+	}
+}
+
+func TestHandlePostReportAcceptsLegacyReasonAlias(t *testing.T) {
+	postRepo := &handlerPostRepo{}
+	service := usecases.NewPostService(&handlerUserRepo{}, postRepo, &handlerMediaRepo{})
+	authUser := &models.User{ID: uuid.New(), PublicID: 10}
+
+	resp := performMultipartHandlerRequest(t, HandlePostReport(service), authUser, map[string]string{
+		"post_id":     "321",
+		"reason":      models.ReportKindHarassment,
+		"description": "legacy client",
+	}, nil)
+	if resp.StatusCode != fiber.StatusOK || postRepo.reportPostID != 321 || postRepo.reportKind != models.ReportKindHarassment {
+		t.Fatalf("legacy report failed: status=%d repo=%#v", resp.StatusCode, postRepo)
+	}
+}
+
+func TestHandlePostReportPreservesLegacyFreeTextReason(t *testing.T) {
+	postRepo := &handlerPostRepo{}
+	service := usecases.NewPostService(&handlerUserRepo{}, postRepo, &handlerMediaRepo{})
+	authUser := &models.User{ID: uuid.New(), PublicID: 10}
+
+	resp := performMultipartHandlerRequest(t, HandlePostReport(service), authUser, map[string]string{
+		"post_id":     "654",
+		"reason":      "This account keeps copying my photos",
+		"description": "second occurrence",
+	}, nil)
+	if resp.StatusCode != fiber.StatusOK {
+		t.Fatalf("legacy free-text report status = %d", resp.StatusCode)
+	}
+	if postRepo.reportKind != models.ReportKindOther || postRepo.reportDescription != "This account keeps copying my photos\nsecond occurrence" {
+		t.Fatalf("legacy free-text report arguments = %#v", postRepo)
+	}
+}
+
+func TestReportFieldLengthValidation(t *testing.T) {
+	if err := validateReportFields(models.ReportKindSpam, strings.Repeat("x", maxReportDescriptionLength+1)); err == nil {
+		t.Fatal("oversized report description was accepted")
+	}
+	if err := validateReportFields(strings.Repeat("x", maxReportKindLength+1), "details"); err == nil {
+		t.Fatal("oversized report kind was accepted")
+	}
+}
+
+func TestHandleUserReportAcceptsJSONAndRejectsSelfReport(t *testing.T) {
+	userRepo := &handlerUserRepo{}
+	service := usecases.NewUserService(userRepo, &handlerPostRepo{}, &handlerMediaRepo{}, &handlerEngagementRepo{}, &handlerNotificationRepo{})
+	authUser := &models.User{ID: uuid.New(), PublicID: 10}
+
+	app := fiber.New()
+	app.Post("/", func(c fiber.Ctx) error {
+		c.Locals("authenticatedUser", authUser)
+		return HandleUserReport(service)(c)
+	})
+	body, _ := json.Marshal(map[string]any{
+		"user_id":         77,
+		"report_kind_key": models.ReportKindFakeProfile,
+		"description":     "copied identity",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != fiber.StatusOK || userRepo.reportUserID != 77 || userRepo.reportKind != models.ReportKindFakeProfile || userRepo.reportAuth != authUser {
+		t.Fatalf("unexpected user report: status=%d repo=%#v", resp.StatusCode, userRepo)
+	}
+
+	selfBody, _ := json.Marshal(map[string]any{"user_id": 10, "report_kind_key": models.ReportKindOther})
+	selfReq := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(selfBody))
+	selfReq.Header.Set("Content-Type", "application/json")
+	selfResp, err := app.Test(selfReq)
+	if err != nil {
+		t.Fatalf("self-report request error = %v", err)
+	}
+	if selfResp.StatusCode != fiber.StatusBadRequest {
+		t.Fatalf("expected self-report status 400, got %d", selfResp.StatusCode)
 	}
 }
 

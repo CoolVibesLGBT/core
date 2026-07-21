@@ -54,3 +54,59 @@ func TestSweepOnceReturnsServiceError(t *testing.T) {
 		t.Fatalf("SweepOnce() error = %v, want %v", err, want)
 	}
 }
+
+func TestSweepOnceStopsBeforeNextBatchWhenContextIsCanceled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	service := &fakeExpirationService{counts: []int{100}}
+
+	count, err := SweepOnce(ctx, service, time.Now(), 100)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("SweepOnce() error = %v, want %v", err, context.Canceled)
+	}
+	if count != 0 || service.calls != 0 {
+		t.Fatalf("SweepOnce() count=%d calls=%d, want both 0", count, service.calls)
+	}
+}
+
+func TestProcessorShutdownInterruptsTickerWait(t *testing.T) {
+	processor := StartProcessor(&fakeExpirationService{})
+	if processor == nil {
+		t.Fatal("StartProcessor() returned nil")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	if err := processor.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
+	}
+
+	select {
+	case <-processor.done:
+	default:
+		t.Fatal("processor did not close its done channel")
+	}
+}
+
+func TestProcessorStopsWhenParentContextIsCanceled(t *testing.T) {
+	parent, cancelParent := context.WithCancel(context.Background())
+	processor := StartProcessorContext(parent, &fakeExpirationService{})
+	cancelParent()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	if err := processor.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
+	}
+}
+
+func TestNilProcessorShutdownIsSafe(t *testing.T) {
+	if processor := StartProcessor(nil); processor != nil {
+		t.Fatalf("StartProcessor(nil) = %#v, want nil", processor)
+	}
+
+	var processor *Processor
+	if err := processor.Shutdown(context.Background()); err != nil {
+		t.Fatalf("nil Shutdown() error = %v", err)
+	}
+}

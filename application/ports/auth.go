@@ -20,6 +20,10 @@ type TokenIssuer interface {
 	GenerateUserToken(userID uuid.UUID, publicID int64) (string, error)
 }
 
+type UserTokenDecoder interface {
+	DecodeUserPublicID(token string) (int64, error)
+}
+
 type PublicIDGenerator interface {
 	GeneratePublicID() int64
 }

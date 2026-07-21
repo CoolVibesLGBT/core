@@ -35,7 +35,7 @@ func (s *ClassifiedService) CreateClassified(context context.Context, form ports
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByID(_post.ID)
+	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *ClassifiedService) GetClassified(filters types.Filter) (*post.Post, error) {

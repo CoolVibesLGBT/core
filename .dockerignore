@@ -1,0 +1,16 @@
+.git
+.github
+.env
+.gocache
+build
+tmp
+workers/temp
+
+# Runtime-generated/user content must be mounted, not baked into an image.
+static/posts
+static/samples
+static/uploads
+static/users
+
+*.log
+*.tmp

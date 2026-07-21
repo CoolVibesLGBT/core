@@ -16,6 +16,7 @@ var (
 	ErrInvalidReportStatus = errors.New("invalid report status")
 	ErrReportIDRequired    = errors.New("report_id is required")
 	ErrPostIDRequired      = errors.New("post_id is required")
+	ErrInvalidReportType   = errors.New("invalid report content type")
 )
 
 type ModerationService struct {
@@ -36,8 +37,16 @@ func (s *ModerationService) FetchReports(ctx context.Context, authUser *models.U
 	if filter.Limit > constants.MAXIMUM_LIMIT {
 		filter.Limit = constants.MAXIMUM_LIMIT
 	}
+	if !filter.AllStatuses && filter.Status == "" {
+		filter.Status = models.ReportStatusPending
+	}
 	if filter.Status != "" && !filter.Status.IsValid() {
 		return ports.ModerationReportPage{}, ErrInvalidReportStatus
+	}
+	if filter.ContentableType != "" &&
+		filter.ContentableType != models.EngagementContentableTypePost &&
+		filter.ContentableType != models.EngagementContentableTypeUser {
+		return ports.ModerationReportPage{}, ErrInvalidReportType
 	}
 	return s.repo.FetchReports(ctx, filter)
 }
@@ -49,8 +58,14 @@ func (s *ModerationService) ResolveReport(ctx context.Context, authUser *models.
 	if input.ReportID == uuid.Nil {
 		return nil, ErrReportIDRequired
 	}
-	if !input.Status.IsValid() {
+	if !input.Status.IsValid() || input.Status == models.ReportStatusPending {
 		return nil, ErrInvalidReportStatus
+	}
+	if input.PublishPost != nil {
+		if (!*input.PublishPost && input.Status != models.ReportStatusActioned) ||
+			(*input.PublishPost && input.Status == models.ReportStatusActioned) {
+			return nil, ports.ErrInvalidModerationAction
+		}
 	}
 	input.ReviewedByID = authUser.ID
 	return s.repo.ResolveReport(ctx, input)

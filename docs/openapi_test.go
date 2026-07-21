@@ -1,6 +1,7 @@
 package docs
 
 import (
+	"core/constants"
 	"encoding/json"
 	"testing"
 )
@@ -20,6 +21,30 @@ func TestOpenAPISerializes(t *testing.T) {
 	}
 	if len(yamlPayload) == 0 {
 		t.Fatal("OpenAPIYAML() returned empty payload")
+	}
+}
+
+func TestReportingActionsAreDocumented(t *testing.T) {
+	wanted := map[string]bool{
+		constants.CMD_POST_REPORT:               false,
+		constants.CMD_USER_REPORT:               false,
+		constants.CMD_MODERATION_REPORTS_FETCH:  false,
+		constants.CMD_MODERATION_REPORT_RESOLVE: false,
+		constants.CMD_MODERATION_POST_HIDE:      false,
+		constants.CMD_MODERATION_POST_UNHIDE:    false,
+	}
+	for _, action := range ActionDocuments() {
+		if _, ok := wanted[action.Action]; ok {
+			wanted[action.Action] = true
+		}
+	}
+	for action, found := range wanted {
+		if !found {
+			t.Fatalf("reporting action %q is not documented", action)
+		}
+		if !actionSupportsJSON(action) {
+			t.Fatalf("reporting action %q does not advertise JSON support", action)
+		}
 	}
 }
 

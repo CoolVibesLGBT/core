@@ -45,6 +45,10 @@ func (r *storyPostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	}, nil
 }
 
+func (r *storyPostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
+	return r.GetPostByID(id)
+}
+
 func (r *storyPostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult, error) {
 	r.getPostsFilter = filters
 	cursor := "1001"

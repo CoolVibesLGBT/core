@@ -4,9 +4,34 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestServeStdioReturnsWhenContextIsCanceledWhileInputBlocks(t *testing.T) {
+	server := NewMCPServer()
+	reader, writer := io.Pipe()
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- server.ServeStdio(ctx, reader, io.Discard)
+	}()
+
+	cancel()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("ServeStdio() error = %v, want context.Canceled", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("ServeStdio did not return after cancellation")
+	}
+	_ = writer.Close()
+	_ = reader.Close()
+}
 
 func TestLifecycleRequiresInitializedNotification(t *testing.T) {
 	server := NewMCPServer()

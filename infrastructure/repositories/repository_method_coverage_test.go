@@ -13,6 +13,7 @@ var repositoryTypes = map[string]reflect.Type{
 	"ListingRepository":      reflect.TypeOf((*ListingRepository)(nil)),
 	"MatchesRepository":      reflect.TypeOf((*MatchesRepository)(nil)),
 	"MediaRepository":        reflect.TypeOf((*MediaRepository)(nil)),
+	"ModerationRepository":   reflect.TypeOf((*ModerationRepository)(nil)),
 	"NewsRepository":         reflect.TypeOf((*NewsRepository)(nil)),
 	"NotificationRepository": reflect.TypeOf((*NotificationRepository)(nil)),
 	"PaymentRepository":      reflect.TypeOf((*PaymentRepository)(nil)),
@@ -72,10 +73,13 @@ var repositoryMethodCoverage = map[string]string{
 		"CreatePoll", "CreatePost", "CreateSynonym", "DB", "Delete", "Dislike", "ExistsBySlug", "FindClusterBySlug",
 		"FindPostByPublicID", "FindPostsByKind", "GetCluster", "GetClusters", "GetOrCreateCluster", "GetOrCreatePillar",
 		"GetOrCreateSynonym", "GetPillarBySlug", "GetPillars", "GetPillarsWithClusters", "GetPillarsWithClustersWithSlug",
-		"GetPostByID", "GetPostByIDEx", "GetPostByIDWithoutRelations", "GetPostByPublicID", "GetPostBySlug",
+		"GetPostByID", "GetPostByIDEx", "GetPostByIDIncludingUnpublished", "GetPostByIDWithoutRelations", "GetPostByPublicID", "GetPostBySlug",
 		"GetPostsByKind", "GetRecentHashtags", "GetSynonym", "GetTimeline", "GetTimelineVibes", "GetUserMedias",
 		"GetUserPostReplies", "GetUserPosts", "Like", "Node", "PillarExistsBySlug", "Report", "SendNotification", "SetEventRSVP",
 		"SynonymExists", "Tip", "View", "Vote",
+	}, " "),
+	"ModerationRepository": strings.Join([]string{
+		"FetchReports", "ResolveReport", "SetPostPublished",
 	}, " "),
 	"SitemapRepository": strings.Join([]string{
 		"BuildNewsSitemap", "BuildPostSitemap", "CountPublishedPosts", "DB", "GenerateCategoriesSitemap",
@@ -89,10 +93,10 @@ var repositoryMethodCoverage = map[string]string{
 		"AddBalance", "AddReferral", "CheckIn", "Create", "DB", "DeleteUser", "ExistsByNameOrMail", "FetchLiveUsers",
 		"FetchNearbyUsers", "FetchUserNotifications", "GEOIPDB", "GetByID", "GetByNameOrMailWithoutRelations",
 		"GetBySubscriptionSourceID", "GetByUserNameOrEmailOrUsername", "GetEngagementRepository", "GetLocationFromIP",
-		"GetPaginatedUsers", "GetPreferences", "GetUserByNameOrEmailOrNickname", "GetUserByPublicId",
+		"GetPreferences", "GetUserByNameOrEmailOrNickname", "GetUserByPublicId",
 		"GetUserByPublicIdWithoutRelations", "GetUserByUUIDdWithoutRelations", "GetUserUUIDByPublicID",
 		"GetUsersStartingWith", "Login", "LoginViaToken", "Node", "SearchUsers", "TestUser", "UpdateLocation", "UpdateUser",
-		"UpdateUserSocket", "UpsertLocation", "UpsertUserPreference", "UpsertUserPreferenceEx",
+		"Report", "UpdateUserSocket", "UpsertLocation", "UpsertUserPreference", "UpsertUserPreferenceEx",
 	}, " "),
 }
 

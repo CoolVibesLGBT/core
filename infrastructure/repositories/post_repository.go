@@ -30,6 +30,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PostRepository struct {
@@ -183,6 +184,8 @@ func (r *PostRepository) SetEventRSVP(
 			Select("events.*").
 			Joins("JOIN posts ON posts.id = events.post_id").
 			Where("posts.public_id = ? AND posts.published = TRUE AND posts.deleted_at IS NULL AND events.deleted_at IS NULL", postPublicID).
+			Where("posts.post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+			Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
 			First(&event).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return post_payloads.ErrEventNotFound
@@ -361,24 +364,41 @@ func (r *PostRepository) GetPostByIDEx(id uuid.UUID) (*post.Post, error) {
 }
 
 func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
+	return r.getPostByID(id, false)
+}
+
+// GetPostByIDIncludingUnpublished is the explicit internal lookup used after
+// creation and by chat workflows. Public handlers use GetPostByID instead.
+func (r *PostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
+	return r.getPostByID(id, true)
+}
+
+func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*post.Post, error) {
 	var ids []uuid.UUID
-	cte := `
+	publishedCondition := " AND published = TRUE AND deleted_at IS NULL AND post_kind NOT IN ('chat', 'message') AND COALESCE(NULLIF(audience, ''), 'public') = 'public'"
+	childPublishedCondition := " AND p.published = TRUE AND p.post_kind NOT IN ('chat', 'message') AND COALESCE(NULLIF(p.audience, ''), 'public') = 'public'"
+	if includeUnpublished {
+		publishedCondition = " AND deleted_at IS NULL"
+		childPublishedCondition = ""
+	}
+	cte := fmt.Sprintf(`
 		WITH RECURSIVE post_tree AS (
 			SELECT id
 			FROM posts
-			WHERE id = ?
+			WHERE id = ?%s
 			UNION ALL
 			SELECT p.id
 			FROM posts p
 			INNER JOIN post_tree pt ON pt.id = p.parent_id
+			WHERE p.deleted_at IS NULL%s
 		)
 		SELECT id FROM post_tree;
-	`
+	`, publishedCondition, childPublishedCondition)
 	if err := r.db.Raw(cte, id).Scan(&ids).Error; err != nil {
 		return nil, err
 	}
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("post with id %s not found", id)
+		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
 	}
 
 	var posts []post.Post
@@ -414,7 +434,7 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("no posts found for %s", id)
+		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
 	}
 
 	postMap := make(map[uuid.UUID]*post.Post, len(posts))
@@ -436,7 +456,7 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 
 	root, ok := postMap[id]
 	if !ok {
-		return nil, fmt.Errorf("post with id %s not found in postMap", id)
+		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
 	}
 
 	buildTree(root)
@@ -459,28 +479,36 @@ func (r *PostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 }
 
 func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error) {
+	if filters.Slug == nil || strings.TrimSpace(*filters.Slug) == "" {
+		return nil, errors.New("post slug is required")
+	}
 	var ids []uuid.UUID
 
 	cte := `
 	WITH RECURSIVE post_tree AS (
 		SELECT id
 		FROM posts
-		WHERE slug = ?
+		WHERE slug = ? AND published = TRUE AND deleted_at IS NULL
+		  AND post_kind NOT IN ('chat', 'message')
+		  AND COALESCE(NULLIF(audience, ''), 'public') = 'public'
 		UNION ALL
 		SELECT p.id
 		FROM posts p
 		INNER JOIN post_tree pt ON pt.id = p.parent_id
+		WHERE p.published = TRUE AND p.deleted_at IS NULL
+		  AND p.post_kind NOT IN ('chat', 'message')
+		  AND COALESCE(NULLIF(p.audience, ''), 'public') = 'public'
 	)
 	SELECT id FROM post_tree;
 	`
 
-	if err := r.db.Raw(cte, filters.Slug).Scan(&ids).Error; err != nil {
+	if err := r.db.Raw(cte, *filters.Slug).Scan(&ids).Error; err != nil {
 
 		return nil, err
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("post with slug %s not found", *filters.Slug)
+		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
 	}
 
 	var posts []post.Post
@@ -516,7 +544,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("no posts found for slug %s", *filters.Slug)
+		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
 	}
 
 	// map oluştur
@@ -549,7 +577,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if root == nil {
-		return nil, fmt.Errorf("root post not found for slug %s", *filters.Slug)
+		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
 	}
 
 	buildTree(root)
@@ -577,11 +605,11 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	var p post.Post
 
 	err := r.db.
-		First(&p, "public_id = ?", id).Error
+		First(&p, "public_id = ? AND published = TRUE AND post_kind NOT IN ? AND COALESCE(NULLIF(audience, ''), 'public') = 'public'", id, []post.PostKind{post.PostKindChat, post.PostKindMessage}).Error
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("post with id %d not found", id)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%w: post with id %d", ports.ErrNotFound, id)
 		}
 		return nil, err
 	}
@@ -611,7 +639,9 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (types.TimelineResult
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
-		//Where("published = ?", true).
+		Where("published = ?", true).
+		Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Where("post_kind IN ?", []string{string(post.PostKindPost), string(post.PostKindNews), string(post.PostKindStatus), string(post.PostKindVideo)}).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
@@ -683,7 +713,8 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineR
 		Preload("Attachments").
 		Preload("Attachments.File").
 		Where("post_kind IN ?", []string{string(post.PostKindPost), string(post.PostKindStatus)}).
-		//Where("published = ?", true).
+		Where("published = ?", true).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Order("posts.public_id DESC").
 		Limit(filters.Limit).
 		Group("posts.id")
@@ -739,7 +770,9 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult
 
 func (r *PostRepository) postsByKindQuery(filters types.Filter) *gorm.DB {
 	query := r.db.Model(&post.Post{}).
-		//Where("published = ?", true).
+		Where("published = ?", true).
+		Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Where("post_kind = ?", filters.PostKind).
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
@@ -795,6 +828,8 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (types.PostsResul
 
 	query := r.db.Model(&post.Post{}).
 		Where("published = ?", true).
+		Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 		Where("parent_id IS NULL").
 		Order("public_id DESC").
 		Limit(limit).
@@ -959,12 +994,14 @@ func (r *PostRepository) GetUserPosts(userId uuid.UUID, filters types.Filter) ([
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NULL and post_kind = ?", userId, filters.PostKind).
-		Order("public_id DESC").
+		Where("author_id = ? AND parent_id IS NULL AND post_kind = ? AND published = TRUE", userId, filters.PostKind).
+		Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
+		Order("posts.public_id DESC").
 		Limit(filters.Limit)
 
 	if filters.Cursor != nil {
-		query = query.Where("public_id < ?", *filters.Cursor)
+		query = query.Where("posts.public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
@@ -982,7 +1019,7 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 		Preload("Poll").
 		Preload("Poll.Choices").
 		Preload("Event").
-		Preload("Parent").
+		Preload("Parent", "published = TRUE AND post_kind NOT IN ? AND COALESCE(NULLIF(audience, ''), 'public') = 'public'", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
 		Preload("Event.Location").
 		Preload("Event.Attendees", preloadEventAttendees).
 		Preload("Author").
@@ -991,13 +1028,16 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 		Preload("Hashtags").
 		Preload("Attachments").
 		Preload("Attachments.File").
-		Where("author_id = ? AND parent_id IS NOT NULL and post_kind = ? ", filters.UserUUID, filters.PostKind).
-		Order("public_id DESC").
+		Joins("JOIN posts visible_parents ON visible_parents.id = posts.parent_id AND visible_parents.published = TRUE AND visible_parents.deleted_at IS NULL AND visible_parents.post_kind NOT IN ('chat', 'message') AND COALESCE(NULLIF(visible_parents.audience, ''), 'public') = 'public'").
+		Where("posts.author_id = ? AND posts.parent_id IS NOT NULL AND posts.post_kind = ? AND posts.published = TRUE", filters.UserUUID, filters.PostKind).
+		Where("posts.post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
+		Order("posts.public_id DESC").
 		Limit(filters.Limit)
 
 	// Cursor varsa sadece daha eski postlar
 	if filters.Cursor != nil {
-		query = query.Where("public_id < ?", *filters.Cursor)
+		query = query.Where("posts.public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
@@ -1010,14 +1050,20 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 func (r *PostRepository) GetUserMedias(filters types.Filter) ([]types.MediaWithUser, *int64, error) {
 	var medias []media.Media
 
-	query := r.db.Unscoped().
+	query := r.db.Model(&media.Media{}).
 		Preload("File").
-		Where("user_id = ?", filters.UserUUID).
-		Order("public_id DESC").
+		Joins("JOIN posts public_media_posts ON public_media_posts.id = medias.owner_id").
+		Where("medias.user_id = ?", filters.UserUUID).
+		Where("medias.is_public = TRUE").
+		Where("medias.owner_type IN ?", []media.OwnerType{media.OwnerPost, media.OwnerNews, media.OwnerVideo}).
+		Where("public_media_posts.published = TRUE AND public_media_posts.deleted_at IS NULL").
+		Where("public_media_posts.post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(public_media_posts.audience, ''), 'public') = 'public'").
+		Order("medias.public_id DESC").
 		Limit(filters.Limit)
 
 	if filters.Cursor != nil {
-		query = query.Where("public_id < ?", *filters.Cursor)
+		query = query.Where("medias.public_id < ?", *filters.Cursor)
 	}
 
 	if err := query.Find(&medias).Error; err != nil {
@@ -1118,9 +1164,13 @@ func (r *PostRepository) GetRecentHashtags(filters types.Filter) ([]types.Hashta
 
 	err := r.db.Model(&models.Hashtag{}).
 		Preload("RelatedHashtags").
-		Select("tag, COUNT(*) as count").
-		Where("created_at >= ?", cutoff).
-		Group("tag").
+		Select("hashtags.tag, COUNT(*) as count").
+		Joins("JOIN posts hashtag_posts ON hashtag_posts.id = hashtags.taggable_id AND hashtags.taggable_type = ?", models.EngagementContentableTypePost).
+		Where("hashtags.created_at >= ?", cutoff).
+		Where("hashtag_posts.published = TRUE AND hashtag_posts.deleted_at IS NULL").
+		Where("hashtag_posts.post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(hashtag_posts.audience, ''), 'public') = 'public'").
+		Group("hashtags.tag").
 		Order("count DESC").
 		Limit(filters.Limit).
 		Scan(&results).Error
@@ -1506,10 +1556,19 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 		return tx.Error
 	}
 
-	// 1) Choice mevcut mu kontrol et
+	// 1) Choice mevcut ve herkese açık bir post'a mı ait kontrol et.
 	var choice post_payloads.PollChoice
 	if err := tx.WithContext(ctx).
-		First(&choice, "id = ?", choiceId).Error; err != nil {
+		Model(&post_payloads.PollChoice{}).
+		Select("poll_choices.*").
+		Joins("JOIN polls ON polls.id = poll_choices.poll_id AND polls.contentable_type = ?", models.EngagementContentableTypePost).
+		Joins("JOIN posts ON posts.id = polls.contentable_id").
+		Where("poll_choices.id = ?", choiceId).
+		Where("posts.published = TRUE AND posts.deleted_at IS NULL").
+		Where("posts.post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
+		Clauses(clause.Locking{Strength: "UPDATE", Table: clause.Table{Name: "poll_choices"}}).
+		First(&choice).Error; err != nil {
 
 		tx.Rollback()
 		return fmt.Errorf("choice not found: %w", err)
@@ -1575,9 +1634,19 @@ func (r *PostRepository) Vote(ctx context.Context, choiceId uuid.UUID, weight in
 }
 
 func (r *PostRepository) FindPostByPublicID(id int64) (*post.Post, error) {
+	return r.findPostByPublicID(id, false)
+}
+
+func (r *PostRepository) findPostByPublicID(id int64, includeUnpublished bool) (*post.Post, error) {
 	var p post.Post
-	err := r.db.
-		First(&p, "public_id = ?", id).Error
+	query := r.db.Where("public_id = ?", id)
+	if !includeUnpublished {
+		query = query.
+			Where("published = TRUE").
+			Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+			Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'")
+	}
+	err := query.First(&p).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("post with id %d not found", id)
@@ -1850,26 +1919,24 @@ func (r *PostRepository) Banana(filters types.Filter) error {
 }
 
 func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, description string, authUser *models.User) error {
-	post, err := r.FindPostByPublicID(postId)
+	if authUser == nil || authUser.ID == uuid.Nil {
+		return ports.ErrReportTargetNotFound
+	}
+
+	var reportedPost post.Post
+	err := r.db.WithContext(ctx).
+		Where("public_id = ? AND published = TRUE", postId).
+		Where("post_kind NOT IN ?", []post.PostKind{post.PostKindChat, post.PostKindMessage}).
+		Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
+		First(&reportedPost).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ports.ErrReportTargetNotFound
+		}
 		return err
 	}
 
-	if post != nil {
-		report := models.Report{
-			ContentableID:   post.ID,
-			ContentableType: models.EngagementContentableTypePost,
-			ReporterID:      authUser.ID,
-			ReportKindKey:   kind,
-			Reason:          description,
-			Status:          "pending",
-		}
-
-		if err := r.db.WithContext(ctx).Create(&report).Error; err != nil {
-			return err
-		}
-	}
-	return nil
+	return createReport(ctx, r.db, reportedPost.ID, models.EngagementContentableTypePost, authUser.ID, kind, description)
 }
 
 func (r *PostRepository) Bookmark(filters types.Filter) error {
@@ -1968,7 +2035,7 @@ func (r *PostRepository) View(filters types.Filter) (bool, error) {
 }
 
 func (r *PostRepository) Delete(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
+	post, err := r.findPostByPublicID(filters.PostID, true)
 	if err != nil {
 		return err
 	}

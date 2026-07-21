@@ -38,7 +38,7 @@ func (s *NewsService) CreateNews(context context.Context, form ports.FormData, a
 	if err != nil {
 		return nil, err
 	}
-	return s.GetPostByID(_post.ID)
+	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *NewsService) GetPostByID(id uuid.UUID) (*post.Post, error) {

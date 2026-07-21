@@ -47,6 +47,51 @@ const (
 	ReportKindOther                  = "other"
 )
 
+func IsStandardReportKind(key string) bool {
+	switch key {
+	case ReportKindSpam,
+		ReportKindHateSpeech,
+		ReportKindNudity,
+		ReportKindViolenceThreat,
+		ReportKindFraud,
+		ReportKindHarassment,
+		ReportKindPersonalInfo,
+		ReportKindFalseInfo,
+		ReportKindProfanity,
+		ReportKindSelfHarm,
+		ReportKindCopyrightInfringement,
+		ReportKindDrugUse,
+		ReportKindTerrorism,
+		ReportKindPoliticalContent,
+		ReportKindMisleadingAdvertising,
+		ReportKindSecurityVulnerability,
+		ReportKindFakeProfile,
+		ReportKindUnderage,
+		ReportKindImpersonation,
+		ReportKindNonConsensualContent,
+		ReportKindSexualHarassment,
+		ReportKindSolicitation,
+		ReportKindSelfPromotion,
+		ReportKindGraphicViolence,
+		ReportKindDiscriminatoryLanguage,
+		ReportKindMalwarePhishing,
+		ReportKindInappropriateUsername,
+		ReportKindSelfHarmPromotion,
+		ReportKindThreatsBullying,
+		ReportKindPrivacyViolation,
+		ReportKindFakeNews,
+		ReportKindReligiousHateSpeech,
+		ReportKindPoliticalExtremism,
+		ReportKindCulturalInsensitivity,
+		ReportKindIllegalActivities,
+		ReportKindCopyrightViolation,
+		ReportKindOther:
+		return true
+	default:
+		return false
+	}
+}
+
 type ReportKind struct {
 	Key          string                `gorm:"primaryKey;size:64" json:"key"`
 	DisplayOrder int                   `gorm:"default:0" json:"display_order"`
@@ -72,6 +117,22 @@ func (s ReportStatus) IsValid() bool {
 		ReportStatusRejected,
 		ReportStatusActioned:
 		return true
+	default:
+		return false
+	}
+}
+
+// CanTransitionTo describes moderator-driven report state changes. Repeating
+// the same terminal state is allowed so client retries remain idempotent.
+func (s ReportStatus) CanTransitionTo(next ReportStatus) bool {
+	if s == next {
+		return true
+	}
+	switch s {
+	case ReportStatusPending:
+		return next == ReportStatusReviewed || next == ReportStatusRejected || next == ReportStatusActioned
+	case ReportStatusReviewed:
+		return next == ReportStatusRejected || next == ReportStatusActioned
 	default:
 		return false
 	}

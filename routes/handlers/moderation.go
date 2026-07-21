@@ -10,6 +10,7 @@ import (
 	"core/utils"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -51,8 +52,8 @@ func HandleModerationResolveReport(s *usecases.ModerationService) fiber.Handler 
 
 		input := ports.ModerationResolveInput{
 			ReportID:   reportID,
-			Status:     models.ReportStatus(getField(c, "status")),
-			Resolution: getField(c, "resolution"),
+			Status:     models.ReportStatus(requestField(c, "status")),
+			Resolution: requestField(c, "resolution"),
 		}
 
 		if publishPost, ok, err := optionalBoolField(c, "publish_post"); err != nil {
@@ -97,12 +98,12 @@ func handleModerationPostVisibility(c fiber.Ctx, s *usecases.ModerationService, 
 		return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 	}
 
-	postID, err := strconv.ParseInt(getField(c, "post_id"), 10, 64)
+	postID, err := strconv.ParseInt(requestField(c, "post_id"), 10, 64)
 	if err != nil || postID == 0 {
 		return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "post_id is required")
 	}
 
-	resolution := getField(c, "resolution")
+	resolution := requestField(c, "resolution")
 	var post any
 	if published {
 		post, err = s.UnhidePost(c.Context(), authUser, postID, resolution)
@@ -120,11 +121,18 @@ func handleModerationPostVisibility(c fiber.Ctx, s *usecases.ModerationService, 
 
 func parseModerationReportFilter(c fiber.Ctx) (ports.ModerationReportFilter, error) {
 	filter := ports.ModerationReportFilter{
-		Status: models.ReportStatus(getField(c, "status")),
+		Status: models.ReportStatusPending,
 		Limit:  constants.DEFAULT_LIMIT,
 	}
+	status := strings.ToLower(strings.TrimSpace(requestField(c, "status")))
+	if status == "all" {
+		filter.Status = ""
+		filter.AllStatuses = true
+	} else if status != "" {
+		filter.Status = models.ReportStatus(status)
+	}
 
-	if limitStr := getField(c, "limit"); limitStr != "" {
+	if limitStr := requestField(c, "limit"); limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil || limit <= 0 {
 			return filter, errors.New("invalid limit")
@@ -132,51 +140,83 @@ func parseModerationReportFilter(c fiber.Ctx) (ports.ModerationReportFilter, err
 		filter.Limit = limit
 	}
 
-	if postIDStr := getField(c, "post_id"); postIDStr != "" {
+	if postIDStr := requestField(c, "post_id"); postIDStr != "" {
 		postID, err := strconv.ParseInt(postIDStr, 10, 64)
-		if err != nil {
+		if err != nil || postID <= 0 {
 			return filter, errors.New("invalid post_id")
 		}
 		filter.PostPublicID = postID
+		filter.ContentableType = models.EngagementContentableTypePost
 	}
 
-	if reporterIDStr := getField(c, "reporter_id"); reporterIDStr != "" {
+	if userIDStr := requestField(c, "user_id"); userIDStr != "" {
+		userID, err := strconv.ParseInt(userIDStr, 10, 64)
+		if err != nil || userID <= 0 {
+			return filter, errors.New("invalid user_id")
+		}
+		if filter.PostPublicID != 0 {
+			return filter, errors.New("post_id and user_id cannot be combined")
+		}
+		filter.UserPublicID = userID
+		filter.ContentableType = models.EngagementContentableTypeUser
+	}
+
+	contentType := strings.ToLower(strings.TrimSpace(requestField(c, "content_type")))
+	if contentType == "" {
+		contentType = strings.ToLower(strings.TrimSpace(requestField(c, "contentable_type")))
+	}
+	if contentType != "" {
+		parsedType := models.EngagementContentableType(contentType)
+		if parsedType != models.EngagementContentableTypePost && parsedType != models.EngagementContentableTypeUser {
+			return filter, errors.New("invalid content_type")
+		}
+		if filter.ContentableType != "" && filter.ContentableType != parsedType {
+			return filter, errors.New("content_type conflicts with target filter")
+		}
+		filter.ContentableType = parsedType
+	}
+
+	if reporterIDStr := requestField(c, "reporter_id"); reporterIDStr != "" {
 		reporterID, err := strconv.ParseInt(reporterIDStr, 10, 64)
-		if err != nil {
+		if err != nil || reporterID <= 0 {
 			return filter, errors.New("invalid reporter_id")
 		}
 		filter.ReporterPublicID = reporterID
 	}
 
-	if cursorStr := getField(c, "cursor"); cursorStr != "" {
-		cursor, err := parseModerationCursor(cursorStr)
+	if cursorStr := requestField(c, "cursor"); cursorStr != "" {
+		cursor, cursorID, err := parseModerationCursor(cursorStr)
 		if err != nil {
 			return filter, err
 		}
 		filter.Cursor = &cursor
+		filter.CursorID = cursorID
 	}
 
 	return filter, nil
 }
 
-func parseModerationCursor(raw string) (time.Time, error) {
+func parseModerationCursor(raw string) (time.Time, *uuid.UUID, error) {
 	if values, ok := types.DecodePaginationCursor(raw); ok {
 		if cursor, ok := types.CursorCreatedAt(values); ok {
-			return cursor, nil
+			if cursorID, ok := types.CursorUUID(values); ok {
+				return cursor, &cursorID, nil
+			}
+			return cursor, nil, nil
 		}
 	}
 	if cursor, err := time.Parse(time.RFC3339Nano, raw); err == nil {
-		return cursor, nil
+		return cursor, nil, nil
 	}
 	if cursor, err := time.Parse(time.RFC3339, raw); err == nil {
-		return cursor, nil
+		return cursor, nil, nil
 	}
-	return time.Time{}, errors.New("invalid cursor")
+	return time.Time{}, nil, errors.New("invalid cursor")
 }
 
 func parseUUIDField(c fiber.Ctx, names ...string) (uuid.UUID, error) {
 	for _, name := range names {
-		if value := getField(c, name); value != "" {
+		if value := requestField(c, name); value != "" {
 			return uuid.Parse(value)
 		}
 	}
@@ -184,7 +224,7 @@ func parseUUIDField(c fiber.Ctx, names ...string) (uuid.UUID, error) {
 }
 
 func optionalBoolField(c fiber.Ctx, name string) (bool, bool, error) {
-	value := getField(c, name)
+	value := requestField(c, name)
 	if value == "" {
 		return false, false, nil
 	}
@@ -192,21 +232,20 @@ func optionalBoolField(c fiber.Ctx, name string) (bool, bool, error) {
 	return parsed, true, err
 }
 
-func getField(c fiber.Ctx, name string) string {
-	if value := c.FormValue(name); value != "" {
-		return value
-	}
-	return c.Query(name)
-}
-
 func moderationError(c fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, usecases.ErrModerationForbidden):
 		return utils.SendError(c, fiber.StatusForbidden, constants.ErrPermissionDenied)
 	case errors.Is(err, usecases.ErrInvalidReportStatus),
+		errors.Is(err, usecases.ErrInvalidReportType),
 		errors.Is(err, usecases.ErrReportIDRequired),
-		errors.Is(err, usecases.ErrPostIDRequired):
+		errors.Is(err, usecases.ErrPostIDRequired),
+		errors.Is(err, ports.ErrInvalidModerationAction):
 		return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+	case errors.Is(err, ports.ErrReportNotFound), errors.Is(err, ports.ErrReportTargetNotFound):
+		return utils.SendErrorWithMessage(c, fiber.StatusNotFound, constants.ErrInvalidInput, err.Error())
+	case errors.Is(err, ports.ErrInvalidReportTransition):
+		return utils.SendErrorWithMessage(c, fiber.StatusConflict, constants.ErrInvalidInput, err.Error())
 	default:
 		return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
 	}
