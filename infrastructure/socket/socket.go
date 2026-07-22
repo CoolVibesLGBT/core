@@ -2,6 +2,7 @@ package socket
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	"core/helpers"
 	"core/infrastructure/socket/managers"
@@ -14,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +40,13 @@ var serverMu sync.RWMutex
 var connectionsMu sync.RWMutex
 var allowOriginFunc = func(r *http.Request) bool {
 	return true
+}
+
+var errSocketUserNotFound = errors.New("socket session user not found")
+
+type socketAuthAcknowledgement struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
 }
 
 type Runtime struct {
@@ -145,6 +154,15 @@ func rememberPublicID(socketID string, publicID int64) {
 	connectionsMu.Unlock()
 }
 
+func forgetPublicID(socketID string) (int64, bool) {
+	connectionsMu.Lock()
+	defer connectionsMu.Unlock()
+
+	publicID, ok := userPublicIDs[socketID]
+	delete(userPublicIDs, socketID)
+	return publicID, ok
+}
+
 func forgetConnection(socketID string) (int64, bool) {
 	connectionsMu.Lock()
 	defer connectionsMu.Unlock()
@@ -174,6 +192,9 @@ func clearConnections() {
 }
 
 func updateUserPresence(db *gorm.DB, socketID string, publicID int64, online bool) error {
+	if db == nil {
+		return nil
+	}
 	now := time.Now()
 	updateData := map[string]any{
 		"last_online": now,
@@ -183,12 +204,49 @@ func updateUserPresence(db *gorm.DB, socketID string, publicID int64, online boo
 
 	if online {
 		updateData["socket_id"] = socketID
+		query = query.
+			Where("deleted_at IS NULL").
+			Where("user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted})
 	} else {
 		updateData["socket_id"] = nil
 		query = query.Where("socket_id = ?", socketID)
 	}
 
-	return query.Updates(updateData).Error
+	result := query.Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if online && result.RowsAffected != 1 {
+		return errSocketUserNotFound
+	}
+	return nil
+}
+
+func activeChatIDsQuery(db *gorm.DB, publicID int64) *gorm.DB {
+	return db.
+		Table("chat_participants AS cp").
+		Select("cp.chat_id").
+		Joins("JOIN users u ON u.id = cp.user_id").
+		Where("u.public_id = ?", publicID).
+		Where("u.deleted_at IS NULL").
+		Where("cp.left_at IS NULL").
+		Order("cp.id ASC")
+}
+
+func joinAuthenticatedRooms(s socketio.Conn, publicID int64, chatIDs []uuid.UUID) {
+	for _, chatID := range chatIDs {
+		s.Join(chatID.String())
+	}
+
+	s.Join(privatePhotoUserRoom(publicID))
+	s.Join("news")
+	s.Join("notice")
+	s.Join("broadcast")
+	s.Join("system")
+}
+
+func privatePhotoUserRoom(publicID int64) string {
+	return "user:" + strconv.FormatInt(publicID, 10)
 }
 
 func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) error {
@@ -201,34 +259,70 @@ func updateUserRooms(s socketio.Conn, db *gorm.DB, publicID int64, join bool) er
 	if !join {
 		return nil
 	}
+	if db == nil {
+		joinAuthenticatedRooms(s, publicID, nil)
+		return nil
+	}
 
 	var chatIDs []uuid.UUID
-
-	err := db.
-		Table("chat_participants AS cp").
-		Select("cp.chat_id").
-		Joins("JOIN users u ON u.id = cp.user_id").
-		Where("u.public_id = ?", publicID).
-		Order("cp.id ASC").
-		Scan(&chatIDs).Error
+	err := activeChatIDsQuery(db, publicID).Scan(&chatIDs).Error
 
 	if err != nil {
 		return err
 	}
 
-	for _, chatID := range chatIDs {
-		s.Join(chatID.String())
-	}
-
-	s.Join("news")
-	s.Join("notice")
-	s.Join("broadcast")
-	s.Join("system")
-
+	joinAuthenticatedRooms(s, publicID, chatIDs)
 	return nil
 }
 
-func newSocketServer(db *gorm.DB, notificationManager *managers.NotificationManager) *socketio.Server {
+func resetSocketAuthentication(s socketio.Conn, db *gorm.DB) {
+	previousPublicID, wasAuthenticated := forgetPublicID(s.ID())
+	s.LeaveAll()
+	if wasAuthenticated {
+		_ = updateUserPresence(db, s.ID(), previousPublicID, false)
+	}
+}
+
+func decodeSocketAuthorization(value string) (int64, error) {
+	parts := strings.SplitN(strings.TrimSpace(value), " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") || strings.TrimSpace(parts[1]) == "" {
+		return 0, errors.New("invalid authorization header")
+	}
+	claims, err := helpers.DecodeUserJWT(strings.TrimSpace(parts[1]))
+	if err != nil {
+		return 0, err
+	}
+	return claims.PublicID, nil
+}
+
+func authenticateSocketConnection(s socketio.Conn, db *gorm.DB, authorization string) socketAuthAcknowledgement {
+	// Every authentication attempt starts from an empty room set. A socket
+	// reauthenticated as another account must never retain the old account's
+	// chat or user-targeted rooms.
+	resetSocketAuthentication(s, db)
+
+	publicID, err := decodeSocketAuthorization(authorization)
+	if err != nil || publicID <= 0 {
+		return socketAuthAcknowledgement{Success: false, Error: "invalid_session"}
+	}
+	if err := updateUserRooms(s, db, publicID, true); err != nil {
+		s.LeaveAll()
+		_ = updateUserPresence(db, s.ID(), publicID, false)
+		return socketAuthAcknowledgement{Success: false, Error: "invalid_session"}
+	}
+	rememberPublicID(s.ID(), publicID)
+	return socketAuthAcknowledgement{Success: true}
+}
+
+func socketHandshakeAuthorization(auth map[string]interface{}) string {
+	if auth == nil {
+		return ""
+	}
+	value, _ := auth["token"].(string)
+	return strings.TrimSpace(value)
+}
+
+func newSocketServer(db *gorm.DB, _ *managers.NotificationManager) *socketio.Server {
 	server := socketio.NewServer(&engineio.Options{
 		PingInterval: 25 * time.Second,
 		PingTimeout:  90 * time.Second,
@@ -238,10 +332,13 @@ func newSocketServer(db *gorm.DB, notificationManager *managers.NotificationMana
 		},
 	})
 
-	server.OnConnect("/", func(s socketio.Conn, _ map[string]interface{}) error {
+	server.OnConnect("/", func(s socketio.Conn, auth map[string]interface{}) error {
 		fmt.Println("connected:", s.ID())
 		rememberConnection(s)
 		s.Emit("auth", s.ID())
+		if authorization := socketHandshakeAuthorization(auth); authorization != "" {
+			s.Emit("auth:ack", authenticateSocketConnection(s, db, authorization))
+		}
 		return nil
 	})
 
@@ -250,30 +347,10 @@ func newSocketServer(db *gorm.DB, notificationManager *managers.NotificationMana
 		s.Emit("reply", "have "+msg)
 	})
 
-	server.OnEvent("/", "auth", func(s socketio.Conn, msg string) {
-		if msg == "" {
-			fmt.Print("Invalid Auth Header")
-			return
-		}
-
-		parts := strings.SplitN(msg, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			fmt.Print("Invalid Auth Header")
-			return
-		}
-
-		claims, err := helpers.DecodeUserJWT(parts[1])
-		if err != nil {
-			fmt.Print("Invalid JWT Token:")
-			return
-		}
-
-		rememberPublicID(s.ID(), claims.PublicID)
-		if db != nil {
-			if err := updateUserRooms(s, db, claims.PublicID, true); err != nil {
-				fmt.Printf("Error updating user rooms: %v\n", err)
-			}
-		}
+	server.OnEvent("/", "auth", func(s socketio.Conn, msg string) socketAuthAcknowledgement {
+		ack := authenticateSocketConnection(s, db, msg)
+		s.Emit("auth:ack", ack)
+		return ack
 	})
 
 	server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
@@ -285,25 +362,6 @@ func newSocketServer(db *gorm.DB, notificationManager *managers.NotificationMana
 	})
 	server.OnEvent("/", "leave", func(_ socketio.Conn, msg string) {
 		fmt.Println("chatLeave:", msg)
-	})
-
-	server.OnEvent("/", "notifications", func(_ socketio.Conn, msg string) {
-		type notificationMessage struct {
-			Action         string `json:"action"`
-			Token          string `json:"token"`
-			NotificationID string `json:"notification_id"`
-		}
-
-		var notification notificationMessage
-		if err := json.Unmarshal([]byte(msg), &notification); err != nil {
-			fmt.Println("Error unmarshalling JSON:", err)
-			return
-		}
-		if notification.Action == constants.CMD_USER_MARK_NOTIFICATIONS_SEEN && notificationManager != nil {
-			if err := notificationManager.MarkNotificationAsRead(notification.NotificationID); err != nil {
-				fmt.Println("Error marking notification as read:", err)
-			}
-		}
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, reason string, _ map[string]interface{}) {
@@ -550,6 +608,80 @@ func (socketService *SocketService) BroadcastToRoom(namespace string, room strin
 	return nil
 }
 
+func encodePrivatePhotoRealtimeEvent(event ports.PrivatePhotoRealtimeEnvelope) (string, error) {
+	if event.Version != ports.PrivatePhotoRealtimeVersion {
+		return "", errors.New("unsupported private photo event version")
+	}
+	if _, err := uuid.Parse(event.EventID); err != nil {
+		return "", errors.New("invalid private photo event ID")
+	}
+	if event.OccurredAt.IsZero() {
+		return "", errors.New("private photo event timestamp is required")
+	}
+	switch event.Type {
+	case ports.PrivatePhotoEventAlbumChanged,
+		ports.PrivatePhotoEventMediaProcessingUpdated,
+		ports.PrivatePhotoEventAccessRequested,
+		ports.PrivatePhotoEventAccessUpdated,
+		ports.PrivatePhotoEventAccessRevoked,
+		ports.PrivatePhotoEventAccessInvalidated:
+	default:
+		return "", errors.New("unsupported private photo event type")
+	}
+	for _, value := range []string{event.Data.OwnerID, event.Data.ViewerID, event.Data.RequestID, event.Data.PhotoID} {
+		if value == "" {
+			continue
+		}
+		publicID, err := strconv.ParseInt(value, 10, 64)
+		if err != nil || publicID <= 0 {
+			return "", errors.New("invalid private photo event public ID")
+		}
+	}
+	if event.Data.OwnerID == "" {
+		return "", errors.New("private photo event owner is required")
+	}
+	switch event.Data.Status {
+	case "", "pending", "approved", "denied", "ready", "failed":
+	default:
+		return "", errors.New("invalid private photo event status")
+	}
+
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return "", err
+	}
+	return string(payload), nil
+}
+
+func (socketService *SocketService) PublishPrivatePhotoEvent(
+	ctx context.Context,
+	recipientPublicIDs []int64,
+	event ports.PrivatePhotoRealtimeEnvelope,
+) error {
+	_ = ctx // Mutations are already committed; delivery remains best effort even if the request context was canceled.
+	payload, err := encodePrivatePhotoRealtimeEvent(event)
+	if err != nil {
+		return err
+	}
+	server := currentSocketServer()
+	if server == nil {
+		return errors.New("socket server is not initialized")
+	}
+
+	seen := make(map[int64]struct{}, len(recipientPublicIDs))
+	for _, publicID := range recipientPublicIDs {
+		if publicID <= 0 {
+			continue
+		}
+		if _, exists := seen[publicID]; exists {
+			continue
+		}
+		seen[publicID] = struct{}{}
+		server.BroadcastToRoom("/", privatePhotoUserRoom(publicID), ports.PrivatePhotoRealtimeSocketEvent, payload)
+	}
+	return nil
+}
+
 func (socketService *SocketService) BroadcastToNamespace(namespace string, event string, msg string) bool {
 	server := currentSocketServer()
 	return server != nil && server.BroadcastToNamespace(namespace, event, msg)
@@ -571,35 +703,5 @@ func (socketService *SocketService) SendMessageToUser(userId uuid.UUID, event st
 }
 
 func (s *SocketService) UpdateUserRooms(conn socketio.Conn, publicID int64, join bool) error {
-	if err := updateUserPresence(s.db, conn.ID(), publicID, join); err != nil {
-		return err
-	}
-	if !join {
-		return nil
-	}
-
-	var chatIDs []uuid.UUID
-
-	err := s.db.
-		Table("chat_participants AS cp").
-		Select("cp.chat_id").
-		Joins("JOIN users u ON u.id = cp.user_id").
-		Where("u.public_id = ?", publicID).
-		Order("cp.id ASC").
-		Scan(&chatIDs).Error
-
-	if err != nil {
-		return err
-	}
-
-	for _, chatID := range chatIDs {
-		conn.Join(chatID.String())
-	}
-
-	conn.Join("news")
-	conn.Join("notice")
-	conn.Join("broadcast")
-	conn.Join("system")
-
-	return nil
+	return updateUserRooms(conn, s.db, publicID, join)
 }

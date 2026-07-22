@@ -73,7 +73,7 @@ func (s *Service) prepareIKM(sharedSecret, authSecret, uaPublicKey []byte) ([]by
 
 // prepareSalt return a 16-octet salt.
 func (s *Service) prepareSalt() ([]byte, error) {
-	salt := make([]byte, 0, 16)
+	salt := make([]byte, 16)
 
 	if _, err := rand.Read(salt); err != nil {
 		return nil, fmt.Errorf("failed to generate salt: %w", err)

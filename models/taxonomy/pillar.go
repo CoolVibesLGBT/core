@@ -1,7 +1,7 @@
 package taxonomy
 
 import (
-	"core/helpers"
+	domaintaxonomy "core/domain/taxonomy"
 	models "core/models"
 	"core/models/utils"
 	"time"
@@ -29,11 +29,11 @@ func (p *Pillar) BeforeCreate(tx *gorm.DB) error {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}
-	p.Slug = helpers.GenerateSlug(p.Slug)
+	p.Slug = domaintaxonomy.NormalizeSlug(p.Slug)
 	return nil
 }
 
 func (p *Pillar) BeforeSave(tx *gorm.DB) error {
-	p.Slug = helpers.GenerateSlug(p.Slug)
+	p.Slug = domaintaxonomy.NormalizeSlug(p.Slug)
 	return nil
 }

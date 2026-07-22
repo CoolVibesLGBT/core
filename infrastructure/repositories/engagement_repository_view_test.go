@@ -4,13 +4,16 @@ import (
 	"context"
 	"core/constants"
 	"core/models"
+	"database/sql"
 	"encoding/json"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -55,6 +58,15 @@ func TestViewWriteSQLIsConflictSafeAndAtomic(t *testing.T) {
 		if !strings.Contains(updateSQL, fragment) {
 			t.Fatalf("view aggregate update must atomically increment JSONB count; missing %q in %s", fragment, update.Statement.SQL.String())
 		}
+	}
+}
+
+func TestEngagementAggregateLockKeyIsCanonicalForEveryWriteKind(t *testing.T) {
+	contentableID := uuid.New()
+	got := engagementAggregateLockKey(models.EngagementContentableTypePost, contentableID)
+	want := "engagement:post:" + contentableID.String()
+	if got != want {
+		t.Fatalf("engagementAggregateLockKey() = %q, want %q", got, want)
 	}
 }
 
@@ -155,5 +167,74 @@ func TestRecordViewOnceIsIdempotentIntegration(t *testing.T) {
 	}
 	if detailCount != 1 {
 		t.Fatalf("view detail count = %d; want 1", detailCount)
+	}
+}
+
+func TestFirstViewAndFirstAmountWriteShareOneAggregateIntegration(t *testing.T) {
+	db := locationRaceIntegrationDB(t)
+	if !db.Migrator().HasTable(&models.User{}) || !db.Migrator().HasTable(&models.Engagement{}) {
+		t.Skip("engagement schema is not migrated in TEST_DATABASE_URL")
+	}
+	var indexName sql.NullString
+	if err := db.Raw("SELECT to_regclass('public.uidx_engagements_contentable')").Scan(&indexName).Error; err != nil {
+		t.Fatalf("check engagement aggregate index: %v", err)
+	}
+	if !indexName.Valid {
+		t.Skip("uidx_engagements_contentable is not migrated in TEST_DATABASE_URL")
+	}
+
+	basePublicID := time.Now().UTC().UnixNano()
+	viewer := models.User{
+		ID: uuid.New(), PublicID: basePublicID, Domain: models.CoolVibes,
+		UserName: "mixed-viewer-" + uuid.NewString(), DisplayName: "Viewer", UserRole: constants.UserRoleUser,
+	}
+	target := models.User{
+		ID: uuid.New(), PublicID: basePublicID + 1, Domain: models.CoolVibes,
+		UserName: "mixed-target-" + uuid.NewString(), DisplayName: "Target", UserRole: constants.UserRoleUser,
+	}
+	if err := db.Omit(clause.Associations).Create(&[]models.User{viewer, target}).Error; err != nil {
+		t.Fatalf("create mixed engagement users: %v", err)
+	}
+	t.Cleanup(func() {
+		var aggregateIDs []uuid.UUID
+		db.Model(&models.Engagement{}).
+			Where("contentable_id = ? AND contentable_type = ?", target.ID, models.EngagementContentableTypeUser).
+			Pluck("id", &aggregateIDs)
+		if len(aggregateIDs) > 0 {
+			db.Where("engagement_id IN ?", aggregateIDs).Delete(&models.EngagementDetail{})
+			db.Where("id IN ?", aggregateIDs).Delete(&models.Engagement{})
+		}
+		db.Unscoped().Where("id IN ?", []uuid.UUID{viewer.ID, target.ID}).Delete(&models.User{})
+	})
+
+	repo := NewEngagementRepository(db)
+	errorsByWriter := make(chan error, 2)
+	var writers sync.WaitGroup
+	writers.Add(2)
+	go func() {
+		defer writers.Done()
+		_, err := repo.RecordViewOnce(context.Background(), viewer.ID, target.ID, models.EngagementKindViewReceived, target.ID, models.EngagementContentableTypeUser)
+		errorsByWriter <- err
+	}()
+	go func() {
+		defer writers.Done()
+		errorsByWriter <- repo.AddTip(context.Background(), viewer.ID, target.ID, decimal.NewFromInt(1), target.ID, models.EngagementContentableTypeUser, models.EngagementKindTip)
+	}()
+	writers.Wait()
+	close(errorsByWriter)
+	for err := range errorsByWriter {
+		if err != nil {
+			t.Fatalf("mixed aggregate writer error = %v", err)
+		}
+	}
+
+	var aggregateCount int64
+	if err := db.Model(&models.Engagement{}).
+		Where("contentable_id = ? AND contentable_type = ?", target.ID, models.EngagementContentableTypeUser).
+		Count(&aggregateCount).Error; err != nil {
+		t.Fatalf("count mixed aggregates: %v", err)
+	}
+	if aggregateCount != 1 {
+		t.Fatalf("first view + amount created %d aggregates, want 1", aggregateCount)
 	}
 }

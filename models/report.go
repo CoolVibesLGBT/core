@@ -1,6 +1,7 @@
 package models
 
 import (
+	domainmoderation "core/domain/moderation"
 	"core/models/utils"
 	"time"
 
@@ -8,88 +9,47 @@ import (
 )
 
 const (
-	ReportKindSpam                   = "spam"
-	ReportKindHateSpeech             = "hate_speech"
-	ReportKindNudity                 = "nudity"
-	ReportKindViolenceThreat         = "violence_threat"
-	ReportKindFraud                  = "fraud"
-	ReportKindHarassment             = "harassment"
-	ReportKindPersonalInfo           = "personal_info"
-	ReportKindFalseInfo              = "false_info"
-	ReportKindProfanity              = "profanity"
-	ReportKindSelfHarm               = "self_harm"
-	ReportKindCopyrightInfringement  = "copyright_infringement"
-	ReportKindDrugUse                = "drug_use"
-	ReportKindTerrorism              = "terrorism"
-	ReportKindPoliticalContent       = "political_content"
-	ReportKindMisleadingAdvertising  = "misleading_advertising"
-	ReportKindSecurityVulnerability  = "security_vulnerability"
-	ReportKindFakeProfile            = "fake_profile"
-	ReportKindUnderage               = "underage"
-	ReportKindImpersonation          = "impersonation"
-	ReportKindNonConsensualContent   = "non_consensual_content"
-	ReportKindSexualHarassment       = "sexual_harassment"
-	ReportKindSolicitation           = "solicitation"
-	ReportKindSelfPromotion          = "self_promotion"
-	ReportKindGraphicViolence        = "graphic_violence"
-	ReportKindDiscriminatoryLanguage = "discriminatory_language"
-	ReportKindMalwarePhishing        = "malware_phishing"
-	ReportKindInappropriateUsername  = "inappropriate_username"
-	ReportKindSelfHarmPromotion      = "self_harm_promotion"
-	ReportKindThreatsBullying        = "threats_bullying"
-	ReportKindPrivacyViolation       = "privacy_violation"
-	ReportKindFakeNews               = "fake_news"
-	ReportKindReligiousHateSpeech    = "religious_hate_speech"
-	ReportKindPoliticalExtremism     = "political_extremism"
-	ReportKindCulturalInsensitivity  = "cultural_insensitivity"
-	ReportKindIllegalActivities      = "illegal_activities"
-	ReportKindCopyrightViolation     = "copyright_violation"
-	ReportKindOther                  = "other"
+	ReportKindSpam                   = string(domainmoderation.KindSpam)
+	ReportKindHateSpeech             = string(domainmoderation.KindHateSpeech)
+	ReportKindNudity                 = string(domainmoderation.KindNudity)
+	ReportKindViolenceThreat         = string(domainmoderation.KindViolenceThreat)
+	ReportKindFraud                  = string(domainmoderation.KindFraud)
+	ReportKindHarassment             = string(domainmoderation.KindHarassment)
+	ReportKindPersonalInfo           = string(domainmoderation.KindPersonalInfo)
+	ReportKindFalseInfo              = string(domainmoderation.KindFalseInfo)
+	ReportKindProfanity              = string(domainmoderation.KindProfanity)
+	ReportKindSelfHarm               = string(domainmoderation.KindSelfHarm)
+	ReportKindCopyrightInfringement  = string(domainmoderation.KindCopyrightInfringement)
+	ReportKindDrugUse                = string(domainmoderation.KindDrugUse)
+	ReportKindTerrorism              = string(domainmoderation.KindTerrorism)
+	ReportKindPoliticalContent       = string(domainmoderation.KindPoliticalContent)
+	ReportKindMisleadingAdvertising  = string(domainmoderation.KindMisleadingAdvertising)
+	ReportKindSecurityVulnerability  = string(domainmoderation.KindSecurityVulnerability)
+	ReportKindFakeProfile            = string(domainmoderation.KindFakeProfile)
+	ReportKindUnderage               = string(domainmoderation.KindUnderage)
+	ReportKindImpersonation          = string(domainmoderation.KindImpersonation)
+	ReportKindNonConsensualContent   = string(domainmoderation.KindNonConsensualContent)
+	ReportKindSexualHarassment       = string(domainmoderation.KindSexualHarassment)
+	ReportKindSolicitation           = string(domainmoderation.KindSolicitation)
+	ReportKindSelfPromotion          = string(domainmoderation.KindSelfPromotion)
+	ReportKindGraphicViolence        = string(domainmoderation.KindGraphicViolence)
+	ReportKindDiscriminatoryLanguage = string(domainmoderation.KindDiscriminatoryLanguage)
+	ReportKindMalwarePhishing        = string(domainmoderation.KindMalwarePhishing)
+	ReportKindInappropriateUsername  = string(domainmoderation.KindInappropriateUsername)
+	ReportKindSelfHarmPromotion      = string(domainmoderation.KindSelfHarmPromotion)
+	ReportKindThreatsBullying        = string(domainmoderation.KindThreatsBullying)
+	ReportKindPrivacyViolation       = string(domainmoderation.KindPrivacyViolation)
+	ReportKindFakeNews               = string(domainmoderation.KindFakeNews)
+	ReportKindReligiousHateSpeech    = string(domainmoderation.KindReligiousHateSpeech)
+	ReportKindPoliticalExtremism     = string(domainmoderation.KindPoliticalExtremism)
+	ReportKindCulturalInsensitivity  = string(domainmoderation.KindCulturalInsensitivity)
+	ReportKindIllegalActivities      = string(domainmoderation.KindIllegalActivities)
+	ReportKindCopyrightViolation     = string(domainmoderation.KindCopyrightViolation)
+	ReportKindOther                  = string(domainmoderation.KindOther)
 )
 
 func IsStandardReportKind(key string) bool {
-	switch key {
-	case ReportKindSpam,
-		ReportKindHateSpeech,
-		ReportKindNudity,
-		ReportKindViolenceThreat,
-		ReportKindFraud,
-		ReportKindHarassment,
-		ReportKindPersonalInfo,
-		ReportKindFalseInfo,
-		ReportKindProfanity,
-		ReportKindSelfHarm,
-		ReportKindCopyrightInfringement,
-		ReportKindDrugUse,
-		ReportKindTerrorism,
-		ReportKindPoliticalContent,
-		ReportKindMisleadingAdvertising,
-		ReportKindSecurityVulnerability,
-		ReportKindFakeProfile,
-		ReportKindUnderage,
-		ReportKindImpersonation,
-		ReportKindNonConsensualContent,
-		ReportKindSexualHarassment,
-		ReportKindSolicitation,
-		ReportKindSelfPromotion,
-		ReportKindGraphicViolence,
-		ReportKindDiscriminatoryLanguage,
-		ReportKindMalwarePhishing,
-		ReportKindInappropriateUsername,
-		ReportKindSelfHarmPromotion,
-		ReportKindThreatsBullying,
-		ReportKindPrivacyViolation,
-		ReportKindFakeNews,
-		ReportKindReligiousHateSpeech,
-		ReportKindPoliticalExtremism,
-		ReportKindCulturalInsensitivity,
-		ReportKindIllegalActivities,
-		ReportKindCopyrightViolation,
-		ReportKindOther:
-		return true
-	default:
-		return false
-	}
+	return domainmoderation.IsStandardKind(key)
 }
 
 type ReportKind struct {
@@ -101,41 +61,28 @@ type ReportKind struct {
 	UpdatedAt    time.Time             `json:"updated_at"`
 }
 
+// ReportStatus remains a models-owned type for JSON/GORM compatibility while
+// delegating all lifecycle rules to the moderation domain.
 type ReportStatus string
 
 const (
-	ReportStatusPending  ReportStatus = "pending"
-	ReportStatusReviewed ReportStatus = "reviewed"
-	ReportStatusRejected ReportStatus = "rejected"
-	ReportStatusActioned ReportStatus = "actioned"
+	ReportStatusPending  ReportStatus = ReportStatus(domainmoderation.StatusPending)
+	ReportStatusReviewed ReportStatus = ReportStatus(domainmoderation.StatusReviewed)
+	ReportStatusRejected ReportStatus = ReportStatus(domainmoderation.StatusRejected)
+	ReportStatusActioned ReportStatus = ReportStatus(domainmoderation.StatusActioned)
 )
 
 func (s ReportStatus) IsValid() bool {
-	switch s {
-	case ReportStatusPending,
-		ReportStatusReviewed,
-		ReportStatusRejected,
-		ReportStatusActioned:
-		return true
-	default:
-		return false
-	}
+	return domainmoderation.Status(s).IsValid()
 }
 
-// CanTransitionTo describes moderator-driven report state changes. Repeating
-// the same terminal state is allowed so client retries remain idempotent.
 func (s ReportStatus) CanTransitionTo(next ReportStatus) bool {
-	if s == next {
-		return true
-	}
-	switch s {
-	case ReportStatusPending:
-		return next == ReportStatusReviewed || next == ReportStatusRejected || next == ReportStatusActioned
-	case ReportStatusReviewed:
-		return next == ReportStatusRejected || next == ReportStatusActioned
-	default:
-		return false
-	}
+	return domainmoderation.Status(s).CanTransitionTo(domainmoderation.Status(next))
+}
+
+func (s ReportStatus) TransitionTo(next ReportStatus) (ReportStatus, error) {
+	status, err := domainmoderation.Status(s).TransitionTo(domainmoderation.Status(next))
+	return ReportStatus(status), err
 }
 
 type Report struct {

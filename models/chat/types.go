@@ -58,3 +58,9 @@ const (
 	ChatTypeGroup   ChatType = "group"
 	ChatTypeChannel ChatType = "channel"
 )
+
+const (
+	ParticipantRoleMember ParticipantRole = "member"
+	ParticipantRoleAdmin  ParticipantRole = "admin"
+	ParticipantRoleOwner  ParticipantRole = "owner"
+)

@@ -3,7 +3,9 @@ package usecases
 import (
 	"context"
 	"core/constants"
+	domainuser "core/domain/user"
 	"core/models"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -13,6 +15,7 @@ func TestRegisterUserCreatesUserAndReturnsIssuedToken(t *testing.T) {
 	userRepo := &fakeUserRepository{byID: map[uuid.UUID]*models.User{}}
 	captcha := &fakeCaptchaVerifier{valid: true}
 	events := &fakeEventPublisher{}
+	tokenIssuer := &fakeTokenIssuer{token: "issued-token"}
 	service := NewUserService(
 		userRepo,
 		&fakePostRepository{},
@@ -21,17 +24,17 @@ func TestRegisterUserCreatesUserAndReturnsIssuedToken(t *testing.T) {
 		&fakeNotificationRepository{},
 		WithCaptchaVerifier(captcha),
 		WithPasswordHasher(&fakePasswordHasher{}),
-		WithTokenIssuer(&fakeTokenIssuer{token: "issued-token"}),
+		WithTokenIssuer(tokenIssuer),
 		WithPublicIDGenerator(&fakePublicIDGenerator{next: 4242}),
 		WithEventPublisher(events),
 	)
 
 	user, token, err := service.RegisterUser(context.Background(), RegisterInput{
-		Name:           "alice",
-		Nickname:       "Alice",
+		Name:           "  Alice Wonderland  ",
+		Nickname:       "AliceHandle",
 		Password:       "secret-123",
 		Domain:         string(models.CoolVibes),
-		Email:          "alice@example.com",
+		Email:          "Alice@Example.COM",
 		RecaptchaToken: "captcha-token",
 	})
 	if err != nil {
@@ -40,6 +43,9 @@ func TestRegisterUserCreatesUserAndReturnsIssuedToken(t *testing.T) {
 
 	if token != "issued-token" {
 		t.Fatalf("expected issued token, got %q", token)
+	}
+	if tokenIssuer.userID != userRepo.created.ID || tokenIssuer.publicID != 4242 {
+		t.Fatalf("token subject changed: internal=%s public=%d", tokenIssuer.userID, tokenIssuer.publicID)
 	}
 	if user == nil || user.PublicID != 4242 {
 		t.Fatalf("expected created user public id 4242, got %#v", user)
@@ -50,11 +56,90 @@ func TestRegisterUserCreatesUserAndReturnsIssuedToken(t *testing.T) {
 	if userRepo.created.Password != "hashed:secret-123" {
 		t.Fatalf("expected hashed password, got %q", userRepo.created.Password)
 	}
+	if userRepo.created.UserName != "alicehandle" {
+		t.Fatalf("UserName = %q, want normalized nickname %q", userRepo.created.UserName, "alicehandle")
+	}
+	if userRepo.created.DisplayName != "Alice Wonderland" {
+		t.Fatalf("DisplayName = %q, want trimmed name %q", userRepo.created.DisplayName, "Alice Wonderland")
+	}
+	if userRepo.checkedUsername != "alicehandle" {
+		t.Fatalf("username uniqueness input = %q, want %q", userRepo.checkedUsername, "alicehandle")
+	}
+	if userRepo.checkedEmail != "alice@example.com" {
+		t.Fatalf("email uniqueness input = %q, want %q", userRepo.checkedEmail, "alice@example.com")
+	}
+	if userRepo.checkedNameOrMail != "" {
+		t.Fatalf("combined identity lookup should not be used, got %q", userRepo.checkedNameOrMail)
+	}
 	if captcha.token != "captcha-token" {
 		t.Fatalf("expected recaptcha token to be used, got %q", captcha.token)
 	}
 	if len(events.events) != 1 {
 		t.Fatalf("expected registration event, got %d", len(events.events))
+	}
+}
+
+func TestRegisterUserRejectsUsernameAndEmailCollisionsSeparately(t *testing.T) {
+	tests := []struct {
+		name             string
+		usernameExists   bool
+		emailExists      bool
+		wantErr          error
+		wantCheckedEmail string
+	}{
+		{
+			name:           "username",
+			usernameExists: true,
+			wantErr:        ErrUsernameAlreadyExists,
+		},
+		{
+			name:             "email",
+			emailExists:      true,
+			wantErr:          ErrEmailAlreadyExists,
+			wantCheckedEmail: "alice@example.com",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			userRepo := &fakeUserRepository{
+				usernameExists: test.usernameExists,
+				emailExists:    test.emailExists,
+			}
+			hasher := &fakePasswordHasher{}
+			service := NewUserService(
+				userRepo,
+				&fakePostRepository{},
+				&fakeMediaRepository{},
+				&fakeEngagementRepository{},
+				&fakeNotificationRepository{},
+				WithCaptchaVerifier(&fakeCaptchaVerifier{valid: true}),
+				WithPasswordHasher(hasher),
+			)
+
+			_, _, err := service.RegisterUser(context.Background(), RegisterInput{
+				Name: "Alice", Nickname: "AliceHandle", Password: "secret-123",
+				Domain: string(models.CoolVibes), Email: "Alice@Example.COM",
+			})
+			if !errors.Is(err, test.wantErr) {
+				t.Fatalf("RegisterUser() error = %v, want %v", err, test.wantErr)
+			}
+			if userRepo.checkedUsername != "alicehandle" {
+				t.Fatalf("username uniqueness input = %q, want %q", userRepo.checkedUsername, "alicehandle")
+			}
+			if userRepo.checkedEmail != test.wantCheckedEmail {
+				t.Fatalf("email uniqueness input = %q, want %q", userRepo.checkedEmail, test.wantCheckedEmail)
+			}
+			if userRepo.checkedNameOrMail != "" {
+				t.Fatalf("combined identity lookup should not be used, got %q", userRepo.checkedNameOrMail)
+			}
+			if hasher.hashedRaw != "" {
+				t.Fatalf("password should not be hashed after an identity collision, got %q", hasher.hashedRaw)
+			}
+			if userRepo.created != nil {
+				t.Fatal("user should not be persisted after an identity collision")
+			}
+		})
 	}
 }
 
@@ -124,8 +209,9 @@ func TestRegisterUserAppliesNamedReferralCode(t *testing.T) {
 func TestLoginUserVerifiesPasswordAndIssuesToken(t *testing.T) {
 	userID := uuid.New()
 	userRepo := &fakeUserRepository{
-		byUsername: &models.User{ID: userID, PublicID: 55, UserName: "alice", Password: "stored-hash"},
+		byUsername: &models.User{ID: userID, PublicID: 55, UserName: "alice", Password: "stored-hash", UserRole: constants.UserRoleUser},
 	}
+	tokenIssuer := &fakeTokenIssuer{token: "login-token"}
 	service := NewUserService(
 		userRepo,
 		&fakePostRepository{},
@@ -133,7 +219,7 @@ func TestLoginUserVerifiesPasswordAndIssuesToken(t *testing.T) {
 		&fakeEngagementRepository{},
 		&fakeNotificationRepository{},
 		WithPasswordHasher(&fakePasswordHasher{compareOK: true}),
-		WithTokenIssuer(&fakeTokenIssuer{token: "login-token"}),
+		WithTokenIssuer(tokenIssuer),
 	)
 
 	user, token, err := service.LoginUser(context.Background(), LoginInput{UserName: "alice", Password: "secret"})
@@ -146,6 +232,76 @@ func TestLoginUserVerifiesPasswordAndIssuesToken(t *testing.T) {
 	if token != "login-token" {
 		t.Fatalf("expected login token, got %q", token)
 	}
+	if tokenIssuer.userID != userID || tokenIssuer.publicID != 55 {
+		t.Fatalf("token subject changed: internal=%s public=%d", tokenIssuer.userID, tokenIssuer.publicID)
+	}
+}
+
+func TestLoginUserRejectsBotsWithoutClaimingTheirPassword(t *testing.T) {
+	for _, storedPassword := range []string{"", "stored-bot-hash"} {
+		t.Run(storedPassword, func(t *testing.T) {
+			userRepo := &fakeUserRepository{
+				byUsername: &models.User{ID: uuid.New(), PublicID: 55, UserName: "broadcast-bot", Password: storedPassword, UserRole: constants.UserRoleUser, IsBot: true},
+			}
+			hasher := &fakePasswordHasher{compareOK: true}
+			service := NewUserService(
+				userRepo,
+				&fakePostRepository{},
+				&fakeMediaRepository{},
+				&fakeEngagementRepository{},
+				&fakeNotificationRepository{},
+				WithPasswordHasher(hasher),
+				WithTokenIssuer(&fakeTokenIssuer{token: "must-not-be-issued"}),
+			)
+
+			user, token, err := service.LoginUser(context.Background(), LoginInput{UserName: "broadcast-bot", Password: "attacker-selected"})
+			if !errors.Is(err, ErrInvalidCredentials) || user != nil || token != "" {
+				t.Fatalf("LoginUser(bot) = user %#v, token %q, error %v", user, token, err)
+			}
+			if userRepo.updated != nil || hasher.hashedRaw != "" || hasher.comparedRaw != "" {
+				t.Fatalf("bot login mutated or verified credentials: updated=%#v hasher=%#v", userRepo.updated, hasher)
+			}
+		})
+	}
+}
+
+func TestLoginUserRejectsSuspendedAccountRolesBeforePasswordVerification(t *testing.T) {
+	for _, role := range []constants.UserRole{
+		constants.UserRoleBanned,
+		constants.UserRoleDeleted,
+		constants.UserRolePending,
+	} {
+		t.Run(string(role), func(t *testing.T) {
+			userRepo := &fakeUserRepository{
+				byUsername: &models.User{
+					ID: uuid.New(), PublicID: 55, UserName: "suspended-user",
+					Password: "stored-hash", UserRole: role,
+				},
+			}
+			hasher := &fakePasswordHasher{compareOK: true}
+			issuer := &fakeTokenIssuer{token: "must-not-be-issued"}
+			service := NewUserService(
+				userRepo,
+				&fakePostRepository{},
+				&fakeMediaRepository{},
+				&fakeEngagementRepository{},
+				&fakeNotificationRepository{},
+				WithPasswordHasher(hasher),
+				WithTokenIssuer(issuer),
+			)
+
+			user, token, err := service.LoginUser(context.Background(), LoginInput{
+				UserName: "suspended-user",
+				Password: "correct-password",
+			})
+			if !errors.Is(err, ErrInvalidCredentials) || user != nil || token != "" {
+				t.Fatalf("LoginUser(%s) = user %#v, token %q, error %v", role, user, token, err)
+			}
+			if hasher.comparedRaw != "" || issuer.userID != uuid.Nil {
+				t.Fatalf("suspended account reached password/token path: hasher=%#v issuer=%#v", hasher, issuer)
+			}
+		})
+	}
 }
 
 func TestToggleFollowWritesBothSidesAndPublishesEvent(t *testing.T) {
@@ -157,9 +313,7 @@ func TestToggleFollowWritesBothSidesAndPublishesEvent(t *testing.T) {
 			2: {ID: followeeID, PublicID: 2, UserName: "followee"},
 		},
 	}
-	engagementRepo := &fakeEngagementRepository{has: map[models.EngagementKind]bool{
-		models.EngagementKindFollowing: true,
-	}}
+	engagementRepo := &fakeEngagementRepository{}
 	events := &fakeEventPublisher{}
 	service := NewUserService(
 		userRepo,
@@ -177,14 +331,16 @@ func TestToggleFollowWritesBothSidesAndPublishesEvent(t *testing.T) {
 	if !status {
 		t.Fatalf("expected follow status true")
 	}
-	if len(engagementRepo.toggles) != 2 {
-		t.Fatalf("expected two engagement toggles, got %d", len(engagementRepo.toggles))
+	if len(engagementRepo.reciprocalCalls) != 1 {
+		t.Fatalf("expected one atomic reciprocal mutation, got %d", len(engagementRepo.reciprocalCalls))
 	}
-	if engagementRepo.toggles[0].kind != models.EngagementKindFollowing {
-		t.Fatalf("expected following toggle, got %q", engagementRepo.toggles[0].kind)
+	call := engagementRepo.reciprocalCalls[0]
+	if call.actorID != followerID || call.targetID != followeeID {
+		t.Fatalf("unexpected reciprocal mutation IDs: %#v", call)
 	}
-	if engagementRepo.toggles[1].kind != models.EngagementKindFollower {
-		t.Fatalf("expected follower toggle, got %q", engagementRepo.toggles[1].kind)
+	pair, err := call.intent.EngagementPair()
+	if err != nil || pair.Given != domainuser.EngagementFollowing || pair.Received != domainuser.EngagementFollower {
+		t.Fatalf("unexpected follow pair: %+v, %v", pair, err)
 	}
 	if len(events.events) != 1 {
 		t.Fatalf("expected follow event, got %d", len(events.events))

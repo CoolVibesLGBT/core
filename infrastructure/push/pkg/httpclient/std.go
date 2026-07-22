@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,8 +24,12 @@ func StdHttp(client *http.Client) *StdHttpClient {
 	}
 }
 
-func (f *StdHttpClient) RequestDelivery(endpoint string, headers *Headers, body *bytes.Buffer) (int, error) {
-	req, err := http.NewRequest(http.MethodPost, endpoint, body)
+func (f *StdHttpClient) RequestDelivery(ctx context.Context, endpoint string, headers *Headers, body *bytes.Buffer) (int, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, body)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create request: %w", err)
 	}

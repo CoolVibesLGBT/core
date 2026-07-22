@@ -11,8 +11,6 @@ import (
 )
 
 func TestCluster_SearchVector(t *testing.T) {
-	t.Parallel()
-
 	app := NewTestApp(t)
 
 	tx := app.DB.Begin()

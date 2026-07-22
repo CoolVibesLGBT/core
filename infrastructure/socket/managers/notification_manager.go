@@ -3,26 +3,15 @@
 package managers
 
 import (
-	"core/infrastructure/repositories"
-
-	"gorm.io/gorm"
+	"core/application/ports"
 )
 
 type NotificationManager struct {
-	db               *gorm.DB
-	notificationRepo *repositories.NotificationRepository
+	notificationRepo ports.NotificationReadMarker
 }
 
-func NewNotificationManager(db *gorm.DB, notificationRepo *repositories.NotificationRepository) *NotificationManager {
-	return &NotificationManager{db: db, notificationRepo: notificationRepo}
-}
-
-func (m *NotificationManager) DB() *gorm.DB {
-	return m.db
-}
-
-func (m *NotificationManager) NotificationRepository() *repositories.NotificationRepository {
-	return m.notificationRepo
+func NewNotificationManager(notificationRepo ports.NotificationReadMarker) *NotificationManager {
+	return &NotificationManager{notificationRepo: notificationRepo}
 }
 
 func (m *NotificationManager) MarkNotificationAsRead(notificationID string) error {

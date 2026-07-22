@@ -32,15 +32,15 @@ services:
       DB_MAX_IDLE_CONNS: 10
       SITE_URI: https://api.coolvibes.lgbt
       APP_BASE_URL: http://localhost:3001
-      RIG_JWT_SECRET: hzpCaBhUx..CINk2Rklm
-      USER_JWT_SECRET: abda8HxBa74f_.CINk2Rklm
+      RIG_JWT_SECRET: "${RIG_JWT_SECRET:-}"
+      USER_JWT_SECRET: "${USER_JWT_SECRET:?set USER_JWT_SECRET to at least 32 bytes}"
       STREAM_FOLDER: ./.streams
       DEBUG_MODE: "true"
       API_URL: http://localhost:1337
       WSS_URL: http://localhost:3002
       PORT: :3001
       SOCKET_PORT: :3002
-      AUTH_TOKEN: Bareer eyJhbGciOiJIUzI1Ni...
+      AUTH_TOKEN: "${AUTH_TOKEN:-}"
 
     ports:
       - "3001:3001"

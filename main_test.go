@@ -1,10 +1,29 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"reflect"
+	"sync"
 	"testing"
+	"time"
 )
+
+type concurrentShutdownProbe struct {
+	started chan<- struct{}
+	release <-chan struct{}
+	once    sync.Once
+}
+
+func (p *concurrentShutdownProbe) Shutdown(ctx context.Context) error {
+	p.once.Do(func() { p.started <- struct{}{} })
+	select {
+	case <-p.release:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
 
 func TestMaintenanceModesInstallRunsMigrationAndSeed(t *testing.T) {
 	runMigrate, runSeed := maintenanceModes(false, false, true)
@@ -48,5 +67,29 @@ func TestExecuteMaintenanceStopsOnMigrationError(t *testing.T) {
 	}
 	if seedCalled {
 		t.Fatal("seed ran after migration failure")
+	}
+}
+
+func TestShutdownStopsProcessorsConcurrently(t *testing.T) {
+	started := make(chan struct{}, 2)
+	release := make(chan struct{})
+	first := &concurrentShutdownProbe{started: started, release: release}
+	second := &concurrentShutdownProbe{started: started, release: release}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	done := make(chan error, 1)
+	go func() { done <- shutdown(ctx, nil, nil, first, second) }()
+
+	for range 2 {
+		select {
+		case <-started:
+		case <-time.After(250 * time.Millisecond):
+			t.Fatal("shutdown resources were not started concurrently")
+		}
+	}
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("shutdown() error = %v", err)
 	}
 }

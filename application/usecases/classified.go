@@ -2,10 +2,11 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/post"
-	"core/types"
 	"fmt"
 )
 
@@ -38,18 +39,27 @@ func (s *ClassifiedService) CreateClassified(context context.Context, form ports
 	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
 }
 
-func (s *ClassifiedService) GetClassified(filters types.Filter) (*post.Post, error) {
+func (s *ClassifiedService) GetClassified(filters types.Filter) (*types.PublicPost, error) {
 	postData, err := s.listingsRepo.GetClassified(filters)
 	if err != nil {
 		return nil, fmt.Errorf("GetPostByID error: %w", err)
 	}
-	return postData, nil
+	result := legacyviews.ProjectPublicPost(*postData)
+	return &result, nil
 }
 
-func (s *ClassifiedService) GetJobOffers(filters types.Filter) (types.PostsResult, error) {
-	return s.listingsRepo.GetJobOffers(filters)
+func (s *ClassifiedService) GetJobOffers(filters types.Filter) (types.PublicPostPage, error) {
+	result, err := s.listingsRepo.GetJobOffers(filters)
+	if err != nil {
+		return types.PublicPostPage{}, err
+	}
+	return legacyviews.ProjectPublicPostsResult(result), nil
 }
 
-func (s *ClassifiedService) GetJobSearches(filters types.Filter) (types.PostsResult, error) {
-	return s.listingsRepo.GetJobSearches(filters)
+func (s *ClassifiedService) GetJobSearches(filters types.Filter) (types.PublicPostPage, error) {
+	result, err := s.listingsRepo.GetJobSearches(filters)
+	if err != nil {
+		return types.PublicPostPage{}, err
+	}
+	return legacyviews.ProjectPublicPostsResult(result), nil
 }

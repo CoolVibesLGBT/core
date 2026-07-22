@@ -11,11 +11,14 @@ import (
 	"core/models/post"
 	"core/models/taxonomy"
 	"core/models/utils"
+	"encoding/json"
+	"errors"
 	"strings"
 
 	post_payloads "core/models/post/payloads"
 
 	seed "core/seeders"
+	reportkinds "core/seeders/reportkinds"
 
 	"fmt"
 	"log"
@@ -24,7 +27,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -286,6 +292,344 @@ func MigrateIndexes(db *gorm.DB) error {
 		},
 	}
 	indexes = append(indexes, reportIndexDefinitions()...)
+	indexes = append(indexes, discoveryIndexDefinitions()...)
+	indexes = append(indexes, chatPaginationIndexDefinitions()...)
+	indexes = append(indexes, matchIndexDefinitions()...)
+	if err := createIndexDefinitions(db, indexes); err != nil {
+		return err
+	}
+	if err := MigrateEngagementAggregateUniqueness(db); err != nil {
+		return err
+	}
+	if err := MigrateLocationOwnerUniqueness(db); err != nil {
+		return err
+	}
+
+	return MigrateUserIdentityIndexes(db)
+}
+
+// MigrateEngagementAggregateUniqueness makes the polymorphic content owner a
+// database-enforced aggregate identity. Historical duplicates are merged
+// while the tables are locked: details move to the oldest aggregate and known
+// count/amount values are summed before the duplicate rows are removed.
+func MigrateEngagementAggregateUniqueness(db *gorm.DB) error {
+	if db == nil {
+		return fmt.Errorf("migrate engagement aggregate uniqueness: database is nil")
+	}
+	validIndex, err := hasValidEngagementAggregateIndex(db)
+	if err != nil {
+		return err
+	}
+	if validIndex {
+		return nil
+	}
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		// This is an explicit maintenance migration. Lock both tables in the
+		// same order used by writers and block new row lockers before touching
+		// details, otherwise a live tip could form a row/table-lock cycle.
+		if err := tx.Exec("LOCK TABLE engagements, engagement_details IN ACCESS EXCLUSIVE MODE").Error; err != nil {
+			return fmt.Errorf("lock engagement aggregate tables for deduplication: %w", err)
+		}
+		validIndex, err := hasValidEngagementAggregateIndex(tx)
+		if err != nil {
+			return err
+		}
+		if validIndex {
+			return nil
+		}
+
+		type duplicateOwner struct {
+			ContentableID   uuid.UUID
+			ContentableType models.EngagementContentableType
+		}
+		var owners []duplicateOwner
+		if err := tx.Model(&models.Engagement{}).
+			Select("contentable_id, contentable_type").
+			Group("contentable_id, contentable_type").
+			Having("COUNT(*) > 1").
+			Scan(&owners).Error; err != nil {
+			return fmt.Errorf("list duplicate engagement aggregates: %w", err)
+		}
+
+		for _, owner := range owners {
+			var aggregates []models.Engagement
+			if err := tx.
+				Where("contentable_id = ? AND contentable_type = ?", owner.ContentableID, owner.ContentableType).
+				Order("created_at ASC, id ASC").
+				Find(&aggregates).Error; err != nil {
+				return fmt.Errorf("load duplicate engagement aggregates: %w", err)
+			}
+			if len(aggregates) < 2 {
+				continue
+			}
+
+			mergedCounts, err := mergeEngagementAggregateCounts(aggregates)
+			if err != nil {
+				return fmt.Errorf("merge engagement counts for %s/%s: %w", owner.ContentableType, owner.ContentableID, err)
+			}
+			canonicalID := aggregates[0].ID
+			duplicateIDs := make([]uuid.UUID, 0, len(aggregates)-1)
+			for _, aggregate := range aggregates[1:] {
+				duplicateIDs = append(duplicateIDs, aggregate.ID)
+			}
+
+			if err := tx.Model(&models.EngagementDetail{}).
+				Where("engagement_id IN ?", duplicateIDs).
+				Update("engagement_id", canonicalID).Error; err != nil {
+				return fmt.Errorf("move duplicate engagement details: %w", err)
+			}
+			if err := tx.Model(&models.Engagement{}).
+				Where("id = ?", canonicalID).
+				Updates(map[string]interface{}{
+					"counts":     datatypes.JSON(mergedCounts),
+					"updated_at": time.Now().UTC(),
+				}).Error; err != nil {
+				return fmt.Errorf("update canonical engagement counts: %w", err)
+			}
+			if err := tx.Delete(&models.Engagement{}, "id IN ?", duplicateIDs).Error; err != nil {
+				return fmt.Errorf("delete duplicate engagement aggregates: %w", err)
+			}
+		}
+
+		if err := tx.Exec("DROP INDEX IF EXISTS uidx_engagements_contentable").Error; err != nil {
+			return fmt.Errorf("drop malformed engagement aggregate index: %w", err)
+		}
+		return createIndexDefinitions(tx, engagementAggregateIndexDefinitions())
+	})
+}
+
+func hasValidEngagementAggregateIndex(db *gorm.DB) (bool, error) {
+	var definition string
+	result := db.Raw(`
+		SELECT indexdef
+		FROM pg_indexes
+		WHERE schemaname = current_schema()
+		  AND tablename = 'engagements'
+		  AND indexname = 'uidx_engagements_contentable'
+	`).Scan(&definition)
+	if result.Error != nil {
+		return false, fmt.Errorf("inspect engagement aggregate index: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return false, nil
+	}
+	normalized := strings.ToLower(strings.Join(strings.Fields(strings.ReplaceAll(definition, `"`, "")), " "))
+	return strings.HasPrefix(normalized, "create unique index uidx_engagements_contentable ") &&
+		strings.Contains(normalized, "(contentable_type, contentable_id)") &&
+		!strings.Contains(normalized, " where "), nil
+}
+
+func engagementAggregateIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		{
+			Name:    "uidx_engagements_contentable",
+			Table:   "engagements",
+			Using:   "btree",
+			Columns: []string{"contentable_type", "contentable_id"},
+			Unique:  true,
+		},
+	}
+}
+
+func mergeEngagementAggregateCounts(aggregates []models.Engagement) ([]byte, error) {
+	knownCounts := make(map[string]bool)
+	knownAmounts := make(map[string]bool)
+	for _, keys := range models.EngagementCountKeys {
+		knownCounts[keys.CountKey] = true
+		if keys.AmountKey != "" {
+			knownAmounts[keys.AmountKey] = true
+		}
+	}
+
+	totals := make(map[string]decimal.Decimal)
+	seenKnown := make(map[string]bool)
+	unknown := make(map[string]json.RawMessage)
+	for _, aggregate := range aggregates {
+		if len(aggregate.Counts) == 0 || string(aggregate.Counts) == "null" {
+			continue
+		}
+		var values map[string]json.RawMessage
+		if err := json.Unmarshal(aggregate.Counts, &values); err != nil {
+			return nil, err
+		}
+		for key, raw := range values {
+			if !knownCounts[key] && !knownAmounts[key] {
+				if _, exists := unknown[key]; !exists {
+					unknown[key] = append(json.RawMessage(nil), raw...)
+				}
+				continue
+			}
+			value, err := engagementJSONDecimal(raw)
+			if err != nil {
+				return nil, fmt.Errorf("invalid %s value: %w", key, err)
+			}
+			if value.IsNegative() {
+				return nil, fmt.Errorf("invalid negative %s value", key)
+			}
+			totals[key] = totals[key].Add(value)
+			seenKnown[key] = true
+		}
+	}
+
+	result := make(map[string]interface{}, len(unknown)+len(seenKnown))
+	for key, raw := range unknown {
+		var value interface{}
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return nil, err
+		}
+		result[key] = value
+	}
+	for key := range seenKnown {
+		value := totals[key]
+		if knownAmounts[key] {
+			result[key] = value.String()
+			continue
+		}
+		if !value.Equal(value.Truncate(0)) || value.IsNegative() {
+			return nil, fmt.Errorf("count %s is not a non-negative integer", key)
+		}
+		parsed, err := strconv.ParseInt(value.StringFixed(0), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		result[key] = parsed
+	}
+	return json.Marshal(result)
+}
+
+func engagementJSONDecimal(raw json.RawMessage) (decimal.Decimal, error) {
+	text := strings.TrimSpace(string(raw))
+	if text == "" || text == "null" {
+		return decimal.Zero, nil
+	}
+	if strings.HasPrefix(text, "\"") {
+		if err := json.Unmarshal(raw, &text); err != nil {
+			return decimal.Zero, err
+		}
+	}
+	if len(text) > 128 {
+		return decimal.Zero, errors.New("numeric JSON value is too long")
+	}
+	if strings.ContainsAny(text, "eE") {
+		return decimal.Zero, errors.New("scientific notation is not supported in aggregate counts")
+	}
+	return decimal.NewFromString(text)
+}
+
+// MigrateLocationOwnerUniqueness makes the polymorphic owner the identity of
+// an active location. The table lock closes the write window between cleaning
+// historical duplicates and installing the partial unique index. Older rows
+// are soft-deleted so no location data is irreversibly discarded.
+func MigrateLocationOwnerUniqueness(db *gorm.DB) error {
+	if db == nil {
+		return fmt.Errorf("migrate location owner uniqueness: database is nil")
+	}
+	if db.Migrator().HasIndex(&utils.Location{}, "uidx_locations_active_owner") {
+		return nil
+	}
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("LOCK TABLE locations IN SHARE ROW EXCLUSIVE MODE").Error; err != nil {
+			return fmt.Errorf("lock locations for owner deduplication: %w", err)
+		}
+		if err := tx.Exec(`
+			WITH ranked_locations AS (
+				SELECT id,
+					ROW_NUMBER() OVER (
+						PARTITION BY contentable_type, contentable_id
+						ORDER BY updated_at DESC NULLS LAST,
+							created_at DESC NULLS LAST,
+							id DESC
+					) AS owner_rank
+				FROM locations
+				WHERE deleted_at IS NULL
+			)
+			UPDATE locations AS location
+			SET deleted_at = NOW(), updated_at = NOW()
+			FROM ranked_locations
+			WHERE location.id = ranked_locations.id
+			  AND ranked_locations.owner_rank > 1
+		`).Error; err != nil {
+			return fmt.Errorf("deduplicate active location owners: %w", err)
+		}
+
+		return createIndexDefinitions(tx, locationOwnerIndexDefinitions())
+	})
+}
+
+func locationOwnerIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		{
+			Name:      "uidx_locations_active_owner",
+			Table:     "locations",
+			Using:     "btree",
+			Columns:   []string{"contentable_type", "contentable_id"},
+			Condition: "deleted_at IS NULL",
+			Unique:    true,
+		},
+	}
+}
+
+// discoveryIndexDefinitions support keyset/KNN discovery without sorting the
+// complete users or locations tables. The spatial index is deliberately
+// shared by user and place discovery because location is polymorphic.
+func discoveryIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		{
+			Name:      "idx_locations_active_point_gist",
+			Table:     "locations",
+			Using:     "gist",
+			Columns:   []string{"location_point"},
+			Condition: "deleted_at IS NULL AND location_point IS NOT NULL",
+		},
+		{
+			Name:      "idx_users_active_domain_public_id",
+			Table:     "users",
+			Using:     "btree",
+			Columns:   []string{"domain", "public_id"},
+			Condition: "deleted_at IS NULL",
+		},
+	}
+}
+
+func MigrateUserIdentityIndexes(db *gorm.DB) error {
+	if db == nil {
+		return fmt.Errorf("migrate user identity indexes: database is nil")
+	}
+
+	// Build both constraints as one atomic migration. A duplicate in either
+	// identity field rolls the whole migration back instead of leaving only one
+	// of the two uniqueness guarantees installed.
+	return db.Transaction(func(tx *gorm.DB) error {
+		return createIndexDefinitions(tx, userIdentityIndexDefinitions())
+	})
+}
+
+func userIdentityIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		{
+			Name:      "uidx_users_active_user_name_ci",
+			Table:     "users",
+			Using:     "btree",
+			Columns:   []string{"LOWER(user_name)"},
+			Condition: "deleted_at IS NULL",
+			Unique:    true,
+		},
+		{
+			Name:    "uidx_users_active_email_ci",
+			Table:   "users",
+			Using:   "btree",
+			Columns: []string{"LOWER(email)"},
+			// Email is optional; blank values are not identities and therefore
+			// must not prevent multiple email-less active accounts.
+			Condition: "deleted_at IS NULL AND NULLIF(BTRIM(email), '') IS NOT NULL",
+			Unique:    true,
+		},
+	}
+}
+
+func createIndexDefinitions(db *gorm.DB, indexes []IndexDefinition) error {
 
 	for _, idx := range indexes {
 		createIndex := "CREATE INDEX IF NOT EXISTS"
@@ -312,7 +656,7 @@ func MigrateIndexes(db *gorm.DB) error {
 		}())
 
 		if err := db.Exec(query).Error; err != nil {
-			return err
+			return fmt.Errorf("create index %s: %w", idx.Name, err)
 		}
 	}
 
@@ -358,6 +702,57 @@ func MigrateLegacyChatMediaOwnership(db *gorm.DB) error {
 	`).Error
 }
 
+// MigrateProtectedMediaVisibility repairs rows created by older media writers
+// whose ORM default could override an explicit false IsPublic value, then
+// enforces the invariant at the database boundary for every protected role.
+func MigrateProtectedMediaVisibility(db *gorm.DB) error {
+	if db == nil {
+		return errors.New("migrate protected media visibility: database is nil")
+	}
+	protectedRoles := []media.MediaRole{
+		media.RolePrivatePhoto,
+		media.RoleChatImage,
+		media.RoleChatMedia,
+		media.RoleChatVideo,
+	}
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&media.Media{}).
+			Where("role IN ? AND is_public IS DISTINCT FROM FALSE", protectedRoles).
+			UpdateColumn("is_public", false).Error; err != nil {
+			return err
+		}
+		if tx.Name() != "postgres" {
+			return nil
+		}
+		if err := tx.Exec("UPDATE medias SET is_public = FALSE WHERE is_public IS NULL").Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("ALTER TABLE medias ALTER COLUMN is_public SET DEFAULT FALSE").Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("ALTER TABLE medias ALTER COLUMN is_public SET NOT NULL").Error; err != nil {
+			return err
+		}
+		if err := tx.Exec(`
+			DO $$
+			BEGIN
+				IF NOT EXISTS (
+					SELECT 1 FROM pg_constraint
+					WHERE conname = 'chk_medias_protected_visibility'
+					  AND conrelid = 'medias'::regclass
+				) THEN
+					ALTER TABLE medias ADD CONSTRAINT chk_medias_protected_visibility
+					CHECK (role NOT IN ('private_photo', 'chat_image', 'chat_media', 'chat_video') OR is_public = FALSE)
+					NOT VALID;
+				END IF;
+			END $$;
+		`).Error; err != nil {
+			return err
+		}
+		return tx.Exec("ALTER TABLE medias VALIDATE CONSTRAINT chk_medias_protected_visibility").Error
+	})
+}
+
 func Migrate(db *gorm.DB) error {
 	fmt.Println("Migration:Begin")
 	//db.Logger = db.Logger.LogMode(logger.Silent)
@@ -370,6 +765,14 @@ func Migrate(db *gorm.DB) error {
 
 	if err := EnableExtensions(context.Background(), db, extensions); err != nil {
 		return err
+	}
+	// Existing installations may still have the legacy nullable/default-true
+	// visibility column. Repair it before AutoMigrate tightens the model to
+	// NOT NULL so old NULL rows cannot make the schema migration fail.
+	if db.Migrator().HasTable(&media.Media{}) {
+		if err := MigrateProtectedMediaVisibility(db); err != nil {
+			return err
+		}
 	}
 
 	err := db.AutoMigrate(
@@ -397,6 +800,7 @@ func Migrate(db *gorm.DB) error {
 		&models.Preferences{},
 
 		&models.User{},
+		&models.PrivatePhotoAccessRequest{},
 		&models.Wallet{},
 
 		&models.Mention{},
@@ -421,7 +825,16 @@ func Migrate(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	return MigrateLegacyChatMediaOwnership(db)
+	if err := MigrateLegacyChatMediaOwnership(db); err != nil {
+		return err
+	}
+	if err := MigrateProtectedMediaVisibility(db); err != nil {
+		return err
+	}
+	// Report kinds are required reference data, not optional demo content.
+	// Keeping them in the migration path makes post/user reporting usable even
+	// on deployments that intentionally run -migrate without the full seeder.
+	return reportkinds.SeedReportKinds(db)
 }
 
 func Seed(db *gorm.DB, node *helpers.Node) error {

@@ -13,22 +13,23 @@ import (
 )
 
 const (
-	NotificationTypeChatMessage   = "chat_message"   // Yeni mesaj bildirimi
-	NotificationTypeNewMatch      = "new_match"      // Yeni eşleşme bildirimi
-	NotificationTypeProfileVisit  = "profile_visit"  // Profil ziyareti bildirimi
-	NotificationTypeFriendRequest = "friend_request" // Arkadaşlık isteği (isteğe bağlı)
-	NotificationTypeEventReminder = "event_reminder" // Etkinlik hatırlatıcısı
-	NotificationTypeSystemAlert   = "system_alert"   // Sistem uyarısı veya güncelleme
-	NotificationTypeLike          = "like"           // Profil beğenisi bildirimi
-	NotificationTypeComment       = "comment"        // Post yorum bildirimi
-	NotificationTypeGiftReceived  = "gift"           // Profil beğenisi bildirimi
-	NotificationTypeFollow        = "follow"         // Takip bildirimi (eğer varsa)
-	NotificationTypeUnFollow      = "unfollow"       // Takip birakma bildirimi (eğer varsa)
-	NotificationTypeSuperLike     = "super_like"     // Özel beğeni bildirimi (örn. Tinder’daki gibi)
-	NotificationTypeMessageRead   = "message_read"   // Mesaj okundu bildirimi
-	NotificationTypeMatchUnmatch  = "match_unmatch"  // Eşleşme iptali bildirimi
-	NotificationTypeReferral      = "referral"       // Profil beğenisi bildirimi
-
+	NotificationTypeChatMessage                = "chat_message"   // Yeni mesaj bildirimi
+	NotificationTypeNewMatch                   = "new_match"      // Yeni eşleşme bildirimi
+	NotificationTypeProfileVisit               = "profile_visit"  // Profil ziyareti bildirimi
+	NotificationTypeFriendRequest              = "friend_request" // Arkadaşlık isteği (isteğe bağlı)
+	NotificationTypeEventReminder              = "event_reminder" // Etkinlik hatırlatıcısı
+	NotificationTypeSystemAlert                = "system_alert"   // Sistem uyarısı veya güncelleme
+	NotificationTypeLike                       = "like"           // Profil beğenisi bildirimi
+	NotificationTypeComment                    = "comment"        // Post yorum bildirimi
+	NotificationTypeGiftReceived               = "gift"           // Profil beğenisi bildirimi
+	NotificationTypeFollow                     = "follow"         // Takip bildirimi (eğer varsa)
+	NotificationTypeUnFollow                   = "unfollow"       // Takip birakma bildirimi (eğer varsa)
+	NotificationTypeSuperLike                  = "super_like"     // Özel beğeni bildirimi (örn. Tinder’daki gibi)
+	NotificationTypeMessageRead                = "message_read"   // Mesaj okundu bildirimi
+	NotificationTypeMatchUnmatch               = "match_unmatch"  // Eşleşme iptali bildirimi
+	NotificationTypeReferral                   = "referral"       // Profil beğenisi bildirimi
+	NotificationTypePrivatePhotoAccessRequest  = "private_photo_access_request"
+	NotificationTypePrivatePhotoAccessResponse = "private_photo_access_response"
 )
 
 type Notification struct {

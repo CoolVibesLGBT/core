@@ -1,8 +1,8 @@
 package news
 
 import (
+	"context"
 	"core/helpers"
-	"core/infrastructure/bootstrap"
 	"core/workers"
 	"encoding/json"
 	"fmt"
@@ -301,7 +301,10 @@ func extractSubAndDomainWithoutTLD(rawurl string) (string, error) {
 	return hostWithoutTLD, nil
 }
 
-func processFeedItem(item *gofeed.Item, app *bootstrap.App) error {
+func processFeedItem(ctx context.Context, item *gofeed.Item, dependencies Dependencies) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	// Burada senin extractArticle vb. işlemler olabilir.
 	fmt.Printf("Processing: %s - %s\n", item.Title, item.Link)
 
@@ -403,23 +406,22 @@ func processFeedItem(item *gofeed.Item, app *bootstrap.App) error {
 	}
 
 	helpers.Println("Kayit Ediliyor : %s", articleContent.Title)
-	post, err := CreateNew(articleContent, app)
+	post, err := CreateNewContext(ctx, articleContent, dependencies)
 	if err != nil {
 		helpers.Error("CreateNew : %s", err.Error())
 		return err
 	}
 
-	telegramErr := app.Router.TelegramService.SendNews(post)
-	if telegramErr != nil {
-		fmt.Println("TELEGRAM ERROR", telegramErr)
-		helpers.Error("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
-		return err
+	if post != nil && dependencies.Notifier != nil {
+		if telegramErr := dependencies.Notifier.SendNews(post); telegramErr != nil {
+			helpers.Error("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
+		}
 	}
 
 	return nil
 }
 
-func processFeedsRoundRobin(feedFiles []string, app *bootstrap.App) error {
+func processFeedsRoundRobin(ctx context.Context, feedFiles []string, dependencies Dependencies) error {
 	// feedMap: key: feed dosyası, value: feed içindeki item listesi
 	feedMap := make(map[string][]*gofeed.Item)
 	maxLen := 0
@@ -448,12 +450,15 @@ func processFeedsRoundRobin(feedFiles []string, app *bootstrap.App) error {
 
 	for i := 0; i < maxLen; i++ {
 		for file, items := range feedMap {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if i < len(items) {
 				item := items[i]
 
 				fmt.Printf("Processing feed file %s, item %d: %s\n", file, i, item.Title)
 
-				err := processFeedItem(item, app)
+				err := processFeedItem(ctx, item, dependencies)
 				if err != nil {
 					fmt.Printf("Error processing item %d from %s: %v\n", i, file, err)
 					continue
@@ -477,7 +482,17 @@ func processFeedsRoundRobin(feedFiles []string, app *bootstrap.App) error {
 	return nil
 }
 
-func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *bootstrap.App) error {
+func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, dependencies Dependencies) error {
+	return FetchAllFeedsSequentiallyAndProcessContext(context.Background(), dispatcher, dependencies)
+}
+
+func FetchAllFeedsSequentiallyAndProcessContext(ctx context.Context, dispatcher *workers.Dispatcher, dependencies Dependencies) error {
+	if err := dependencies.validate(); err != nil {
+		return err
+	}
+	if dispatcher == nil {
+		return fmt.Errorf("news worker dispatcher is required")
+	}
 
 	sources := DefaultRSSSources
 	feedFiles := make([]string, 0, len(sources))
@@ -494,6 +509,9 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *bo
 		s.ID = helpers.MD5Hash(fullId)
 		dispatcher.Submit(func() {
 			defer wg.Done()
+			if ctx.Err() != nil {
+				return
+			}
 			fmt.Printf("Fetching feed: %s\n", s.Name)
 			filepath, err := fetchAndSaveRSS(s)
 			mu.Lock()
@@ -509,8 +527,11 @@ func FetchAllFeedsSequentiallyAndProcess(dispatcher *workers.Dispatcher, app *bo
 
 	}
 	wg.Wait()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
 	fmt.Println("FEEDS COUNT", len(feedFiles))
 
-	return processFeedsRoundRobin(feedFiles, app)
+	return processFeedsRoundRobin(ctx, feedFiles, dependencies)
 }

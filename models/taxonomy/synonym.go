@@ -1,7 +1,7 @@
 package taxonomy
 
 import (
-	"core/helpers"
+	domaintaxonomy "core/domain/taxonomy"
 	models "core/models"
 	"core/models/utils"
 	"time"
@@ -25,7 +25,7 @@ func (s *Synonym) BeforeCreate(tx *gorm.DB) error {
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
 	}
-	s.Slug = helpers.GenerateSlug(s.Slug)
+	s.Slug = domaintaxonomy.NormalizeSlug(s.Slug)
 	if s.SearchWeight <= 0 {
 		s.SearchWeight = 1
 	}
@@ -33,7 +33,7 @@ func (s *Synonym) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (s *Synonym) BeforeSave(tx *gorm.DB) error {
-	s.Slug = helpers.GenerateSlug(s.Slug)
+	s.Slug = domaintaxonomy.NormalizeSlug(s.Slug)
 	if s.SearchWeight <= 0 {
 		s.SearchWeight = 1
 	}

@@ -2,11 +2,12 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/post"
 	"core/models/taxonomy"
-	"core/types"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -49,8 +50,12 @@ func (s *NewsService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return postData, nil
 }
 
-func (s *NewsService) GetNews(filters types.Filter) (types.PostsResult, error) {
-	return s.newsRepo.GetNews(filters)
+func (s *NewsService) GetNews(filters types.Filter) (types.PublicPostPage, error) {
+	result, err := s.newsRepo.GetNews(filters)
+	if err != nil {
+		return types.PublicPostPage{}, err
+	}
+	return legacyviews.ProjectPublicPostsResult(result), nil
 }
 
 func (s *NewsService) Get(filters types.Filter) (*post.Post, error) {

@@ -1,23 +1,28 @@
 package repositories
 
 import (
-	"core/helpers"
-	"core/models"
-	"core/models/notifications"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
+	"core/application/ports"
+	"core/helpers"
 	push "core/infrastructure/push"
+	"core/models"
+	"core/models/notifications"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type NotificationRepository struct {
-	db            *gorm.DB
-	snowFlakeNode *helpers.Node
+	db               *gorm.DB
+	snowFlakeNode    *helpers.Node
+	newWebPushSender webPushSenderFactory
 }
 
 func (r *NotificationRepository) DB() *gorm.DB {
@@ -29,7 +34,108 @@ func (r *NotificationRepository) Node() *helpers.Node {
 }
 
 func NewNotificationRepository(db *gorm.DB, snowFlakeNode *helpers.Node) *NotificationRepository {
-	return &NotificationRepository{db: db, snowFlakeNode: snowFlakeNode}
+	return &NotificationRepository{
+		db:               db,
+		snowFlakeNode:    snowFlakeNode,
+		newWebPushSender: defaultWebPushSenderFactory,
+	}
+}
+
+func (r *NotificationRepository) NotifyPrivatePhotoAccessRequested(ctx context.Context, owner, viewer ports.PrivatePhotoUser, request ports.PrivatePhotoAccessRecord) error {
+	sender, receiver, err := r.privatePhotoNotificationUsers(ctx, viewer.ID, owner.ID)
+	if err != nil {
+		return err
+	}
+	title := "Private photo request"
+	body := "@" + viewer.UserName + " requested access to your private photos."
+	payload := notifications.NotificationPayload{
+		Title: title,
+		Body:  body,
+		Data: map[string]any{
+			"request_id":    fmt.Sprint(request.PublicID),
+			"owner_id":      fmt.Sprint(owner.PublicID),
+			"viewer_id":     fmt.Sprint(viewer.PublicID),
+			"status":        request.Status,
+			"access_status": request.Status,
+		},
+	}
+	return r.SendNotificationToUser(sender, receiver, notifications.NotificationTypePrivatePhotoAccessRequest, title, body, payload)
+}
+
+func (r *NotificationRepository) NotifyPrivatePhotoAccessResponded(ctx context.Context, owner, viewer ports.PrivatePhotoUser, request ports.PrivatePhotoAccessRecord) error {
+	sender, receiver, err := r.privatePhotoNotificationUsers(ctx, owner.ID, viewer.ID)
+	if err != nil {
+		return err
+	}
+	title := "Private photo request updated"
+	body := "@" + owner.UserName + " " + string(request.Status) + " your private photo request."
+	payload := notifications.NotificationPayload{
+		Title: title,
+		Body:  body,
+		Data: map[string]any{
+			"request_id":    fmt.Sprint(request.PublicID),
+			"owner_id":      fmt.Sprint(owner.PublicID),
+			"viewer_id":     fmt.Sprint(viewer.PublicID),
+			"status":        request.Status,
+			"access_status": request.Status,
+		},
+	}
+	updateErr := r.resolvePrivatePhotoRequestNotification(ctx, owner.ID, request)
+	sendErr := r.SendNotificationToUser(sender, receiver, notifications.NotificationTypePrivatePhotoAccessResponse, title, body, payload)
+	return errors.Join(updateErr, sendErr)
+}
+
+func (r *NotificationRepository) resolvePrivatePhotoRequestNotification(ctx context.Context, ownerID uuid.UUID, request ports.PrivatePhotoAccessRecord) error {
+	var items []notifications.Notification
+	if err := r.db.WithContext(ctx).
+		Where("user_id = ? AND type = ?", ownerID, notifications.NotificationTypePrivatePhotoAccessRequest).
+		Order("created_at DESC").
+		Find(&items).Error; err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	for _, item := range items {
+		data, ok := item.Payload.Data.(map[string]any)
+		if !ok || fmt.Sprint(data["request_id"]) != fmt.Sprint(request.PublicID) {
+			continue
+		}
+		if fmt.Sprint(data["status"]) != "pending" && fmt.Sprint(data["access_status"]) != "pending" {
+			continue
+		}
+		data["status"] = request.Status
+		data["access_status"] = request.Status
+		payload := item.Payload
+		payload.Data = data
+		return r.db.WithContext(ctx).Model(&notifications.Notification{}).
+			Where("id = ?", item.ID).
+			Updates(map[string]any{
+				"payload": payload,
+				"is_read": true,
+				"read_at": now,
+			}).Error
+	}
+	return nil
+}
+
+func (r *NotificationRepository) privatePhotoNotificationUsers(ctx context.Context, senderID, receiverID uuid.UUID) (models.User, models.User, error) {
+	var users []models.User
+	if err := r.db.WithContext(ctx).Where("id IN ?", []uuid.UUID{senderID, receiverID}).Find(&users).Error; err != nil {
+		return models.User{}, models.User{}, err
+	}
+	var sender, receiver models.User
+	for _, user := range users {
+		switch user.ID {
+		case senderID:
+			sender = user
+		case receiverID:
+			receiver = user
+		}
+	}
+	if sender.ID == uuid.Nil || receiver.ID == uuid.Nil {
+		return models.User{}, models.User{}, ports.ErrNotFound
+	}
+	return sender, receiver, nil
 }
 
 func (r *NotificationRepository) GetAllSubscriptions() ([]models.Subscription, error) {
@@ -73,12 +179,10 @@ func (r *NotificationRepository) CreateNotification(senderUser uuid.UUID, receiv
 
 func (r *NotificationRepository) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
 
-	notification, err := r.CreateNotification(sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
+	_, err := r.CreateNotification(sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
 	if err != nil {
 		return fmt.Errorf("notification cannot be saved: %w", err)
 	}
-
-	fmt.Println(notification.ID)
 
 	var subscriptions []models.Subscription
 	if len(receiver.Subscriptions) == 0 {
@@ -99,34 +203,41 @@ func (r *NotificationRepository) SendNotificationToUser(sender models.User, rece
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	vapidKeyInfo, err := helpers.CreateVapidKeys(r.db)
+	deliveryCtx, cancelDelivery := context.WithTimeout(context.Background(), notificationPushBatchTimeout)
+	defer cancelDelivery()
+
+	vapidKeyInfo, err := helpers.CreateVapidKeys(r.db.WithContext(deliveryCtx))
 	if err != nil {
 		return fmt.Errorf("failed to get vapid key: %w", err)
 	}
-	fmt.Println("VAPID KEY", vapidKeyInfo.PrivateKey)
-	fmt.Println("VAPID KEY", vapidKeyInfo.PublicKey)
+	opts := push.NewOptions().
+		ApplyKeys(vapidKeyInfo.PublicKey, vapidKeyInfo.PrivateKey).
+		SetDeliveryTimeout(push.DefaultDeliveryTimeout)
 
-	opts := push.NewOptions().ApplyKeys(vapidKeyInfo.PublicKey, vapidKeyInfo.PrivateKey)
-
-	pb, err := push.NewService(opts)
+	newSender := r.newWebPushSender
+	if newSender == nil {
+		newSender = defaultWebPushSenderFactory
+	}
+	pb, err := newSender(opts)
 	if err != nil {
 		return fmt.Errorf("failed to create push service: %w", err)
 	}
 
-	// Her subscription için push notification gönder
-	for _, sub := range subscriptions {
-
-		err = pb.Send(&push.Push{
-			Endpoint:  sub.Endpoint,
-			Auth:      sub.Keys.Auth,
-			P256DH:    sub.Keys.P256dh,
-			Plaintext: payloadBytes,
-		})
-
-		if err != nil {
-			fmt.Println("Error", err)
-		}
-
+	attempted, failed := deliverWebPushBatch(
+		deliveryCtx,
+		pb,
+		subscriptions,
+		payloadBytes,
+		notificationPushMaxConcurrent,
+	)
+	if failed > 0 || attempted < len(subscriptions) {
+		log.Printf(
+			"[Notification] push delivery incomplete: attempted=%d total=%d failed=%d deadline_exceeded=%t",
+			attempted,
+			len(subscriptions),
+			failed,
+			errors.Is(deliveryCtx.Err(), context.DeadlineExceeded),
+		)
 	}
 
 	return nil

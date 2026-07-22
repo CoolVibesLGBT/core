@@ -17,8 +17,8 @@ type Media struct {
 	OwnerID             uuid.UUID        `gorm:"type:uuid;not null" json:"owner_id"` // Kullanıcı, post, blog, chat ID
 	OwnerType           OwnerType        `gorm:"type:varchar(20);not null" json:"owner_type"`
 	UserID              uuid.UUID        `gorm:"type:uuid;not null;index" json:"user_id"`
-	Role                MediaRole        `gorm:"type:varchar(20);not null" json:"role"` // profile, cover, post, chat_image...
-	IsPublic            bool             `gorm:"default:true" json:"is_public"`         // Herkes görebilir mi?
+	Role                MediaRole        `gorm:"type:varchar(20);not null" json:"role"`   // profile, cover, post, chat_image...
+	IsPublic            bool             `gorm:"not null;default:false" json:"is_public"` // Herkes görebilir mi?
 	ProcessingStatus    ProcessingStatus `gorm:"type:varchar(20);not null;default:'ready';index:idx_medias_processing_status_created_at,priority:1" json:"processing_status"`
 	ProcessingError     *string          `gorm:"type:text" json:"processing_error,omitempty"`
 	ProcessingAttempts  int              `gorm:"not null;default:0" json:"processing_attempts"`

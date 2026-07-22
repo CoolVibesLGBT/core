@@ -6,14 +6,15 @@ import "strings"
 // an uploaded file may be served. Authentication and persistence stay outside
 // the domain.
 type FileAccessPolicy struct {
-	MediaPublic      bool
-	AttachedToPost   bool
-	PostPublished    bool
-	Audience         string
-	ChatMedia        bool
-	PrivilegedViewer bool
-	OwnerViewer      bool
-	ChatParticipant  bool
+	MediaPublic       bool
+	AttachedToPost    bool
+	PostPublished     bool
+	Audience          string
+	ChatMedia         bool
+	PrivilegedViewer  bool
+	OwnerViewer       bool
+	ChatParticipant   bool
+	PrivatePhotoGrant bool
 }
 
 func (p FileAccessPolicy) PubliclyAccessible() bool {
@@ -31,5 +32,5 @@ func (p FileAccessPolicy) PubliclyAccessible() bool {
 }
 
 func (p FileAccessPolicy) Accessible() bool {
-	return p.PubliclyAccessible() || p.PrivilegedViewer || p.OwnerViewer || (p.ChatMedia && p.ChatParticipant)
+	return p.PubliclyAccessible() || p.PrivilegedViewer || p.OwnerViewer || p.PrivatePhotoGrant || (p.ChatMedia && p.ChatParticipant)
 }

@@ -3,12 +3,10 @@ package news
 import (
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/constants"
 	"core/helpers"
-	"core/infrastructure/bootstrap"
-	infraMedia "core/infrastructure/media"
 	"core/models/post"
-	"core/types"
 	"core/utils"
 	"encoding/json"
 	"fmt"
@@ -93,13 +91,23 @@ func ArticleToNewsRequest(article *ArticleResult) (map[string][]string, error) {
 	}, nil
 }
 
-func CreateNew(article *ArticleResult, app *bootstrap.App) (*post.Post, error) {
+func CreateNew(article *ArticleResult, dependencies Dependencies) (*post.Post, error) {
+	return CreateNewContext(context.Background(), article, dependencies)
+}
+
+func CreateNewContext(ctx context.Context, article *ArticleResult, dependencies Dependencies) (*post.Post, error) {
+	if err := dependencies.validate(); err != nil {
+		return nil, err
+	}
+	if article == nil {
+		return nil, fmt.Errorf("article is required")
+	}
 	request, err := ArticleToNewsRequest(article)
 	if err != nil {
 		return nil, err
 	}
 
-	authUser, err := app.Router.UserService.FetchUserProfileByUsername(constants.SystemUserNews)
+	authUser, err := dependencies.Users.FetchUserProfileByUsername(constants.SystemUserNews)
 	if err != nil {
 		helpers.Error("PLACES:AuthUserNotFound", err)
 		return nil, err
@@ -109,20 +117,20 @@ func CreateNew(article *ArticleResult, app *bootstrap.App) (*post.Post, error) {
 		helpers.Println("Image", img)
 	}
 
-	files, err := utils.FilesFromDisk(article.LocalImages)
+	files, err := newDiskUploadedFiles(article.LocalImages)
 	if err != nil {
 		fmt.Println("FilesFromDisk", err)
 		return nil, err
 	}
 
 	for _, file := range files {
-		fmt.Println("FileName:", file.Filename)
+		fmt.Println("FileName:", file.Filename())
 	}
 
 	fmt.Println("ImageLen", len(article.LocalImages), "FILELEN", len(files))
 
 	filters := types.Filter{Search: &article.Slug, PostKind: post.PostKindNews}
-	isExists, err := app.Router.NewsService.IsNewsExists(filters)
+	isExists, err := dependencies.News.IsNewsExists(filters)
 	if err != nil {
 		helpers.Println("CheckExistsError", err.Error())
 		return nil, err
@@ -135,9 +143,9 @@ func CreateNew(article *ArticleResult, app *bootstrap.App) (*post.Post, error) {
 
 	request["extras[source]"] = []string{string(articleJSON)}
 	if !isExists {
-		return app.Router.NewsService.CreateNews(context.Background(), ports.FormData{
+		return dependencies.News.CreateNews(ctx, ports.FormData{
 			Values: request,
-			Files:  infraMedia.NewMultipartUploadedFiles(files),
+			Files:  files,
 		}, authUser)
 	} else {
 		helpers.Println("AlreadyExists: %s", *filters.Search)

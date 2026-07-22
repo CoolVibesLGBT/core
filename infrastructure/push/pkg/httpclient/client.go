@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"bytes"
+	"context"
 	"time"
 )
 
@@ -12,5 +13,5 @@ type Headers struct {
 }
 
 type Client interface {
-	RequestDelivery(endpoint string, headers *Headers, body *bytes.Buffer) (int, error)
+	RequestDelivery(ctx context.Context, endpoint string, headers *Headers, body *bytes.Buffer) (int, error)
 }

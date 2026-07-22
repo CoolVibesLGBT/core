@@ -3,12 +3,11 @@ package usecases
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 
 	"core/application/ports"
-	"core/constants"
-	"core/models"
-	"core/models/post"
+	domainmoderation "core/domain/moderation"
 
 	"github.com/google/uuid"
 )
@@ -29,36 +28,40 @@ func (r *fakeModerationRepository) FetchReports(ctx context.Context, filter port
 	return ports.ModerationReportPage{Limit: filter.Limit}, nil
 }
 
-func (r *fakeModerationRepository) ResolveReport(ctx context.Context, input ports.ModerationResolveInput) (*models.Report, error) {
+func (r *fakeModerationRepository) ResolveReport(ctx context.Context, input ports.ModerationResolveInput) (*ports.ModerationReportView, error) {
 	r.resolveIn = input
-	return &models.Report{ID: input.ReportID, Status: input.Status, ReviewedByID: &input.ReviewedByID}, nil
+	return &ports.ModerationReportView{
+		ID:           input.ReportID,
+		Status:       input.Status,
+		ReviewedByID: &input.ReviewedByID,
+	}, nil
 }
 
-func (r *fakeModerationRepository) SetPostPublished(ctx context.Context, postPublicID int64, published bool, moderatorID uuid.UUID, resolution string) (*post.Post, error) {
+func (r *fakeModerationRepository) SetPostPublished(ctx context.Context, postPublicID int64, published bool, moderatorID uuid.UUID, resolution string) (ports.ModerationPostView, error) {
 	r.setPostID = postPublicID
 	r.setPublished = published
 	r.setReviewer = moderatorID
 	r.setNote = resolution
-	return &post.Post{PublicID: postPublicID, Published: published}, nil
+	return ports.ModerationPostView{"public_id": strconv.FormatInt(postPublicID, 10), "published": published}, nil
 }
 
 func TestCanModerate(t *testing.T) {
-	allowed := []constants.UserRole{
-		constants.UserRoleModerator,
-		constants.UserRoleAdmin,
-		constants.UserRoleSuperAdmin,
+	allowed := []ports.ModeratorRole{
+		ports.ModeratorRoleModerator,
+		ports.ModeratorRoleAdmin,
+		ports.ModeratorRoleSuperAdmin,
 	}
 	for _, role := range allowed {
-		if !CanModerate(&models.User{UserRole: role}) {
+		if !CanModerate(ports.ModeratorPrincipal{ID: uuid.New(), Role: role}) {
 			t.Fatalf("expected role %s to moderate", role)
 		}
 	}
 
-	if CanModerate(&models.User{UserRole: constants.UserRoleUser}) {
+	if CanModerate(ports.ModeratorPrincipal{ID: uuid.New(), Role: "user"}) {
 		t.Fatal("expected regular user to be denied")
 	}
-	if CanModerate(nil) {
-		t.Fatal("expected nil user to be denied")
+	if CanModerate(ports.ModeratorPrincipal{Role: ports.ModeratorRoleModerator}) {
+		t.Fatal("expected missing moderator identity to be denied")
 	}
 }
 
@@ -66,7 +69,7 @@ func TestModerationServiceFetchReportsRequiresModerator(t *testing.T) {
 	repo := &fakeModerationRepository{}
 	service := NewModerationService(repo)
 
-	_, err := service.FetchReports(context.Background(), &models.User{UserRole: constants.UserRoleUser}, ports.ModerationReportFilter{})
+	_, err := service.FetchReports(context.Background(), ports.ModeratorPrincipal{ID: uuid.New(), Role: "user"}, ports.ModerationReportFilter{})
 	if !errors.Is(err, ErrModerationForbidden) {
 		t.Fatalf("expected ErrModerationForbidden, got %v", err)
 	}
@@ -81,8 +84,8 @@ func TestModerationServiceFetchReportsRejectsInvalidStatus(t *testing.T) {
 
 	_, err := service.FetchReports(
 		context.Background(),
-		&models.User{UserRole: constants.UserRoleModerator},
-		ports.ModerationReportFilter{Status: models.ReportStatus("bad")},
+		ports.ModeratorPrincipal{ID: uuid.New(), Role: ports.ModeratorRoleModerator},
+		ports.ModerationReportFilter{Status: domainmoderation.Status("bad")},
 	)
 	if !errors.Is(err, ErrInvalidReportStatus) {
 		t.Fatalf("expected ErrInvalidReportStatus, got %v", err)
@@ -96,11 +99,11 @@ func TestModerationServiceFetchReportsDefaultsToPending(t *testing.T) {
 	repo := &fakeModerationRepository{}
 	service := NewModerationService(repo)
 
-	_, err := service.FetchReports(context.Background(), &models.User{UserRole: constants.UserRoleModerator}, ports.ModerationReportFilter{})
+	_, err := service.FetchReports(context.Background(), ports.ModeratorPrincipal{ID: uuid.New(), Role: ports.ModeratorRoleModerator}, ports.ModerationReportFilter{})
 	if err != nil {
 		t.Fatalf("FetchReports() error = %v", err)
 	}
-	if repo.fetchFilter.Status != models.ReportStatusPending {
+	if repo.fetchFilter.Status != domainmoderation.StatusPending {
 		t.Fatalf("status = %q, want pending", repo.fetchFilter.Status)
 	}
 }
@@ -113,10 +116,10 @@ func TestModerationServiceResolveReportSetsReviewer(t *testing.T) {
 
 	_, err := service.ResolveReport(
 		context.Background(),
-		&models.User{ID: moderatorID, UserRole: constants.UserRoleModerator},
+		ports.ModeratorPrincipal{ID: moderatorID, Role: ports.ModeratorRoleModerator},
 		ports.ModerationResolveInput{
 			ReportID: reportID,
-			Status:   models.ReportStatusReviewed,
+			Status:   domainmoderation.StatusReviewed,
 		},
 	)
 	if err != nil {
@@ -133,11 +136,11 @@ func TestModerationServiceResolveReportSetsReviewer(t *testing.T) {
 func TestModerationServiceResolveRejectsPendingAndContradictoryVisibility(t *testing.T) {
 	repo := &fakeModerationRepository{}
 	service := NewModerationService(repo)
-	moderator := &models.User{ID: uuid.New(), UserRole: constants.UserRoleModerator}
+	moderator := ports.ModeratorPrincipal{ID: uuid.New(), Role: ports.ModeratorRoleModerator}
 
 	_, err := service.ResolveReport(context.Background(), moderator, ports.ModerationResolveInput{
 		ReportID: uuid.New(),
-		Status:   models.ReportStatusPending,
+		Status:   domainmoderation.StatusPending,
 	})
 	if !errors.Is(err, ErrInvalidReportStatus) {
 		t.Fatalf("pending resolve error = %v", err)
@@ -146,7 +149,7 @@ func TestModerationServiceResolveRejectsPendingAndContradictoryVisibility(t *tes
 	publish := false
 	_, err = service.ResolveReport(context.Background(), moderator, ports.ModerationResolveInput{
 		ReportID:    uuid.New(),
-		Status:      models.ReportStatusRejected,
+		Status:      domainmoderation.StatusRejected,
 		PublishPost: &publish,
 	})
 	if !errors.Is(err, ports.ErrInvalidModerationAction) {
@@ -159,7 +162,7 @@ func TestModerationServiceHidePostSetsPostUnpublished(t *testing.T) {
 	service := NewModerationService(repo)
 	moderatorID := uuid.New()
 
-	_, err := service.HidePost(context.Background(), &models.User{ID: moderatorID, UserRole: constants.UserRoleAdmin}, 42, "violates rules")
+	_, err := service.HidePost(context.Background(), ports.ModeratorPrincipal{ID: moderatorID, Role: ports.ModeratorRoleAdmin}, 42, "violates rules")
 	if err != nil {
 		t.Fatalf("hide post returned error: %v", err)
 	}
@@ -174,5 +177,20 @@ func TestModerationServiceHidePostSetsPostUnpublished(t *testing.T) {
 	}
 	if repo.setNote != "violates rules" {
 		t.Fatalf("expected resolution to be passed through, got %q", repo.setNote)
+	}
+}
+
+func TestModerationServiceRejectsNonPositivePostID(t *testing.T) {
+	repo := &fakeModerationRepository{}
+	service := NewModerationService(repo)
+	moderator := ports.ModeratorPrincipal{ID: uuid.New(), Role: ports.ModeratorRoleModerator}
+
+	for _, postID := range []int64{0, -1} {
+		if _, err := service.HidePost(context.Background(), moderator, postID, "invalid"); !errors.Is(err, ErrPostIDRequired) {
+			t.Fatalf("HidePost(%d) error = %v", postID, err)
+		}
+	}
+	if repo.setPostID != 0 {
+		t.Fatalf("invalid post id reached repository: %d", repo.setPostID)
 	}
 }

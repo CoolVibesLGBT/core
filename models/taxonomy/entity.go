@@ -1,7 +1,7 @@
 package taxonomy
 
 import (
-	"core/helpers"
+	domaintaxonomy "core/domain/taxonomy"
 	models "core/models"
 	"core/models/utils"
 	"strings"
@@ -43,7 +43,7 @@ func (e *Entity) BeforeCreate(tx *gorm.DB) error {
 		e.ID = uuid.New()
 	}
 	if strings.TrimSpace(e.Slug) == "" {
-		e.Slug = helpers.GenerateSlug(e.Name.ToString())
+		e.Slug = domaintaxonomy.NormalizeSlug(e.Name.ToString())
 	}
 	return nil
 }

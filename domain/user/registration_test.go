@@ -1,6 +1,7 @@
 package user
 
 import (
+	"math"
 	"testing"
 	"time"
 )
@@ -78,6 +79,12 @@ func TestProfileValueObjects(t *testing.T) {
 	if _, err := NewCoordinates(0, 181); err != ErrInvalidLongitude {
 		t.Fatalf("invalid longitude error = %v, want %v", err, ErrInvalidLongitude)
 	}
+	if _, err := NewCoordinates(math.NaN(), 0); err != ErrInvalidLatitude {
+		t.Fatalf("NaN latitude error = %v, want %v", err, ErrInvalidLatitude)
+	}
+	if _, err := NewCoordinates(0, math.Inf(1)); err != ErrInvalidLongitude {
+		t.Fatalf("infinite longitude error = %v, want %v", err, ErrInvalidLongitude)
+	}
 }
 
 func TestNewRegistrationRejectsInvalidValueObjects(t *testing.T) {
@@ -87,6 +94,37 @@ func TestNewRegistrationRejectsInvalidValueObjects(t *testing.T) {
 
 	if _, err := NewRegistration(RegistrationInput{Domain: "unknown.example"}); err != ErrInvalidDomain {
 		t.Fatalf("invalid domain error = %v, want %v", err, ErrInvalidDomain)
+	}
+}
+
+func TestNewRegistrationRequiresDisplayNameAndUsername(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   RegistrationInput
+		wantErr error
+	}{
+		{
+			name: "display name",
+			input: RegistrationInput{
+				Name: " \t ", Nickname: "alice", Domain: "coolvibes.app",
+			},
+			wantErr: ErrDisplayNameRequired,
+		},
+		{
+			name: "username",
+			input: RegistrationInput{
+				Name: "Alice", Nickname: " \n ", Domain: "coolvibes.app",
+			},
+			wantErr: ErrUsernameRequired,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := NewRegistration(test.input); err != test.wantErr {
+				t.Fatalf("NewRegistration() error = %v, want %v", err, test.wantErr)
+			}
+		})
 	}
 }
 

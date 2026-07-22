@@ -18,8 +18,8 @@ const (
 // OwnerType: örn "post", "event", "user", "chat", ...
 type Location struct {
 	ID              uuid.UUID                `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	ContentableID   uuid.UUID                `json:"contentable_id"`
-	ContentableType string                   `json:"contentable_type"`
+	ContentableID   uuid.UUID                `gorm:"type:uuid;not null;index" json:"contentable_id"`
+	ContentableType string                   `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
 	CountryCode     *string                  `json:"country_code"` // Örn: "TR"
 	Address         *string                  `gorm:"size:1024" json:"address,omitempty"`
 	City            *string                  `gorm:"size:512" json:"city,omitempty"`

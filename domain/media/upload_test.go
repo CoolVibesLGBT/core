@@ -18,3 +18,14 @@ func TestUploadedFileValidation(t *testing.T) {
 		t.Fatalf("empty file error = %v, want %v", err, ErrEmptyFile)
 	}
 }
+
+func TestUploadedFileMetadataHasNoByteSizeCap(t *testing.T) {
+	const reportedSize = int64(8)<<30 + 17
+	file, err := NewUploadedFile("archive.bin", reportedSize, "application/octet-stream")
+	if err != nil {
+		t.Fatalf("NewUploadedFile(large file) error = %v", err)
+	}
+	if file.Size != reportedSize {
+		t.Fatalf("Size = %d, want %d", file.Size, reportedSize)
+	}
+}

@@ -3,9 +3,9 @@ package usecases
 import (
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/post"
-	"core/types"
 	"testing"
 
 	"github.com/google/uuid"
@@ -27,7 +27,7 @@ func TestPostServiceCreatePostCreatesAndHydratesPost(t *testing.T) {
 		t.Fatalf("CreatePost() error = %v", err)
 	}
 
-	if created.ID != postID || created.PublicID != 99 {
+	if created.ID != 99 || created.PublicID != 99 {
 		t.Fatalf("expected hydrated post, got %#v", created)
 	}
 	if postRepo.createContentableType != string(post.PostKindStatus) {
@@ -67,7 +67,7 @@ func TestPostServiceUserScopedListsResolvePublicUserID(t *testing.T) {
 func TestPostServicePassesEngagementFiltersToRepository(t *testing.T) {
 	postRepo := &fakePostRepository{}
 	service := NewPostService(&fakeUserRepository{}, postRepo, &fakeMediaRepository{})
-	filter := types.Filter{PostID: 123, AuthUser: &models.User{ID: uuid.New()}}
+	filter := types.Filter{PostID: 123, AuthUser: &types.Actor{ID: uuid.New()}}
 
 	if err := service.Like(filter); err != nil {
 		t.Fatalf("Like() error = %v", err)

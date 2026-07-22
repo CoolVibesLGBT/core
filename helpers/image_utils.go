@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"bytes"
 	"image"
 	"image/color"
+	"io"
 	"math"
 	"os"
 	"path/filepath"
@@ -32,17 +32,34 @@ const (
 )
 
 func LoadImageWithOrientation(srcPath string) (image.Image, error) {
-	data, err := os.ReadFile(srcPath)
+	source, err := os.Open(srcPath)
 	if err != nil {
 		return nil, err
 	}
+	img, decodeErr := imaging.Decode(source)
+	closeErr := source.Close()
+	if decodeErr != nil {
+		return nil, decodeErr
+	}
+	if closeErr != nil {
+		return nil, closeErr
+	}
 
-	img, err := imaging.Decode(bytes.NewReader(data))
+	// EXIF parsing needs its own pass. Reopen the file instead of retaining the
+	// complete compressed upload in memory alongside the decoded pixel buffer.
+	orientationSource, err := os.Open(srcPath)
 	if err != nil {
 		return nil, err
 	}
-
-	return fixOrientation(img, data)
+	oriented, orientationErr := fixOrientation(img, orientationSource)
+	closeErr = orientationSource.Close()
+	if orientationErr != nil {
+		return nil, orientationErr
+	}
+	if closeErr != nil {
+		return nil, closeErr
+	}
+	return oriented, nil
 }
 
 func saveWEBP(dstPath string, img image.Image) (err error) {
@@ -250,8 +267,8 @@ func ResizeSquareKeepAspect(srcPath, dstPath string, width, height int) error {
 }
 
 // EXIF orientasyonu uygular.
-func fixOrientation(img image.Image, data []byte) (image.Image, error) {
-	exifData, err := exif.Decode(bytes.NewReader(data))
+func fixOrientation(img image.Image, source io.Reader) (image.Image, error) {
+	exifData, err := exif.Decode(source)
 	if err != nil {
 		return img, nil
 	}

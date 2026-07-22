@@ -7,21 +7,25 @@ import (
 )
 
 var (
-	ErrInvalidEmail = errors.New("invalid email")
-	emailPattern    = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	ErrInvalidEmail          = errors.New("invalid email")
+	ErrDisplayNameRequired   = errors.New("display name is required")
+	ErrUsernameRequired      = errors.New("username is required")
+	ErrUsernameAlreadyExists = errors.New("username already exists")
+	ErrEmailAlreadyExists    = errors.New("email already exists")
+	emailPattern             = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 )
 
 type RegistrationInput struct {
-	Name     string
-	Nickname string
+	Name     string // Profile display name.
+	Nickname string // Unique username used for sign-in.
 	Password string
 	Domain   string
 	Email    string
 }
 
 type Registration struct {
-	Name     string
-	Nickname string
+	Name     string // Profile display name.
+	Nickname string // Unique, normalized username used for sign-in.
 	Password string
 	Domain   DomainKind
 	Email    string
@@ -42,10 +46,18 @@ func NewRegistration(input RegistrationInput) (Registration, error) {
 	if err != nil {
 		return Registration{}, err
 	}
+	name := strings.TrimSpace(input.Name)
+	if name == "" {
+		return Registration{}, ErrDisplayNameRequired
+	}
+	nickname := strings.ToLower(strings.TrimSpace(input.Nickname))
+	if nickname == "" {
+		return Registration{}, ErrUsernameRequired
+	}
 
 	return Registration{
-		Name:     strings.TrimSpace(input.Name),
-		Nickname: strings.ToLower(strings.TrimSpace(input.Nickname)),
+		Name:     name,
+		Nickname: nickname,
 		Password: input.Password,
 		Domain:   domain,
 		Email:    email,

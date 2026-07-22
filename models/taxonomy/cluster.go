@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"core/helpers"
+	domaintaxonomy "core/domain/taxonomy"
 	models "core/models"
 	"core/models/utils"
 
@@ -44,8 +44,8 @@ func (c *Cluster) BuildSearchVector() string {
 	parts = append(parts, c.Slug)
 
 	if c.Slug != "" {
-		normalized := helpers.GenerateSlug(c.Slug)  // gay-bar
-		strict := helpers.SlugifyStrict(normalized) // gaybar
+		normalized := domaintaxonomy.NormalizeSlug(c.Slug) // gay-bar
+		strict := domaintaxonomy.StrictSlug(normalized)    // gaybar
 
 		parts = append(parts, normalized)
 		parts = append(parts, strict)
@@ -67,7 +67,7 @@ func (c *Cluster) BuildSearchVector() string {
 }
 
 func (c *Cluster) BeforeSave(tx *gorm.DB) error {
-	c.Slug = helpers.GenerateSlug(c.Slug)
+	c.Slug = domaintaxonomy.NormalizeSlug(c.Slug)
 	c.SearchVector = c.BuildSearchVector()
 	return nil
 }

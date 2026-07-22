@@ -50,6 +50,12 @@ func TestProcessorShutdownInterruptsIdleWait(t *testing.T) {
 	}
 }
 
+func TestStartProcessorRejectsMissingRepository(t *testing.T) {
+	if processor := StartProcessor(nil); processor != nil {
+		t.Fatalf("StartProcessor(nil) = %#v, want nil", processor)
+	}
+}
+
 type blockingProcessorRepository struct {
 	claimed atomic.Bool
 	started chan struct{}

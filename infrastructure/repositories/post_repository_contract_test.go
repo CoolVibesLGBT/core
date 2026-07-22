@@ -1,11 +1,11 @@
 package repositories
 
 import (
+	"core/application/types"
 	"core/models"
 	"core/models/media"
 	"core/models/notifications"
 	"core/models/post"
-	"core/types"
 	"strings"
 	"testing"
 

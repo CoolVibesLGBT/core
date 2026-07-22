@@ -2,11 +2,11 @@ package test
 
 import (
 	"context"
+	"core/application/types"
 	"core/faker"
 	"core/helpers"
 	"core/infrastructure/repositories"
 	"core/infrastructure/socket"
-	"core/types"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -19,18 +19,14 @@ func testMatches(db *gorm.DB, snowFlakeNode *helpers.Node, socketService *socket
 	fmt.Println("FromUser", fromUser.ID)
 	fmt.Println("ToUser", toUser.ID)
 
-	engagementRepo := repositories.NewEngagementRepository(db)
 	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
-	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo, notificationRepo)
+	matchesRepo := repositories.NewMatchesRepository(db, notificationRepo)
 
 	isFromMatched, _ := matchesRepo.RecordView(context.Background(), fromUser.ID, toUser.ID, types.ReactionLike)
 	isToMatched, _ := matchesRepo.RecordView(context.Background(), toUser.ID, fromUser.ID, types.ReactionLike)
 
-	isMatched, _ := matchesRepo.IsMatched(context.Background(), fromUser.ID, toUser.ID)
-
 	fmt.Println("User 1", isFromMatched)
 	fmt.Println("User 2", isToMatched)
-	fmt.Println("User1 and User2", isMatched)
 
 	fmt.Println("Starting user creation loop")
 
@@ -51,16 +47,15 @@ func testMatches(db *gorm.DB, snowFlakeNode *helpers.Node, socketService *socket
 	fmt.Println("User creation loop ended")
 
 	likes, _ := matchesRepo.GetLikesAfter(context.Background(), fromUser.ID, nil, 20)
-	fmt.Println("Total Likes", len(likes))
+	fmt.Println("Total Likes", len(likes.Users))
 
 }
 
 func testMatchesDetails(db *gorm.DB, snowFlakeNode *helpers.Node) {
 
 	fromUser := faker.CreateUser(db, snowFlakeNode)
-	engagementRepo := repositories.NewEngagementRepository(db)
 	notificationRepo := repositories.NewNotificationRepository(db, snowFlakeNode)
-	matchesRepo := repositories.NewMatchesRepository(db, engagementRepo, notificationRepo)
+	matchesRepo := repositories.NewMatchesRepository(db, notificationRepo)
 
 	for i := 0; i < 5; i++ {
 		fmt.Println("Iteration:", i)
@@ -82,7 +77,7 @@ func testMatchesDetails(db *gorm.DB, snowFlakeNode *helpers.Node) {
 		fmt.Println("RecordView result for user", testUser.ID, "match:", matchedFirst, matched)
 	}
 	likes, _ := matchesRepo.GetLikesAfter(context.Background(), fromUser.ID, nil, 20)
-	fmt.Println("Total Likes", len(likes))
+	fmt.Println("Total Likes", len(likes.Users))
 
 }
 

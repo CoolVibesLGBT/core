@@ -5,6 +5,7 @@ import (
 	"core/application/ports"
 	domainmedia "core/domain/media"
 	"errors"
+	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
@@ -16,14 +17,21 @@ type MediaAccessDecision struct {
 }
 
 type MediaAccessService struct {
-	repository ports.MediaAccessRepository
+	repository             ports.MediaAccessRepository
+	privatePhotoAuthorizer ports.PrivatePhotoAccessAuthorizer
 }
 
-func NewMediaAccessService(repository ports.MediaAccessRepository) *MediaAccessService {
-	return &MediaAccessService{repository: repository}
+func NewMediaAccessService(repository ports.MediaAccessRepository, authorizers ...ports.PrivatePhotoAccessAuthorizer) *MediaAccessService {
+	service := &MediaAccessService{repository: repository}
+	if len(authorizers) > 0 {
+		service.privatePhotoAuthorizer = authorizers[0]
+	} else if authorizer, ok := repository.(ports.PrivatePhotoAccessAuthorizer); ok {
+		service.privatePhotoAuthorizer = authorizer
+	}
+	return service
 }
 
-func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string, userPublicID *int64) (MediaAccessDecision, error) {
+func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string, userPublicID *int64, requestedPaths ...string) (MediaAccessDecision, error) {
 	access, err := s.repository.FindMediaFileAccess(ctx, storagePrefix)
 	if err != nil {
 		return MediaAccessDecision{}, err
@@ -52,6 +60,18 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 	}
 	policy.PrivilegedViewer = isMediaModerator(principal.Role)
 	policy.OwnerViewer = mediaAccessOwnedBy(access, principal.ID)
+	if mediaAccessIsPrivatePhoto(access) && !policy.PrivilegedViewer && !policy.OwnerViewer {
+		// Album grants intentionally cover only re-encoded variants. The raw
+		// upload may retain EXIF/GPS metadata and must remain owner-only even
+		// when a viewer can infer its filename from a variant URL.
+		if len(requestedPaths) == 0 || !privatePhotoProcessedVariant(requestedPaths[0]) || s.privatePhotoAuthorizer == nil {
+			return MediaAccessDecision{}, nil
+		}
+		policy.PrivatePhotoGrant, err = s.privatePhotoAuthorizer.HasApprovedPrivatePhotoAccess(ctx, access.OwnerID, principal.ID)
+		if err != nil {
+			return MediaAccessDecision{}, err
+		}
+	}
 	if policy.ChatMedia && access.ChatID != nil {
 		policy.ChatParticipant, err = s.repository.IsActiveChatParticipant(ctx, *access.ChatID, principal.ID)
 		if err != nil {
@@ -60,6 +80,27 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 	}
 
 	return MediaAccessDecision{Allowed: policy.Accessible()}, nil
+}
+
+func privatePhotoProcessedVariant(requestedPath string) bool {
+	extension := strings.ToLower(filepath.Ext(requestedPath))
+	if extension != ".webp" {
+		return false
+	}
+	stem := strings.TrimSuffix(filepath.Base(requestedPath), extension)
+	for _, aspect := range []string{"square", "landscape", "portrait"} {
+		for _, size := range []string{"icon", "thumb", "sm", "md", "lg"} {
+			if strings.HasSuffix(stem, "_"+aspect+"_"+size) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func mediaAccessIsPrivatePhoto(access ports.MediaFileAccess) bool {
+	return strings.EqualFold(strings.TrimSpace(access.Role), "private_photo") &&
+		strings.EqualFold(strings.TrimSpace(access.OwnerType), "user")
 }
 
 func mediaAccessIsChat(access ports.MediaFileAccess) bool {

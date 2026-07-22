@@ -29,11 +29,18 @@ func TestCreateReportValidatesKindAndIsSequentiallyIdempotent(t *testing.T) {
 		t.Fatalf("create reporter: %v", err)
 	}
 
-	targetID := uuid.New()
-	if err := createReport(context.Background(), db, targetID, models.EngagementContentableTypePost, reporter.ID, " spam ", " details "); err != nil {
+	target := models.User{
+		ID: uuid.New(), PublicID: time.Now().UnixNano() + 1, Domain: models.CoolVibes,
+		UserName: "report-target-" + uuid.NewString(), DisplayName: "Target", UserRole: constants.UserRoleUser,
+	}
+	if err := db.Omit(clause.Associations).Create(&target).Error; err != nil {
+		t.Fatalf("create report target: %v", err)
+	}
+	targetID := target.ID
+	if err := createReport(context.Background(), db, targetID, models.EngagementContentableTypeUser, reporter.ID, " spam ", " details "); err != nil {
 		t.Fatalf("createReport() error = %v", err)
 	}
-	if err := createReport(context.Background(), db, targetID, models.EngagementContentableTypePost, reporter.ID, models.ReportKindSpam, "updated details"); err != nil {
+	if err := createReport(context.Background(), db, targetID, models.EngagementContentableTypeUser, reporter.ID, models.ReportKindSpam, "updated details"); err != nil {
 		t.Fatalf("repeat createReport() error = %v", err)
 	}
 
@@ -45,8 +52,13 @@ func TestCreateReportValidatesKindAndIsSequentiallyIdempotent(t *testing.T) {
 		t.Fatalf("idempotent reports = %#v", reports)
 	}
 
-	err := createReport(context.Background(), db, targetID, models.EngagementContentableTypePost, reporter.ID, "not_seeded", "")
+	err := createReport(context.Background(), db, targetID, models.EngagementContentableTypeUser, reporter.ID, "not_seeded", "")
 	if !errors.Is(err, ports.ErrInvalidReportKind) {
 		t.Fatalf("invalid kind error = %v", err)
+	}
+
+	err = createReport(context.Background(), db, uuid.New(), models.EngagementContentableTypeUser, reporter.ID, models.ReportKindSpam, "")
+	if !errors.Is(err, ports.ErrReportTargetNotFound) {
+		t.Fatalf("missing target error = %v", err)
 	}
 }

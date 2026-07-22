@@ -2,8 +2,46 @@ package repositories
 
 import (
 	"core/models/media"
+	"io"
+	"os"
+	"path/filepath"
 	"testing"
 )
+
+type generatedUploadReader struct {
+	remaining   int64
+	largestRead int
+}
+
+func (r *generatedUploadReader) Read(buffer []byte) (int, error) {
+	if r.remaining == 0 {
+		return 0, io.EOF
+	}
+	if int64(len(buffer)) > r.remaining {
+		buffer = buffer[:r.remaining]
+	}
+	clear(buffer)
+	if len(buffer) > r.largestRead {
+		r.largestRead = len(buffer)
+	}
+	r.remaining -= int64(len(buffer))
+	return len(buffer), nil
+}
+
+func (*generatedUploadReader) Close() error { return nil }
+
+type generatedUploadedFile struct {
+	size   int64
+	reader *generatedUploadReader
+}
+
+func (*generatedUploadedFile) Filename() string    { return "large.bin" }
+func (f *generatedUploadedFile) Size() int64       { return f.size }
+func (*generatedUploadedFile) ContentType() string { return "application/octet-stream" }
+func (f *generatedUploadedFile) Open() (io.ReadCloser, error) {
+	f.reader = &generatedUploadReader{remaining: f.size}
+	return f.reader, nil
+}
 
 func TestShouldProcessAsync(t *testing.T) {
 	if !shouldProcessAsync("image/jpeg") {
@@ -40,13 +78,34 @@ func TestInitialFileVariantsForNonImage(t *testing.T) {
 	}
 }
 
-func TestChatMediaRolesArePrivate(t *testing.T) {
-	for _, role := range []media.MediaRole{media.RoleChatImage, media.RoleChatMedia, media.RoleChatVideo} {
+func TestProtectedMediaRolesArePrivate(t *testing.T) {
+	for _, role := range []media.MediaRole{media.RoleChatImage, media.RoleChatMedia, media.RoleChatVideo, media.RolePrivatePhoto} {
 		if isPublicMediaRole(role) {
-			t.Fatalf("chat role %q was marked public", role)
+			t.Fatalf("protected role %q was marked public", role)
 		}
 	}
 	if !isPublicMediaRole(media.RolePost) {
 		t.Fatal("regular post media should be public")
+	}
+}
+
+func TestSaveUploadedFileStreamsWithoutApplicationByteCap(t *testing.T) {
+	const size = int64(8 << 20)
+	upload := &generatedUploadedFile{size: size}
+	destination := filepath.Join(t.TempDir(), "nested", "large.bin")
+
+	repository := &MediaRepository{}
+	if err := repository.SaveUploadedFile(upload, destination); err != nil {
+		t.Fatalf("SaveUploadedFile() error = %v", err)
+	}
+	stat, err := os.Stat(destination)
+	if err != nil {
+		t.Fatalf("stat stored upload: %v", err)
+	}
+	if stat.Size() != size {
+		t.Fatalf("stored size = %d, want %d", stat.Size(), size)
+	}
+	if upload.reader == nil || upload.reader.largestRead <= 0 || int64(upload.reader.largestRead) >= size {
+		t.Fatalf("upload was not copied incrementally: reader=%#v", upload.reader)
 	}
 }

@@ -5,7 +5,9 @@
 package push
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"core/infrastructure/push/pkg/encryption"
 	"core/infrastructure/push/pkg/httpclient"
@@ -18,10 +20,19 @@ type Service struct {
 	Vapid                    *vapid.Service
 	Client                   httpclient.Client
 	StatusCodeValidationFunc StatusCodeValidationFunc
+	DeliveryTimeout          time.Duration
 }
 
 // NewService creates new service with given application server keys and subject.
 func NewService(options *Options) (*Service, error) {
+	if options == nil {
+		options = NewOptions()
+	}
+	deliveryTimeout := options.DeliveryTimeout
+	if deliveryTimeout <= 0 {
+		deliveryTimeout = DefaultDeliveryTimeout
+	}
+
 	vapidService, err := vapid.NewService(
 		options.ApplicationServerPublicKey,
 		options.ApplicationServerPrivateKey,
@@ -50,11 +61,28 @@ func NewService(options *Options) (*Service, error) {
 		Vapid:                    vapidService,
 		Client:                   client,
 		StatusCodeValidationFunc: options.StatusCodeValidationFunc,
+		DeliveryTimeout:          deliveryTimeout,
 	}, nil
 }
 
 // Send sends a WebPush notification with parameters to the specified endpoint.
 func (s *Service) Send(push *Push) error {
+	return s.SendContext(context.Background(), push)
+}
+
+// SendContext sends a WebPush notification while honoring both the caller's
+// deadline and the service's per-delivery timeout.
+func (s *Service) SendContext(ctx context.Context, push *Push) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	deliveryTimeout := s.DeliveryTimeout
+	if deliveryTimeout <= 0 {
+		deliveryTimeout = DefaultDeliveryTimeout
+	}
+	ctx, cancel := context.WithTimeout(ctx, deliveryTimeout)
+	defer cancel()
+
 	// Cipher text.
 	body, err := s.Encryption.Encrypt(push.Auth, push.P256DH, push.Plaintext)
 	if err != nil {
@@ -75,7 +103,7 @@ func (s *Service) Send(push *Push) error {
 	}
 
 	// Request delivery.
-	statusCode, err := s.Client.RequestDelivery(push.Endpoint, headers, body)
+	statusCode, err := s.Client.RequestDelivery(ctx, push.Endpoint, headers, body)
 	if err != nil {
 		return fmt.Errorf("failed to send push request: %w", err)
 	}

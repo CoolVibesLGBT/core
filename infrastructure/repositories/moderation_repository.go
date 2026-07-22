@@ -1,13 +1,18 @@
 package repositories
 
 import (
+	"bytes"
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/constants"
+	domainmoderation "core/domain/moderation"
 	"core/models"
 	"core/models/post"
-	"core/types"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +22,19 @@ import (
 
 type ModerationRepository struct {
 	db *gorm.DB
+}
+
+var fallbackModerationTargetLock sync.Mutex
+
+func moderationTargetLockKey(contentableType models.EngagementContentableType, contentableID uuid.UUID) string {
+	return fmt.Sprintf("moderation-target:%s:%s", contentableType, contentableID)
+}
+
+func lockModerationTarget(tx *gorm.DB, contentableType models.EngagementContentableType, contentableID uuid.UUID) *gorm.DB {
+	return tx.Exec(
+		"SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
+		moderationTargetLockKey(contentableType, contentableID),
+	)
 }
 
 func NewModerationRepository(db *gorm.DB) *ModerationRepository {
@@ -55,10 +73,31 @@ func (r *ModerationRepository) FetchReports(ctx context.Context, filter ports.Mo
 
 	items := make([]ports.ModerationReportItem, 0, len(reports))
 	for _, report := range reports {
+		reportView, err := mapModerationReportView(report)
+		if err != nil {
+			return ports.ModerationReportPage{}, err
+		}
+
+		var postView ports.ModerationPostView
+		if postModel := posts[report.ContentableID]; postModel != nil {
+			postView, err = mapModerationView[ports.ModerationPostView](postModel)
+			if err != nil {
+				return ports.ModerationReportPage{}, err
+			}
+		}
+
+		var userView ports.ModerationUserView
+		if userModel := users[report.ContentableID]; userModel != nil {
+			userView, err = mapModerationView[ports.ModerationUserView](userModel)
+			if err != nil {
+				return ports.ModerationReportPage{}, err
+			}
+		}
+
 		items = append(items, ports.ModerationReportItem{
-			Report: report,
-			Post:   posts[report.ContentableID],
-			User:   users[report.ContentableID],
+			Report: reportView,
+			Post:   postView,
+			User:   userView,
 		})
 	}
 
@@ -127,11 +166,39 @@ func (r *ModerationRepository) reportQueueQuery(ctx context.Context, filter port
 	return query
 }
 
-func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.ModerationResolveInput) (*models.Report, error) {
+func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.ModerationResolveInput) (*ports.ModerationReportView, error) {
 	now := time.Now().UTC()
 	reviewerID := input.ReviewedByID
+	requestedStatus := models.ReportStatus(input.Status)
+	isPostgres := r.db.Name() == "postgres"
+	if !isPostgres {
+		fallbackModerationTargetLock.Lock()
+		defer fallbackModerationTargetLock.Unlock()
+	}
 
 	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var target struct {
+			ContentableID   uuid.UUID
+			ContentableType models.EngagementContentableType
+		}
+		if err := tx.Model(&models.Report{}).
+			Select("contentable_id", "contentable_type").
+			Where("id = ?", input.ReportID).
+			Take(&target).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ports.ErrReportNotFound
+			}
+			return err
+		}
+		if input.PublishPost != nil && target.ContentableType != models.EngagementContentableTypePost {
+			return ports.ErrInvalidModerationAction
+		}
+		if isPostgres {
+			if result := lockModerationTarget(tx, target.ContentableType, target.ContentableID); result.Error != nil {
+				return result.Error
+			}
+		}
+
 		var report models.Report
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&report, "id = ?", input.ReportID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -139,14 +206,12 @@ func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.Mo
 			}
 			return err
 		}
-		if !report.Status.CanTransitionTo(input.Status) {
+		if report.ContentableID != target.ContentableID || report.ContentableType != target.ContentableType {
+			return errors.New("report target changed during moderation")
+		}
+		nextStatus, err := report.Status.TransitionTo(requestedStatus)
+		if err != nil {
 			return ports.ErrInvalidReportTransition
-		}
-		if input.PublishPost != nil && report.ContentableType != models.EngagementContentableTypePost {
-			return ports.ErrInvalidModerationAction
-		}
-		if report.Status == input.Status {
-			return nil
 		}
 
 		if input.PublishPost != nil {
@@ -161,20 +226,30 @@ func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.Mo
 		}
 
 		updates := map[string]any{
-			"status":         input.Status,
+			"status":         nextStatus,
 			"reviewed_by_id": &reviewerID,
 			"reviewed_at":    &now,
-			"resolution":     input.Resolution,
+		}
+		if input.Resolution != "" || report.Resolution == "" {
+			updates["resolution"] = input.Resolution
 		}
 		return tx.Model(&models.Report{}).Where("id = ?", input.ReportID).Updates(updates).Error
 	}); err != nil {
 		return nil, err
 	}
 
-	return r.getReport(ctx, input.ReportID)
+	report, err := r.getReport(ctx, input.ReportID)
+	if err != nil {
+		return nil, err
+	}
+	view, err := mapModerationReportView(*report)
+	if err != nil {
+		return nil, err
+	}
+	return &view, nil
 }
 
-func (r *ModerationRepository) SetPostPublished(ctx context.Context, postPublicID int64, published bool, moderatorID uuid.UUID, resolution string) (*post.Post, error) {
+func (r *ModerationRepository) SetPostPublished(ctx context.Context, postPublicID int64, published bool, moderatorID uuid.UUID, resolution string) (ports.ModerationPostView, error) {
 	now := time.Now().UTC()
 	reviewerID := moderatorID
 	if resolution == "" {
@@ -184,10 +259,29 @@ func (r *ModerationRepository) SetPostPublished(ctx context.Context, postPublicI
 			resolution = "Post hidden by moderator"
 		}
 	}
+	isPostgres := r.db.Name() == "postgres"
+	if !isPostgres {
+		fallbackModerationTargetLock.Lock()
+		defer fallbackModerationTargetLock.Unlock()
+	}
 
 	var postModel post.Post
 	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&postModel, "public_id = ?", postPublicID).Error; err != nil {
+		var target struct {
+			ID uuid.UUID
+		}
+		if err := tx.Model(&post.Post{}).Select("id").Where("public_id = ?", postPublicID).Take(&target).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ports.ErrReportTargetNotFound
+			}
+			return err
+		}
+		if isPostgres {
+			if result := lockModerationTarget(tx, models.EngagementContentableTypePost, target.ID); result.Error != nil {
+				return result.Error
+			}
+		}
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&postModel, "id = ?", target.ID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return ports.ErrReportTargetNotFound
 			}
@@ -221,7 +315,7 @@ func (r *ModerationRepository) SetPostPublished(ctx context.Context, postPublicI
 	if err != nil {
 		return nil, err
 	}
-	return updated, nil
+	return mapModerationView[ports.ModerationPostView](updated)
 }
 
 func (r *ModerationRepository) getReport(ctx context.Context, id uuid.UUID) (*models.Report, error) {
@@ -336,4 +430,79 @@ func postPublishUpdates(published bool, now time.Time) map[string]any {
 		updates["published_at"] = nil
 	}
 	return updates
+}
+
+func mapModerationView[T ~map[string]any](value any) (T, error) {
+	var view T
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.UseNumber()
+	if err := decoder.Decode(&view); err != nil {
+		return nil, err
+	}
+	return view, nil
+}
+
+func mapModerationReportView(report models.Report) (ports.ModerationReportView, error) {
+	var reporter ports.ModerationUserView
+	var err error
+	if report.Reporter != nil {
+		reporter, err = mapModerationView[ports.ModerationUserView](report.Reporter)
+		if err != nil {
+			return ports.ModerationReportView{}, err
+		}
+	}
+
+	var reviewedBy ports.ModerationUserView
+	if report.ReviewedBy != nil {
+		reviewedBy, err = mapModerationView[ports.ModerationUserView](report.ReviewedBy)
+		if err != nil {
+			return ports.ModerationReportView{}, err
+		}
+	}
+
+	var reportKind *ports.ModerationReportKindView
+	if report.ReportKind != nil {
+		reportKind = &ports.ModerationReportKindView{
+			Key:          report.ReportKind.Key,
+			DisplayOrder: report.ReportKind.DisplayOrder,
+			Name:         copyModerationLocalizedText(report.ReportKind.Name),
+			Description:  copyModerationLocalizedText(report.ReportKind.Description),
+			CreatedAt:    report.ReportKind.CreatedAt,
+			UpdatedAt:    report.ReportKind.UpdatedAt,
+		}
+	}
+
+	return ports.ModerationReportView{
+		ID:              report.ID,
+		ContentableID:   report.ContentableID,
+		ContentableType: domainmoderation.TargetType(report.ContentableType),
+		ReporterID:      report.ReporterID,
+		Reporter:        reporter,
+		ReportKindKey:   report.ReportKindKey,
+		ReportKind:      reportKind,
+		Reason:          report.Reason,
+		Status:          domainmoderation.Status(report.Status),
+		ReviewedByID:    report.ReviewedByID,
+		ReviewedBy:      reviewedBy,
+		ReviewedAt:      report.ReviewedAt,
+		Resolution:      report.Resolution,
+		CreatedAt:       report.CreatedAt,
+		UpdatedAt:       report.UpdatedAt,
+	}, nil
+}
+
+func copyModerationLocalizedText(source map[string]string) ports.ModerationLocalizedText {
+	if source == nil {
+		return nil
+	}
+	result := make(ports.ModerationLocalizedText, len(source))
+	for language, value := range source {
+		result[language] = value
+	}
+	return result
 }

@@ -205,44 +205,47 @@ func (r *ChatRepository) GetChatByIDWithoutRelations(chatID uuid.UUID) (*chat.Ch
 }
 
 func (r *ChatRepository) GetChatsByUserIDW(userID uuid.UUID) ([]chat.Chat, error) {
-	var chats []chat.Chat
-	now := time.Now()
-
-	err := r.db.
-		Joins("JOIN chat_participants ON chat_participants.chat_id = chats.id").
-		Where("chat_participants.user_id = ?", userID).
-		Preload("Participants.User.Avatar.File").
-		Preload("Participants.User.Cover.File").
-		Preload("LastMessage", activeMessageScope(now)).
-		Preload("LastMessage.Author").
-		Preload("LastMessage.Attachments").
-		Preload("LastMessage.Attachments.File").
-		Preload("LastMessage.Author.Avatar.File").
-		Preload("LastMessage.Author.Cover.File").
-		Order("last_message_timestamp DESC").
-		Find(&chats).Error
-
-	if err != nil {
-		return nil, err
-	}
-	lastMessages := make([]*post.Post, 0, len(chats))
-	for i := range chats {
-		if chats[i].LastMessage != nil {
-			lastMessages = append(lastMessages, chats[i].LastMessage)
-		}
-	}
-	if err := r.sanitizeMessagesForViewer(lastMessages, userID); err != nil {
-		return nil, err
-	}
-
-	return chats, nil
+	return r.GetChatsByUserID(userID)
 }
 
 func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
-	var chats []chat.Chat
-	now := time.Now()
+	page, err := r.ListChats(context.Background(), ports.ChatListQuery{
+		UserID: userID,
+		Limit:  constants.DEFAULT_LIMIT,
+	})
+	return page.Chats, err
+}
 
-	err := r.db.
+const chatListActivityExpression = "COALESCE(chats.last_message_timestamp, chats.created_at)"
+
+func chatUserReadScope(db *gorm.DB) *gorm.DB {
+	return db.Select("id", "public_id", "user_name", "display_name", "avatar_id")
+}
+
+func chatMediaReadScope(db *gorm.DB) *gorm.DB {
+	return db.Select("id", "public_id", "file_id")
+}
+
+func chatAttachmentMediaReadScope(db *gorm.DB) *gorm.DB {
+	// owner columns are required by GORM to attach polymorphic media rows to
+	// their posts; the application DTO still omits them from every response.
+	return db.Select("id", "public_id", "file_id", "owner_id", "owner_type")
+}
+
+func chatAvatarFileReadScope(db *gorm.DB) *gorm.DB {
+	return db.Select("id", "url", "variants")
+}
+
+func chatAttachmentFileReadScope(db *gorm.DB) *gorm.DB {
+	return db.Select("id", "url", "mime_type", "name", "variants")
+}
+
+func (r *ChatRepository) chatsByUserIDQuery(ctx context.Context, query ports.ChatListQuery) *gorm.DB {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	now := time.Now()
+	db := r.db.WithContext(ctx).
 		Model(&chat.Chat{}).
 		Where("chats.deleted_at IS NULL").
 		Where(`
@@ -251,13 +254,14 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 				FROM chat_participants cp
 				WHERE cp.chat_id = chats.id
 				AND cp.user_id = ?
+				AND cp.left_at IS NULL
 				AND (
 					cp.cleared_at IS NULL
 					OR chats.last_message_timestamp IS NULL
 					OR chats.last_message_timestamp > cp.cleared_at
 				)
 			)
-		`, userID).
+		`, query.UserID).
 		Where(`
 			NOT EXISTS (
 				SELECT 1
@@ -265,67 +269,57 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 				JOIN engagement_details ed ON ed.engagement_id = e.id
 				WHERE e.contentable_id = chats.id
 				AND e.contentable_type = ?
-				AND ed.kind = ?
+				AND (
+					(ed.kind = ? AND ed.engager_id = ?)
+					OR ed.kind = ?
+				)
 			)
 		`,
-			post.PostKindChat,
+			models.EngagementContentableTypeChat,
+			models.EngagementKindChatDeletedForMe,
+			query.UserID,
 			models.EngagementKindChatDeletedForAll,
 		).
-		Preload("Participants.User.Avatar.File").
-		Preload("Participants.User.Cover.File").
+		Preload("Participants", "left_at IS NULL").
+		Preload("Participants.User", chatUserReadScope).
+		Preload("Participants.User.Avatar", chatMediaReadScope).
+		Preload("Participants.User.Avatar.File", chatAvatarFileReadScope).
 		Preload("LastMessage", func(db *gorm.DB) *gorm.DB {
 			return activeMessageScope(now)(db.Where("posts.deleted_at IS NULL"))
 		}).
-		Preload("LastMessage.Author").
-		Preload("LastMessage.Attachments").
-		Preload("LastMessage.Attachments.File").
-		Preload("LastMessage.Author.Avatar.File").
-		Preload("LastMessage.Author.Cover.File").
-		Order("chats.last_message_timestamp DESC").
-		Find(&chats).Error
+		Preload("LastMessage.Author", chatUserReadScope).
+		Preload("LastMessage.Attachments", chatAttachmentMediaReadScope).
+		Preload("LastMessage.Attachments.File", chatAttachmentFileReadScope).
+		Preload("LastMessage.Author.Avatar", chatMediaReadScope).
+		Preload("LastMessage.Author.Avatar.File", chatAvatarFileReadScope)
 
-	if err != nil {
-		return nil, err
+	if query.Cursor != nil {
+		db = db.Where(
+			"("+chatListActivityExpression+" < ?) OR ("+chatListActivityExpression+" = ? AND chats.id < ?)",
+			query.Cursor.ActivityAt,
+			query.Cursor.ActivityAt,
+			query.Cursor.ChatID,
+		)
 	}
-	lastMessages := make([]*post.Post, 0, len(chats))
-	for i := range chats {
-		if chats[i].LastMessage != nil {
-			lastMessages = append(lastMessages, chats[i].LastMessage)
-		}
-	}
-	if err := r.sanitizeMessagesForViewer(lastMessages, userID); err != nil {
-		return nil, err
-	}
-
-	return chats, nil
+	return db
 }
 
-func (r *ChatRepository) GetChatsByUserIDWithCursor(userID uuid.UUID, cursor *time.Time, limit int) ([]chat.Chat, error) {
+func (r *ChatRepository) ListChats(ctx context.Context, query ports.ChatListQuery) (ports.ChatListPage, error) {
+	limit := boundedRepositoryChatLimit(query.Limit)
+	query.Limit = limit
+
 	var chats []chat.Chat
-	now := time.Now()
-
-	db := r.db.
-		Joins("JOIN chat_participants ON chat_participants.chat_id = chats.id").
-		Where("chat_participants.user_id = ?", userID).
-		Preload("Participants.User.Avatar.File").
-		Preload("Participants.User.Cover.File").
-		Preload("LastMessage", activeMessageScope(now)).
-		Preload("LastMessage.Author").
-		Preload("LastMessage.Attachments").
-		Preload("LastMessage.Attachments.File").
-		Preload("LastMessage.Author.Avatar.File").
-		Preload("LastMessage.Author.Cover.File").
-		Order("last_message_timestamp DESC").
-		Limit(limit)
-
-	if cursor != nil {
-		// Cursor varsa, last_message_timestamp değeri cursor'dan küçük olanları getir (eski mesajlar)
-		db = db.Where("last_message_timestamp < ?", *cursor)
+	err := r.chatsByUserIDQuery(ctx, query).
+		Order(chatListActivityExpression + " DESC, chats.id DESC").
+		Limit(limit + 1).
+		Find(&chats).Error
+	if err != nil {
+		return ports.ChatListPage{}, err
 	}
 
-	err := db.Find(&chats).Error
-	if err != nil {
-		return nil, err
+	hasMore := len(chats) > limit
+	if hasMore {
+		chats = chats[:limit]
 	}
 	lastMessages := make([]*post.Post, 0, len(chats))
 	for i := range chats {
@@ -333,37 +327,37 @@ func (r *ChatRepository) GetChatsByUserIDWithCursor(userID uuid.UUID, cursor *ti
 			lastMessages = append(lastMessages, chats[i].LastMessage)
 		}
 	}
-	if err := r.sanitizeMessagesForViewer(lastMessages, userID); err != nil {
-		return nil, err
+	if err := r.sanitizeMessagesForViewer(lastMessages, query.UserID); err != nil {
+		return ports.ChatListPage{}, err
 	}
 
-	return chats, nil
+	return ports.ChatListPage{Chats: chats, HasMore: hasMore}, nil
+}
+
+// GetChatsByUserIDWithCursor is retained for internal callers while sharing
+// the same bounded implementation used by the production action.
+func (r *ChatRepository) GetChatsByUserIDWithCursor(ctx context.Context, query ports.ChatListQuery) (ports.ChatListPage, error) {
+	return r.ListChats(ctx, query)
+}
+
+func boundedRepositoryChatLimit(limit int) int {
+	if limit <= 0 {
+		return constants.DEFAULT_LIMIT
+	}
+	if limit > constants.MAXIMUM_LIMIT {
+		return constants.MAXIMUM_LIMIT
+	}
+	return limit
 }
 
 func (r *ChatRepository) GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) (*chat.Chat, error) {
 	var chatObj chat.Chat
-	now := time.Now()
-
-	err := r.db.
-		Joins("JOIN chat_participants cp1 ON cp1.chat_id = chats.id").
-		Joins("JOIN chat_participants cp2 ON cp2.chat_id = chats.id").
-		Where("chats.type = ?", chat.ChatTypePrivate).
-		Where("cp1.user_id = ?", fromUser).
-		Where("cp2.user_id = ?", toUser).
-		Where("chats.deleted_at IS NULL").
-		Preload("Participants").
-		Preload("Participants.User").
-		Preload("Participants.User.Avatar.File").
-		Preload("Participants.User.Cover.File").
-		Preload("Participants.Chat").
-		Preload("Messages", activeMessageScope(now)).
-		Preload("Messages.Author").
-		Preload("Messages.Author.Avatar.File").
-		Preload("Messages.Author.Cover.File").
-		Preload("Messages.Attachments").
-		Preload("Messages.Attachments.File").
+	err := r.privateChatBetweenUsersQuery(fromUser, toUser, time.Now()).
 		First(&chatObj).Error
 
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, chat.ErrChatNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -371,6 +365,26 @@ func (r *ChatRepository) GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) 
 		return nil, err
 	}
 	return &chatObj, nil
+}
+
+func (r *ChatRepository) privateChatBetweenUsersQuery(fromUser, toUser uuid.UUID, now time.Time) *gorm.DB {
+	return r.db.
+		Joins("JOIN chat_participants cp1 ON cp1.chat_id = chats.id AND cp1.left_at IS NULL").
+		Joins("JOIN chat_participants cp2 ON cp2.chat_id = chats.id AND cp2.left_at IS NULL").
+		Where("chats.type = ?", chat.ChatTypePrivate).
+		Where("cp1.user_id = ?", fromUser).
+		Where("cp2.user_id = ?", toUser).
+		Where("chats.deleted_at IS NULL").
+		Preload("Participants", "left_at IS NULL").
+		Preload("Participants.User", chatUserReadScope).
+		Preload("Participants.User.Avatar", chatMediaReadScope).
+		Preload("Participants.User.Avatar.File", chatAvatarFileReadScope).
+		Preload("Messages", activeMessageScope(now)).
+		Preload("Messages.Author", chatUserReadScope).
+		Preload("Messages.Author.Avatar", chatMediaReadScope).
+		Preload("Messages.Author.Avatar.File", chatAvatarFileReadScope).
+		Preload("Messages.Attachments", chatAttachmentMediaReadScope).
+		Preload("Messages.Attachments.File", chatAttachmentFileReadScope)
 }
 
 func (r *ChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Chat, error) {
@@ -450,17 +464,14 @@ func (r *ChatRepository) CreateGroupChat(creatorID uuid.UUID, participantIDs []u
 	return newChat, nil
 }
 
-func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) (map[string]interface{}, error) {
-	message := map[string]interface{}{
-		"action":  constants.CMD_TYPING,
-		"chat_id": chatID.String(),
-		"user_id": userID.String(),
-		"typing":  typing,
+func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, _ bool) error {
+	if err := r.ensureActiveParticipant(context.Background(), chatID, userID); err != nil {
+		return err
 	}
-	return message, nil
+	return nil
 }
 
-func (r *ChatRepository) AddMessageToChat(context context.Context, formData ports.FormData, author *models.User) (*post.Post, error) {
+func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.FormData, author *models.User) (createdPost *post.Post, retErr error) {
 	if author == nil {
 		return nil, chat.ErrNotParticipant
 	}
@@ -479,151 +490,405 @@ func (r *ChatRepository) AddMessageToChat(context context.Context, formData port
 		return nil, err
 	}
 
-	chatId, err := uuid.Parse(postForm.ChatID) // Burada artık string var
+	chatID, err := uuid.Parse(postForm.ChatID)
 	if err != nil {
 		return nil, err
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
-	chatObj, err := r.GetChatByIDWithoutRelations(chatId)
-	if err != nil {
-		return nil, err
-	}
-	if err := r.ensureActiveParticipant(context, chatObj.ID, author.ID); err != nil {
-		return nil, err
-	}
+	createdMediaPaths := make([]string, 0, len(formData.Files))
+	committed := false
+	defer func() {
+		if committed {
+			return
+		}
+		cleanupErr := cleanupStoredUploads(createdMediaPaths)
+		if recovered := recover(); recovered != nil {
+			if cleanupErr != nil {
+				helpers.Error("chat message rollback media cleanup error: %v", cleanupErr)
+			}
+			panic(recovered)
+		}
+		retErr = errors.Join(retErr, cleanupErr)
+	}()
 
-	_createdPost, err := r.postRepo.CreateContentablePost(context, formData, author, string(post.PostKindChat), &chatObj.ID)
-	if err != nil {
-		return nil, err
-	}
-	chatPost, err := r.postRepo.GetPostByIDIncludingUnpublished(_createdPost.ID)
-	if err != nil {
-		return nil, err
-	}
-	chatPost.ClientID = formData.ClientID
+	var creation *contentablePostCreation
+	retErr = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, author, chatID); err != nil {
+			return err
+		}
 
-	r.db.Model(&chatObj).Updates(map[string]interface{}{
-		"last_message_id":        chatPost.ID,
-		"last_message_timestamp": chatPost.CreatedAt,
+		var err error
+		creation, err = r.postRepo.transactionScoped(tx).createContentablePostInTransaction(
+			ctx,
+			formData,
+			author,
+			string(post.PostKindChat),
+			&chatID,
+			&createdMediaPaths,
+		)
+		if err != nil {
+			return err
+		}
+		message := creation.post
+		if result := tx.Model(&chat.Chat{}).
+			Where("id = ?", chatID).
+			Updates(map[string]interface{}{
+				"last_message_id":        message.ID,
+				"last_message_timestamp": message.CreatedAt,
+			}); result.Error != nil {
+			return result.Error
+		} else if result.RowsAffected != 1 {
+			return chat.ErrChatNotFound
+		}
+
+		return tx.Model(&chat.ChatParticipant{}).
+			Where("chat_id = ? AND user_id <> ? AND left_at IS NULL", chatID, author.ID).
+			Update("unread_count", gorm.Expr("unread_count + ?", 1)).Error
 	})
+	if retErr != nil {
+		return nil, retErr
+	}
+	committed = true
 
-	err = r.db.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ? AND user_id <> ?", chatId, author.ID).
-		Update("unread_count", gorm.Expr("unread_count + ?", 1)).
-		Error
-	if err != nil {
-		return nil, err
+	chatPost := creation.post
+	chatPost.Author = *author
+	chatPost.ClientID = formData.ClientID
+	if hydrated, err := r.postRepo.GetPostByIDIncludingUnpublished(chatPost.ID); err == nil {
+		chatPost = hydrated
+		chatPost.ClientID = formData.ClientID
+	} else {
+		helpers.Error("hydrate committed chat message %s: %v", chatPost.ID, err)
 	}
 
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
-	err = r.NotifyChatParticipants(chatObj.ID, *author, "New Message", newMessageNotification)
+	err = r.NotifyChatParticipants(chatID, *author, "New Message", newMessageNotification)
 	if err != nil {
 		fmt.Println("Error notifying chat participants:", err)
-		//return nil, err
 	}
-	return chatPost, err
+	// The message and its chat metadata are already committed. Notification is
+	// an external best-effort side effect and must not make the client retry a
+	// successful send (which would duplicate the message).
+	return chatPost, nil
+}
+
+func authenticatedChatUser(authUser *models.User, userID uuid.UUID) bool {
+	return authUser != nil && authUser.ID != uuid.Nil && authUser.ID == userID
+}
+
+func loadChatMutationScope(tx *gorm.DB, authUser *models.User, chatID uuid.UUID) (*chat.Chat, *chat.ChatParticipant, error) {
+	if tx == nil || authUser == nil || authUser.ID == uuid.Nil || chatID == uuid.Nil {
+		return nil, nil, chat.ErrNotParticipant
+	}
+
+	var participant chat.ChatParticipant
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("chat_id = ? AND user_id = ? AND left_at IS NULL", chatID, authUser.ID).
+		Take(&participant).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil, chat.ErrNotParticipant
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var chatEntity chat.Chat
+	err = tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", chatID).
+		Take(&chatEntity).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil, chat.ErrChatNotFound
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	return &chatEntity, &participant, nil
+}
+
+func loadChatMutationMessage(tx *gorm.DB, chatID, messageID uuid.UUID) (*post.Post, error) {
+	if tx == nil || chatID == uuid.Nil || messageID == uuid.Nil {
+		return nil, chat.ErrMessageNotFound
+	}
+	var message post.Post
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(
+			"id = ? AND post_kind = ? AND contentable_type = ? AND contentable_id = ?",
+			messageID,
+			post.PostKindMessage,
+			post.PostKindChat,
+			chatID,
+		).
+		Take(&message).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, chat.ErrMessageNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &message, nil
+}
+
+func (r *ChatRepository) withChatVisibilityMutation(ctx context.Context, mutation func(*gorm.DB) error) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if r.db.Name() != "postgres" {
+		fallbackEngagementViewLock.Lock()
+		defer fallbackEngagementViewLock.Unlock()
+	}
+	return r.db.WithContext(ctx).Transaction(mutation)
+}
+
+func chatVisibilityDedupeKey(kind models.EngagementKind, contentableType models.EngagementContentableType, contentableID, actorID uuid.UUID, global bool) string {
+	scope := actorID.String()
+	if global {
+		scope = "global"
+	}
+	return fmt.Sprintf("chat-visibility:%s:%s:%s:%s", contentableType, contentableID, kind, scope)
+}
+
+func addChatVisibilityFlag(
+	tx *gorm.DB,
+	actorID, ownerID uuid.UUID,
+	kind models.EngagementKind,
+	contentableID uuid.UUID,
+	contentableType models.EngagementContentableType,
+	global bool,
+) (bool, error) {
+	if tx == nil || actorID == uuid.Nil || ownerID == uuid.Nil || contentableID == uuid.Nil {
+		return false, errors.New("chat visibility identifiers are required")
+	}
+	if tx.Name() == "postgres" {
+		if err := lockViewAggregate(tx, engagementAggregateLockKey(contentableType, contentableID)).Error; err != nil {
+			return false, err
+		}
+	}
+	aggregate, err := loadOrCreateEngagementAggregate(tx, contentableID, contentableType)
+	if err != nil {
+		return false, err
+	}
+
+	existing := tx.Model(&models.EngagementDetail{}).
+		Where("engagement_id = ? AND kind = ?", aggregate.ID, kind)
+	if !global {
+		existing = existing.Where("engager_id = ?", actorID)
+	}
+	var count int64
+	if err := existing.Count(&count).Error; err != nil {
+		return false, err
+	}
+	if count > 0 {
+		return false, nil
+	}
+
+	now := time.Now().UTC()
+	dedupeKey := chatVisibilityDedupeKey(kind, contentableType, contentableID, actorID, global)
+	detail := models.EngagementDetail{
+		ID: uuid.New(), EngagementID: aggregate.ID, DedupeKey: &dedupeKey,
+		EngagerID: actorID, EngageeID: ownerID, Kind: kind,
+		CreatedAt: now, UpdatedAt: now,
+	}
+	if err := createEngagementDetailInTransaction(tx, &detail); err != nil {
+		if errors.Is(err, errEngagementDetailAlreadyExists) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func clearPinnedMessage(tx *gorm.DB, chatID, messageID uuid.UUID) error {
+	return tx.Model(&chat.Chat{}).
+		Where("id = ? AND pinned_msg_id = ?", chatID, messageID).
+		Updates(map[string]interface{}{
+			"pinned_msg_id": nil,
+			"pinned_by_id":  nil,
+		}).Error
+}
+
+func hasGlobalMessageDeletionFlag(tx *gorm.DB, messageID uuid.UUID) (bool, error) {
+	var count int64
+	err := tx.Model(&models.EngagementDetail{}).
+		Joins("JOIN engagements e ON e.id = engagement_details.engagement_id").
+		Where(
+			"e.contentable_id = ? AND e.contentable_type = ? AND engagement_details.kind = ?",
+			messageID,
+			models.EngagementContentableTypeMessage,
+			models.EngagementKindMessageDeletedForAll,
+		).
+		Count(&count).Error
+	return count > 0, err
 }
 
 func (r *ChatRepository) PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	chat, err := r.GetChatByIDWithoutRelations(chatID)
-	if err != nil {
-		return err
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
 	}
-	message, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
-	if err != nil {
-		return err
-	}
-	chat.PinnedMsgID = &message.ID
-	chat.PinnedByID = &userID
-	err = r.db.Save(chat).Error
-	if err != nil {
-		return err
-	}
-	return nil
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
+			return err
+		}
+		if _, err := loadChatMutationMessage(tx, chatID, messageID); err != nil {
+			return err
+		}
+		return tx.Model(&chat.Chat{}).
+			Where("id = ?", chatID).
+			Updates(map[string]interface{}{
+				"pinned_msg_id": messageID,
+				"pinned_by_id":  authUser.ID,
+			}).Error
+	})
 }
 
 func (r *ChatRepository) UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	chat, err := r.GetChatByIDWithoutRelations(chatID)
-	if err != nil {
-		return err
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
 	}
-	chat.PinnedMsgID = nil
-	chat.PinnedByID = nil
-	err = r.db.Save(chat).Error
-	if err != nil {
-		return err
-	}
-	return nil
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
+			return err
+		}
+		if _, err := loadChatMutationMessage(tx, chatID, messageID); err != nil {
+			return err
+		}
+		// The message ID is part of the command contract. It must never clear a
+		// newer/different pin if an old unpin request arrives late.
+		return tx.Model(&chat.Chat{}).
+			Where("id = ? AND pinned_msg_id = ?", chatID, messageID).
+			Updates(map[string]interface{}{
+				"pinned_msg_id": nil,
+				"pinned_by_id":  nil,
+			}).Error
+	})
 }
 
 func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	fmt.Println("HERE", authUser.ID, chatID, userID, messageID)
-
-	post, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
-	if err != nil {
-		fmt.Println("ERROR", err.Error())
-		return err
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
 	}
-	if post != nil {
-
-		err = r.userRepo.engagementRepo.AddEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindMessageDeletedForMe, post.ID, models.EngagementContentableTypeMessage)
-		if err != nil {
-			fmt.Println("ERROR", err.Error())
-
+	return r.withChatVisibilityMutation(ctx, func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
 			return err
 		}
-	}
-	return nil
+		message, err := loadChatMutationMessage(tx, chatID, messageID)
+		if err != nil {
+			return err
+		}
+		_, err = addChatVisibilityFlag(tx, authUser.ID, message.AuthorID, models.EngagementKindMessageDeletedForMe, message.ID, models.EngagementContentableTypeMessage, false)
+		return err
+	})
 }
 
 func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	post, err := r.postRepo.GetPostByIDIncludingUnpublished(messageID)
-	if err != nil {
-		return err
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
 	}
-	if post != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, post.AuthorID, models.EngagementKindMessageDeletedForAll, post.ID, models.EngagementContentableTypeMessage)
+	return r.withChatVisibilityMutation(ctx, func(tx *gorm.DB) error {
+		chatEntity, participant, err := loadChatMutationScope(tx, authUser, chatID)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
+		message, err := loadChatMutationMessage(tx, chatID, messageID)
+		if err != nil {
+			return err
+		}
+		if !chatEntity.CanDeleteMessage(authUser.ID, message.AuthorID, authUser.UserRole, participant.Role) {
+			return chat.ErrPermissionDenied
+		}
+		created, err := addChatVisibilityFlag(tx, authUser.ID, message.AuthorID, models.EngagementKindMessageDeletedForAll, message.ID, models.EngagementContentableTypeMessage, true)
+		if err != nil {
+			return err
+		}
+		if err := clearPinnedMessage(tx, chatID, message.ID); err != nil {
+			return err
+		}
+		if created {
+			if err := decrementExpiredMessageUnread(tx, chatID, message.AuthorID, message.CreatedAt).Error; err != nil {
+				return err
+			}
+		}
+		return repairChatLastMessage(tx, chatID, time.Now().UTC())
+	})
 }
 
 func (r *ChatRepository) DeleteChatForUser(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
-	chat, err := r.GetChatByID(chatID)
-	if err != nil {
-		return err
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
 	}
-	if chat != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindChatDeletedForMe, chat.ID, models.EngagementContentableTypeChat)
+	return r.withChatVisibilityMutation(ctx, func(tx *gorm.DB) error {
+		chatEntity, _, err := loadChatMutationScope(tx, authUser, chatID)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
+		_, err = addChatVisibilityFlag(tx, authUser.ID, chatEntity.CreatorID, models.EngagementKindChatDeletedForMe, chatEntity.ID, models.EngagementContentableTypeChat, false)
+		return err
+	})
 }
 
 func (r *ChatRepository) DeleteChatForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
-	chat, err := r.GetChatByID(chatID)
-	if err != nil {
-		return err
+	if authUser == nil {
+		return chat.ErrNotParticipant
 	}
-	if chat != nil {
-		_, err = r.userRepo.engagementRepo.ToggleEngagement(ctx, authUser.ID, chat.CreatorID, models.EngagementKindChatDeletedForAll, chat.ID, models.EngagementContentableTypeChat)
+	return r.withChatVisibilityMutation(ctx, func(tx *gorm.DB) error {
+		chatEntity, participant, err := loadChatMutationScope(tx, authUser, chatID)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
+		if !chatEntity.CanModerate(authUser.ID, authUser.UserRole, participant.Role) {
+			return chat.ErrPermissionDenied
+		}
+		_, err = addChatVisibilityFlag(tx, authUser.ID, chatEntity.CreatorID, models.EngagementKindChatDeletedForAll, chatEntity.ID, models.EngagementContentableTypeChat, true)
+		return err
+	})
 }
 
 func (r *ChatRepository) DeleteChat(ctx context.Context, authUser *models.User, chatID, userID uuid.UUID) error {
-	return r.db.Delete(&chat.Chat{}, "id = ? AND user_id = ?", chatID).Error
+	// The public action is documented as deleting a chat for the authenticated
+	// user; keep it as an idempotent visibility mutation, not a physical delete.
+	return r.DeleteChatForUser(ctx, authUser, chatID, userID)
 }
 
 func (r *ChatRepository) DeleteMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	return r.db.Delete(&post.Post{}, "id = ? AND contentable_type = ? AND contentable_id = ?", messageID, post.PostKindChat, chatID).Error
+	if !authenticatedChatUser(authUser, userID) {
+		return chat.ErrNotParticipant
+	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		chatEntity, participant, err := loadChatMutationScope(tx, authUser, chatID)
+		if err != nil {
+			return err
+		}
+		message, err := loadChatMutationMessage(tx, chatID, messageID)
+		if err != nil {
+			return err
+		}
+		if !chatEntity.CanDeleteMessage(authUser.ID, message.AuthorID, authUser.UserRole, participant.Role) {
+			return chat.ErrPermissionDenied
+		}
+		alreadyHiddenForAll, err := hasGlobalMessageDeletionFlag(tx, message.ID)
+		if err != nil {
+			return err
+		}
+		result := tx.
+			Where("id = ? AND post_kind = ? AND contentable_type = ? AND contentable_id = ?", messageID, post.PostKindMessage, post.PostKindChat, chatID).
+			Delete(&post.Post{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return chat.ErrMessageNotFound
+		}
+		if err := clearPinnedMessage(tx, chatID, message.ID); err != nil {
+			return err
+		}
+		if !alreadyHiddenForAll {
+			if err := decrementExpiredMessageUnread(tx, chatID, message.AuthorID, message.CreatedAt).Error; err != nil {
+				return err
+			}
+		}
+		return repairChatLastMessage(tx, chatID, time.Now().UTC())
+	})
 }
 
 func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.User, messageTitle, messageText string) error {
@@ -631,7 +896,7 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 	// Katılımcıları ve user ilişkisini preload ile çek
 	var participants []chat.ChatParticipant
 	err := r.db.Preload("User").
-		Where("chat_id = ? AND user_id <> ?", chatId, author.ID).
+		Where("chat_id = ? AND user_id <> ? AND left_at IS NULL", chatId, author.ID).
 		Find(&participants).Error
 	if err != nil {
 		return err
@@ -661,73 +926,36 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 }
 
 func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
-	var messages []post.Post
-
-	var participant chat.ChatParticipant
-	if err := r.db.
-		Where("chat_id = ? AND user_id = ?", chatID, userID).
-		First(&participant).Error; err != nil {
-		return nil, err
-	}
-
-	query := r.messagesByChatIDQuery(userID, chatID, participant.ClearedAt)
-
-	err := query.
-		Order("posts.created_at ASC").
-		Preload("Author").
-		Preload("Parent", activeMessageScope(time.Now())).
-		Preload("Parent.Author.Avatar.File").
-		Preload("Parent.Author.Cover.File").
-		Preload("Parent.Attachments").
-		Preload("Engagements", func(db *gorm.DB) *gorm.DB {
-			return db.Preload("EngagementDetails", func(db2 *gorm.DB) *gorm.DB {
-				return db2.Where("kind NOT IN ?", []models.EngagementKind{
-					models.EngagementKindMessageDeletedForMe,
-					models.EngagementKindMessageDeletedForAll,
-				})
-			})
-		}).
-		Preload("Engagements.EngagementDetails.Engager").
-		Preload("Engagements.EngagementDetails.Engagee").
-		Preload("Parent.Attachments.File").
-		Preload("Author.Avatar.File").
-		Preload("Author.Cover.File").
-		Preload("Attachments").
-		Preload("Attachments.File").
-		Find(&messages).Error
-
-	if err != nil {
-		return nil, err
-	}
-	if err := r.sanitizeMessagesForViewer(postPointers(messages), userID); err != nil {
-		return nil, err
-	}
-
-	now := time.Now()
-	err = r.db.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ? AND user_id = ?", chatID, userID).
-		Updates(map[string]interface{}{
-			"unread_count": 0,
-			"last_read_at": now,
-		}).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return messages, nil
+	page, err := r.ListChatMessages(context.Background(), ports.ChatMessageListQuery{
+		UserID: userID,
+		ChatID: chatID,
+		Limit:  constants.DEFAULT_LIMIT,
+	})
+	return page.Messages, err
 }
 
 func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUID, clearedAt *time.Time) *gorm.DB {
 	query := r.db.Model(&post.Post{}).
-		Where("posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindChat, chatID).
+		Where("posts.post_kind = ? AND posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindMessage, post.PostKindChat, chatID).
 		Where("(posts.expires_at IS NULL OR posts.expires_at > ?)", time.Now()).
-		Joins(`LEFT JOIN engagements e 
-			ON e.contentable_id = posts.id AND e.contentable_type = ?`, post.PostKindMessage).
-		Joins(`LEFT JOIN engagement_details ed 
-			ON ed.engagement_id = e.id 
-			AND ((ed.kind = ? AND ed.engager_id = ?) OR ed.kind = ?)`,
-			models.EngagementKindMessageDeletedForMe, userID, models.EngagementKindMessageDeletedForAll).
-		Where("ed.id IS NULL")
+		Where(`
+			NOT EXISTS (
+				SELECT 1
+				FROM engagements e
+				JOIN engagement_details ed ON ed.engagement_id = e.id
+				WHERE e.contentable_id = posts.id
+				AND e.contentable_type = ?
+				AND (
+					(ed.kind = ? AND ed.engager_id = ?)
+					OR ed.kind = ?
+				)
+			)
+		`,
+			models.EngagementContentableTypeMessage,
+			models.EngagementKindMessageDeletedForMe,
+			userID,
+			models.EngagementKindMessageDeletedForAll,
+		)
 
 	if clearedAt != nil {
 		query = query.Where("posts.created_at > ?", *clearedAt)
@@ -736,48 +964,86 @@ func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUI
 	return query
 }
 
-func (r *ChatRepository) GetMessagesByChatIDWithCursor(userID uuid.UUID, chatID uuid.UUID, limit int, cursor *int64) ([]post.Post, error) {
-	var messages []post.Post
-	if err := r.ensureActiveParticipant(context.Background(), chatID, userID); err != nil {
-		return nil, err
-	}
-	err := r.db.
-		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID).
-		Where("(expires_at IS NULL OR expires_at > ?)", time.Now()).
-		Order("created_at ASC").
-		Preload("Author").
-		Preload("Parent", activeMessageScope(time.Now())).
+func preloadChatMessageRelations(db *gorm.DB, now time.Time) *gorm.DB {
+	return db.
+		Preload("Author", chatUserReadScope).
+		Preload("Parent", activeMessageScope(now)).
 		Preload("Location").
-		Preload("Parent.Author.Avatar.File").
-		Preload("Parent.Author.Cover.File").
-		Preload("Parent.Attachments").
-		Preload("Parent.Attachments.File").
-		Preload("Author.Avatar.File").
-		Preload("Author.Cover.File").
-		Preload("Attachments").
-		Preload("Attachments.File").
-		Limit(limit).
+		Preload("Parent.Author", chatUserReadScope).
+		Preload("Parent.Author.Avatar", chatMediaReadScope).
+		Preload("Parent.Author.Avatar.File", chatAvatarFileReadScope).
+		Preload("Parent.Attachments", chatAttachmentMediaReadScope).
+		Preload("Parent.Attachments.File", chatAttachmentFileReadScope).
+		Preload("Author.Avatar", chatMediaReadScope).
+		Preload("Author.Avatar.File", chatAvatarFileReadScope).
+		Preload("Attachments", chatAttachmentMediaReadScope).
+		Preload("Attachments.File", chatAttachmentFileReadScope)
+}
+
+func (r *ChatRepository) chatMessagesPageQuery(ctx context.Context, query ports.ChatMessageListQuery, clearedAt *time.Time) *gorm.DB {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	db := r.messagesByChatIDQuery(query.UserID, query.ChatID, clearedAt).WithContext(ctx)
+	if query.Cursor != nil {
+		db = db.Where("posts.public_id < ?", query.Cursor.PublicID)
+	}
+	return preloadChatMessageRelations(db, time.Now()).
+		Order("posts.public_id DESC")
+}
+
+func (r *ChatRepository) ListChatMessages(ctx context.Context, query ports.ChatMessageListQuery) (ports.ChatMessageListPage, error) {
+	limit := boundedRepositoryChatLimit(query.Limit)
+	query.Limit = limit
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	var participant chat.ChatParticipant
+	if err := r.activeParticipantQuery(ctx, query.ChatID, query.UserID).Take(&participant).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ports.ChatMessageListPage{}, chat.ErrNotParticipant
+		}
+		return ports.ChatMessageListPage{}, err
+	}
+
+	var messages []post.Post
+	err := r.chatMessagesPageQuery(ctx, query, participant.ClearedAt).
+		Limit(limit + 1).
 		Find(&messages).Error
 
 	if err != nil {
-		return nil, err
+		return ports.ChatMessageListPage{}, err
 	}
-	if err := r.sanitizeMessagesForViewer(postPointers(messages), userID); err != nil {
-		return nil, err
+	hasMore := len(messages) > limit
+	if hasMore {
+		messages = messages[:limit]
+	}
+	for left, right := 0, len(messages)-1; left < right; left, right = left+1, right-1 {
+		messages[left], messages[right] = messages[right], messages[left]
+	}
+	if err := r.sanitizeMessagesForViewer(postPointers(messages), query.UserID); err != nil {
+		return ports.ChatMessageListPage{}, err
 	}
 
 	now := time.Now()
-	err = r.db.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ? AND user_id = ?", chatID, userID).
+	err = r.db.WithContext(ctx).Model(&chat.ChatParticipant{}).
+		Where("chat_id = ? AND user_id = ? AND left_at IS NULL", query.ChatID, query.UserID).
 		Updates(map[string]interface{}{
 			"unread_count": 0,
 			"last_read_at": now,
 		}).Error
 
 	if err != nil {
-		return nil, err
+		return ports.ChatMessageListPage{}, err
 	}
-	return messages, nil
+	return ports.ChatMessageListPage{Messages: messages, HasMore: hasMore}, nil
+}
+
+// GetMessagesByChatIDWithCursor is retained for internal callers while
+// sharing the bounded and deletion-aware production implementation.
+func (r *ChatRepository) GetMessagesByChatIDWithCursor(ctx context.Context, query ports.ChatMessageListQuery) (ports.ChatMessageListPage, error) {
+	return r.ListChatMessages(ctx, query)
 }
 
 // OpenMessage atomically starts the global expiry window on the first open
@@ -903,8 +1169,18 @@ func repairChatLastMessage(tx *gorm.DB, chatID uuid.UUID, now time.Time) error {
 	var latest post.Post
 	err := tx.
 		Select("id", "created_at").
-		Where("contentable_type = ? AND contentable_id = ?", post.PostKindChat, chatID).
+		Where("post_kind = ? AND contentable_type = ? AND contentable_id = ?", post.PostKindMessage, post.PostKindChat, chatID).
 		Where("(expires_at IS NULL OR expires_at > ?)", now).
+		Where(`
+			NOT EXISTS (
+				SELECT 1
+				FROM engagements e
+				JOIN engagement_details ed ON ed.engagement_id = e.id
+				WHERE e.contentable_id = posts.id
+				AND e.contentable_type = ?
+				AND ed.kind = ?
+			)
+		`, models.EngagementContentableTypeMessage, models.EngagementKindMessageDeletedForAll).
 		Order("created_at DESC, public_id DESC").
 		First(&latest).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -956,6 +1232,10 @@ func (r *ChatRepository) ExpireMessages(ctx context.Context, now time.Time, limi
 			if message.ContentableID == nil || message.ExpiresAt == nil {
 				continue
 			}
+			alreadyHiddenForAll, err := hasGlobalMessageDeletionFlag(tx, message.ID)
+			if err != nil {
+				return err
+			}
 
 			result := deleteSession.
 				Where("id = ? AND expires_at IS NOT NULL AND expires_at <= ?", message.ID, now).
@@ -983,8 +1263,10 @@ func (r *ChatRepository) ExpireMessages(ctx context.Context, now time.Time, limi
 				}).Error; err != nil {
 				return err
 			}
-			if err := decrementExpiredMessageUnread(tx, chatID, message.AuthorID, message.CreatedAt).Error; err != nil {
-				return err
+			if !alreadyHiddenForAll {
+				if err := decrementExpiredMessageUnread(tx, chatID, message.AuthorID, message.CreatedAt).Error; err != nil {
+					return err
+				}
 			}
 		}
 
@@ -1023,99 +1305,85 @@ func (r *ChatRepository) GetUserChatIDsByUserPublicID(userPublicId int64) ([]uui
 }
 
 func (r *ChatRepository) DeleteChatHistoryForUser(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
-
-	now := time.Now()
-
-	return r.db.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
-		Updates(map[string]interface{}{
-			"cleared_at":   now,
-			"unread_count": 0,
-			"last_read_at": now,
-		}).Error
+	if authUser == nil {
+		return chat.ErrNotParticipant
+	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
+			return err
+		}
+		now := time.Now().UTC()
+		return tx.Model(&chat.ChatParticipant{}).
+			Where("chat_id = ? AND user_id = ? AND left_at IS NULL", chatID, authUser.ID).
+			Updates(map[string]interface{}{
+				"cleared_at":   now,
+				"unread_count": 0,
+				"last_read_at": now,
+			}).Error
+	})
 }
 
 func (r *ChatRepository) DeleteChatHistoryForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error {
-
-	chatEntity, err := r.GetChatByID(chatID)
-	if err != nil {
-		return err
+	if authUser == nil {
+		return chat.ErrNotParticipant
 	}
-	if chatEntity == nil {
-		return nil
-	}
-
-	if chatEntity.CreatorID != authUser.ID {
-		return errors.New("unauthorized")
-	}
-
-	now := time.Now()
-
-	tx := r.db.Begin()
-
-	err = tx.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ?", chatID).
-		Updates(map[string]interface{}{
-			"cleared_at":   now,
-			"unread_count": 0,
-			"last_read_at": now,
-		}).Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit().Error
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		chatEntity, participant, err := loadChatMutationScope(tx, authUser, chatID)
+		if err != nil {
+			return err
+		}
+		if !chatEntity.CanModerate(authUser.ID, authUser.UserRole, participant.Role) {
+			return chat.ErrPermissionDenied
+		}
+		now := time.Now().UTC()
+		return tx.Model(&chat.ChatParticipant{}).
+			Where("chat_id = ?", chatID).
+			Updates(map[string]interface{}{
+				"cleared_at":   now,
+				"unread_count": 0,
+				"last_read_at": now,
+			}).Error
+	})
 }
 
 func (r *ChatRepository) MarkChatMessageRead(ctx context.Context, authUser *models.User, chatID uuid.UUID, messages []uuid.UUID) error {
-
-	var participant chat.ChatParticipant
-	err := r.db.
-		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
-		First(&participant).Error
-	if err != nil {
-		return err
+	if authUser == nil {
+		return chat.ErrNotParticipant
 	}
-
-	now := time.Now()
-
-	for _, messageID := range messages {
-
-		post, err := r.postRepo.GetPostByIDWithoutRelations(messageID)
-		if err != nil {
+	return r.withChatVisibilityMutation(ctx, func(tx *gorm.DB) error {
+		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
 			return err
 		}
 
-		if post == nil {
-			continue
+		seen := make(map[uuid.UUID]struct{}, len(messages))
+		for _, messageID := range messages {
+			if _, duplicate := seen[messageID]; duplicate {
+				continue
+			}
+			seen[messageID] = struct{}{}
+			message, err := loadChatMutationMessage(tx, chatID, messageID)
+			if err != nil {
+				return err
+			}
+			if _, err := addChatVisibilityFlag(
+				tx,
+				authUser.ID,
+				message.AuthorID,
+				models.EngagementKindChatMessageRead,
+				message.ID,
+				models.EngagementContentableTypeMessage,
+				false,
+			); err != nil {
+				return err
+			}
 		}
 
-		err = r.userRepo.engagementRepo.AddEngagement(
-			ctx,
-			authUser.ID,
-			post.AuthorID,
-			models.EngagementKindChatMessageRead,
-			post.ID,
-			models.EngagementContentableTypeMessage,
-		)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	err = r.db.Model(&chat.ChatParticipant{}).
-		Where("chat_id = ? AND user_id = ?", chatID, authUser.ID).
-		Updates(map[string]interface{}{
-			"unread_count": 0,
-			"last_read_at": now,
-		}).Error
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-
+		now := time.Now().UTC()
+		return tx.Model(&chat.ChatParticipant{}).
+			Where("chat_id = ? AND user_id = ? AND left_at IS NULL", chatID, authUser.ID).
+			Updates(map[string]interface{}{
+				"unread_count": 0,
+				"last_read_at": now,
+			}).Error
+	})
 }

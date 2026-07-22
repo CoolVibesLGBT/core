@@ -2,13 +2,15 @@ package repositories
 
 import (
 	"context"
+	"core/application/types"
 	"core/constants"
 	"core/helpers"
+	"core/models"
 	"core/models/post"
 	"core/models/taxonomy"
 	"core/models/utils"
-	"core/types"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -79,45 +81,36 @@ func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(source string, placeSou
 }
 
 func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error) {
-	var posts []*post.Post
-	limit := filters.Limit
-	if limit <= 0 {
-		limit = constants.DEFAULT_LIMIT
-	}
+	limit := nearByPlaceLimit(filters.Limit)
 
 	lat := filters.Latitude
 	lon := filters.Longitude
-
-	query := r.nearByPlacesQuery(filters, limit)
-
-	if err := query.Find(&posts).Error; err != nil {
-		return nil, types.Cursor{}, err
-	}
+	var places []*post.Post
 
 	var nextCursor *string
 	var nextDistance *float64
 
-	if len(posts) > 0 {
-
-		last := posts[len(posts)-1]
-
-		if lat != nil && lon != nil {
-			var dist float64
-			r.db.Raw(`
-				SELECT ST_Distance(
-					location_point::geography,
-					ST_SetSRID(ST_GeomFromText(?), 4326)::geography
-				)
-				FROM locations
-				WHERE contentable_id = ?
-				AND contentable_type = ?
-			`, fmt.Sprintf("POINT(%f %f)", *lon, *lat),
-				last.ID,
-				utils.LocationOwnerPost,
-			).Scan(&dist)
-
-			nextDistance = &dist
+	if lat != nil && lon != nil {
+		if filters.Cursor != nil && filters.Distance == nil {
+			return nil, types.Cursor{}, fmt.Errorf("distance cursor is required for location-based pagination")
 		}
+		ranks, err := r.fetchNearByPlaceRanks(filters, limit)
+		if err != nil {
+			return nil, types.Cursor{}, err
+		}
+
+		places, nextDistance, err = r.loadRankedPlaces(filters, ranks)
+		if err != nil {
+			return nil, types.Cursor{}, err
+		}
+	} else {
+		if err := r.nearByPlacesQuery(filters, limit).Find(&places).Error; err != nil {
+			return nil, types.Cursor{}, err
+		}
+	}
+
+	if len(places) > 0 {
+		last := places[len(places)-1]
 
 		var cursorErr error
 		nextCursor, cursorErr = types.NewPublicIDDistanceCursor(last.PublicID, nextDistance)
@@ -135,98 +128,184 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 		}
 	}
 
-	return posts, types.Cursor{
+	return places, types.Cursor{
 		Prev:     prevCursor,
 		Next:     nextCursor,
 		Distance: nextDistance,
 	}, nil
 }
 
-func (r *PlaceRepository) nearByPlacesQuery(filters types.Filter, limit int) *gorm.DB {
-	cursorID := filters.Cursor
-	cursorDistance := filters.Distance
-	lat := filters.Latitude
-	lon := filters.Longitude
+func nearByPlaceLimit(requested int) int {
+	if requested <= 0 {
+		return constants.DEFAULT_LIMIT
+	}
+	if requested > constants.MAXIMUM_LIMIT {
+		return constants.MAXIMUM_LIMIT
+	}
+	return requested
+}
 
-	query := r.db.Model(&post.Post{}).
+type nearByPlaceRank struct {
+	ID       uuid.UUID `gorm:"column:id"`
+	PublicID int64     `gorm:"column:public_id"`
+	Distance float64   `gorm:"column:distance"`
+}
+
+const nearByPlaceDistanceSQL = `
+	locations.location_point <->
+	ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+`
+
+func (r *PlaceRepository) fetchNearByPlaceRanks(filters types.Filter, limit int) ([]nearByPlaceRank, error) {
+	var ranks []nearByPlaceRank
+	query := r.nearByPlaceRanksQuery(filters, limit)
+	if err := query.Scan(&ranks).Error; err != nil {
+		return nil, err
+	}
+	return ranks, nil
+}
+
+func (r *PlaceRepository) nearByPlaceRanksQuery(filters types.Filter, limit int) *gorm.DB {
+	db := r.db
+	if filters.Context != nil {
+		db = db.WithContext(filters.Context)
+	}
+
+	query := db.
+		Table("locations").
+		Select(
+			"posts.id, posts.public_id, "+nearByPlaceDistanceSQL+" AS distance",
+			*filters.Longitude,
+			*filters.Latitude,
+		).
+		Joins("JOIN posts ON posts.id = locations.contentable_id").
+		Where("locations.contentable_type = ?", utils.LocationOwnerPost).
+		Where("locations.deleted_at IS NULL").
+		Where("locations.location_point IS NOT NULL").
+		Where("posts.deleted_at IS NULL").
+		Limit(limit)
+
+	query = applyNearByPlaceVisibility(query)
+	query = applyNearByPlaceDomain(query, filters.Domain)
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
+
+	if filters.Cursor != nil && filters.Distance != nil {
+		query = query.Where(
+			fmt.Sprintf("(%s > ?) OR (%s = ? AND posts.public_id < ?)", nearByPlaceDistanceSQL, nearByPlaceDistanceSQL),
+			*filters.Longitude,
+			*filters.Latitude,
+			*filters.Distance,
+			*filters.Longitude,
+			*filters.Latitude,
+			*filters.Distance,
+			*filters.Cursor,
+		)
+	}
+
+	return query.
+		Order("distance ASC").
+		Order("posts.public_id DESC")
+}
+
+func (r *PlaceRepository) loadRankedPlaces(filters types.Filter, ranks []nearByPlaceRank) ([]*post.Post, *float64, error) {
+	if len(ranks) == 0 {
+		return []*post.Post{}, nil, nil
+	}
+
+	ids := make([]uuid.UUID, 0, len(ranks))
+	for _, rank := range ranks {
+		ids = append(ids, rank.ID)
+	}
+
+	var unordered []*post.Post
+	if err := r.nearByPlaceDetailsQuery(filters).
+		Where("posts.id IN ?", ids).
+		Find(&unordered).Error; err != nil {
+		return nil, nil, err
+	}
+
+	ordered, lastDistance := orderRankedPlaces(unordered, ranks)
+	return ordered, lastDistance, nil
+}
+
+func orderRankedPlaces(unordered []*post.Post, ranks []nearByPlaceRank) ([]*post.Post, *float64) {
+	byID := make(map[uuid.UUID]*post.Post, len(unordered))
+	for _, place := range unordered {
+		byID[place.ID] = place
+	}
+
+	ordered := make([]*post.Post, 0, len(unordered))
+	var lastDistance *float64
+	for _, rank := range ranks {
+		place, ok := byID[rank.ID]
+		if !ok {
+			continue
+		}
+		ordered = append(ordered, place)
+		distance := rank.Distance
+		lastDistance = &distance
+	}
+
+	return ordered, lastDistance
+}
+
+func (r *PlaceRepository) nearByPlacesQuery(filters types.Filter, limit int) *gorm.DB {
+	query := r.nearByPlaceDetailsQuery(filters).
+		Limit(limit)
+
+	if filters.Cursor != nil {
+		query = query.Where("posts.public_id < ?", *filters.Cursor)
+	}
+
+	return query.Order("posts.public_id DESC")
+}
+
+func (r *PlaceRepository) nearByPlaceDetailsQuery(filters types.Filter) *gorm.DB {
+	db := r.db
+	if filters.Context != nil {
+		db = db.WithContext(filters.Context)
+	}
+
+	query := db.Model(&post.Post{})
+	query = applyNearByPlaceVisibility(query)
+	query = applyNearByPlaceDomain(query, filters.Domain)
+	query = applyTaxonomyCategoryFilter(query, filters.Category)
+
+	// A place card only consumes the place taxonomy, location, public media,
+	// author identity, hashtags and aggregate counts. Poll/event trees and
+	// per-user engagement details belong to their dedicated detail endpoints;
+	// loading them here made one small page fan out into dozens of queries.
+	return query.
+		Preload("Clusters").
+		Preload("Location").
+		Preload("Engagements").
+		Preload("Author", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "public_id", "user_name", "display_name", "avatar_id")
+		}).
+		Preload("Author.Avatar", "is_public = TRUE").
+		Preload("Author.Avatar.File").
+		Preload("Hashtags").
+		Preload("Attachments", "is_public = TRUE").
+		Preload("Attachments.File")
+}
+
+func applyNearByPlaceVisibility(query *gorm.DB) *gorm.DB {
+	return query.
 		Where("posts.contentable_type = ?", string(post.PostKindPlace)).
 		Where("posts.published = TRUE").
 		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
-		Where("parent_id IS NULL").
-		Limit(limit).
-		Preload("Clusters").
-		Preload("Clusters.Pillar").
-		Preload("Clusters.Synonyms").
-		Preload("Clusters.Parent").
-		Preload("Clusters.Children").
-		Preload("Location").
-		Preload("Poll").
-		Preload("Poll.Choices", func(db *gorm.DB) *gorm.DB {
-			return db.Order("display_order ASC")
-		}).
-		Preload("Poll.Choices.Votes").
-		Preload("Poll.Choices.Votes.User").
-		Preload("Poll.Choices.Votes.User.Avatar").
-		Preload("Poll.Choices.Votes.User.Avatar.File").
-		Preload("Engagements").
-		Preload("Engagements.EngagementDetails", preloadPublicEngagementDetails).
-		Preload("Engagements.EngagementDetails.Engager").
-		Preload("Engagements.EngagementDetails.Engagee").
-		Preload("Event").
-		Preload("Event.Location").
-		Preload("Event.Attendees", preloadEventAttendees).
-		Preload("Author.Avatar").
-		Preload("Author.Avatar.File").
-		Preload("Author.Cover").
-		Preload("Author.Cover.File").
-		Preload("Hashtags").
-		Preload("Mentions").
-		Preload("Attachments").
-		Preload("Attachments.File")
+		Where("posts.parent_id IS NULL")
+}
 
-	query = applyTaxonomyCategoryFilter(query, filters.Category)
-
-	if lat != nil && lon != nil {
-
-		userPoint := fmt.Sprintf("POINT(%f %f)", *lon, *lat)
-
-		distanceSQL := fmt.Sprintf(`
-			ST_Distance(
-				locations.location_point::geography,
-				ST_SetSRID(ST_GeomFromText('%s'), 4326)::geography
-			)
-		`, userPoint)
-
-		query = query.Joins(`
-			LEFT JOIN locations 
-			ON locations.contentable_id = posts.id
-			AND locations.contentable_type = ?
-		`, utils.LocationOwnerPost)
-
-		// Cursor kesme (distance + id)
-		if cursorID != nil && cursorDistance != nil {
-			query = query.Where(fmt.Sprintf(`
-				(%s > ?) OR
-				(%s = ? AND posts.public_id < ?)
-			`, distanceSQL, distanceSQL),
-				*cursorDistance,
-				*cursorDistance,
-				*cursorID,
-			)
-		}
-
-		query = query.
-			Order(distanceSQL + " ASC").
-			Order("posts.public_id DESC")
-
-	} else {
-
-		if cursorID != nil {
-			query = query.Where("posts.public_id < ?", *cursorID)
-		}
-
-		query = query.Order("posts.public_id DESC")
+func applyNearByPlaceDomain(query *gorm.DB, requestedDomain *string) *gorm.DB {
+	if requestedDomain == nil {
+		return query
 	}
 
-	return query
+	domain := strings.TrimSpace(*requestedDomain)
+	if domain == "" || strings.EqualFold(domain, string(models.AllDomains)) || strings.EqualFold(domain, string(models.UnknownDomain)) {
+		return query
+	}
+
+	return query.Where("posts.domain = ?", domain)
 }

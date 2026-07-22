@@ -2,14 +2,10 @@ package media
 
 import (
 	"context"
-	"core/helpers"
-	"core/infrastructure/repositories"
 	mediamodel "core/models/media"
 	"log"
 	"sync"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -19,10 +15,17 @@ const (
 	staleSweepInterval   = time.Minute
 )
 
-type processorRepository interface {
+// Repository is the outbound port required by the media processor. Its
+// implementation is selected by the composition root; the worker must not
+// construct a persistence adapter itself.
+type Repository interface {
 	ClaimNextPendingMedia(time.Time) (*mediamodel.Media, error)
 	ProcessClaimedMedia(*mediamodel.Media) error
 	RequeueStaleProcessing(time.Duration) (int64, error)
+}
+
+type ProcessingObserver interface {
+	MediaProcessingUpdated(ctx context.Context, item *mediamodel.Media, status mediamodel.ProcessingStatus)
 }
 
 type Processor struct {
@@ -30,16 +33,18 @@ type Processor struct {
 	done   chan struct{}
 }
 
-func StartProcessor(db *gorm.DB, node *helpers.Node) *Processor {
-	return StartProcessorContext(context.Background(), db, node)
+func StartProcessor(repo Repository, observers ...ProcessingObserver) *Processor {
+	return StartProcessorContext(context.Background(), repo, observers...)
 }
 
-func StartProcessorContext(ctx context.Context, db *gorm.DB, node *helpers.Node) *Processor {
-	repo := repositories.NewMediaRepository(db, node)
-	return startProcessor(ctx, repo)
+func StartProcessorContext(ctx context.Context, repo Repository, observers ...ProcessingObserver) *Processor {
+	if repo == nil {
+		return nil
+	}
+	return startProcessor(ctx, repo, observers...)
 }
 
-func startProcessor(parent context.Context, repo processorRepository) *Processor {
+func startProcessor(parent context.Context, repo Repository, observers ...ProcessingObserver) *Processor {
 	if parent == nil {
 		parent = context.Background()
 	}
@@ -48,6 +53,10 @@ func startProcessor(parent context.Context, repo processorRepository) *Processor
 		cancel: cancel,
 		done:   make(chan struct{}),
 	}
+	var observer ProcessingObserver
+	if len(observers) > 0 {
+		observer = observers[0]
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(processorWorkerCount + 1)
@@ -55,7 +64,7 @@ func startProcessor(parent context.Context, repo processorRepository) *Processor
 	for i := 0; i < processorWorkerCount; i++ {
 		go func() {
 			defer wg.Done()
-			runWorker(ctx, repo)
+			runWorker(ctx, repo, observer)
 		}()
 	}
 
@@ -100,7 +109,7 @@ func (p *Processor) Shutdown(ctx context.Context) error {
 	}
 }
 
-func runWorker(ctx context.Context, repo processorRepository) {
+func runWorker(ctx context.Context, repo Repository, observer ProcessingObserver) {
 	for {
 		if err := ctx.Err(); err != nil {
 			return
@@ -124,6 +133,9 @@ func runWorker(ctx context.Context, repo processorRepository) {
 		if err := repo.ProcessClaimedMedia(item); err != nil {
 			log.Printf("[MediaProcessor] processing media %s failed: %v", item.ID, err)
 		}
+		if observer != nil && (item.ProcessingStatus == mediamodel.ProcessingStatusReady || item.ProcessingStatus == mediamodel.ProcessingStatusFailed) {
+			observer.MediaProcessingUpdated(context.WithoutCancel(ctx), item, item.ProcessingStatus)
+		}
 	}
 }
 
@@ -139,7 +151,7 @@ func waitForNextAttempt(ctx context.Context, delay time.Duration) bool {
 	}
 }
 
-func runStaleSweep(ctx context.Context, repo processorRepository) {
+func runStaleSweep(ctx context.Context, repo Repository) {
 	ticker := time.NewTicker(staleSweepInterval)
 	defer ticker.Stop()
 

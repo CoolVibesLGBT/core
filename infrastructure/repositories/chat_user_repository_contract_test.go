@@ -3,12 +3,12 @@ package repositories
 import (
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/chat"
 	"core/models/media"
 	"core/models/post"
 	modelutils "core/models/utils"
-	"core/types"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,11 +46,12 @@ func TestChatMessagesByChatIDQueryFiltersDeletedMessagesAndClearTime(t *testing.
 
 	sql := tx.Statement.SQL.String()
 	for _, fragment := range []string{
+		"posts.post_kind",
 		"posts.contentable_type",
 		"posts.contentable_id",
-		"LEFT JOIN engagements",
-		"LEFT JOIN engagement_details",
-		"ed.id IS NULL",
+		"NOT EXISTS",
+		"FROM engagements",
+		"JOIN engagement_details",
 		"posts.created_at >",
 		"posts.expires_at IS NULL OR posts.expires_at >",
 	} {
@@ -62,6 +63,105 @@ func TestChatMessagesByChatIDQueryFiltersDeletedMessagesAndClearTime(t *testing.
 	for _, value := range []string{"message_deleted_for_me", "message_deleted_for_all"} {
 		if !strings.Contains(vars, value) {
 			t.Fatalf("expected query vars to contain %q, got %s", value, vars)
+		}
+	}
+}
+
+func TestChatListPageQueryUsesCompositeCursorAndLimitPlusOne(t *testing.T) {
+	db := newDryRunTaxonomyDB(t)
+	repo := &ChatRepository{db: db}
+	userID := uuid.New()
+	cursorID := uuid.New()
+	cursorTime := time.Now().UTC()
+
+	var chats []chat.Chat
+	tx := repo.chatsByUserIDQuery(context.Background(), ports.ChatListQuery{
+		UserID: userID,
+		Cursor: &ports.ChatListCursor{ActivityAt: cursorTime, ChatID: cursorID},
+		Limit:  20,
+	}).
+		Order(chatListActivityExpression + " DESC, chats.id DESC").
+		Limit(21).
+		Find(&chats)
+	if tx.Error != nil {
+		t.Fatalf("query error = %v", tx.Error)
+	}
+
+	sql := tx.Statement.SQL.String()
+	for _, fragment := range []string{
+		"EXISTS",
+		"cp.user_id",
+		"cp.left_at IS NULL",
+		"NOT EXISTS",
+		"ed.engager_id",
+		"COALESCE(chats.last_message_timestamp, chats.created_at) <",
+		"chats.id <",
+		"ORDER BY COALESCE(chats.last_message_timestamp, chats.created_at) DESC, chats.id DESC",
+		"LIMIT",
+	} {
+		if !strings.Contains(sql, fragment) {
+			t.Fatalf("expected chat page SQL to contain %q, got %s", fragment, sql)
+		}
+	}
+}
+
+func TestPrivateChatLookupRequiresBothParticipantsToBeActive(t *testing.T) {
+	db := newDryRunTaxonomyDB(t)
+	repo := &ChatRepository{db: db}
+	fromUser := uuid.New()
+	toUser := uuid.New()
+
+	var entity chat.Chat
+	tx := repo.privateChatBetweenUsersQuery(fromUser, toUser, time.Now().UTC()).First(&entity)
+	if tx.Error != nil {
+		t.Fatalf("query error = %v", tx.Error)
+	}
+
+	sql := tx.Statement.SQL.String()
+	for _, fragment := range []string{
+		"cp1.chat_id = chats.id AND cp1.left_at IS NULL",
+		"cp2.chat_id = chats.id AND cp2.left_at IS NULL",
+		"cp1.user_id",
+		"cp2.user_id",
+		"chats.deleted_at IS NULL",
+	} {
+		if !strings.Contains(sql, fragment) {
+			t.Fatalf("private chat lookup SQL is missing %q: %s", fragment, sql)
+		}
+	}
+}
+
+func TestChatMessagePageQueryUsesPublicIDCursorAndLimitPlusOne(t *testing.T) {
+	db := newDryRunTaxonomyDB(t)
+	repo := &ChatRepository{db: db}
+	userID := uuid.New()
+	chatID := uuid.New()
+	cursor := int64(9001)
+
+	var messages []post.Post
+	tx := repo.chatMessagesPageQuery(context.Background(), ports.ChatMessageListQuery{
+		UserID: userID,
+		ChatID: chatID,
+		Cursor: &ports.ChatMessageListCursor{PublicID: cursor},
+		Limit:  20,
+	}, nil).
+		Limit(21).
+		Find(&messages)
+	if tx.Error != nil {
+		t.Fatalf("query error = %v", tx.Error)
+	}
+
+	sql := tx.Statement.SQL.String()
+	for _, fragment := range []string{
+		"posts.post_kind",
+		"posts.contentable_type",
+		"posts.contentable_id",
+		"posts.public_id <",
+		"ORDER BY posts.public_id DESC",
+		"LIMIT",
+	} {
+		if !strings.Contains(sql, fragment) {
+			t.Fatalf("expected message page SQL to contain %q, got %s", fragment, sql)
 		}
 	}
 }
@@ -231,7 +331,7 @@ func TestDeleteUserIDUsesAuthenticatedUserUUID(t *testing.T) {
 	submittedID := uuid.New()
 
 	got, err := deleteUserID(types.Filter{
-		AuthUser: &models.User{ID: authID},
+		AuthUser: &types.Actor{ID: authID},
 		UserUUID: submittedID,
 		UserID:   0,
 	})

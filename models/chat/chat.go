@@ -21,7 +21,7 @@ type Chat struct {
 	Title       *utils.LocalizedString `gorm:"type:jsonb" json:"title"`
 	Description *utils.LocalizedString `gorm:"type:jsonb" json:"description"`
 
-	AvatarID *uuid.UUID   `json:"avatar_id,omitempty"`
+	AvatarID *uuid.UUID   `gorm:"type:uuid" json:"avatar_id,omitempty"`
 	Avatar   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
 
 	CreatorID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"creator_id"`

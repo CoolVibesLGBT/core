@@ -3,10 +3,11 @@ package usecases
 import (
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/constants"
 	"core/models"
-	"core/models/payment"
 	eventkinds "core/models/post/payloads"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -78,6 +79,29 @@ func (s *SystemService) SaveVapidSubscription(ctx context.Context, userID uuid.U
 	return s.repo.SaveVapidSubscription(ctx, userID, subscription)
 }
 
-func (s *SystemService) PaymentMethod(ctx context.Context) (*payment.PaymentMethod, error) {
-	return s.repo.GetPaymentMethod(ctx)
+func (s *SystemService) PaymentMethod(ctx context.Context) (*types.PublicPaymentMethod, error) {
+	method, err := s.repo.GetPaymentMethod(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if method == nil {
+		return nil, ports.ErrNotFound
+	}
+	return &types.PublicPaymentMethod{
+		Kind:               string(method.DefaultPaymentKind),
+		IBANDetails:        clonePaymentJSON(method.IBANDetails),
+		IsIBANEnabled:      method.IsIBANEnabled,
+		CryptoDetails:      clonePaymentJSON(method.CryptoDetails),
+		IsCryptoEnabled:    method.IsCryptoEnabled,
+		GooglePayDetails:   clonePaymentJSON(method.GooglePayDetails),
+		IsGooglePayEnabled: method.IsGooglePayEnabled,
+		Packages:           clonePaymentJSON(method.Packages),
+	}, nil
+}
+
+func clonePaymentJSON(value []byte) json.RawMessage {
+	if len(value) == 0 {
+		return nil
+	}
+	return append(json.RawMessage(nil), value...)
 }

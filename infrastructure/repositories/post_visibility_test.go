@@ -1,10 +1,10 @@
 package repositories
 
 import (
+	"core/application/types"
 	"core/constants"
 	"core/models"
 	"core/models/post"
-	"core/types"
 	"testing"
 	"time"
 

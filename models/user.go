@@ -72,6 +72,7 @@ type User struct {
 	DisplayName      string                 `json:"displayname"`
 	Email            string                 `json:"-"`
 	Password         string                 `json:"-"`
+	Website          string                 `gorm:"type:text" json:"website,omitempty"`
 	Bio              *utils.LocalizedString `gorm:"type:jsonb" json:"bio,omitempty"`
 	DateOfBirth      *time.Time             `json:"date_of_birth,omitempty"`
 	Balance          decimal.Decimal        `gorm:"type:numeric(38,18);default:0" json:"balance"`
@@ -89,9 +90,9 @@ type User struct {
 	LastOnline       *time.Time             `json:"last_online,omitempty"`
 	Location         *utils.Location        `gorm:"polymorphic:Contentable;polymorphicValue:user;constraint:OnDelete:CASCADE" json:"location,omitempty"`
 	DefaultLanguage  string                 `gorm:"type:varchar(8);default:'en'" json:"default_language"`
-	AvatarID         *uuid.UUID             `json:"avatar_id,omitempty"`
+	AvatarID         *uuid.UUID             `gorm:"type:uuid" json:"avatar_id,omitempty"`
 	Avatar           *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
-	CoverID          *uuid.UUID             `json:"cover_id,omitempty"`
+	CoverID          *uuid.UUID             `gorm:"type:uuid" json:"cover_id,omitempty"`
 	Cover            *media.Media           `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
 	Languages        pq.StringArray         `gorm:"type:text[]" json:"languages"`
 	Hobbies          pq.StringArray         `gorm:"type:text[]" json:"hobbies,omitempty"`

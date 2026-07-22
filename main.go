@@ -6,7 +6,6 @@ import (
 	"core/helpers"
 	app "core/infrastructure/bootstrap"
 	"core/infrastructure/db"
-	"core/infrastructure/repositories"
 	"core/infrastructure/socket"
 	"core/infrastructure/socket/managers"
 	"core/models"
@@ -209,10 +208,7 @@ func serve(application *app.App) (retErr error) {
 	}
 
 	defer func() {
-		if application.Router.GEOIPDB != nil {
-			retErr = errors.Join(retErr, application.Router.GEOIPDB.Close())
-		}
-		retErr = errors.Join(retErr, db.Close(application.DB))
+		retErr = errors.Join(retErr, application.Close())
 	}()
 
 	port := strings.TrimSpace(os.Getenv("PORT"))
@@ -227,8 +223,7 @@ func serve(application *app.App) (retErr error) {
 	serviceCtx, cancelServices := context.WithCancel(context.Background())
 	defer cancelServices()
 
-	notificationRepo := repositories.NewNotificationRepository(application.DB, application.SnowFlakeNode)
-	notificationMgr := managers.NewNotificationManager(application.DB, notificationRepo)
+	notificationMgr := managers.NewNotificationManager(application.NotificationRepository)
 
 	var socketRuntime *socket.Runtime
 	socketPort := strings.TrimSpace(os.Getenv("SOCKET_PORT"))
@@ -240,8 +235,8 @@ func serve(application *app.App) (retErr error) {
 		}
 	}
 
-	mediaProcessor := mediaworker.StartProcessorContext(serviceCtx, application.DB, application.SnowFlakeNode)
-	chatProcessor := chatworker.StartProcessorContext(serviceCtx, application.Router.ChatService)
+	mediaProcessor := mediaworker.StartProcessorContext(serviceCtx, application.MediaProcessorRepository, application.MediaProcessingObserver)
+	chatProcessor := chatworker.StartProcessorContext(serviceCtx, application.ChatService)
 
 	fiberApp := application.Router.GetFiber()
 	serverErrors := make(chan error, 1)
@@ -301,7 +296,7 @@ func serve(application *app.App) (retErr error) {
 }
 
 func registerTelegramWebhook(application *app.App) {
-	service := application.Router.TelegramService
+	service := application.TelegramService
 	if service == nil {
 		return
 	}

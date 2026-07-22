@@ -17,13 +17,18 @@ type Options struct {
 	StatusCodeValidationFunc    StatusCodeValidationFunc // [Optional] If set, use function that validates status codes and returns errors accordingly.
 	HttpClient                  httpclient.Client        // [Optional] Custom client for request.
 	KeyRotationInterval         time.Duration            // [Optional] If set, enable encryption keys rotation.
+	DeliveryTimeout             time.Duration            // Maximum duration of one push-provider request.
 }
+
+// DefaultDeliveryTimeout bounds a single call to an external push provider.
+const DefaultDeliveryTimeout = 2 * time.Second
 
 // NewOptions creates and returns a new Options instance with default settings.
 // By default, it sets the ApplicationServerSubject to the project's GitHub URL.
 func NewOptions() *Options {
 	return &Options{
 		ApplicationServerSubject: "https://github.com/gootsolution/pushbell",
+		DeliveryTimeout:          DefaultDeliveryTimeout,
 	}
 }
 
@@ -71,6 +76,16 @@ func (o *Options) SetKeyRotationEnabled() *Options {
 // Returns the updated Options instance for method chaining.
 func (o *Options) SetKeyRotationInterval(interval time.Duration) *Options {
 	o.KeyRotationInterval = interval
+
+	return o
+}
+
+// SetDeliveryTimeout sets the maximum duration of one push-provider request.
+// Non-positive values keep the safe default instead of disabling the deadline.
+func (o *Options) SetDeliveryTimeout(timeout time.Duration) *Options {
+	if timeout > 0 {
+		o.DeliveryTimeout = timeout
+	}
 
 	return o
 }

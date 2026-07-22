@@ -1,51 +1,107 @@
 package broadcast
 
 import (
-	"bytes"
 	"context"
-	app "core/infrastructure/bootstrap"
+	"core/application/ports"
 	"core/models"
 	"core/models/utils"
+	"sync"
 	"time"
 
-	userservice "core/application/usecases"
-	"core/infrastructure/identity"
-	"core/infrastructure/repositories"
 	"core/workers"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
-
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
-func StartFetcher(dispatcher *workers.Dispatcher, a *app.App) {
-	ticker := time.NewTicker(5 * time.Minute)
+const fetchInterval = 5 * time.Minute
 
-	// Başlangıçta 1 kez anında çalıştır
-	dispatcher.SubmitEx(func() {
-		fetchAndProcess(a)
-	})
-
-	go func() {
-		for {
-			<-ticker.C
-			dispatcher.SubmitEx(func() {
-				fetchAndProcess(a)
-			})
-		}
-	}()
+type Fetcher struct {
+	cancel context.CancelFunc
+	done   chan struct{}
+	once   sync.Once
+	tasks  sync.WaitGroup
 }
 
-func fetchAndProcess(a *app.App) {
-	log.Println("[BroadcastWorker] Fetching broadcasts...")
+func StartFetcher(dispatcher *workers.Dispatcher, dependencies Dependencies) *Fetcher {
+	return StartFetcherContext(context.Background(), dispatcher, dependencies)
+}
 
-	if err := a.DB.Model(&models.User{}).Where("is_bot = ?", true).Updates(map[string]interface{}{"is_live": false, "is_online": true}).Error; err != nil {
+func StartFetcherContext(parent context.Context, dispatcher *workers.Dispatcher, dependencies Dependencies) *Fetcher {
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := context.WithCancel(parent)
+	fetcher := &Fetcher{cancel: cancel, done: make(chan struct{})}
+	if dispatcher == nil {
+		log.Printf("[BroadcastWorker] dispatcher is not configured")
+		close(fetcher.done)
+		return fetcher
+	}
+
+	submit := func() {
+		fetcher.tasks.Add(1)
+		dispatcher.SubmitEx(func() {
+			defer fetcher.tasks.Done()
+			fetchAndProcess(ctx, dependencies)
+		})
+	}
+
+	// Başlangıçta 1 kez anında çalıştır
+	submit()
+
+	go func() {
+		defer func() {
+			fetcher.tasks.Wait()
+			close(fetcher.done)
+		}()
+		ticker := time.NewTicker(fetchInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				submit()
+			}
+		}
+	}()
+
+	return fetcher
+}
+
+func (f *Fetcher) Stop() {
+	if f != nil && f.cancel != nil {
+		f.once.Do(f.cancel)
+	}
+}
+
+func (f *Fetcher) Shutdown(ctx context.Context) error {
+	if f == nil {
+		return nil
+	}
+	f.Stop()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	select {
+	case <-f.done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func fetchAndProcess(ctx context.Context, dependencies Dependencies) {
+	log.Println("[BroadcastWorker] Fetching broadcasts...")
+	if err := dependencies.validateFetcher(); err != nil {
+		log.Printf("[BroadcastWorker] %v", err)
+		return
+	}
+
+	if err := dependencies.Repository.ResetBotBroadcastPresence(ctx); err != nil {
 		log.Printf("[BroadcastWorker] Error resetting IsLive and IsOnline for bots: %v", err)
 	}
 
@@ -54,88 +110,43 @@ func fetchAndProcess(a *app.App) {
 		Body []byte
 		Err  error
 	}
-	fetch := func(name, url, token string, headers map[string]string, ch chan apiResult) {
-		payload := map[string]interface{}{
-			"pageSize":  100,
-			"gender":    "all",
-			"latitude":  56.465587404589485,
-			"longitude": 37.57010769460817,
-			"more":      true,
-			"score":     "0",
-		}
-		jsonData, _ := json.Marshal(payload)
-
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-		if err != nil {
-			ch <- apiResult{name, nil, err}
-			return
-		}
-
-		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Header.Set("Accept", "*/*")
-		req.Header.Set("X-Parse-Application-Id", "sns-video")
-		req.Header.Set("X-Parse-Session-Token", token)
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
-
-		client := &http.Client{Timeout: 30 * time.Second}
-		resp, err := client.Do(req)
-		if err != nil {
-			ch <- apiResult{name, nil, err}
-			return
-		}
-		defer func() { _ = resp.Body.Close() }()
-
-		body, err := io.ReadAll(resp.Body)
-		ch <- apiResult{name, body, err}
+	providers := []ports.BroadcastProvider{
+		ports.BroadcastProviderGrowlr,
+		ports.BroadcastProviderHornet,
+	}
+	ch := make(chan apiResult, len(providers))
+	query := ports.BroadcastTrendingQuery{
+		PageSize:  100,
+		Gender:    "all",
+		Latitude:  56.465587404589485,
+		Longitude: 37.57010769460817,
+		More:      true,
+		Score:     "0",
+	}
+	for _, provider := range providers {
+		provider := provider
+		go func() {
+			body, err := dependencies.Gateway.FetchTrending(ctx, provider, query)
+			ch <- apiResult{Name: string(provider), Body: body, Err: err}
+		}()
 	}
 
-	ch := make(chan apiResult, 2)
-
-	// Fetch Growlr
-	go fetch(
-		"gdata",
-		"https://api.gateway.growlr-live.com/video-api/growlr/functions/sns-video:getTrendingBroadcasts",
-		"r:cf7d80043703b5729f3d463f813a2f38",
-		map[string]string{
-			"Host":                    "api.gateway.growlr-live.com",
-			"X-Parse-Client-Key":      "com.initechapps.growlr",
-			"X-Parse-Installation-Id": "98f4e8f2-21f9-4b1b-9564-7131f57709a3",
-			"X-Parse-OS-Version":      "26.3 (23D127)",
-			"Accept-Language":         "ru-RU,ru;q=0.9",
-			"X-Parse-Client-Version":  "i1.19.6",
-			"User-Agent":              "growlr/16.46.1.0 ( network=growlr; ) ios/26.3.0 ( iPhone; ) TMGCommon/8.23.3",
-		},
-		ch,
-	)
-
-	// Fetch Hornet
-	go fetch(
-		"hdata",
-		"https://api.gateway.hornet-live.com/video-api/hornet/functions/sns-video:getTrendingBroadcasts",
-		"r:82c7599c5e8f922d6db6791a26e2fcbc",
-		map[string]string{
-			"accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-			"origin":          "https://api.gateway.hornet-live.com",
-			"referer":         "https://api.gateway.hornet-live.com/web-live/search/trending/all",
-			"x-user-agent":    "hornet/78.1.6 web/3.16.0 ( variant=small; )",
-			"user-agent":      "Mozilla/5.0",
-		},
-		ch,
-	)
-
-	for i := 0; i < 2; i++ {
+	for range providers {
 		res := <-ch
 		if res.Err != nil {
 			log.Printf("[BroadcastWorker] Fetch error for %s: %v", res.Name, res.Err)
 			continue
 		}
-		processBroadcastData(a, res.Body, res.Name)
+		if err := processBroadcastData(ctx, dependencies, res.Body, res.Name); err != nil {
+			log.Printf("[BroadcastWorker] Processing error for %s: %v", res.Name, err)
+		}
 	}
 }
 
-func processBroadcastData(a *app.App, data []byte, provider string) {
+func processBroadcastData(ctx context.Context, dependencies Dependencies, data []byte, provider string) error {
+	if err := dependencies.validate(); err != nil {
+		return err
+	}
 	var resp struct {
 		Result struct {
 			Broadcasts []map[string]interface{} `json:"broadcasts"`
@@ -143,22 +154,13 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 	}
 
 	if err := json.Unmarshal(data, &resp); err != nil {
-		log.Printf("[BroadcastWorker] Unmarshal error: %v", err)
-		return
+		return fmt.Errorf("unmarshal broadcasts: %w", err)
 	}
 
-	repo := repositories.NewMediaRepository(a.DB, a.SnowFlakeNode)
-	userRepo := repositories.NewUserRepository(a.DB, nil, a.SnowFlakeNode, nil, nil)
-	userService := userservice.NewUserService(
-		userRepo,
-		nil,
-		repo,
-		nil,
-		nil,
-		userservice.WithPublicIDGenerator(identity.NewSnowflakePublicIDGenerator(a.SnowFlakeNode)),
-	)
-
 	for _, b := range resp.Result.Broadcasts {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		b["provider"] = provider
 
 		userDetailsObj, ok := b["userDetails"].(map[string]interface{})
@@ -181,22 +183,18 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 			continue
 		}
 
-		var user models.User
-
 		defaultLang := "en"
 		if langStr, ok := b["language"].(string); ok && langStr != "" {
 			defaultLang = strings.ToLower(langStr)
 		}
 
-		err = a.DB.
-			Where(`
-				(
-					broadcast_info->'userDetails'->>'networkUserId' IN ?
-					OR broadcast_info->'userDetails'->>'memberId' IN ?
-				)
-			`, lookupIDs, lookupIDs).
-			First(&user).Error
-		if err == gorm.ErrRecordNotFound {
+		foundUser, found, err := dependencies.Repository.FindBroadcastUser(ctx, lookupIDs)
+		if err != nil {
+			log.Printf("[BroadcastWorker] Error querying user %s: %v", networkUserIdStr, err)
+			continue
+		}
+		var user models.User
+		if !found {
 			streamDesc := getString(b["streamDescription"])
 			if streamDesc == "" {
 				streamDesc = getString(userDetailsObj["streamDescription"])
@@ -238,7 +236,7 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 				DateOfBirth:     dateOfBirth,
 			}
 
-			createdUser, err := userService.CreateBotUser(context.Background(), userToCreate)
+			createdUser, err := dependencies.Users.CreateBotUser(ctx, userToCreate)
 			if err != nil {
 				log.Printf("[BroadcastWorker] Error creating user %s: %v", networkUserIdStr, err)
 				continue
@@ -251,16 +249,18 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 			if ok {
 				largeUrl := getString(profilePic["large"])
 				if largeUrl != "" && largeUrl != "null" && strings.HasPrefix(largeUrl, "http") {
-					_, err := userService.UpdateAvatarFromURL(context.Background(), largeUrl, &user)
+					_, err := dependencies.Users.UpdateAvatarFromURL(ctx, largeUrl, &user)
 					if err != nil {
 						log.Printf("[BroadcastWorker] Error updating avatar from url for user %s (%s): %v", user.ID, largeUrl, err)
 					}
 				}
 			}
-		} else if err != nil {
-			log.Printf("[BroadcastWorker] Error querying user %s: %v", networkUserIdStr, err)
-			continue
 		} else {
+			if foundUser == nil {
+				log.Printf("[BroadcastWorker] repository returned an empty user for %s", networkUserIdStr)
+				continue
+			}
+			user = *foundUser
 			// Existing user: Update IsLive and check if avatar is missing
 			user.IsLive = true
 			user.IsOnline = true
@@ -270,7 +270,7 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 				if ok {
 					largeUrl := getString(profilePic["large"])
 					if largeUrl != "" && largeUrl != "null" && strings.HasPrefix(largeUrl, "http") {
-						_, err := userService.UpdateAvatarFromURL(context.Background(), largeUrl, &user)
+						_, err := dependencies.Users.UpdateAvatarFromURL(ctx, largeUrl, &user)
 						if err != nil {
 							log.Printf("[BroadcastWorker] Error updating missing avatar for existing user %s (%s): %v", user.ID, largeUrl, err)
 						}
@@ -281,18 +281,11 @@ func processBroadcastData(a *app.App, data []byte, provider string) {
 
 		// Update BroadcastInfo and IsLive in any case (newly created or existing)
 		bBytes, _ := json.Marshal(b)
-		user.BroadcastInfo = datatypes.JSON(bBytes)
-		user.IsLive = true
-		user.IsOnline = true
-
-		if err := a.DB.Model(&user).Updates(map[string]interface{}{
-			"broadcast_info": user.BroadcastInfo,
-			"is_live":        true,
-			"is_online":      true,
-		}).Error; err != nil {
+		if err := dependencies.Repository.UpdateBroadcastState(ctx, user.ID, bBytes); err != nil {
 			log.Printf("[BroadcastWorker] Error updating BroadcastInfo, IsLive, and IsOnline for user %s: %v", networkUserIdStr, err)
 		}
 	}
+	return nil
 }
 
 func getString(val interface{}) string {

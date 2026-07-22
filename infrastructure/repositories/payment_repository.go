@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"core/application/ports"
 	"core/helpers"
 	"core/models"
 	"core/models/payment"
@@ -29,7 +30,7 @@ func NewPaymentRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *M
 }
 
 func (r *PaymentRepository) ProcessPayment(paymentKind payment.PaymentKind, authUser models.User) error {
-	return nil
+	return ports.ErrPaymentProcessingNotImplemented
 }
 
 func (r *PaymentRepository) GooglePay(authUser models.User) error {

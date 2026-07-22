@@ -4,7 +4,7 @@ A Go-based backend application with WebSocket support, PostgreSQL database, and 
 
 ## Features
 
-- **RESTful API** with Gorilla Mux router
+- **HTTP action API** with Fiber v3
 - **WebSocket support** using Socket.IO
 - **PostgreSQL database** with GORM ORM
 - **JWT authentication** for secure API access
@@ -48,7 +48,15 @@ brew install golangci-lint
 ```bash
 cp env.sample .env
 # Edit .env with your database credentials and other settings
+# USER_JWT_SECRET is required and must be at least 32 bytes.
+# Generate one with: openssl rand -base64 48
 ```
+
+User JWT validation is fail-closed (HS256, issuer/subject/identity and temporal
+claims are required) with 30 seconds of clock-skew tolerance. Tokens issued by
+older builds without `iat`/`nbf` claims are intentionally rejected, so users
+must sign in again after deploying this change. Rotate `USER_JWT_SECRET` through
+your secret manager; never commit it to the repository.
 
 ### 4. Install Go dependencies
 ```bash
@@ -68,6 +76,9 @@ Run migration or seed independently when needed:
 ```bash
 ./start.sh -migrate
 ```
+
+The migration also installs required report-kind reference data and the
+database constraints used by atomic location/engagement writes.
 
 ```bash
 ./start.sh -seed
@@ -95,6 +106,7 @@ golangci-lint run ./...
 ```
 
 ### 7. Dependency Composition
+
 Dependency wiring is maintained manually in `infrastructure/bootstrap/bootstrap.go`.
 
 ### 8. Coverage
@@ -113,18 +125,26 @@ go test ./...
 ## Project Structure
 ```
 core/
-├── constants/          # Application constants and error definitions
-├── models/            # Data models
-├── routes/            # HTTP route handlers and middleware
-├── services/          # Business logic and external services
-│   ├── db/           # Database operations and repositories
-│   └── socket/       # WebSocket server implementation
-├── static/           # Static files served by the application
-├── types/            # Custom type definitions
-├── utils/            # Utility functions and helpers
-├── main.go           # Application entry point
-└── go.mod            # Go module dependencies
+├── adapters/inbound/        # Fiber HTTP and MCP input adapters
+├── application/
+│   ├── ports/               # Repository and external-system boundaries
+│   ├── types/               # Persistence-free application DTOs
+│   ├── legacyviews/         # Quarantined legacy response projections
+│   └── usecases/            # Application orchestration
+├── domain/                  # Framework-independent business rules
+├── infrastructure/
+│   ├── bootstrap/           # Composition root
+│   ├── repositories/        # GORM outbound adapters
+│   └── ...                  # Auth, media, GeoIP, socket and other adapters
+├── models/                  # Legacy GORM/schema compatibility boundary
+├── workers/                 # Background processors
+├── static/                  # Static files served by the application
+├── main.go                  # Process lifecycle and maintenance commands
+└── go.mod
 ```
+
+The enforced dependency direction and remaining migration debt are documented
+in `docs/ddd-audit.md`.
 
 ## API Endpoints
 
@@ -139,6 +159,10 @@ The application uses JWT tokens for authentication. Include the token in the Aut
 ```
 Authorization: Bearer <your-jwt-token>
 ```
+
+Only HS256 user tokens with the expected issuer/subject and complete time
+claims are accepted. Startup fails closed when `USER_JWT_SECRET` is missing or
+shorter than 32 bytes.
 
 ## WebSocket
 
@@ -156,6 +180,21 @@ The server will start on the port specified in your `.env` file.
 File uploads have no application-level size limit. Large multipart files are
 spooled to temporary files instead of being retained entirely in memory.
 Private and chat upload URLs require an authorized bearer token.
+If a reverse proxy or ingress is used, its request-body limit must also be
+disabled; that limit is outside this process. Configure `TRUSTED_PROXIES` with
+an explicit comma-separated proxy IP/CIDR allowlist before relying on forwarded
+client IP headers.
+
+For an Nginx API location, disable both the byte cap and request buffering so
+the body can flow through to Fiber's disk-backed multipart parser:
+
+```nginx
+client_max_body_size 0;
+proxy_request_buffering off;
+```
+
+Private-photo album/batch item counts remain domain cardinality rules; they do
+not inspect or cap the number of bytes in an uploaded file.
 
 ## Dependencies
 

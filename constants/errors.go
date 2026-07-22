@@ -9,6 +9,7 @@ const (
 	ErrInvalidInput         ErrorCode = "INVALID_INPUT"
 	ErrInvalidForm          ErrorCode = "INVALID_FORM"
 	ErrNetworkError         ErrorCode = "NETWORK_ERROR"
+	ErrRequestTimeout       ErrorCode = "REQUEST_TIMEOUT"
 	ErrDatabaseError        ErrorCode = "DATABASE_ERROR"
 	ErrResourceNotFound     ErrorCode = "RESOURCE_NOT_FOUND"
 	ErrInvalidAction        ErrorCode = "INVALID_ACTION"
@@ -109,7 +110,9 @@ const (
 	ErrInvalidMessageID                 ErrorCode = "INVALID_MESSAGE_ID"
 	ErrFailedToPinMessage               ErrorCode = "FAILED_TO_PIN_MESSAGE"
 	ErrFailedToUnpinMessage             ErrorCode = "FAILED_TO_UNPIN_MESSAGE"
+	ErrFailedToDeleteMessage            ErrorCode = "FAILED_TO_DELETE_MESSAGE"
 	ErrFailedToDeleteMessageForUser     ErrorCode = "FAILED_TO_DELETE_MESSAGE_FOR_USER"
+	ErrFailedToDeleteMessageForAll      ErrorCode = "FAILED_TO_DELETE_MESSAGE_FOR_ALL"
 	ErrFailedToDeleteChatForAll         ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_ALL"
 	ErrFailedToDeleteChatForUser        ErrorCode = "FAILED_TO_DELETE_CHAT_FOR_USER"
 	ErrFailedToDeleteChatHistoryForUser ErrorCode = "FAILED_TO_DELETE_CHAT_HISTORY_FOR_USER"
@@ -141,6 +144,7 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrPermissionDenied:     "Permission denied.",
 	ErrInvalidInput:         "Invalid input provided.",
 	ErrNetworkError:         "A network error occurred.",
+	ErrRequestTimeout:       "The request timed out.",
 	ErrDatabaseError:        "A database error occurred.",
 	ErrResourceNotFound:     "The requested resource could not be found.",
 	ErrInvalidAction:        "The requested action is not valid.",
@@ -226,7 +230,9 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrInvalidMessageID:                 "The provided message ID is invalid.",
 	ErrFailedToPinMessage:               "Failed to pin message.",
 	ErrFailedToUnpinMessage:             "Failed to unpin the message. Please try again later.",
+	ErrFailedToDeleteMessage:            "Failed to delete the message.",
 	ErrFailedToDeleteMessageForUser:     "Failed to delete the message for the user.",
+	ErrFailedToDeleteMessageForAll:      "Failed to delete the message for all.",
 	ErrFailedToDeleteChatForAll:         "Failed to delete the chat for all.",
 	ErrFailedToDeleteChatForUser:        "Failed to delete the chat for the user.",
 	ErrFailedToDeleteChatHistoryForUser: "Failed to delete the chat history for the user.",

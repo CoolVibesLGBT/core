@@ -2,11 +2,14 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
+	"core/application/types"
+	domainwallet "core/domain/wallet"
 	"core/models"
 	"core/models/post"
 	postpayloads "core/models/post/payloads"
 	"core/models/taxonomy"
-	"core/types"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -19,9 +22,9 @@ func TestPostServiceReadMethodsDelegateFilters(t *testing.T) {
 	postRepo := &fakePostRepository{
 		getPostBySlug:     &post.Post{ID: uuid.New(), PublicID: 10, Slug: &slug},
 		getPostByPublicID: &post.Post{ID: uuid.New(), PublicID: 99},
-		timeline:          types.TimelineResult{Posts: []post.Post{{PublicID: 1}}, Cursor: &cursor},
-		search:            types.PostsResult{Posts: []post.Post{{PostKind: post.PostKindVideo}}},
-		timelineVibes:     types.TimelineResult{Posts: []post.Post{{PostKind: post.PostKindStatus}}},
+		timeline:          legacyviews.TimelineResult{Posts: []post.Post{{PublicID: 1}}, Cursor: &cursor},
+		search:            legacyviews.PostsResult{Posts: []post.Post{{PostKind: post.PostKindVideo}}},
+		timelineVibes:     legacyviews.TimelineResult{Posts: []post.Post{{PostKind: post.PostKindStatus}}},
 		recentHashtags:    []types.HashtagStats{{Tag: "go", Count: 2}},
 		pillars:           []taxonomy.Pillar{{ID: uuid.New(), Slug: "culture"}},
 	}
@@ -73,11 +76,11 @@ func TestPostServiceUserMediaAndNearbyUsersDelegateFilters(t *testing.T) {
 	distance := 12.5
 	userRepo := &fakeUserRepository{
 		userUUIDByPublicID:  map[int64]uuid.UUID{42: userUUID},
-		fetchNearbyUsers:    []*models.User{{ID: userUUID, PublicID: 42}},
+		fetchNearbyUsers:    []types.NearbyUser{{PublicID: 42}},
 		fetchNearbyDistance: &distance,
 	}
 	postRepo := &fakePostRepository{
-		userMedias:       []types.MediaWithUser{{User: models.User{ID: userUUID, PublicID: 42}}},
+		userMedias:       []legacyviews.MediaWithUser{{User: models.User{ID: userUUID, PublicID: 42}}},
 		userMediasCursor: &cursor,
 	}
 	service := NewPostService(userRepo, postRepo, &fakeMediaRepository{})
@@ -104,7 +107,7 @@ func TestPostServiceMutationMethodsDelegateArguments(t *testing.T) {
 	service := NewPostService(&fakeUserRepository{}, postRepo, &fakeMediaRepository{})
 	authUser := &models.User{ID: uuid.New(), PublicID: 50}
 	choiceID := uuid.New()
-	filter := types.Filter{PostID: 123, AuthUser: authUser}
+	filter := types.Filter{PostID: 123, AuthUser: &types.Actor{ID: authUser.ID, PublicID: authUser.PublicID, Role: string(authUser.UserRole)}}
 
 	if err := service.Vote(context.Background(), choiceID, 2, 3, authUser.ID); err != nil {
 		t.Fatalf("Vote() error = %v", err)
@@ -143,8 +146,21 @@ func TestPostServiceMutationMethodsDelegateArguments(t *testing.T) {
 		t.Fatalf("Report() did not pass args: %#v", postRepo)
 	}
 
-	balance, err := service.Tip(context.Background(), 123, authUser, decimal.NewFromInt(4))
-	if err != nil || balance == nil || !postRepo.tipAmount.Equal(decimal.NewFromInt(4)) || postRepo.tipAuthUser != authUser {
+	balance, err := service.Tip(context.Background(), 123, authUser, decimal.NewFromInt(4), "tip-request-123")
+	if err != nil || balance == nil || !postRepo.tipAmount.Equal(decimal.NewFromInt(4)) || postRepo.tipAuthUser != authUser || postRepo.tipIdempotencyKey.String() != "tip-request-123" {
 		t.Fatalf("Tip() balance=%v err=%v repo=%#v", balance, err, postRepo)
+	}
+}
+
+func TestPostServiceTipRequiresIdempotencyKeyBeforeRepository(t *testing.T) {
+	postRepo := &fakePostRepository{}
+	service := NewPostService(&fakeUserRepository{}, postRepo, &fakeMediaRepository{})
+
+	_, err := service.Tip(context.Background(), 123, &models.User{ID: uuid.New()}, decimal.NewFromInt(1), "")
+	if !errors.Is(err, domainwallet.ErrIdempotencyKeyRequired) {
+		t.Fatalf("Tip() error = %v, want idempotency key required", err)
+	}
+	if postRepo.tipPostID != 0 {
+		t.Fatal("Tip() called repository without a valid idempotency key")
 	}
 }

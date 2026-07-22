@@ -1,13 +1,18 @@
 package ports
 
-import "errors"
+import (
+	domainmoderation "core/domain/moderation"
+	"errors"
+)
 
 var ErrNotFound = errors.New("resource not found")
+var ErrPrivatePhotoLimitReached = errors.New("private photo album limit reached")
+var ErrPaymentProcessingNotImplemented = errors.New("payment processing is not implemented")
 
 var (
-	ErrInvalidReportKind       = errors.New("invalid report kind")
+	ErrInvalidReportKind       = domainmoderation.ErrInvalidKind
 	ErrReportTargetNotFound    = errors.New("report target not found")
 	ErrReportNotFound          = errors.New("report not found")
-	ErrInvalidReportTransition = errors.New("invalid report status transition")
-	ErrInvalidModerationAction = errors.New("invalid moderation action")
+	ErrInvalidReportTransition = domainmoderation.ErrInvalidTransition
+	ErrInvalidModerationAction = domainmoderation.ErrInvalidResolutionAction
 )

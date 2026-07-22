@@ -18,25 +18,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type PostKind string
+type PostKind = domainpost.Kind
 type ContentCategory string
 
 const (
-	PostKindStatus     PostKind = "status"
-	PostKindTimeline   PostKind = "timeline"
-	PostKindPlace      PostKind = "place"
-	PostKindClassified PostKind = "classified"
-	PostKindJobOffer   PostKind = "job_offer"
-	PostKindJobSearch  PostKind = "job_search"
-	PostKindGeneric    PostKind = "generic"
-	PostKindNews       PostKind = "news"
-	PostKindStory      PostKind = "story"
-	PostKindChat       PostKind = "chat"
-	PostKindMessage    PostKind = "message"
-	PostKindPost       PostKind = "post"
-	PostKindEvent      PostKind = "event"
-	PostKindCheckIn    PostKind = "checkin"
-	PostKindVideo      PostKind = "video"
+	PostKindStatus     = domainpost.KindStatus
+	PostKindTimeline   = domainpost.KindTimeline
+	PostKindPlace      = domainpost.KindPlace
+	PostKindClassified = domainpost.KindClassified
+	PostKindJobOffer   = domainpost.KindJobOffer
+	PostKindJobSearch  = domainpost.KindJobSearch
+	PostKindGeneric    = domainpost.KindGeneric
+	PostKindNews       = domainpost.KindNews
+	PostKindStory      = domainpost.KindStory
+	PostKindChat       = domainpost.KindChat
+	PostKindMessage    = domainpost.KindMessage
+	PostKindPost       = domainpost.KindPost
+	PostKindEvent      = domainpost.KindEvent
+	PostKindCheckIn    = domainpost.KindCheckIn
+	PostKindVideo      = domainpost.KindVideo
 )
 
 const (

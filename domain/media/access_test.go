@@ -15,6 +15,7 @@ func TestFileAccessPolicy(t *testing.T) {
 		{name: "hidden post", policy: FileAccessPolicy{MediaPublic: true, AttachedToPost: true, Audience: "public"}},
 		{name: "owner", policy: FileAccessPolicy{OwnerViewer: true}, accessible: true},
 		{name: "moderator", policy: FileAccessPolicy{PrivilegedViewer: true}, accessible: true},
+		{name: "approved private photo grant", policy: FileAccessPolicy{PrivatePhotoGrant: true}, accessible: true},
 		{name: "chat participant", policy: FileAccessPolicy{MediaPublic: true, ChatMedia: true, ChatParticipant: true}, accessible: true},
 		{name: "chat outsider", policy: FileAccessPolicy{MediaPublic: true, ChatMedia: true}},
 	}

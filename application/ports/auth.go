@@ -3,8 +3,10 @@ package ports
 import (
 	"context"
 	domainevents "core/domain/events"
+	domainuser "core/domain/user"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type CaptchaVerifier interface {
@@ -22,6 +24,28 @@ type TokenIssuer interface {
 
 type UserTokenDecoder interface {
 	DecodeUserPublicID(token string) (int64, error)
+}
+
+// SessionUser is the narrow read model required by authenticated request hot
+// paths. Sensitive credentials and large profile collections intentionally do
+// not cross the session repository boundary.
+type SessionUser struct {
+	ID               uuid.UUID
+	PublicID         int64
+	Domain           domainuser.DomainKind
+	UserName         string
+	DisplayName      string
+	DefaultLanguage  string
+	PreferencesFlags string
+	Role             string
+	IsBot            bool
+	Balance          decimal.Decimal
+	HasLocation      bool
+}
+
+type SessionRepository interface {
+	GetSessionUserByPublicID(ctx context.Context, publicID int64) (*SessionUser, error)
+	UpdateLocation(ctx context.Context, userID uuid.UUID, ip string) error
 }
 
 type PublicIDGenerator interface {

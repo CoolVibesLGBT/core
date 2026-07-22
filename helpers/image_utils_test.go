@@ -77,6 +77,22 @@ func TestResizeSquareCropProducesSquareOutput(t *testing.T) {
 	}
 }
 
+func TestLoadImageWithOrientationStreamsSparseUpload(t *testing.T) {
+	path := writeTestPNG(t, 2, 2)
+	const sparseSize = int64(512 << 20)
+	if err := os.Truncate(path, sparseSize); err != nil {
+		t.Fatalf("extend sparse image fixture: %v", err)
+	}
+
+	img, err := LoadImageWithOrientation(path)
+	if err != nil {
+		t.Fatalf("LoadImageWithOrientation(sparse upload) error = %v", err)
+	}
+	if img.Bounds().Dx() != 2 || img.Bounds().Dy() != 2 {
+		t.Fatalf("decoded bounds = %v, want 2x2", img.Bounds())
+	}
+}
+
 func writeTestPNG(t *testing.T, width, height int) string {
 	t.Helper()
 

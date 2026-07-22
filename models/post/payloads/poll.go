@@ -23,8 +23,8 @@ const (
 
 type Poll struct {
 	ID              uuid.UUID             `gorm:"type:uuid;primaryKey" json:"id"`
-	ContentableID   uuid.UUID             `json:"contentable_id"`
-	ContentableType string                `json:"contentable_type"`
+	ContentableID   uuid.UUID             `gorm:"type:uuid;not null;index" json:"contentable_id"`
+	ContentableType string                `gorm:"type:varchar(50);not null;index" json:"contentable_type"`
 	Question        utils.LocalizedString `gorm:"type:jsonb" json:"question"`
 	Duration        string                `gorm:"default:0" json:"duration"`
 	Kind            PollKind              `gorm:"type:varchar(16);default:'single'" json:"kind"`

@@ -2,10 +2,11 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/post"
-	"core/types"
 	"encoding/json"
 	"testing"
 	"time"
@@ -49,10 +50,10 @@ func (r *storyPostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*po
 	return r.GetPostByID(id)
 }
 
-func (r *storyPostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult, error) {
+func (r *storyPostRepository) GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
 	r.getPostsFilter = filters
 	cursor := "1001"
-	return types.PostsResult{
+	return legacyviews.PostsResult{
 		Posts:  []post.Post{{ID: uuid.New(), PublicID: 1001, PostKind: post.PostKindStory}},
 		Cursor: &cursor,
 	}, nil
@@ -153,7 +154,7 @@ func TestUserServiceGetAllStoriesForcesPostKindStory(t *testing.T) {
 	if repo.getPostsFilter.PostKind != post.PostKindStory {
 		t.Fatalf("expected PostKindStory filter, got %q", repo.getPostsFilter.PostKind)
 	}
-	if len(result.Posts) != 1 || result.Posts[0].PostKind != post.PostKindStory {
+	if len(result.Posts) != 1 || result.Posts[0].PostKind != string(post.PostKindStory) {
 		t.Fatalf("expected story posts result, got %#v", result)
 	}
 	if result.Cursor == nil || *result.Cursor != "1001" {

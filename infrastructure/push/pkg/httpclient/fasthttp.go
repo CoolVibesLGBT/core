@@ -2,6 +2,8 @@ package httpclient
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -23,7 +25,14 @@ func FastHttp(client *fasthttp.Client) *FastHttpClient {
 	}
 }
 
-func (f *FastHttpClient) RequestDelivery(endpoint string, headers *Headers, body *bytes.Buffer) (int, error) {
+func (f *FastHttpClient) RequestDelivery(ctx context.Context, endpoint string, headers *Headers, body *bytes.Buffer) (int, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
@@ -45,7 +54,19 @@ func (f *FastHttpClient) RequestDelivery(endpoint string, headers *Headers, body
 
 	req.SetBody(body.Bytes())
 
-	if err := f.client.Do(req, resp); err != nil {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return 0, fmt.Errorf("web push request requires a deadline")
+	}
+	timeout := time.Until(deadline)
+	if timeout <= 0 {
+		return 0, context.DeadlineExceeded
+	}
+
+	if err := f.client.DoTimeout(req, resp, timeout); err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return resp.StatusCode(), ctxErr
+		}
 		return resp.StatusCode(), err
 	}
 

@@ -2,12 +2,14 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/application/types"
 	"core/models"
 	"core/models/post"
 	"core/models/taxonomy"
-	"core/types"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -47,8 +49,23 @@ func (s *PlaceService) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	return postData, nil
 }
 
-func (s *PlaceService) GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error) {
-	return s.placeRepo.GetNearByPlaces(filters)
+func (s *PlaceService) GetNearByPlaces(filters types.Filter) ([]types.PublicPost, types.Cursor, error) {
+	ctx := filters.Context
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
+	filters.Context = ctx
+
+	places, cursor, err := s.placeRepo.GetNearByPlaces(filters)
+	if err != nil && ctx.Err() != nil {
+		return nil, types.Cursor{}, ctx.Err()
+	}
+	if err != nil {
+		return nil, types.Cursor{}, err
+	}
+	return legacyviews.ProjectPublicPostPointers(places), cursor, nil
 }
 
 func (s *PlaceService) GetPlacesCategories(filters types.Filter) ([]taxonomy.Pillar, error) {

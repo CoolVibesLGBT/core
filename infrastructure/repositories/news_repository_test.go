@@ -1,8 +1,8 @@
 package repositories
 
 import (
+	"core/application/types"
 	"core/models/post"
-	"core/types"
 	"errors"
 	"strings"
 	"testing"

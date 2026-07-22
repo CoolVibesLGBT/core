@@ -2,8 +2,13 @@ package usecases
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/application/types"
+	"core/constants"
 	domainevents "core/domain/events"
+	domainuser "core/domain/user"
+	domainwallet "core/domain/wallet"
 	"core/models"
 	"core/models/chat"
 	"core/models/media"
@@ -12,7 +17,6 @@ import (
 	postpayloads "core/models/post/payloads"
 	"core/models/taxonomy"
 	"core/models/utils"
-	"core/types"
 	"errors"
 	"time"
 
@@ -32,12 +36,16 @@ func (f *fakeCaptchaVerifier) VerifyCaptcha(ctx context.Context, response string
 }
 
 type fakePasswordHasher struct {
-	hashErr    error
-	compareOK  bool
-	compareErr error
+	hashErr      error
+	compareOK    bool
+	compareErr   error
+	hashedRaw    string
+	comparedHash string
+	comparedRaw  string
 }
 
 func (f *fakePasswordHasher) HashPassword(raw string) (string, error) {
+	f.hashedRaw = raw
 	if f.hashErr != nil {
 		return "", f.hashErr
 	}
@@ -45,15 +53,21 @@ func (f *fakePasswordHasher) HashPassword(raw string) (string, error) {
 }
 
 func (f *fakePasswordHasher) ComparePassword(hashed string, raw string) (bool, error) {
+	f.comparedHash = hashed
+	f.comparedRaw = raw
 	return f.compareOK, f.compareErr
 }
 
 type fakeTokenIssuer struct {
-	token string
-	err   error
+	token    string
+	err      error
+	userID   uuid.UUID
+	publicID int64
 }
 
 func (f *fakeTokenIssuer) GenerateUserToken(userID uuid.UUID, publicID int64) (string, error) {
+	f.userID = userID
+	f.publicID = publicID
 	return f.token, f.err
 }
 
@@ -80,25 +94,35 @@ type fakeUserRepository struct {
 
 	exists              bool
 	existsErr           error
+	usernameExists      bool
+	usernameExistsErr   error
+	emailExists         bool
+	emailExistsErr      error
+	checkedNameOrMail   string
+	checkedUsername     string
+	checkedEmail        string
 	createErr           error
 	created             *models.User
 	byID                map[uuid.UUID]*models.User
 	byNameOrMail        *models.User
 	byNameOrMailErr     error
-	byPublicIDDirect    map[int64]*models.User
 	byPublicID          map[int64]*models.User
+	byPublicIDErr       error
 	byUUID              map[uuid.UUID]*models.User
+	byUUIDErr           error
 	byUsername          *models.User
 	byUsernameErr       error
 	userUUIDByPublicID  map[int64]uuid.UUID
 	usersStartingWith   []models.User
 	updated             *models.User
 	updateErr           error
+	profileUpdate       *ports.UserProfileUpdate
+	profileUpdateErr    error
 	upsertLocation      *utils.Location
 	upsertPreference    *upsertPreferenceCall
 	deletedFilter       types.Filter
 	fetchNearbyFilter   types.Filter
-	fetchNearbyUsers    []*models.User
+	fetchNearbyUsers    []types.NearbyUser
 	fetchNearbyDistance *float64
 	fetchLiveFilter     types.Filter
 	fetchLiveUsers      []*models.User
@@ -115,14 +139,24 @@ type fakeUserRepository struct {
 }
 
 type upsertPreferenceCall struct {
-	user             models.User
+	userID           uuid.UUID
 	preferenceItemID string
-	bitIndex         string
 	enabled          bool
 }
 
 func (r *fakeUserRepository) ExistsByNameOrMail(input string) (bool, error) {
+	r.checkedNameOrMail = input
 	return r.exists, r.existsErr
+}
+
+func (r *fakeUserRepository) ExistsByUsername(username string) (bool, error) {
+	r.checkedUsername = username
+	return r.usernameExists, r.usernameExistsErr
+}
+
+func (r *fakeUserRepository) ExistsByEmail(email string) (bool, error) {
+	r.checkedEmail = email
+	return r.emailExists, r.emailExistsErr
 }
 
 func (r *fakeUserRepository) Create(user *models.User) error {
@@ -154,16 +188,6 @@ func (r *fakeUserRepository) GetByUserNameOrEmailOrUsername(input string) (*mode
 	return r.byUsername, nil
 }
 
-func (r *fakeUserRepository) GetUserByPublicId(publicID int64) (*models.User, error) {
-	if user, ok := r.byPublicIDDirect[publicID]; ok {
-		return user, nil
-	}
-	if user, ok := r.byPublicID[publicID]; ok {
-		return user, nil
-	}
-	return nil, errors.New("user not found")
-}
-
 func (r *fakeUserRepository) GetByNameOrMailWithoutRelations(input string) (*models.User, error) {
 	if r.byNameOrMailErr != nil {
 		return nil, r.byNameOrMailErr
@@ -175,17 +199,23 @@ func (r *fakeUserRepository) GetByNameOrMailWithoutRelations(input string) (*mod
 }
 
 func (r *fakeUserRepository) GetUserByPublicIdWithoutRelations(filters types.Filter) (*models.User, error) {
+	if r.byPublicIDErr != nil {
+		return nil, r.byPublicIDErr
+	}
 	if user, ok := r.byPublicID[filters.UserID]; ok {
 		return user, nil
 	}
-	return nil, errors.New("user not found")
+	return nil, ports.ErrNotFound
 }
 
 func (r *fakeUserRepository) GetUserByUUIDdWithoutRelations(filters types.Filter) (*models.User, error) {
+	if r.byUUIDErr != nil {
+		return nil, r.byUUIDErr
+	}
 	if user, ok := r.byUUID[filters.UserUUID]; ok {
 		return user, nil
 	}
-	return nil, errors.New("user not found")
+	return nil, ports.ErrNotFound
 }
 
 func (r *fakeUserRepository) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
@@ -212,6 +242,69 @@ func (r *fakeUserRepository) UpdateUser(user *models.User) error {
 	return r.updateErr
 }
 
+func (r *fakeUserRepository) UpdateUserProfile(_ context.Context, update ports.UserProfileUpdate) error {
+	copyUpdate := update
+	r.profileUpdate = &copyUpdate
+	if r.profileUpdateErr != nil {
+		return r.profileUpdateErr
+	}
+
+	user, ok := r.byUUID[update.UserID]
+	if !ok {
+		return errors.New("user not found")
+	}
+	if update.UserName != nil {
+		user.UserName = *update.UserName
+	}
+	if update.DisplayName != nil {
+		user.DisplayName = *update.DisplayName
+	}
+	if update.Email != nil {
+		user.Email = *update.Email
+	}
+	if update.PasswordHash != nil {
+		user.Password = *update.PasswordHash
+	}
+	if update.Website != nil {
+		user.Website = *update.Website
+	}
+	if update.Bio != nil {
+		bio := utils.LocalizedString(update.Bio)
+		user.Bio = &bio
+	}
+	if update.DateOfBirth != nil {
+		user.DateOfBirth = update.DateOfBirth
+	}
+	if update.PrivacyLevel != nil {
+		user.PrivacyLevel = constants.PrivacyLevel(*update.PrivacyLevel)
+	}
+	if update.Location != nil {
+		location := update.Location
+		r.upsertLocation = &utils.Location{
+			ContentableType: utils.LocationOwnerUser,
+			ContentableID:   update.UserID,
+			CountryCode:     &location.CountryCode,
+			Address:         &location.Address,
+			City:            &location.City,
+			Country:         &location.Country,
+			Region:          &location.Region,
+			Timezone:        &location.Timezone,
+			Display:         &location.Display,
+			Latitude:        &location.Latitude,
+			Longitude:       &location.Longitude,
+			LocationPoint:   utils.NewLocationPoint(location.Latitude, location.Longitude),
+		}
+		user.Location = r.upsertLocation
+	}
+
+	r.updated = user
+	if r.byID == nil {
+		r.byID = make(map[uuid.UUID]*models.User)
+	}
+	r.byID[user.ID] = user
+	return nil
+}
+
 func (r *fakeUserRepository) DeleteUser(filters types.Filter) error {
 	r.deletedFilter = filters
 	return nil
@@ -222,14 +315,14 @@ func (r *fakeUserRepository) UpsertLocation(location *utils.Location) error {
 	return nil
 }
 
-func (r *fakeUserRepository) UpsertUserPreference(ctx context.Context, user models.User, preferenceItemID string, bitIndex string, enabled bool) error {
+func (r *fakeUserRepository) UpsertUserPreference(ctx context.Context, userID uuid.UUID, preferenceItemID string, enabled bool) error {
 	r.upsertPreference = &upsertPreferenceCall{
-		user: user, preferenceItemID: preferenceItemID, bitIndex: bitIndex, enabled: enabled,
+		userID: userID, preferenceItemID: preferenceItemID, enabled: enabled,
 	}
 	return nil
 }
 
-func (r *fakeUserRepository) FetchNearbyUsers(filters types.Filter) ([]*models.User, *float64, error) {
+func (r *fakeUserRepository) FetchNearbyUsers(filters types.Filter) ([]types.NearbyUser, *float64, error) {
 	r.fetchNearbyFilter = filters
 	return r.fetchNearbyUsers, r.fetchNearbyDistance, nil
 }
@@ -265,9 +358,19 @@ type fakeEngagementRepository struct {
 	toggles []engagementToggle
 	has     map[models.EngagementKind]bool
 
+	reciprocalCalls  []reciprocalInteractionCall
+	reciprocalStates map[domainuser.EngagementKind]bool
+	reciprocalErr    error
+
 	recordedViews    []engagementToggle
 	recordViewResult bool
 	recordViewErr    error
+}
+
+type reciprocalInteractionCall struct {
+	actorID  uuid.UUID
+	targetID uuid.UUID
+	intent   domainuser.InteractionStateIntent
 }
 
 type engagementToggle struct {
@@ -276,6 +379,30 @@ type engagementToggle struct {
 	kind            models.EngagementKind
 	contentableID   uuid.UUID
 	contentableType models.EngagementContentableType
+}
+
+func (r *fakeEngagementRepository) ApplyReciprocalUserInteraction(ctx context.Context, actorID uuid.UUID, targetID uuid.UUID, intent domainuser.InteractionStateIntent) (domainuser.InteractionStateTransition, error) {
+	r.reciprocalCalls = append(r.reciprocalCalls, reciprocalInteractionCall{
+		actorID:  actorID,
+		targetID: targetID,
+		intent:   intent,
+	})
+	if r.reciprocalErr != nil {
+		return domainuser.InteractionStateTransition{}, r.reciprocalErr
+	}
+	pair, err := intent.EngagementPair()
+	if err != nil {
+		return domainuser.InteractionStateTransition{}, err
+	}
+	if r.reciprocalStates == nil {
+		r.reciprocalStates = make(map[domainuser.EngagementKind]bool)
+	}
+	transition, err := intent.Transition(r.reciprocalStates[pair.Given])
+	if err != nil {
+		return domainuser.InteractionStateTransition{}, err
+	}
+	r.reciprocalStates[pair.Given] = transition.Enabled
+	return transition, nil
 }
 
 func (r *fakeEngagementRepository) ToggleEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) (bool, error) {
@@ -332,15 +459,15 @@ type fakePostRepository struct {
 	userRepliesFilter     types.Filter
 	userReplies           []post.Post
 	userMediasFilter      types.Filter
-	userMedias            []types.MediaWithUser
+	userMedias            []legacyviews.MediaWithUser
 	userMediasCursor      *int64
 	recentHashtagsFilter  types.Filter
 	recentHashtags        []types.HashtagStats
-	timeline              types.TimelineResult
+	timeline              legacyviews.TimelineResult
 	timelineVibesFilter   types.Filter
-	timelineVibes         types.TimelineResult
+	timelineVibes         legacyviews.TimelineResult
 	searchFilter          types.Filter
-	search                types.PostsResult
+	search                legacyviews.PostsResult
 	voteChoiceID          uuid.UUID
 	voteWeight            int
 	voteRank              int
@@ -365,6 +492,7 @@ type fakePostRepository struct {
 	tipPostID             int64
 	tipAuthUser           *models.User
 	tipAmount             decimal.Decimal
+	tipIdempotencyKey     domainwallet.IdempotencyKey
 	tipBalance            decimal.Decimal
 	pillarsFilter         types.Filter
 	pillars               []taxonomy.Pillar
@@ -411,12 +539,12 @@ func (r *fakePostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 	return &post.Post{ID: uuid.New(), PublicID: id}, nil
 }
 
-func (r *fakePostRepository) GetTimeline(filters types.Filter) (types.TimelineResult, error) {
+func (r *fakePostRepository) GetTimeline(filters types.Filter) (legacyviews.TimelineResult, error) {
 	r.timelineFilter = filters
 	return r.timeline, nil
 }
 
-func (r *fakePostRepository) FindPostsByKind(filters types.Filter) (types.PostsResult, error) {
+func (r *fakePostRepository) FindPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
 	r.searchFilter = filters
 	return r.search, nil
 }
@@ -432,7 +560,7 @@ func (r *fakePostRepository) GetUserPostReplies(filters types.Filter) ([]post.Po
 	return r.userReplies, nil
 }
 
-func (r *fakePostRepository) GetUserMedias(filters types.Filter) ([]types.MediaWithUser, *int64, error) {
+func (r *fakePostRepository) GetUserMedias(filters types.Filter) ([]legacyviews.MediaWithUser, *int64, error) {
 	r.userMediasFilter = filters
 	return r.userMedias, r.userMediasCursor, nil
 }
@@ -442,7 +570,7 @@ func (r *fakePostRepository) GetRecentHashtags(filters types.Filter) ([]types.Ha
 	return r.recentHashtags, nil
 }
 
-func (r *fakePostRepository) GetTimelineVibes(filters types.Filter) (types.TimelineResult, error) {
+func (r *fakePostRepository) GetTimelineVibes(filters types.Filter) (legacyviews.TimelineResult, error) {
 	r.timelineVibesFilter = filters
 	return r.timelineVibes, nil
 }
@@ -503,10 +631,11 @@ func (r *fakePostRepository) SetEventRSVP(ctx context.Context, postPublicID int6
 	return r.eventRSVPResult, r.eventRSVPErr
 }
 
-func (r *fakePostRepository) Tip(ctx context.Context, postID int64, authUser *models.User, amount decimal.Decimal) (*decimal.Decimal, error) {
+func (r *fakePostRepository) Tip(ctx context.Context, postID int64, authUser *models.User, amount decimal.Decimal, idempotencyKey domainwallet.IdempotencyKey) (*decimal.Decimal, error) {
 	r.tipPostID = postID
 	r.tipAuthUser = authUser
 	r.tipAmount = amount
+	r.tipIdempotencyKey = idempotencyKey
 	if r.tipBalance.IsZero() {
 		r.tipBalance = decimal.NewFromInt(10)
 	}
@@ -518,8 +647,8 @@ func (r *fakePostRepository) GetPillarsWithClusters(filters types.Filter) ([]tax
 	return r.pillars, nil
 }
 
-func (r *fakePostRepository) GetPostsByKind(filters types.Filter) (types.PostsResult, error) {
-	return types.PostsResult{Posts: []post.Post{{PostKind: filters.PostKind}}}, nil
+func (r *fakePostRepository) GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+	return legacyviews.PostsResult{Posts: []post.Post{{PostKind: filters.PostKind}}}, nil
 }
 
 type fakeChatRepository struct {
@@ -527,14 +656,22 @@ type fakeChatRepository struct {
 
 	privateChat        *chat.Chat
 	privateChatErr     error
+	privateFrom        uuid.UUID
+	privateTo          uuid.UUID
 	createdPrivate     *chat.Chat
 	chatsByUserID      []chat.Chat
 	chatsByUserIDArg   uuid.UUID
+	chatListQuery      ports.ChatListQuery
+	chatListHasMore    bool
 	message            *post.Post
 	messagesByChatID   []post.Post
 	messageUserID      uuid.UUID
 	messageChatID      uuid.UUID
-	typingPayload      map[string]interface{}
+	messageListQuery   ports.ChatMessageListQuery
+	messageListHasMore bool
+	typingChatID       uuid.UUID
+	typingUserID       uuid.UUID
+	typingValue        bool
 	action             string
 	actionAuthUser     *models.User
 	actionChatID       uuid.UUID
@@ -554,21 +691,23 @@ type fakeChatRepository struct {
 	openNow            time.Time
 }
 
-func (r *fakeChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) (map[string]interface{}, error) {
-	if r.typingPayload != nil {
-		return r.typingPayload, nil
-	}
-	return map[string]interface{}{"chat_id": chatID.String(), "user_id": userID.String(), "typing": typing}, nil
+func (r *fakeChatRepository) SendTypingEvent(chatID, userID uuid.UUID, typing bool) error {
+	r.typingChatID = chatID
+	r.typingUserID = userID
+	r.typingValue = typing
+	return nil
 }
 
 func (r *fakeChatRepository) GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) (*chat.Chat, error) {
+	r.privateFrom = fromUser
+	r.privateTo = toUser
 	if r.privateChatErr != nil {
 		return nil, r.privateChatErr
 	}
 	if r.privateChat != nil {
 		return r.privateChat, nil
 	}
-	return nil, errors.New("not found")
+	return nil, chat.ErrChatNotFound
 }
 
 func (r *fakeChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Chat, error) {
@@ -576,9 +715,10 @@ func (r *fakeChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*cha
 	return r.createdPrivate, nil
 }
 
-func (r *fakeChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error) {
-	r.chatsByUserIDArg = userID
-	return r.chatsByUserID, nil
+func (r *fakeChatRepository) ListChats(_ context.Context, query ports.ChatListQuery) (ports.ChatListPage, error) {
+	r.chatsByUserIDArg = query.UserID
+	r.chatListQuery = query
+	return ports.ChatListPage{Chats: r.chatsByUserID, HasMore: r.chatListHasMore}, nil
 }
 
 func (r *fakeChatRepository) AddMessageToChat(ctx context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
@@ -589,10 +729,11 @@ func (r *fakeChatRepository) AddMessageToChat(ctx context.Context, form ports.Fo
 	return &post.Post{ID: uuid.New(), AuthorID: author.ID, ContentableID: &chatID}, nil
 }
 
-func (r *fakeChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID) ([]post.Post, error) {
-	r.messageUserID = userID
-	r.messageChatID = chatID
-	return r.messagesByChatID, nil
+func (r *fakeChatRepository) ListChatMessages(_ context.Context, query ports.ChatMessageListQuery) (ports.ChatMessageListPage, error) {
+	r.messageUserID = query.UserID
+	r.messageChatID = query.ChatID
+	r.messageListQuery = query
+	return ports.ChatMessageListPage{Messages: r.messagesByChatID, HasMore: r.messageListHasMore}, nil
 }
 
 func (r *fakeChatRepository) PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {

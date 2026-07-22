@@ -1,9 +1,10 @@
 package repositories
 
 import (
+	legacyviews "core/application/legacyviews"
+	"core/application/types"
 	"core/helpers"
 	"core/models/post"
-	"core/types"
 
 	"gorm.io/gorm"
 )
@@ -25,12 +26,12 @@ func (r *ListingRepository) Create(listing *post.Post) error {
 	return r.postRepo.CreatePost(listing)
 }
 
-func (r *ListingRepository) GetJobOffers(filters types.Filter) (types.PostsResult, error) {
+func (r *ListingRepository) GetJobOffers(filters types.Filter) (legacyviews.PostsResult, error) {
 	filters.PostKind = post.PostKindJobOffer
 	return r.postRepo.GetPostsByKind(filters)
 }
 
-func (r *ListingRepository) GetJobSearches(filters types.Filter) (types.PostsResult, error) {
+func (r *ListingRepository) GetJobSearches(filters types.Filter) (legacyviews.PostsResult, error) {
 	filters.PostKind = post.PostKindJobSearch
 	return r.postRepo.GetPostsByKind(filters)
 }

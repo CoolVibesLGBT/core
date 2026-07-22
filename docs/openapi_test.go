@@ -48,6 +48,28 @@ func TestReportingActionsAreDocumented(t *testing.T) {
 	}
 }
 
+func TestPrivatePhotoActionsAreDocumented(t *testing.T) {
+	wanted := map[string]bool{
+		constants.CMD_USER_PRIVATE_PHOTOS_FETCH:           false,
+		constants.CMD_USER_PRIVATE_PHOTOS_UPLOAD:          false,
+		constants.CMD_USER_PRIVATE_PHOTOS_DELETE:          false,
+		constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUEST:  false,
+		constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUESTS: false,
+		constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_RESPOND:  false,
+		constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REVOKE:   false,
+	}
+	for _, action := range ActionDocuments() {
+		if _, ok := wanted[action.Action]; ok {
+			wanted[action.Action] = true
+		}
+	}
+	for action, found := range wanted {
+		if !found {
+			t.Fatalf("private photo action %q is not documented", action)
+		}
+	}
+}
+
 func TestActionDocumentsAreUnique(t *testing.T) {
 	seen := map[string]struct{}{}
 	for _, action := range ActionDocuments() {
@@ -61,5 +83,38 @@ func TestActionDocumentsAreUnique(t *testing.T) {
 			t.Fatalf("duplicate action document for %q", action.Action)
 		}
 		seen[action.Action] = struct{}{}
+	}
+}
+
+func TestPostTipDocumentsHeaderAndOptionalFormIdempotencyFallback(t *testing.T) {
+	var tip *ActionDoc
+	for _, action := range ActionDocuments() {
+		if action.Action == constants.CMD_POST_TIP {
+			copy := action
+			tip = &copy
+			break
+		}
+	}
+	if tip == nil {
+		t.Fatal("post tip action is not documented")
+	}
+
+	var headerFound, formFound bool
+	for _, param := range tip.Params {
+		switch {
+		case param.In == "header" && param.Name == "Idempotency-Key":
+			headerFound = true
+			if param.Required {
+				t.Fatal("Idempotency-Key header cannot be individually required when the form fallback is valid")
+			}
+		case param.In == "form" && param.Name == "idempotency_key":
+			formFound = true
+			if param.Required {
+				t.Fatal("idempotency_key form fallback cannot be individually required when the header is valid")
+			}
+		}
+	}
+	if !headerFound || !formFound {
+		t.Fatalf("post tip idempotency alternatives: header=%v form=%v", headerFound, formFound)
 	}
 }

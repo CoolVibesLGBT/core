@@ -113,6 +113,8 @@ func (r *MediaRepository) GenerateStoragePath(userId uuid.UUID, ownerID uuid.UUI
 			return fmt.Sprintf("%s/users/%s/avatar/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		case media.RoleStory:
 			return fmt.Sprintf("%s/users/%s/stories/%s/%s%s", baseDir, userId.String(), date, id, ext)
+		case media.RolePrivatePhoto:
+			return fmt.Sprintf("%s/users/%s/private/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		default:
 			return fmt.Sprintf("%s/users/%s/media/%s/%s%s", baseDir, userId.String(), date, id, ext)
 		}
@@ -674,24 +676,38 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
 				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
 			}
+			item.ProcessingStatus = media.ProcessingStatusFailed
 			return err
 		}
-		return r.markMediaReady(item, width, height, &utils.FileVariants{Image: imageVariants})
+		if err := r.markMediaReady(item, width, height, &utils.FileVariants{Image: imageVariants}); err != nil {
+			return err
+		}
+		item.ProcessingStatus = media.ProcessingStatusReady
+		return nil
 	case strings.HasPrefix(item.File.MimeType, "video/"):
 		videoVariants, width, height, err := r.generateVideoVariants(item.File.StoragePath, ext, item.Role)
 		if err != nil {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
 				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
 			}
+			item.ProcessingStatus = media.ProcessingStatusFailed
 			return err
 		}
-		return r.markMediaReady(item, width, height, &utils.FileVariants{Video: videoVariants})
+		if err := r.markMediaReady(item, width, height, &utils.FileVariants{Video: videoVariants}); err != nil {
+			return err
+		}
+		item.ProcessingStatus = media.ProcessingStatusReady
+		return nil
 	default:
-		return r.markMediaReady(item, item.File.Width, item.File.Height, item.File.Variants)
+		if err := r.markMediaReady(item, item.File.Width, item.File.Height, item.File.Variants); err != nil {
+			return err
+		}
+		item.ProcessingStatus = media.ProcessingStatusReady
+		return nil
 	}
 }
 
-func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file ports.UploadedFile) (*media.Media, error) {
+func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file ports.UploadedFile) (created *media.Media, retErr error) {
 	if file == nil {
 		return nil, domainmedia.ErrEmptyFile
 	}
@@ -703,6 +719,12 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	ext := filepath.Ext(upload.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 	storagePath := r.GenerateStoragePath(userId, ownerID, ownerType, role, newFileName)
+	keepStoredFile := false
+	defer func() {
+		if !keepStoredFile {
+			retErr = errors.Join(retErr, removeStoredUpload(storagePath))
+		}
+	}()
 
 	if err := r.SaveUploadedFile(file, storagePath); err != nil {
 		return nil, err
@@ -717,7 +739,8 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 
 	variants := initialFileVariants(mimeType, storagePath, ext, upload.Size)
 
-	media := media.Media{
+	shouldBePublic := isPublicMediaRole(role)
+	item := media.Media{
 		ID:               uuid.New(),
 		PublicID:         r.snowFlakeNode.Generate().Int64(),
 		FileID:           uuid.New(),
@@ -725,7 +748,7 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 		UserID:           userId,
 		OwnerType:        ownerType,
 		Role:             role,
-		IsPublic:         isPublicMediaRole(role),
+		IsPublic:         shouldBePublic,
 		ProcessingStatus: status,
 		File: utils.FileMetadata{
 			ID:          uuid.New(),
@@ -742,17 +765,87 @@ func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType,
 	}
 
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&media.File).Error; err != nil {
+		if err := tx.Create(&item.File).Error; err != nil {
 			return err
 		}
-		return tx.Create(&media).Error
+		if err := tx.Create(&item).Error; err != nil {
+			return err
+		}
+		// GORM applies the model's `default:true` tag to false zero-values on
+		// Create. Persist role-derived privacy explicitly so chat and private
+		// album media can never be promoted to public by that default.
+		if !shouldBePublic {
+			if err := tx.Model(&media.Media{}).Where("id = ?", item.ID).UpdateColumn("is_public", false).Error; err != nil {
+				return err
+			}
+			item.IsPublic = false
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	return &media, nil
+	keepStoredFile = true
+	return &item, nil
+}
+
+func cleanupStoredUploads(paths []string) error {
+	var cleanupErr error
+	seen := make(map[string]struct{}, len(paths))
+	for i := len(paths) - 1; i >= 0; i-- {
+		path := paths[i]
+		if _, ok := seen[path]; ok {
+			continue
+		}
+		seen[path] = struct{}{}
+		cleanupErr = errors.Join(cleanupErr, removeStoredUpload(path))
+	}
+	return cleanupErr
+}
+
+func removeStoredUpload(storagePath string) error {
+	if strings.TrimSpace(storagePath) == "" {
+		return nil
+	}
+	if _, err := os.Lstat(storagePath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+
+	uploadRoot, err := filepath.Abs("./static/uploads")
+	if err != nil {
+		return fmt.Errorf("resolve upload root: %w", err)
+	}
+	resolvedRoot, err := filepath.EvalSymlinks(uploadRoot)
+	if err != nil {
+		return fmt.Errorf("resolve upload root symlinks: %w", err)
+	}
+	target, err := filepath.Abs(filepath.Clean(storagePath))
+	if err != nil {
+		return fmt.Errorf("resolve stored upload: %w", err)
+	}
+	resolvedTarget, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		return fmt.Errorf("resolve stored upload symlinks: %w", err)
+	}
+	relative, err := filepath.Rel(resolvedRoot, resolvedTarget)
+	if err != nil {
+		return fmt.Errorf("compare stored upload path: %w", err)
+	}
+	if relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) || filepath.IsAbs(relative) {
+		return fmt.Errorf("refusing to remove path outside upload root: %s", storagePath)
+	}
+	if err := os.Remove(target); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("remove stored upload %s: %w", storagePath, err)
+	}
+	return nil
 }
 
 func isPublicMediaRole(role media.MediaRole) bool {
-	return role != media.RoleChatImage && role != media.RoleChatMedia && role != media.RoleChatVideo
+	return role != media.RoleChatImage &&
+		role != media.RoleChatMedia &&
+		role != media.RoleChatVideo &&
+		role != media.RolePrivatePhoto
 }

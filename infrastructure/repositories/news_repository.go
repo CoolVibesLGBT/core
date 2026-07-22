@@ -2,10 +2,11 @@ package repositories
 
 import (
 	"context"
+	legacyviews "core/application/legacyviews"
+	"core/application/types"
 	"core/helpers"
 	"core/models/post"
 	"core/models/taxonomy"
-	"core/types"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -60,7 +61,7 @@ func (r *NewsRepository) Create(news *post.Post) error {
 	return r.postRepo.CreatePost(news)
 }
 
-func (r *NewsRepository) GetNews(filters types.Filter) (types.PostsResult, error) {
+func (r *NewsRepository) GetNews(filters types.Filter) (legacyviews.PostsResult, error) {
 	filters.PostKind = post.PostKindNews
 	return r.postRepo.GetPostsByKind(filters)
 }

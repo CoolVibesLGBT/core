@@ -4,8 +4,7 @@ import (
 	"context"
 	"core/application/ports"
 	"core/constants"
-	"core/models"
-	"core/models/post"
+	domainmoderation "core/domain/moderation"
 	"errors"
 
 	"github.com/google/uuid"
@@ -13,7 +12,7 @@ import (
 
 var (
 	ErrModerationForbidden = errors.New("moderation access denied")
-	ErrInvalidReportStatus = errors.New("invalid report status")
+	ErrInvalidReportStatus = domainmoderation.ErrInvalidStatus
 	ErrReportIDRequired    = errors.New("report_id is required")
 	ErrPostIDRequired      = errors.New("post_id is required")
 	ErrInvalidReportType   = errors.New("invalid report content type")
@@ -27,8 +26,8 @@ func NewModerationService(repo ports.ModerationRepository) *ModerationService {
 	return &ModerationService{repo: repo}
 }
 
-func (s *ModerationService) FetchReports(ctx context.Context, authUser *models.User, filter ports.ModerationReportFilter) (ports.ModerationReportPage, error) {
-	if !CanModerate(authUser) {
+func (s *ModerationService) FetchReports(ctx context.Context, principal ports.ModeratorPrincipal, filter ports.ModerationReportFilter) (ports.ModerationReportPage, error) {
+	if !CanModerate(principal) {
 		return ports.ModerationReportPage{}, ErrModerationForbidden
 	}
 	if filter.Limit <= 0 {
@@ -38,65 +37,59 @@ func (s *ModerationService) FetchReports(ctx context.Context, authUser *models.U
 		filter.Limit = constants.MAXIMUM_LIMIT
 	}
 	if !filter.AllStatuses && filter.Status == "" {
-		filter.Status = models.ReportStatusPending
+		filter.Status = domainmoderation.StatusPending
 	}
 	if filter.Status != "" && !filter.Status.IsValid() {
 		return ports.ModerationReportPage{}, ErrInvalidReportStatus
 	}
-	if filter.ContentableType != "" &&
-		filter.ContentableType != models.EngagementContentableTypePost &&
-		filter.ContentableType != models.EngagementContentableTypeUser {
-		return ports.ModerationReportPage{}, ErrInvalidReportType
+	if filter.ContentableType != "" {
+		if _, err := domainmoderation.ParseTargetType(string(filter.ContentableType)); err != nil {
+			return ports.ModerationReportPage{}, ErrInvalidReportType
+		}
 	}
 	return s.repo.FetchReports(ctx, filter)
 }
 
-func (s *ModerationService) ResolveReport(ctx context.Context, authUser *models.User, input ports.ModerationResolveInput) (*models.Report, error) {
-	if !CanModerate(authUser) {
+func (s *ModerationService) ResolveReport(ctx context.Context, principal ports.ModeratorPrincipal, input ports.ModerationResolveInput) (*ports.ModerationReportView, error) {
+	if !CanModerate(principal) {
 		return nil, ErrModerationForbidden
 	}
 	if input.ReportID == uuid.Nil {
 		return nil, ErrReportIDRequired
 	}
-	if !input.Status.IsValid() || input.Status == models.ReportStatusPending {
-		return nil, ErrInvalidReportStatus
+	if err := domainmoderation.ValidateResolution(input.Status, input.PublishPost); err != nil {
+		return nil, err
 	}
-	if input.PublishPost != nil {
-		if (!*input.PublishPost && input.Status != models.ReportStatusActioned) ||
-			(*input.PublishPost && input.Status == models.ReportStatusActioned) {
-			return nil, ports.ErrInvalidModerationAction
-		}
-	}
-	input.ReviewedByID = authUser.ID
+	input.ReviewedByID = principal.ID
 	return s.repo.ResolveReport(ctx, input)
 }
 
-func (s *ModerationService) HidePost(ctx context.Context, authUser *models.User, postPublicID int64, resolution string) (*post.Post, error) {
-	return s.setPostPublished(ctx, authUser, postPublicID, false, resolution)
+func (s *ModerationService) HidePost(ctx context.Context, principal ports.ModeratorPrincipal, postPublicID int64, resolution string) (ports.ModerationPostView, error) {
+	return s.setPostPublished(ctx, principal, postPublicID, false, resolution)
 }
 
-func (s *ModerationService) UnhidePost(ctx context.Context, authUser *models.User, postPublicID int64, resolution string) (*post.Post, error) {
-	return s.setPostPublished(ctx, authUser, postPublicID, true, resolution)
+func (s *ModerationService) UnhidePost(ctx context.Context, principal ports.ModeratorPrincipal, postPublicID int64, resolution string) (ports.ModerationPostView, error) {
+	return s.setPostPublished(ctx, principal, postPublicID, true, resolution)
 }
 
-func (s *ModerationService) setPostPublished(ctx context.Context, authUser *models.User, postPublicID int64, published bool, resolution string) (*post.Post, error) {
-	if !CanModerate(authUser) {
+func (s *ModerationService) setPostPublished(ctx context.Context, principal ports.ModeratorPrincipal, postPublicID int64, published bool, resolution string) (ports.ModerationPostView, error) {
+	if !CanModerate(principal) {
 		return nil, ErrModerationForbidden
 	}
-	if postPublicID == 0 {
+	if postPublicID <= 0 {
 		return nil, ErrPostIDRequired
 	}
-	return s.repo.SetPostPublished(ctx, postPublicID, published, authUser.ID, resolution)
+	return s.repo.SetPostPublished(ctx, postPublicID, published, principal.ID, resolution)
 }
 
-func CanModerate(user *models.User) bool {
-	if user == nil {
+func CanModerate(principal ports.ModeratorPrincipal) bool {
+	if principal.ID == uuid.Nil {
 		return false
 	}
-	switch user.UserRole {
-	case constants.UserRoleModerator,
-		constants.UserRoleAdmin,
-		constants.UserRoleSuperAdmin:
+	switch principal.Role {
+	case ports.ModeratorRoleModerator,
+		ports.ModeratorRoleAdmin,
+		ports.ModeratorRoleSuperAdmin:
 		return true
 	default:
 		return false

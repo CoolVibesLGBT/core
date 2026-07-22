@@ -6,10 +6,11 @@ type ProcessingStatus string
 
 const (
 	// Role
-	RoleProfile MediaRole = "profile"
-	RoleAvatar  MediaRole = "avatar"
-	RoleCover   MediaRole = "cover"
-	RoleStory   MediaRole = "story"
+	RoleProfile      MediaRole = "profile"
+	RoleAvatar       MediaRole = "avatar"
+	RoleCover        MediaRole = "cover"
+	RoleStory        MediaRole = "story"
+	RolePrivatePhoto MediaRole = "private_photo"
 
 	RolePost      MediaRole = "post"
 	RoleBlog      MediaRole = "blog"

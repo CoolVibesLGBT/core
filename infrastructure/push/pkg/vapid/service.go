@@ -35,8 +35,6 @@ func NewService(publicKey, privateKey, subject string) (*Service, error) {
 		return nil, fmt.Errorf("failed to prepare private key: %w", err)
 	}
 
-	jwt.MarshalSingleStringAsArray = false
-
 	return &Service{
 		publicKey:  publicKey,
 		privateKey: privateECDSA,
@@ -50,10 +48,10 @@ func (s *Service) Header(endpoint string) (string, error) {
 		return "", fmt.Errorf("failed to parse endpoint: %w", err)
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.RegisteredClaims{
-		Subject:   s.subject,
-		Audience:  jwt.ClaimStrings{fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)},
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 12)),
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"sub": s.subject,
+		"aud": fmt.Sprintf("%s://%s", uri.Scheme, uri.Host),
+		"exp": time.Now().Add(12 * time.Hour).Unix(),
 	})
 
 	tokenSigned, err := token.SignedString(s.privateKey)
