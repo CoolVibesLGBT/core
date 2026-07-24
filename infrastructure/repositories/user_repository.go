@@ -204,7 +204,7 @@ func (r *UserRepository) publicUserProfileProjectionQuery(ctx context.Context, u
 			users.user_name,
 			users.display_name,
 			users.bio,
-			users.website,
+			'' AS website,
 			users.date_of_birth,
 			users.privacy_level,
 			users.is_online,
