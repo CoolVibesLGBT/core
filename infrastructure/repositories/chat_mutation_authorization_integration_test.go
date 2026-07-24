@@ -346,12 +346,12 @@ func TestAddMessageRollsBackPostWhenChatMetadataUpdateFailsIntegration(t *testin
 	callbackName := "test:force_chat_metadata_failure:" + uuid.NewString()
 	if err := fixture.db.Callback().Update().Before("gorm:update").Register(callbackName, func(tx *gorm.DB) {
 		if tx.Statement.Table == "chats" {
-			tx.AddError(forcedErr)
+			_ = tx.AddError(forcedErr)
 		}
 	}); err != nil {
 		t.Fatalf("register failure callback: %v", err)
 	}
-	t.Cleanup(func() { fixture.db.Callback().Update().Remove(callbackName) })
+	t.Cleanup(func() { _ = fixture.db.Callback().Update().Remove(callbackName) })
 
 	_, err = chatRepo.AddMessageToChat(context.Background(), ports.FormData{Values: map[string][]string{
 		"chat_id": {fixture.chat.ID.String()},
