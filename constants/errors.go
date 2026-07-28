@@ -42,12 +42,13 @@ const (
 	ErrNotificationsFetchFailed ErrorCode = "NOTIFICATIONS_FETCH_FAILED"
 
 	// User
-	ErrUserExists       ErrorCode = "USER_EXISTS"
-	ErrUserNotFound     ErrorCode = "USER_NOT_FOUND"
-	ErrUsernameRequired ErrorCode = "USERNAME_REQUIRED"
-	ErrUnauthorized     ErrorCode = "UNAUTHORIZED"
-	ErrUserUnauthorized ErrorCode = "USER_UNAUTHORIZED"
-	ErrUsernameTaken    ErrorCode = "USERNAME_TAKEN"
+	ErrUserExists              ErrorCode = "USER_EXISTS"
+	ErrUserNotFound            ErrorCode = "USER_NOT_FOUND"
+	ErrUsernameRequired        ErrorCode = "USERNAME_REQUIRED"
+	ErrUsernameInvalidFormat   ErrorCode = "USERNAME_INVALID_FORMAT"
+	ErrUnauthorized            ErrorCode = "UNAUTHORIZED"
+	ErrUserUnauthorized        ErrorCode = "USER_UNAUTHORIZED"
+	ErrUsernameTaken           ErrorCode = "USERNAME_TAKEN"
 
 	// Engagement
 	ErrEngagementNotFound    ErrorCode = "ENGAGEMENT_NOT_FOUND"
@@ -175,11 +176,12 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrMediaSaveFailed:      "Failed to save media.",
 
 	// User
-	ErrUserExists:       "User already exists.",
-	ErrUserNotFound:     "User not found.",
-	ErrUsernameRequired: "username or nickname is required",
-	ErrUserUnauthorized: "User is not authorized to perform this action.",
-	ErrUsernameTaken:    "Username already taken",
+	ErrUserExists:            "User already exists.",
+	ErrUserNotFound:          "User not found.",
+	ErrUsernameRequired:      "Username is required.",
+	ErrUsernameInvalidFormat: "Username may only contain lowercase letters, digits, and underscores, and must be 3–30 characters.",
+	ErrUserUnauthorized:      "User is not authorized to perform this action.",
+	ErrUsernameTaken:         "Username already taken.",
 
 	// Engagement
 	ErrEngagementNotFound:    "Engagement record not found.",

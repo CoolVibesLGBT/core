@@ -128,6 +128,62 @@ func TestNewRegistrationRequiresDisplayNameAndUsername(t *testing.T) {
 	}
 }
 
+func TestNewRegistrationRejectsInvalidNicknameFormat(t *testing.T) {
+	invalidNicknames := []struct {
+		desc     string
+		nickname string
+	}{
+		{"dot only", "."},
+		{"dot in name", "user.name"},
+		{"dash in name", "user-name"},
+		{"at sign", "@user"},
+		{"space", "user name"},
+		{"too short (1 char)", "a"},
+		{"too short (2 chars)", "ab"},
+		// Note: uppercase is normalized to lowercase by NewRegistration before validation,
+		// so "UserName" → "username" which is valid. Test truly invalid chars instead.
+		{"dollar sign", "user$name"},
+		{"special chars", "user!name"},
+		{"empty after trim", "   "},
+	}
+
+	for _, tc := range invalidNicknames {
+		t.Run(tc.desc, func(t *testing.T) {
+			_, err := NewRegistration(RegistrationInput{
+				Name:     "Test User",
+				Nickname: tc.nickname,
+				Domain:   "coolvibes.app",
+			})
+			if err != ErrUsernameRequired && err != ErrUsernameInvalidFormat {
+				t.Fatalf("nickname %q: got error %v, want ErrUsernameRequired or ErrUsernameInvalidFormat", tc.nickname, err)
+			}
+		})
+	}
+}
+
+func TestNewRegistrationAcceptsValidNicknames(t *testing.T) {
+	validNicknames := []string{
+		"alice",
+		"bob123",
+		"cool_user",
+		"a1b",
+		"user_123_abc",
+	}
+
+	for _, nickname := range validNicknames {
+		t.Run(nickname, func(t *testing.T) {
+			_, err := NewRegistration(RegistrationInput{
+				Name:     "Test User",
+				Nickname: nickname,
+				Domain:   "coolvibes.app",
+			})
+			if err != nil {
+				t.Fatalf("nickname %q: unexpected error %v", nickname, err)
+			}
+		})
+	}
+}
+
 func TestPreferenceFlags(t *testing.T) {
 	flags, err := PreferenceFlags("").Set(3)
 	if err != nil {
