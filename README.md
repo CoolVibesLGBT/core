@@ -91,7 +91,9 @@ Start the server:
 ```
 
 The launcher fingerprints the Go source tree, builds an optimized native
-binary only when it changes, and executes the cached binary on later starts.
+binary only when it changes, applies idempotent database migrations, and then
+executes the cached binary. Set `AUTO_MIGRATE=false` only when migrations are
+managed by a separate deployment job.
 
 Grant moderation access to an existing, usable account by public ID:
 

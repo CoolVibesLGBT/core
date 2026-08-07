@@ -26,4 +26,4 @@ RUN mkdir -p ./static/uploads
 
 EXPOSE 3001 3002
 
-CMD ["./core"]
+CMD ["sh", "-c", "./core -migrate && exec ./core"]

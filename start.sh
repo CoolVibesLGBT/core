@@ -43,4 +43,26 @@ if [ "$needs_build" -eq 1 ]; then
 fi
 
 cd "$project_dir"
+
+# Apply idempotent schema changes before an ordinary server start. Explicit
+# maintenance commands remain one-shot and are not run twice.
+maintenance_mode=0
+for arg in "$@"; do
+	case "$arg" in
+		-migrate|--migrate|-seed|--seed|-install|--install|-grant-admin|--grant-admin|-grant-moderator|--grant-moderator)
+			maintenance_mode=1
+			break
+			;;
+	esac
+done
+
+case "${AUTO_MIGRATE:-true}" in
+	1|true|TRUE|yes|YES)
+		if [ "$maintenance_mode" -eq 0 ]; then
+			printf '%s\n' 'Applying database migrations...'
+			"$binary" -migrate
+		fi
+		;;
+esac
+
 exec "$binary" "$@"
