@@ -35,6 +35,7 @@ type privatePhotoRepositoryFake struct {
 	countCalls     int
 	blocked        bool
 	access         *ports.PrivatePhotoAccessRecord
+	accessRequests []ports.PrivatePhotoAccessRecord
 	photos         []modelmedia.Media
 	listCalls      int
 	addCalls       int
@@ -122,6 +123,10 @@ func (r *privatePhotoRepositoryFake) RespondPrivatePhotoAccess(_ context.Context
 	r.access.RespondedAt = &now
 	copy := *r.access
 	return &copy, true, nil
+}
+
+func (r *privatePhotoRepositoryFake) ListPrivatePhotoAccessRequests(context.Context, uuid.UUID) ([]ports.PrivatePhotoAccessRecord, error) {
+	return append([]ports.PrivatePhotoAccessRecord(nil), r.accessRequests...), nil
 }
 
 func privatePhotoViewer(users map[int64]ports.PrivatePhotoUser, viewerID uuid.UUID) ports.PrivatePhotoUser {
@@ -269,6 +274,68 @@ func TestPrivatePhotoRequestIsIdempotentWhilePending(t *testing.T) {
 	}
 	if notifier.requested != 1 {
 		t.Fatalf("idempotent request sent %d notifications; want 1", notifier.requested)
+	}
+}
+
+func TestPrivatePhotoAccessRequestListReturnsSafeViewerAvatar(t *testing.T) {
+	ownerID := uuid.New()
+	viewerID := uuid.New()
+	rawAvatarURL := "/static/uploads/users/viewer/avatar-original.jpg"
+	thumbnailURL := "/static/uploads/users/viewer/avatar-thumbnail.webp"
+	repository := &privatePhotoRepositoryFake{accessRequests: []ports.PrivatePhotoAccessRecord{{
+		PublicID:       77,
+		OwnerID:        ownerID,
+		OwnerPublicID:  10,
+		ViewerID:       viewerID,
+		ViewerPublicID: 20,
+		Status:         domainmedia.PrivatePhotoAccessPending,
+		RequestedAt:    time.Now().UTC(),
+		Viewer: ports.PrivatePhotoUser{
+			ID:          viewerID,
+			PublicID:    20,
+			UserName:    "viewer",
+			DisplayName: "Viewer",
+			Avatar: &modelmedia.Media{
+				ID:       uuid.New(),
+				PublicID: 88,
+				FileID:   uuid.New(),
+				OwnerID:  viewerID,
+				UserID:   viewerID,
+				File: modelutils.FileMetadata{
+					ID:          uuid.New(),
+					URL:         rawAvatarURL,
+					StoragePath: "." + rawAvatarURL,
+					Name:        "private-original-name.jpg",
+					MimeType:    "image/jpeg",
+					Variants: &modelutils.FileVariants{Image: &modelutils.ImageVariants{
+						Thumbnail: &modelutils.VariantInfo{URL: thumbnailURL, Format: "webp"},
+						Original:  &modelutils.VariantInfo{URL: rawAvatarURL, Format: "jpg"},
+					}},
+				},
+			},
+		},
+	}}}
+	service := NewPrivatePhotoService(repository, nil, nil)
+
+	requests, err := service.ListAccessRequests(context.Background(), ports.PrivatePhotoPrincipal{ID: ownerID, PublicID: 10})
+	if err != nil {
+		t.Fatalf("ListAccessRequests() error = %v", err)
+	}
+	if len(requests) != 1 || requests[0].RequestID != "77" || requests[0].Viewer.Avatar == nil {
+		t.Fatalf("ListAccessRequests() = %+v", requests)
+	}
+	encoded, err := json.Marshal(requests)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := string(encoded)
+	if !strings.Contains(response, thumbnailURL) {
+		t.Fatalf("safe avatar response omitted thumbnail: %s", response)
+	}
+	for _, forbidden := range []string{"storage_path", "file_id", "user_id", "private-original-name.jpg", rawAvatarURL, `"original"`} {
+		if strings.Contains(response, forbidden) {
+			t.Fatalf("safe avatar response leaked %q: %s", forbidden, response)
+		}
 	}
 }
 

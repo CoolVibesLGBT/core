@@ -80,10 +80,10 @@ type PrivatePhotoImageVariantsView struct {
 }
 
 type PrivatePhotoUserView struct {
-	PublicID    string            `json:"public_id"`
-	Username    string            `json:"username"`
-	DisplayName string            `json:"displayname"`
-	Avatar      *modelmedia.Media `json:"avatar,omitempty"`
+	PublicID    string                 `json:"public_id"`
+	Username    string                 `json:"username"`
+	DisplayName string                 `json:"displayname"`
+	Avatar      *PrivatePhotoMediaView `json:"avatar,omitempty"`
 }
 
 type PrivatePhotoAccessRequestView struct {
@@ -524,6 +524,11 @@ func privatePhotoAccessSummary(record *ports.PrivatePhotoAccessRecord) PrivatePh
 }
 
 func privatePhotoAccessRequestView(record ports.PrivatePhotoAccessRecord) PrivatePhotoAccessRequestView {
+	var avatar *PrivatePhotoMediaView
+	if record.Viewer.Avatar != nil {
+		view := privatePhotoMediaView(*record.Viewer.Avatar)
+		avatar = &view
+	}
 	return PrivatePhotoAccessRequestView{
 		RequestID:   publicIDString(record.PublicID),
 		OwnerID:     publicIDString(record.OwnerPublicID),
@@ -535,7 +540,7 @@ func privatePhotoAccessRequestView(record ports.PrivatePhotoAccessRecord) Privat
 			PublicID:    publicIDString(record.Viewer.PublicID),
 			Username:    record.Viewer.UserName,
 			DisplayName: record.Viewer.DisplayName,
-			Avatar:      record.Viewer.Avatar,
+			Avatar:      avatar,
 		},
 	}
 }

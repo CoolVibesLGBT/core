@@ -445,6 +445,7 @@ func (r *PrivatePhotoRepository) ListPrivatePhotoAccessRequests(ctx context.Cont
 	}
 	var viewers []models.User
 	if err := r.db.WithContext(ctx).
+		Select("id", "public_id", "user_name", "display_name", "avatar_id").
 		Preload("Avatar.File").
 		Where("id IN ?", viewerIDs).
 		Find(&viewers).Error; err != nil {
@@ -462,7 +463,13 @@ func (r *PrivatePhotoRepository) ListPrivatePhotoAccessRequests(ctx context.Cont
 
 	result := make([]ports.PrivatePhotoAccessRecord, 0, len(requests))
 	for _, request := range requests {
-		viewer := viewerMap[request.ViewerID]
+		viewer, exists := viewerMap[request.ViewerID]
+		if !exists {
+			// The access row can briefly outlive a viewer in installations that
+			// predate the current foreign-key migration. Do not turn one stale
+			// historical row into a 500 for the album owner.
+			continue
+		}
 		result = append(result, privatePhotoAccessRecord(request, owner.PublicID, viewer))
 	}
 	return result, nil

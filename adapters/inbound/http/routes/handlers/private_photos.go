@@ -8,6 +8,7 @@ import (
 	domainmedia "core/domain/media"
 	"core/utils"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 
@@ -210,6 +211,7 @@ func privatePhotoError(c fiber.Ctx, err error) error {
 		errors.Is(err, domainmedia.ErrInvalidPrivatePhotoAccessTransition):
 		return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 	default:
+		log.Printf("private photo API error action=%q: %v", strings.TrimSpace(c.Get("X-Action")), err)
 		return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 	}
 }
