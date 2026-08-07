@@ -17,14 +17,12 @@ static/samples
 ./bot/
 /bot/
 
- 
 workers/temp
 ./build
 build
 ./.gocache
 .gocache
+/core
 
- 
 ./seeders/taxonomy
 seeders/taxonomy
- 
