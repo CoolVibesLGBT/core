@@ -7,6 +7,7 @@ import (
 	pathpkg "path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -74,7 +75,7 @@ func mediaStoragePath(requestPath string) (requestedPath, originalPrefix string,
 	extension := filepath.Ext(requestedPath)
 	stem := strings.TrimSuffix(filepath.Base(requestedPath), extension)
 	stem = mediaVariantSuffix.ReplaceAllString(stem, "")
-	if _, err := uuid.Parse(stem); err != nil {
+	if !validMediaStorageStem(stem) {
 		return "", "", false
 	}
 	originalPrefix = filepath.ToSlash(filepath.Join(filepath.Dir(requestedPath), stem))
@@ -83,4 +84,24 @@ func mediaStoragePath(requestPath string) (requestedPath, originalPrefix string,
 	}
 	originalPrefix = "./" + originalPrefix
 	return requestedPath, originalPrefix, true
+}
+
+// validMediaStorageStem accepts both the legacy UUID filename and the current
+// <unix timestamp>_<uuid> filename emitted by MediaRepository.AddMedia. Keep
+// this strict: the stem is later used to locate protected media metadata.
+func validMediaStorageStem(stem string) bool {
+	if _, err := uuid.Parse(stem); err == nil {
+		return true
+	}
+
+	timestamp, id, found := strings.Cut(stem, "_")
+	if !found || timestamp == "" || id == "" || strings.Contains(id, "_") {
+		return false
+	}
+	unixTime, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil || unixTime <= 0 {
+		return false
+	}
+	_, err = uuid.Parse(id)
+	return err == nil
 }
