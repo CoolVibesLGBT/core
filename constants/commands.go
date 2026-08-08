@@ -74,6 +74,8 @@ const (
 	CMD_USER_PRIVATE_PHOTOS_FETCH           = "user.private_photos.fetch"
 	CMD_USER_PRIVATE_PHOTOS_UPLOAD          = "user.private_photos.upload"
 	CMD_USER_PRIVATE_PHOTOS_DELETE          = "user.private_photos.delete"
+	CMD_USER_PROFILE_PHOTOS_FETCH           = "user.profile_photos.fetch"
+	CMD_USER_PHOTOS_MOVE                    = "user.photos.move"
 	CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUEST  = "user.private_photos.access.request"
 	CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUESTS = "user.private_photos.access.requests"
 	CMD_USER_PRIVATE_PHOTOS_ACCESS_RESPOND  = "user.private_photos.access.respond"

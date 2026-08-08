@@ -91,6 +91,46 @@ func HandleDeletePrivatePhoto(service *usecases.PrivatePhotoService) fiber.Handl
 	}
 }
 
+func HandleFetchProfilePhotos(service *usecases.PrivatePhotoService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		principal, ok := privatePhotoPrincipal(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		ownerID := principal.PublicID
+		if strings.TrimSpace(requestField(c, "owner_id")) != "" {
+			var err error
+			ownerID, err = privatePhotoPublicIDField(c, "owner_id")
+			if err != nil {
+				return privatePhotoError(c, err)
+			}
+		}
+		result, err := service.FetchProfilePhotos(c.Context(), principal, ownerID)
+		if err != nil {
+			return privatePhotoError(c, err)
+		}
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, result, "Profile photos fetched successfully")
+	}
+}
+
+func HandleMoveProfilePhoto(service *usecases.PrivatePhotoService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		principal, ok := privatePhotoPrincipal(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		photoID, err := privatePhotoPublicIDField(c, "photo_id")
+		if err != nil {
+			return privatePhotoError(c, err)
+		}
+		result, err := service.MoveProfilePhoto(c.Context(), principal, photoID, requestField(c, "destination"))
+		if err != nil {
+			return privatePhotoError(c, err)
+		}
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, result, "Photo moved successfully")
+	}
+}
+
 func HandleRequestPrivatePhotoAccess(service *usecases.PrivatePhotoService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		principal, ok := privatePhotoPrincipal(c)
@@ -207,6 +247,7 @@ func privatePhotoError(c fiber.Ctx, err error) error {
 		errors.Is(err, usecases.ErrPrivatePhotoUploadLimit),
 		errors.Is(err, usecases.ErrPrivatePhotoImageRequired),
 		errors.Is(err, usecases.ErrPrivatePhotoImageDimensions),
+		errors.Is(err, usecases.ErrPhotoDestinationRequired),
 		errors.Is(err, domainmedia.ErrInvalidPrivatePhotoAccessStatus),
 		errors.Is(err, domainmedia.ErrInvalidPrivatePhotoAccessTransition):
 		return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())

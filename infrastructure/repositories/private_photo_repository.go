@@ -105,6 +105,80 @@ func (r *PrivatePhotoRepository) ListPrivatePhotos(ctx context.Context, ownerID 
 	return photos, err
 }
 
+func (r *PrivatePhotoRepository) ListProfilePhotos(ctx context.Context, ownerID uuid.UUID) ([]modelmedia.Media, error) {
+	photos := make([]modelmedia.Media, 0)
+	err := r.db.WithContext(ctx).
+		Model(&modelmedia.Media{}).
+		Where("owner_id = ? AND user_id = ?", ownerID, ownerID).
+		Where("owner_type = ? AND role = ? AND is_public = ?", modelmedia.OwnerUser, modelmedia.RoleProfile, true).
+		Where("processing_status <> ?", modelmedia.ProcessingStatusFailed).
+		Preload("File").
+		Order("public_id DESC").
+		Find(&photos).Error
+	return photos, err
+}
+
+func (r *PrivatePhotoRepository) MoveProfilePhoto(
+	ctx context.Context,
+	ownerID uuid.UUID,
+	photoPublicID int64,
+	destination modelmedia.MediaRole,
+	maxPrivateCount int64,
+) (moved *modelmedia.Media, retErr error) {
+	if destination != modelmedia.RoleProfile && destination != modelmedia.RolePrivatePhoto {
+		return nil, errors.New("unsupported profile photo destination")
+	}
+
+	retErr = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if destination == modelmedia.RolePrivatePhoto {
+			if err := lockPrivatePhotoAlbum(tx, ownerID); err != nil {
+				return err
+			}
+			if maxPrivateCount > 0 {
+				var count int64
+				if err := privatePhotoMediaBaseScope(tx, ownerID).
+					Where("processing_status <> ?", modelmedia.ProcessingStatusFailed).
+					Count(&count).Error; err != nil {
+					return err
+				}
+				if count >= maxPrivateCount {
+					return ports.ErrPrivatePhotoLimitReached
+				}
+			}
+		}
+
+		var photo modelmedia.Media
+		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Preload("File").
+			Where("public_id = ?", photoPublicID).
+			Where("owner_id = ? AND user_id = ? AND owner_type = ?", ownerID, ownerID, modelmedia.OwnerUser).
+			Where("role IN ?", []modelmedia.MediaRole{modelmedia.RoleProfile, modelmedia.RolePrivatePhoto}).
+			Take(&photo)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return ports.ErrNotFound
+		}
+		if result.Error != nil {
+			return result.Error
+		}
+		if photo.Role == destination {
+			moved = &photo
+			return nil
+		}
+
+		isPublic := destination == modelmedia.RoleProfile
+		if err := tx.Model(&modelmedia.Media{}).
+			Where("id = ?", photo.ID).
+			Updates(map[string]any{"role": destination, "is_public": isPublic}).Error; err != nil {
+			return err
+		}
+		photo.Role = destination
+		photo.IsPublic = isPublic
+		moved = &photo
+		return nil
+	})
+	return moved, retErr
+}
+
 func (r *PrivatePhotoRepository) AddPrivatePhoto(ctx context.Context, ownerID uuid.UUID, file ports.UploadedFile, maxCount int64) (created *modelmedia.Media, retErr error) {
 	if r.mediaRepo == nil {
 		return nil, errors.New("private photo media repository is not configured")

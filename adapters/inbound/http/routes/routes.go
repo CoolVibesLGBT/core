@@ -163,6 +163,8 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_FETCH, handlers.HandleFetchPrivatePhotos(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_UPLOAD, handlers.HandleUploadPrivatePhotos(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_DELETE, handlers.HandleDeletePrivatePhoto(privatePhotoService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_PROFILE_PHOTOS_FETCH, handlers.HandleFetchProfilePhotos(privatePhotoService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_PHOTOS_MOVE, handlers.HandleMoveProfilePhoto(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUEST, handlers.HandleRequestPrivatePhotoAccess(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUESTS, handlers.HandleFetchPrivatePhotoAccessRequests(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_RESPOND, handlers.HandleRespondPrivatePhotoAccess(privatePhotoService), middleware.AuthMiddleware(sessionService))

@@ -52,6 +52,14 @@ type PrivatePhotoRepository interface {
 	ListPrivatePhotoAccessRequests(ctx context.Context, ownerID uuid.UUID) ([]PrivatePhotoAccessRecord, error)
 }
 
+// ProfilePhotoRepository owns the public/private album boundary. It is kept
+// separate from PrivatePhotoRepository so access-only adapters do not need to
+// know about public profile media.
+type ProfilePhotoRepository interface {
+	ListProfilePhotos(ctx context.Context, ownerID uuid.UUID) ([]modelmedia.Media, error)
+	MoveProfilePhoto(ctx context.Context, ownerID uuid.UUID, photoPublicID int64, destination modelmedia.MediaRole, maxPrivateCount int64) (*modelmedia.Media, error)
+}
+
 // PrivatePhotoAccessAuthorizer is deliberately separate from
 // MediaAccessRepository so existing media-access adapters can remain unaware
 // of the private album workflow. The static file service denies access when

@@ -35,6 +35,7 @@ var (
 	ErrPrivatePhotoOwnerLimit        = errors.New("private photo album limit reached")
 	ErrPrivatePhotoImageRequired     = domainmedia.ErrPrivatePhotoImageRequired
 	ErrPrivatePhotoImageDimensions   = domainmedia.ErrPrivatePhotoImageDimensions
+	ErrPhotoDestinationRequired      = errors.New("destination must be public or private")
 )
 
 type PrivatePhotoAccessSummary struct {
@@ -47,6 +48,17 @@ type PrivatePhotoFetchResult struct {
 	Count   int64                     `json:"count"`
 	Access  PrivatePhotoAccessSummary `json:"access"`
 	Photos  []PrivatePhotoMediaView   `json:"photos"`
+}
+
+type ProfilePhotoFetchResult struct {
+	OwnerID string                  `json:"owner_id"`
+	Count   int64                   `json:"count"`
+	Photos  []PrivatePhotoMediaView `json:"photos"`
+}
+
+type MoveProfilePhotoResult struct {
+	Photo       PrivatePhotoMediaView `json:"photo"`
+	Destination string                `json:"destination"`
 }
 
 // PrivatePhotoMediaView deliberately exposes only the public media ID and
@@ -182,6 +194,82 @@ func (s *PrivatePhotoService) Fetch(ctx context.Context, principal ports.Private
 	result.Count = int64(len(photos))
 	result.Photos = privatePhotoMediaViews(photos)
 	return result, nil
+}
+
+func (s *PrivatePhotoService) FetchProfilePhotos(ctx context.Context, principal ports.PrivatePhotoPrincipal, ownerPublicID int64) (ProfilePhotoFetchResult, error) {
+	if err := validatePrivatePhotoPrincipal(principal); err != nil {
+		return ProfilePhotoFetchResult{}, err
+	}
+	if ownerPublicID <= 0 {
+		return ProfilePhotoFetchResult{}, ErrPrivatePhotoOwnerRequired
+	}
+	owner, err := s.repository.FindPrivatePhotoUserByPublicID(ctx, ownerPublicID)
+	if errors.Is(err, ports.ErrNotFound) {
+		return ProfilePhotoFetchResult{}, ErrPrivatePhotoUserNotFound
+	}
+	if err != nil {
+		return ProfilePhotoFetchResult{}, err
+	}
+	if owner.ID != principal.ID {
+		blocked, blockErr := s.repository.ArePrivatePhotoUsersBlocked(ctx, owner.ID, principal.ID)
+		if blockErr != nil {
+			return ProfilePhotoFetchResult{}, blockErr
+		}
+		if blocked {
+			return ProfilePhotoFetchResult{}, ErrPrivatePhotoForbidden
+		}
+	}
+	repository, ok := s.repository.(ports.ProfilePhotoRepository)
+	if !ok {
+		return ProfilePhotoFetchResult{}, errors.New("profile photo repository is not configured")
+	}
+	photos, err := repository.ListProfilePhotos(ctx, owner.ID)
+	if err != nil {
+		return ProfilePhotoFetchResult{}, err
+	}
+	return ProfilePhotoFetchResult{
+		OwnerID: publicIDString(owner.PublicID),
+		Count:   int64(len(photos)),
+		Photos:  privatePhotoMediaViews(photos),
+	}, nil
+}
+
+func (s *PrivatePhotoService) MoveProfilePhoto(ctx context.Context, principal ports.PrivatePhotoPrincipal, photoPublicID int64, destination string) (MoveProfilePhotoResult, error) {
+	if err := validatePrivatePhotoPrincipal(principal); err != nil {
+		return MoveProfilePhotoResult{}, err
+	}
+	if photoPublicID <= 0 {
+		return MoveProfilePhotoResult{}, ErrPrivatePhotoIDRequired
+	}
+	normalizedDestination := strings.ToLower(strings.TrimSpace(destination))
+	var role modelmedia.MediaRole
+	switch normalizedDestination {
+	case "public":
+		role = modelmedia.RoleProfile
+	case "private":
+		role = modelmedia.RolePrivatePhoto
+	default:
+		return MoveProfilePhotoResult{}, ErrPhotoDestinationRequired
+	}
+	repository, ok := s.repository.(ports.ProfilePhotoRepository)
+	if !ok {
+		return MoveProfilePhotoResult{}, errors.New("profile photo repository is not configured")
+	}
+	photo, err := repository.MoveProfilePhoto(ctx, principal.ID, photoPublicID, role, MaxPrivatePhotosPerOwner)
+	if errors.Is(err, ports.ErrNotFound) {
+		return MoveProfilePhotoResult{}, ErrPrivatePhotoNotFound
+	}
+	if errors.Is(err, ports.ErrPrivatePhotoLimitReached) {
+		return MoveProfilePhotoResult{}, ErrPrivatePhotoOwnerLimit
+	}
+	if err != nil {
+		return MoveProfilePhotoResult{}, err
+	}
+	s.publishPrivatePhotoAlbumChanged(ctx, principal.ID, principal.PublicID)
+	return MoveProfilePhotoResult{
+		Photo:       privatePhotoMediaView(*photo),
+		Destination: normalizedDestination,
+	}, nil
 }
 
 func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.PrivatePhotoPrincipal, files []ports.UploadedFile) ([]PrivatePhotoMediaView, error) {

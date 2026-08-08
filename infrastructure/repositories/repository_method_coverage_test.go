@@ -82,7 +82,7 @@ var repositoryMethodCoverage = map[string]string{
 		"SynonymExists", "Tip", "View", "Vote",
 	}, " "),
 	"PrivatePhotoRepository": strings.Join([]string{
-		"AddPrivatePhoto", "ArePrivatePhotoUsersBlocked", "CountPrivatePhotos", "DeletePrivatePhoto",
+		"AddPrivatePhoto", "ArePrivatePhotoUsersBlocked", "CountPrivatePhotos", "DeletePrivatePhoto", "ListProfilePhotos", "MoveProfilePhoto",
 		"FindPrivatePhotoAccessByPublicID", "FindPrivatePhotoUserByID", "FindPrivatePhotoUserByPublicID", "GetPrivatePhotoAccess",
 		"HasApprovedPrivatePhotoAccess", "ListPrivatePhotoAccessRequests", "ListPrivatePhotos",
 		"RequestPrivatePhotoAccess", "RespondPrivatePhotoAccess", "RevokePrivatePhotoAccess",
