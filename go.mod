@@ -61,12 +61,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/api v0.287.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260630182238-925bb5da69e7 // indirect
-	google.golang.org/grpc v1.82.1 // indirect
+	google.golang.org/grpc v1.83.2 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gorm.io/driver/mysql v1.6.0 // indirect
 )
@@ -91,9 +91,9 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.72.0
 	github.com/vchitai/go-socket.io/v4 v4.1.12
-	golang.org/x/crypto v0.53.0
+	golang.org/x/crypto v0.55.0
 	golang.org/x/image v0.43.0
-	golang.org/x/net v0.56.0
+	golang.org/x/net v0.58.0
 	gopkg.in/telebot.v4 v4.0.0-beta.10
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/datatypes v1.2.7
