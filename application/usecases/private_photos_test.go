@@ -45,6 +45,15 @@ type privatePhotoRepositoryFake struct {
 	deletedPhotoID int64
 }
 
+type premiumPrivatePhotoRepositoryFake struct {
+	*privatePhotoRepositoryFake
+	isPremium bool
+}
+
+func (r *premiumPrivatePhotoRepositoryFake) IsPrivatePhotoOwnerPremium(context.Context, uuid.UUID) (bool, error) {
+	return r.isPremium, nil
+}
+
 func (r *privatePhotoRepositoryFake) FindPrivatePhotoUserByPublicID(_ context.Context, publicID int64) (ports.PrivatePhotoUser, error) {
 	user, ok := r.users[publicID]
 	if !ok {
@@ -381,5 +390,37 @@ func TestPrivatePhotoUploadHasNoApplicationByteSizeLimit(t *testing.T) {
 	}
 	if len(photos) != 1 || repository.addCalls != 1 || repository.addedSize != largeFileSize {
 		t.Fatalf("large upload was not persisted: photos=%d addCalls=%d size=%d", len(photos), repository.addCalls, repository.addedSize)
+	}
+}
+
+func TestPrivatePhotoUploadLimitIsPremiumAndFeatureFlagAware(t *testing.T) {
+	principal := ports.PrivatePhotoPrincipal{ID: uuid.New(), PublicID: 10}
+	file := privatePhotoTestFile{size: 1024}
+
+	freeRepository := &premiumPrivatePhotoRepositoryFake{
+		privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: FreePrivatePhotosPerOwner},
+	}
+	freeService := NewPrivatePhotoService(freeRepository, nil, nil)
+	if _, err := freeService.Upload(context.Background(), principal, []ports.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
+		t.Fatalf("free Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
+	}
+
+	premiumRepository := &premiumPrivatePhotoRepositoryFake{
+		privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: FreePrivatePhotosPerOwner},
+		isPremium:                  true,
+	}
+	premiumService := NewPrivatePhotoService(premiumRepository, nil, nil)
+	if photos, err := premiumService.Upload(context.Background(), principal, []ports.UploadedFile{file}); err != nil || len(photos) != 1 {
+		t.Fatalf("premium Upload() photos=%d error=%v", len(photos), err)
+	}
+
+	disabledService := NewPrivatePhotoService(
+		premiumRepository,
+		nil,
+		nil,
+		WithPremiumUnlimitedPrivatePhotos(false),
+	)
+	if _, err := disabledService.Upload(context.Background(), principal, []ports.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
+		t.Fatalf("feature-disabled premium Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
 	}
 }

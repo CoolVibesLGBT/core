@@ -98,7 +98,12 @@ func InitializeApp() (*App, error) {
 	chatRepository := repositories.NewChatRepository(gormDB, node, postRepository, userRepository, notificationRepository)
 	chatService := usecases.NewChatService(socketService, userRepository, postRepository, mediaRepository, matchesRepository, chatRepository, notificationRepository)
 	notificationsService := usecases.NewNotificationsService(notificationRepository)
-	privatePhotoService := usecases.NewPrivatePhotoService(privatePhotoRepository, notificationRepository, socketService)
+	privatePhotoService := usecases.NewPrivatePhotoService(
+		privatePhotoRepository,
+		notificationRepository,
+		socketService,
+		usecases.WithPremiumUnlimitedPrivatePhotos(featureFlagEnabled("FF_PREMIUM_UNLIMITED_PRIVATE_PHOTOS", true)),
+	)
 	paymentRepository := repositories.NewPaymentRepository(gormDB, node, mediaRepository, userRepository, notificationRepository)
 	paymentService := usecases.NewPaymentService(paymentRepository, userRepository, postRepository, mediaRepository)
 	sitemapRepository := repositories.NewSitemapRepository(gormDB)

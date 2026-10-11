@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	MaxPrivatePhotosPerOwner  = 20
+	FreePrivatePhotosPerOwner = 10
 	MaxPrivatePhotosPerUpload = 10
 )
 
@@ -109,17 +109,38 @@ type PrivatePhotoAccessRequestView struct {
 }
 
 type PrivatePhotoService struct {
-	repository ports.PrivatePhotoRepository
-	notifier   ports.PrivatePhotoNotifier
-	realtime   ports.PrivatePhotoRealtimePublisher
+	repository                    ports.PrivatePhotoRepository
+	notifier                      ports.PrivatePhotoNotifier
+	realtime                      ports.PrivatePhotoRealtimePublisher
+	premiumUnlimitedPhotosEnabled bool
+}
+
+type PrivatePhotoServiceOption func(*PrivatePhotoService)
+
+func WithPremiumUnlimitedPrivatePhotos(enabled bool) PrivatePhotoServiceOption {
+	return func(service *PrivatePhotoService) {
+		service.premiumUnlimitedPhotosEnabled = enabled
+	}
 }
 
 func NewPrivatePhotoService(
 	repository ports.PrivatePhotoRepository,
 	notifier ports.PrivatePhotoNotifier,
 	realtime ports.PrivatePhotoRealtimePublisher,
+	options ...PrivatePhotoServiceOption,
 ) *PrivatePhotoService {
-	return &PrivatePhotoService{repository: repository, notifier: notifier, realtime: realtime}
+	service := &PrivatePhotoService{
+		repository:                    repository,
+		notifier:                      notifier,
+		realtime:                      realtime,
+		premiumUnlimitedPhotosEnabled: true,
+	}
+	for _, option := range options {
+		if option != nil {
+			option(service)
+		}
+	}
+	return service
 }
 
 func (s *PrivatePhotoService) Fetch(ctx context.Context, principal ports.PrivatePhotoPrincipal, ownerPublicID int64) (PrivatePhotoFetchResult, error) {
@@ -255,7 +276,15 @@ func (s *PrivatePhotoService) MoveProfilePhoto(ctx context.Context, principal po
 	if !ok {
 		return MoveProfilePhotoResult{}, errors.New("profile photo repository is not configured")
 	}
-	photo, err := repository.MoveProfilePhoto(ctx, principal.ID, photoPublicID, role, MaxPrivatePhotosPerOwner)
+	privatePhotoLimit := int64(0)
+	if role == modelmedia.RolePrivatePhoto {
+		var limitErr error
+		privatePhotoLimit, limitErr = s.privatePhotoLimit(ctx, principal.ID)
+		if limitErr != nil {
+			return MoveProfilePhotoResult{}, limitErr
+		}
+	}
+	photo, err := repository.MoveProfilePhoto(ctx, principal.ID, photoPublicID, role, privatePhotoLimit)
 	if errors.Is(err, ports.ErrNotFound) {
 		return MoveProfilePhotoResult{}, ErrPrivatePhotoNotFound
 	}
@@ -294,17 +323,21 @@ func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.Privat
 			return nil, ErrPrivatePhotoImageRequired
 		}
 	}
+	privatePhotoLimit, err := s.privatePhotoLimit(ctx, principal.ID)
+	if err != nil {
+		return nil, err
+	}
 	count, err := s.repository.CountPrivatePhotos(ctx, principal.ID)
 	if err != nil {
 		return nil, err
 	}
-	if count+int64(len(files)) > MaxPrivatePhotosPerOwner {
+	if privatePhotoLimit > 0 && count+int64(len(files)) > privatePhotoLimit {
 		return nil, ErrPrivatePhotoOwnerLimit
 	}
 
 	created := make([]modelmedia.Media, 0, len(files))
 	for _, file := range files {
-		photo, createErr := s.repository.AddPrivatePhoto(ctx, principal.ID, file, MaxPrivatePhotosPerOwner)
+		photo, createErr := s.repository.AddPrivatePhoto(ctx, principal.ID, file, privatePhotoLimit)
 		if createErr != nil {
 			for _, rollbackPhoto := range created {
 				_ = s.repository.DeletePrivatePhoto(ctx, principal.ID, rollbackPhoto.PublicID)
@@ -319,6 +352,21 @@ func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.Privat
 	views := privatePhotoMediaViews(created)
 	s.publishPrivatePhotoAlbumChanged(ctx, principal.ID, principal.PublicID)
 	return views, nil
+}
+
+func (s *PrivatePhotoService) privatePhotoLimit(ctx context.Context, ownerID uuid.UUID) (int64, error) {
+	if s.premiumUnlimitedPhotosEnabled {
+		if repository, ok := s.repository.(ports.PrivatePhotoPremiumRepository); ok {
+			isPremium, err := repository.IsPrivatePhotoOwnerPremium(ctx, ownerID)
+			if err != nil {
+				return 0, err
+			}
+			if isPremium {
+				return 0, nil
+			}
+		}
+	}
+	return FreePrivatePhotosPerOwner, nil
 }
 
 func (s *PrivatePhotoService) Delete(ctx context.Context, principal ports.PrivatePhotoPrincipal, photoPublicID int64) error {

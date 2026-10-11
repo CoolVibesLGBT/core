@@ -191,6 +191,8 @@ const (
 	CMD_BROADCASTS_VIEW   = "broadcast.view"
 	CMD_BROADCASTS_CREATE = "broadcast.create"
 	CMD_BROADCASTS_LIKE   = "broadcast.like"
+	CMD_BROADCASTS_CHAT		= "broadcast.chat"
+	CMD_BROADCAST_GIFT		= "broadcast.gift"
 )
 
 /*

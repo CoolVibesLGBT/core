@@ -96,6 +96,23 @@ func (r *PrivatePhotoRepository) CountPrivatePhotos(ctx context.Context, ownerID
 	return count, err
 }
 
+func (r *PrivatePhotoRepository) IsPrivatePhotoOwnerPremium(ctx context.Context, ownerID uuid.UUID) (bool, error) {
+	var isPremium bool
+	result := r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Select("is_premium").
+		Where("id = ? AND deleted_at IS NULL", ownerID).
+		Where("user_role NOT IN ?", []string{"banned", "deleted"}).
+		Scan(&isPremium)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return false, ports.ErrNotFound
+	}
+	return isPremium, nil
+}
+
 func (r *PrivatePhotoRepository) ListPrivatePhotos(ctx context.Context, ownerID uuid.UUID) ([]modelmedia.Media, error) {
 	photos := make([]modelmedia.Media, 0)
 	err := privatePhotoMediaBaseScope(r.db.WithContext(ctx), ownerID).

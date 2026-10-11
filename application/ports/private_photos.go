@@ -60,6 +60,10 @@ type ProfilePhotoRepository interface {
 	MoveProfilePhoto(ctx context.Context, ownerID uuid.UUID, photoPublicID int64, destination modelmedia.MediaRole, maxPrivateCount int64) (*modelmedia.Media, error)
 }
 
+type PrivatePhotoPremiumRepository interface {
+	IsPrivatePhotoOwnerPremium(ctx context.Context, ownerID uuid.UUID) (bool, error)
+}
+
 // PrivatePhotoAccessAuthorizer is deliberately separate from
 // MediaAccessRepository so existing media-access adapters can remain unaware
 // of the private album workflow. The static file service denies access when
