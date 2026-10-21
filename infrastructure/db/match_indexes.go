@@ -3,6 +3,12 @@ package db
 func matchIndexDefinitions() []IndexDefinition {
 	return []IndexDefinition{
 		{
+			Name:    "idx_engagement_details_actor_kind_last_seen",
+			Table:   "engagement_details",
+			Using:   "btree",
+			Columns: []string{"engager_id", "kind", "updated_at DESC"},
+		},
+		{
 			Name:    "idx_engagement_details_actor_kind_cursor",
 			Table:   "engagement_details",
 			Using:   "btree",

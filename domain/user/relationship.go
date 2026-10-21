@@ -15,8 +15,10 @@ type InteractionStateIntent struct {
 // adapters may still repair a missing reciprocal row without reporting a new
 // logical transition.
 type InteractionStateTransition struct {
-	Enabled bool
-	Changed bool
+	Enabled  bool
+	Changed  bool
+	Matched  bool
+	NewMatch bool
 }
 
 // NewSetInteractionState creates an idempotent command: applying it repeatedly

@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"core/application/ports"
+	domainmedia "core/domain/media"
 	"core/helpers"
-	push "core/infrastructure/push"
 	"core/models"
 	"core/models/notifications"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type NotificationRepository struct {
@@ -59,7 +59,7 @@ func (r *NotificationRepository) NotifyPrivatePhotoAccessRequested(ctx context.C
 			"access_status": request.Status,
 		},
 	}
-	return r.SendNotificationToUser(sender, receiver, notifications.NotificationTypePrivatePhotoAccessRequest, title, body, payload)
+	return r.SendNotificationToUser(ctx, sender, receiver, notifications.NotificationTypePrivatePhotoAccessRequest, title, body, payload)
 }
 
 func (r *NotificationRepository) NotifyPrivatePhotoAccessResponded(ctx context.Context, owner, viewer ports.PrivatePhotoUser, request ports.PrivatePhotoAccessRecord) error {
@@ -81,7 +81,7 @@ func (r *NotificationRepository) NotifyPrivatePhotoAccessResponded(ctx context.C
 		},
 	}
 	updateErr := r.resolvePrivatePhotoRequestNotification(ctx, owner.ID, request)
-	sendErr := r.SendNotificationToUser(sender, receiver, notifications.NotificationTypePrivatePhotoAccessResponse, title, body, payload)
+	sendErr := r.SendNotificationToUser(ctx, sender, receiver, notifications.NotificationTypePrivatePhotoAccessResponse, title, body, payload)
 	return errors.Join(updateErr, sendErr)
 }
 
@@ -100,7 +100,7 @@ func (r *NotificationRepository) resolvePrivatePhotoRequestNotification(ctx cont
 		if !ok || fmt.Sprint(data["request_id"]) != fmt.Sprint(request.PublicID) {
 			continue
 		}
-		if fmt.Sprint(data["status"]) != "pending" && fmt.Sprint(data["access_status"]) != "pending" {
+		if fmt.Sprint(data["status"]) != string(domainmedia.PrivatePhotoAccessPending) && fmt.Sprint(data["access_status"]) != string(domainmedia.PrivatePhotoAccessPending) {
 			continue
 		}
 		data["status"] = request.Status
@@ -156,91 +156,17 @@ func (r *NotificationRepository) GetAllSubscriptions() ([]models.Subscription, e
 	return allSubs, nil
 }
 
-func (r *NotificationRepository) CreateNotification(senderUser uuid.UUID, receiverUser uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (*notifications.Notification, error) {
-	notification := &notifications.Notification{
-		ID:        uuid.New(),
-		SenderID:  &senderUser,
-		UserID:    receiverUser,
-		Type:      notifType,
-		Title:     title,
-		Message:   message,
-		Payload:   payload,
-		IsRead:    false,
-		IsShown:   false,
-		CreatedAt: time.Now(),
-	}
-
-	if err := r.db.Create(notification).Error; err != nil {
-		return nil, err
-	}
-
-	return notification, nil
+func (r *NotificationRepository) CreateNotification(ctx context.Context, senderUser uuid.UUID, receiverUser uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (item *notifications.Notification, err error) {
+	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		item, err = persistQueuedNotification(tx, senderUser, receiverUser, notifType, title, message, payload)
+		return err
+	})
+	return item, err
 }
 
-func (r *NotificationRepository) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
-
-	_, err := r.CreateNotification(sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
-	if err != nil {
-		return fmt.Errorf("notification cannot be saved: %w", err)
-	}
-
-	var subscriptions []models.Subscription
-	if len(receiver.Subscriptions) == 0 {
-		return fmt.Errorf("user has no subscriptions")
-	}
-
-	subscriptions, err = decodePushSubscriptions(receiver.Subscriptions)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal subscriptions: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return fmt.Errorf("user has no subscriptions")
-	}
-
-	// Payload'u JSON string haline getir
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	deliveryCtx, cancelDelivery := context.WithTimeout(context.Background(), notificationPushBatchTimeout)
-	defer cancelDelivery()
-
-	vapidKeyInfo, err := helpers.CreateVapidKeys(r.db.WithContext(deliveryCtx))
-	if err != nil {
-		return fmt.Errorf("failed to get vapid key: %w", err)
-	}
-	opts := push.NewOptions().
-		ApplyKeys(vapidKeyInfo.PublicKey, vapidKeyInfo.PrivateKey).
-		SetDeliveryTimeout(push.DefaultDeliveryTimeout)
-
-	newSender := r.newWebPushSender
-	if newSender == nil {
-		newSender = defaultWebPushSenderFactory
-	}
-	pb, err := newSender(opts)
-	if err != nil {
-		return fmt.Errorf("failed to create push service: %w", err)
-	}
-
-	attempted, failed := deliverWebPushBatch(
-		deliveryCtx,
-		pb,
-		subscriptions,
-		payloadBytes,
-		notificationPushMaxConcurrent,
-	)
-	if failed > 0 || attempted < len(subscriptions) {
-		log.Printf(
-			"[Notification] push delivery incomplete: attempted=%d total=%d failed=%d deadline_exceeded=%t",
-			attempted,
-			len(subscriptions),
-			failed,
-			errors.Is(deliveryCtx.Err(), context.DeadlineExceeded),
-		)
-	}
-
-	return nil
+func (r *NotificationRepository) SendNotificationToUser(ctx context.Context, sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
+	_, err := r.CreateNotification(ctx, sender.ID, receiver.ID, notificationType, notificationTitle, notificationMessage, payload)
+	return err
 }
 
 func decodePushSubscriptions(raw []byte) ([]models.Subscription, error) {
@@ -269,36 +195,32 @@ func decodePushSubscriptions(raw []byte) ([]models.Subscription, error) {
 	return subscriptions, nil
 }
 
-func (r *NotificationRepository) FetchAndMarkShownNotifications(userID uuid.UUID, limit int) ([]notifications.Notification, error) {
-	var notificationList []notifications.Notification
-
-	// 1. Gösterilmemiş bildirimleri çek
-	err := r.db.
-		Where("user_id = ? AND is_shown = false", userID).
-		Order("created_at DESC").
-		Limit(limit).
-		Find(&notificationList).Error
+func (r *NotificationRepository) FetchAndMarkShownNotifications(ctx context.Context, userID uuid.UUID, limit int) ([]notifications.Notification, error) {
+	items := make([]notifications.Notification, 0)
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Lock selection and acknowledgement together; concurrent polls claim
+		// disjoint rows instead of showing the same notification twice.
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Where("user_id = ? AND is_shown = FALSE AND deleted_at IS NULL", userID).
+			Order("created_at DESC, id DESC").Limit(normalizedMatchLimit(limit)).Find(&items).Error; err != nil {
+			return err
+		}
+		if len(items) == 0 {
+			return nil
+		}
+		now := time.Now().UTC()
+		ids := make([]uuid.UUID, len(items))
+		for i := range items {
+			ids[i] = items[i].ID
+			items[i].IsShown, items[i].ShownAt = true, &now
+		}
+		return tx.Model(&notifications.Notification{}).Where("id IN ?", ids).
+			Updates(map[string]any{"is_shown": true, "shown_at": now}).Error
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	// 2. Çekilen bildirimlerin IDsini topla
-	var ids []uuid.UUID
-	for _, n := range notificationList {
-		ids = append(ids, n.ID)
-	}
-
-	// 3. Eğer varsa, bu bildirimleri 'shown' olarak işaretle
-	if len(ids) > 0 {
-		err = r.db.Model(&notifications.Notification{}).
-			Where("id IN ?", ids).
-			Update("is_shown", true).Error
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return notificationList, nil
+	return items, nil
 }
 
 func (r *NotificationRepository) MarkNotificationAsRead(notificationID string) error {

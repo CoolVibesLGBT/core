@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	domainuser "core/domain/user"
 	"core/models"
@@ -362,5 +363,32 @@ func TestToggleFollowRejectsSelfInteraction(t *testing.T) {
 	}
 	if err.Error() == constants.ErrUnknown.String() {
 		t.Fatalf("expected domain self interaction error, got %v", err)
+	}
+}
+
+func TestRegistrationDoesNotSilentlyLoseReferralReward(t *testing.T) {
+	for _, scenario := range []string{"reward failure", "unknown code", "lookup failure"} {
+		t.Run(scenario, func(t *testing.T) {
+			userRepo := &fakeUserRepository{byNameOrMail: &models.User{ID: uuid.New(), PublicID: 99, UserName: "referrer"}}
+			expected := ports.ErrRegistrationPersistence
+			switch scenario {
+			case "reward failure":
+				userRepo.referralErr = errors.New("reward transaction failed")
+			case "unknown code":
+				userRepo.byNameOrMailErr = ports.ErrNotFound
+				expected = domainuser.ErrInvalidReferralCode
+			case "lookup failure":
+				userRepo.byNameOrMailErr = errors.New("database unavailable")
+			}
+			service := NewUserService(userRepo, &fakePostRepository{}, &fakeMediaRepository{}, &fakeEngagementRepository{}, &fakeNotificationRepository{},
+				WithCaptchaVerifier(&fakeCaptchaVerifier{valid: true}), WithPasswordHasher(&fakePasswordHasher{}), WithTokenIssuer(&fakeTokenIssuer{token: "token"}), WithPublicIDGenerator(&fakePublicIDGenerator{next: 4243}))
+			user, token, err := service.RegisterUser(context.Background(), RegisterInput{Name: "New user", Nickname: "new_user", Password: "secret-123", Domain: string(models.CoolVibes), Referral: "referrer", Captcha: "captcha"})
+			if !errors.Is(err, expected) {
+				t.Fatalf("registration error = %v, want %v", err, expected)
+			}
+			if user != nil || token != "" || userRepo.created != nil {
+				t.Fatal("failed reward yielded a registered account or token")
+			}
+		})
 	}
 }

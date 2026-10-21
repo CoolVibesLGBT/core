@@ -41,13 +41,13 @@ func TestGetNearByPlacesUsesStableSpatialCursorIntegration(t *testing.T) {
 
 	firstIDs := make(map[int64]struct{}, len(firstPage))
 	for _, place := range firstPage {
-		firstIDs[place.PublicID] = struct{}{}
-		if place.Location == nil || place.Location.DeletedAt.Valid {
+		firstIDs[int64(place.PublicID)] = struct{}{}
+		if place.Location == nil {
 			t.Fatalf("place %d has no active location: %#v", place.PublicID, place.Location)
 		}
 		for _, attachment := range place.Attachments {
 			if !attachment.IsPublic {
-				t.Fatalf("place %d exposed private attachment %s", place.PublicID, attachment.ID)
+				t.Fatalf("place %d exposed private attachment %v", place.PublicID, attachment.ID)
 			}
 		}
 	}
@@ -78,7 +78,7 @@ func TestGetNearByPlacesUsesStableSpatialCursorIntegration(t *testing.T) {
 		t.Fatalf("second spatial page: %v", err)
 	}
 	for _, place := range secondPage {
-		if _, duplicate := firstIDs[place.PublicID]; duplicate {
+		if _, duplicate := firstIDs[int64(place.PublicID)]; duplicate {
 			t.Fatalf("place %d was repeated across spatial pages", place.PublicID)
 		}
 	}

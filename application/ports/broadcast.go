@@ -2,7 +2,6 @@ package ports
 
 import (
 	"context"
-	"errors"
 )
 
 type BroadcastProvider string
@@ -10,14 +9,6 @@ type BroadcastProvider string
 const (
 	BroadcastProviderHornet BroadcastProvider = "hornet"
 	BroadcastProviderGrowlr BroadcastProvider = "growlr"
-)
-
-var (
-	ErrBroadcastIntegrationDisabled = errors.New("broadcast integration is disabled")
-	ErrBroadcastProviderUnsupported = errors.New("broadcast provider is unsupported")
-	ErrBroadcastInvalidInput        = errors.New("broadcast input is invalid")
-	ErrBroadcastUpstream            = errors.New("broadcast upstream request failed")
-	ErrBroadcastUnauthorized        = errors.New("broadcast operation requires authentication")
 )
 
 type BroadcastPrincipal struct {

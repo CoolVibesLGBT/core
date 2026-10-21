@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"core/application/ports"
 	"core/constants"
 	"core/models"
 	"core/models/chat"
@@ -162,7 +161,7 @@ func TestChatServiceAddMessageBroadcastsToChatRoom(t *testing.T) {
 	notifier := &fakeRealtimeNotifier{}
 	service := NewChatService(notifier, &fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeMatchesRepository{}, chatRepo, &fakeNotificationRepository{})
 
-	created, err := service.AddMessageToChat(context.Background(), ports.FormData{}, author)
+	created, err := service.AddMessageToChat(context.Background(), nil, nil, author)
 	if err != nil {
 		t.Fatalf("AddMessageToChat() error = %v", err)
 	}
@@ -187,7 +186,7 @@ func TestChatServiceAddMessageDoesNotFailCommittedSendWhenRealtimeDeliveryFails(
 	notifier := &fakeRealtimeNotifier{err: errors.New("socket unavailable")}
 	service := NewChatService(notifier, &fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeMatchesRepository{}, &fakeChatRepository{message: message}, &fakeNotificationRepository{})
 
-	created, err := service.AddMessageToChat(context.Background(), ports.FormData{}, author)
+	created, err := service.AddMessageToChat(context.Background(), nil, nil, author)
 	if err != nil {
 		t.Fatalf("committed send returned realtime error: %v", err)
 	}
@@ -210,7 +209,7 @@ func TestChatServiceViewOnceSendNeverBroadcastsOrReturnsStaticLocator(t *testing
 	notifier := &fakeRealtimeNotifier{}
 	service := NewChatService(notifier, &fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeMatchesRepository{}, chatRepo, &fakeNotificationRepository{})
 
-	created, err := service.AddMessageToChat(context.Background(), ports.FormData{}, author)
+	created, err := service.AddMessageToChat(context.Background(), nil, nil, author)
 	if err != nil {
 		t.Fatalf("AddMessageToChat() error = %v", err)
 	}

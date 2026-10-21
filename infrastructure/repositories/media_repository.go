@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"core/application/ports"
+	"core/constants"
 	domainmedia "core/domain/media"
 	"core/helpers"
 	"core/models/media"
@@ -220,7 +221,7 @@ func makeVariant(path, ext string) *utils.VariantInfo {
 	w, h := b.Dx(), b.Dy()
 
 	return &utils.VariantInfo{
-		URL:    strings.TrimPrefix(path, "."),
+		URL:    publicFileURL(path),
 		Width:  &w,
 		Height: &h,
 		Format: strings.TrimPrefix(ext, "."),
@@ -237,7 +238,7 @@ func getFileSizeSafe(path string) int64 {
 }
 
 func publicFileURL(path string) string {
-	return strings.TrimPrefix(path, ".")
+	return "/" + strings.TrimLeft(filepath.ToSlash(filepath.Clean(path)), "/")
 }
 
 func shouldProcessAsync(mimeType string) bool {
@@ -266,7 +267,10 @@ func (r *MediaRepository) MakeSureDirectoryPathExists(path string) error {
 	return os.MkdirAll(dir, os.ModePerm)
 }
 
-func (r *MediaRepository) SaveUploadedFile(file ports.UploadedFile, path string) error {
+func (r *MediaRepository) SaveUploadedFile(file *domainmedia.UploadedFile, path string) (retErr error) {
+	if err := file.Validate(); err != nil {
+		return err
+	}
 	if err := r.MakeSureDirectoryPathExists(path); err != nil {
 		return err
 	}
@@ -276,9 +280,7 @@ func (r *MediaRepository) SaveUploadedFile(file ports.UploadedFile, path string)
 		return err
 	}
 	defer func() {
-		if cerr := src.Close(); cerr != nil && err == nil {
-			err = cerr
-		}
+		retErr = errors.Join(retErr, src.Close())
 	}()
 
 	dst, err := os.Create(path)
@@ -286,13 +288,11 @@ func (r *MediaRepository) SaveUploadedFile(file ports.UploadedFile, path string)
 		return err
 	}
 	defer func() {
-		if cerr := dst.Close(); cerr != nil && err == nil {
-			err = cerr
-		}
+		retErr = errors.Join(retErr, dst.Close())
 	}()
 
-	_, err = dst.ReadFrom(src)
-	return err
+	_, retErr = dst.ReadFrom(src)
+	return retErr
 }
 
 func (r *MediaRepository) generateImageVariants(originalPath string, ext string, role media.MediaRole) (*utils.ImageVariants, *int, *int, error) {
@@ -309,7 +309,7 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 	h := bounds.Dy()
 
 	original := &utils.VariantInfo{
-		URL:    strings.TrimPrefix(originalPath, "."),
+		URL:    publicFileURL(originalPath),
 		Width:  &w,
 		Height: &h,
 		Format: strings.TrimPrefix(ext, "."),
@@ -389,7 +389,7 @@ func (r *MediaRepository) generateVideoVariants(originalPath string, ext string,
 	// 1) ffprobe ile orijinal çözünürlüğü al
 	width, height, err := probeVideoDimensions(originalPath)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("probe video dimensions: %w", err)
+		return nil, nil, nil, constants.ErrVideoDimensionsProbeFailed.Format(err)
 	}
 
 	fmt.Println("ROLE", role)
@@ -445,7 +445,7 @@ func (r *MediaRepository) generateVideoVariants(originalPath string, ext string,
 		size := getFileSizeSafe(p)
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(p)), ".")
 		return &utils.VariantInfo{
-			URL:    strings.TrimPrefix(p, "."),
+			URL:    publicFileURL(p),
 			Width:  w,
 			Height: h,
 			Format: ext,
@@ -478,7 +478,7 @@ func runCmd(name string, args ...string) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s %v failed: %v - %s", name, args, err, stderr.String())
+		return constants.ErrMediaCommandFailed.Format(name, args, err, stderr.String())
 	}
 	return nil
 }
@@ -493,7 +493,7 @@ func probeVideoDimensions(path string) (int, int, error) {
 	s := strings.TrimSpace(string(out))
 	parts := strings.Split(s, "x")
 	if len(parts) != 2 {
-		return 0, 0, fmt.Errorf("unexpected ffprobe output: %s", s)
+		return 0, 0, constants.ErrFFProbeOutputInvalid.Format(s)
 	}
 	w, err := strconv.Atoi(parts[0])
 	if err != nil {
@@ -531,7 +531,7 @@ func makeImageVariantInfo(path string) *utils.VariantInfo {
 	img, err := imaging.Open(path)
 	if err != nil {
 		return &utils.VariantInfo{
-			URL:    strings.TrimPrefix(path, "."),
+			URL:    publicFileURL(path),
 			Format: strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."),
 			Size:   getFileSizeSafe(path),
 		}
@@ -540,7 +540,7 @@ func makeImageVariantInfo(path string) *utils.VariantInfo {
 	w := b.Dx()
 	h := b.Dy()
 	return &utils.VariantInfo{
-		URL:    strings.TrimPrefix(path, "."),
+		URL:    publicFileURL(path),
 		Width:  &w,
 		Height: &h,
 		Format: strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."),
@@ -562,7 +562,7 @@ func (r *MediaRepository) MakeVideoVariant(path string) *utils.VariantInfo {
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), ".")
 	return &utils.VariantInfo{
-		URL:    strings.TrimPrefix(path, "."),
+		URL:    publicFileURL(path),
 		Width:  wptr,
 		Height: hptr,
 		Format: ext,
@@ -674,7 +674,7 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 		imageVariants, width, height, err := r.generateImageVariants(item.File.StoragePath, ext, item.Role)
 		if err != nil {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
-				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
+				return constants.ErrMediaProcessingStatusFailed.Format(err, markErr)
 			}
 			item.ProcessingStatus = media.ProcessingStatusFailed
 			return err
@@ -688,7 +688,7 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 		videoVariants, width, height, err := r.generateVideoVariants(item.File.StoragePath, ext, item.Role)
 		if err != nil {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
-				return fmt.Errorf("process media: %w; mark failed: %v", err, markErr)
+				return constants.ErrMediaProcessingStatusFailed.Format(err, markErr)
 			}
 			item.ProcessingStatus = media.ProcessingStatusFailed
 			return err
@@ -707,15 +707,12 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 	}
 }
 
-func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file ports.UploadedFile) (created *media.Media, retErr error) {
-	if file == nil {
-		return nil, domainmedia.ErrEmptyFile
-	}
-	upload, err := domainmedia.NewUploadedFile(file.Filename(), file.Size(), file.ContentType())
-	if err != nil {
+func (r *MediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userId uuid.UUID, role media.MediaRole, file *domainmedia.UploadedFile) (created *media.Media, retErr error) {
+	if err := file.Validate(); err != nil {
 		return nil, err
 	}
 
+	upload := file
 	ext := filepath.Ext(upload.Filename)
 	newFileName := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 	storagePath := r.GenerateStoragePath(userId, ownerID, ownerType, role, newFileName)
@@ -816,29 +813,29 @@ func removeStoredUpload(storagePath string) error {
 
 	uploadRoot, err := filepath.Abs("./static/uploads")
 	if err != nil {
-		return fmt.Errorf("resolve upload root: %w", err)
+		return constants.ErrUploadRootResolveFailed.Format(err)
 	}
 	resolvedRoot, err := filepath.EvalSymlinks(uploadRoot)
 	if err != nil {
-		return fmt.Errorf("resolve upload root symlinks: %w", err)
+		return constants.ErrUploadRootSymlinksResolveFailed.Format(err)
 	}
 	target, err := filepath.Abs(filepath.Clean(storagePath))
 	if err != nil {
-		return fmt.Errorf("resolve stored upload: %w", err)
+		return constants.ErrStoredUploadResolveFailed.Format(err)
 	}
 	resolvedTarget, err := filepath.EvalSymlinks(target)
 	if err != nil {
-		return fmt.Errorf("resolve stored upload symlinks: %w", err)
+		return constants.ErrStoredUploadSymlinksResolveFailed.Format(err)
 	}
 	relative, err := filepath.Rel(resolvedRoot, resolvedTarget)
 	if err != nil {
-		return fmt.Errorf("compare stored upload path: %w", err)
+		return constants.ErrStoredUploadPathCompareFailed.Format(err)
 	}
 	if relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) || filepath.IsAbs(relative) {
-		return fmt.Errorf("refusing to remove path outside upload root: %s", storagePath)
+		return constants.ErrUploadPathOutsideRoot.Format(storagePath)
 	}
 	if err := os.Remove(target); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("remove stored upload %s: %w", storagePath, err)
+		return constants.ErrStoredUploadRemoveFailed.Format(storagePath, err)
 	}
 	return nil
 }

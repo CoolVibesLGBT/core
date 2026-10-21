@@ -1,32 +1,20 @@
 package usecases
 
 import (
-	"bytes"
 	"context"
+	upload "core/adapters/media"
 	"core/application/ports"
 	domainmedia "core/domain/media"
 	modelmedia "core/models/media"
 	modelutils "core/models/utils"
 	"encoding/json"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-type privatePhotoTestFile struct {
-	size int64
-}
-
-func (f privatePhotoTestFile) Filename() string    { return "photo.jpg" }
-func (f privatePhotoTestFile) Size() int64         { return f.size }
-func (f privatePhotoTestFile) ContentType() string { return "image/jpeg" }
-func (f privatePhotoTestFile) Open() (io.ReadCloser, error) {
-	return io.NopCloser(bytes.NewReader(nil)), nil
-}
 
 type privatePhotoRepositoryFake struct {
 	ports.PrivatePhotoRepository
@@ -72,9 +60,9 @@ func (r *privatePhotoRepositoryFake) ListPrivatePhotos(context.Context, uuid.UUI
 	return r.photos, nil
 }
 
-func (r *privatePhotoRepositoryFake) AddPrivatePhoto(_ context.Context, ownerID uuid.UUID, file ports.UploadedFile, _ int64) (*modelmedia.Media, error) {
+func (r *privatePhotoRepositoryFake) AddPrivatePhoto(_ context.Context, ownerID uuid.UUID, file *domainmedia.UploadedFile, _ int64) (*modelmedia.Media, error) {
 	r.addCalls++
-	r.addedSize = file.Size()
+	r.addedSize = file.Size
 	return &modelmedia.Media{ID: uuid.New(), OwnerID: ownerID, PublicID: 1}, nil
 }
 
@@ -240,6 +228,21 @@ func TestPrivatePhotoFetchRequiresApprovalAndReturnsSafeMediaDTO(t *testing.T) {
 	}
 }
 
+func TestPrivatePhotoViewNormalizesPersistedRelativeURLs(t *testing.T) {
+	for _, url := range []string{"static/uploads/photo_landscape_lg.webp", "./static/uploads/photo_landscape_lg.webp"} {
+		variant := &modelutils.VariantInfo{URL: url}
+		view := privatePhotoMediaView(modelmedia.Media{File: modelutils.FileMetadata{
+			Variants: &modelutils.FileVariants{Image: &modelutils.ImageVariants{Large: variant}},
+		}})
+		if view.File.URL != "/static/uploads/photo_landscape_lg.webp" || view.File.Variants.Image.Large.URL != view.File.URL {
+			t.Fatalf("relative variant was not normalized: %+v", view.File)
+		}
+		if variant.URL != url {
+			t.Fatal("response mapping mutated stored media")
+		}
+	}
+}
+
 func TestPrivatePhotoFetchFailsClosedForBlockedUsersBeforeCounting(t *testing.T) {
 	ownerID := uuid.New()
 	viewerID := uuid.New()
@@ -382,9 +385,9 @@ func TestPrivatePhotoUploadHasNoApplicationByteSizeLimit(t *testing.T) {
 	principal := ports.PrivatePhotoPrincipal{ID: uuid.New(), PublicID: 10}
 	largeFileSize := int64(128 << 20)
 
-	photos, err := service.Upload(context.Background(), principal, []ports.UploadedFile{
-		privatePhotoTestFile{size: largeFileSize},
-	})
+	file := upload.FromBytes("photo.jpg", "image/jpeg", []byte("image"))
+	file.Size = largeFileSize
+	photos, err := service.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file})
 	if err != nil {
 		t.Fatalf("Upload(128 MiB) error = %v", err)
 	}
@@ -395,13 +398,13 @@ func TestPrivatePhotoUploadHasNoApplicationByteSizeLimit(t *testing.T) {
 
 func TestPrivatePhotoUploadLimitIsPremiumAndFeatureFlagAware(t *testing.T) {
 	principal := ports.PrivatePhotoPrincipal{ID: uuid.New(), PublicID: 10}
-	file := privatePhotoTestFile{size: 1024}
+	file := upload.FromBytes("photo.jpg", "image/jpeg", []byte("image"))
 
 	freeRepository := &premiumPrivatePhotoRepositoryFake{
 		privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: FreePrivatePhotosPerOwner},
 	}
 	freeService := NewPrivatePhotoService(freeRepository, nil, nil)
-	if _, err := freeService.Upload(context.Background(), principal, []ports.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
+	if _, err := freeService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
 		t.Fatalf("free Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
 	}
 
@@ -410,7 +413,7 @@ func TestPrivatePhotoUploadLimitIsPremiumAndFeatureFlagAware(t *testing.T) {
 		isPremium:                  true,
 	}
 	premiumService := NewPrivatePhotoService(premiumRepository, nil, nil)
-	if photos, err := premiumService.Upload(context.Background(), principal, []ports.UploadedFile{file}); err != nil || len(photos) != 1 {
+	if photos, err := premiumService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); err != nil || len(photos) != 1 {
 		t.Fatalf("premium Upload() photos=%d error=%v", len(photos), err)
 	}
 
@@ -420,7 +423,7 @@ func TestPrivatePhotoUploadLimitIsPremiumAndFeatureFlagAware(t *testing.T) {
 		nil,
 		WithPremiumUnlimitedPrivatePhotos(false),
 	)
-	if _, err := disabledService.Upload(context.Background(), principal, []ports.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
+	if _, err := disabledService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
 		t.Fatalf("feature-disabled premium Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
 	}
 }

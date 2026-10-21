@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type MatchHandler struct {
@@ -31,8 +32,32 @@ func HandleGetUnseenUsers(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		users, err := s.GetUnseenUsers(c.Context(), user.ID, 10)
+		criteria := domainuser.MatchCriteria{}
+		for _, field := range []string{"min_age", "max_age"} {
+			if raw := requestField(c, field); raw != "" {
+				value, err := strconv.Atoi(raw)
+				if err != nil {
+					return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+				}
+				if field == "min_age" {
+					criteria.MinAge = &value
+				} else {
+					criteria.MaxAge = &value
+				}
+			}
+		}
+		if raw := requestField(c, "max_distance_km"); raw != "" {
+			value, err := strconv.ParseFloat(raw, 64)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+			}
+			criteria.MaxDistanceKM = &value
+		}
+		users, err := s.GetUnseenUsers(c.Context(), user.ID, 10, criteria)
 		if err != nil {
+			if errors.Is(err, domainuser.ErrInvalidMatchCriteria) {
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+			}
 			if errors.Is(err, context.DeadlineExceeded) {
 				return utils.SendError(c, fiber.StatusGatewayTimeout, constants.ErrRequestTimeout)
 			}
@@ -54,7 +79,7 @@ func HandleRecordView(s *usecases.MatchesService) fiber.Handler {
 		}
 
 		// form-data / x-www-form-urlencoded otomatik parse ediliyor
-		userIdStr := c.FormValue("public_id")
+		userIdStr := requestField(c, "public_id")
 		if userIdStr == "" {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
@@ -64,12 +89,12 @@ func HandleRecordView(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		targetUserId, err := s.GetUserUUIDByPublicID(userId)
+		targetUserId, err := s.GetUserUUIDByPublicID(c.Context(), userId)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusNotFound, constants.ErrUserNotFound)
+			return userInteractionError(c, err)
 		}
 
-		reactionStr := c.FormValue("reaction")
+		reactionStr := requestField(c, "reaction")
 
 		isMatched, err := s.RecordView(
 			c.Context(),
@@ -98,6 +123,27 @@ func HandleRecordView(s *usecases.MatchesService) fiber.Handler {
 	}
 }
 
+func HandleRemoveMatch(service *usecases.MatchesService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		principal, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		id, err := strconv.ParseInt(requestField(c, "public_id"), 10, 64)
+		if err != nil || id <= 0 {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
+		target, err := service.GetUserUUIDByPublicID(c.Context(), id)
+		if err != nil {
+			return userInteractionError(c, err)
+		}
+		if err := service.RemoveMatch(c.Context(), principal.ID, target); err != nil {
+			return userInteractionError(c, err)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{"matched": false, "target_user": strconv.FormatInt(id, 10)})
+	}
+}
+
 func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 
@@ -106,7 +152,7 @@ func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		cursor, err := parseMatchListCursor(c.FormValue("cursor"))
+		cursor, err := parseMatchListCursor(requestField(c, "cursor"))
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid cursor format",
@@ -115,7 +161,7 @@ func HandleGetMatchesAfter(s *usecases.MatchesService) fiber.Handler {
 
 		// ---- limit ----
 		limit := 10
-		if limitStr := c.FormValue("limit"); limitStr != "" {
+		if limitStr := requestField(c, "limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
@@ -157,14 +203,14 @@ func HandleGetPassesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		cursor, err := parseMatchListCursor(c.FormValue("cursor"))
+		cursor, err := parseMatchListCursor(requestField(c, "cursor"))
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
 		// ---- limit ----
 		limit := 10
-		if limitStr := c.FormValue("limit"); limitStr != "" {
+		if limitStr := requestField(c, "limit"); limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 				limit = parsedLimit
 			}
@@ -206,12 +252,12 @@ func HandleGetLikesAfter(s *usecases.MatchesService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		cursor, err := parseMatchListCursor(c.Query("cursor", ""))
+		cursor, err := parseMatchListCursor(requestField(c, "cursor"))
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		limitStr := c.Query("limit", "")
+		limitStr := requestField(c, "limit")
 		limit := 10
 		if limitStr != "" {
 			if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
@@ -272,6 +318,24 @@ func parseMatchListCursor(raw string) (*types.MatchListCursor, error) {
 		return nil, err
 	}
 	return &types.MatchListCursor{OccurredAt: parsedTime}, nil
+}
+
+func encodeSocialCursorPair(prev, next *types.MatchListCursor) (*string, *string, error) {
+	encode := func(cursor *types.MatchListCursor) (*string, error) {
+		if cursor == nil {
+			return nil, nil
+		}
+		if cursor.DetailID == uuid.Nil {
+			return types.NewTimeCursor(cursor.OccurredAt)
+		}
+		return types.NewTimeUUIDCursor(cursor.OccurredAt, cursor.DetailID)
+	}
+	previous, err := encode(prev)
+	if err != nil {
+		return nil, nil, err
+	}
+	following, err := encode(next)
+	return previous, following, err
 }
 
 func parseTimeCursor(raw string) (*time.Time, error) {

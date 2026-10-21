@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"core/application/types"
+	"core/constants"
 	domainuser "core/domain/user"
 	domainwallet "core/domain/wallet"
 	"encoding/json"
@@ -25,11 +27,9 @@ type EngagementRepository struct {
 	db *gorm.DB
 }
 
-// PostgreSQL advisory locks coordinate aggregate creation across application
+// GORM resource row locks coordinate aggregate creation across application
 // instances. The process lock keeps tests and non-PostgreSQL adapters safe.
 var fallbackEngagementViewLock sync.Mutex
-
-var errEngagementDetailAlreadyExists = errors.New("engagement detail already exists")
 
 func NewEngagementRepository(
 	db *gorm.DB,
@@ -38,6 +38,8 @@ func NewEngagementRepository(
 		db: db,
 	}
 }
+
+func (r *EngagementRepository) SocialNotificationsTransactional() bool { return true }
 
 func (r *EngagementRepository) DB() *gorm.DB {
 	return r.db
@@ -51,7 +53,7 @@ func insertViewDetailOnce(tx *gorm.DB, detail *models.EngagementDetail) *gorm.DB
 }
 
 func lockViewAggregate(tx *gorm.DB, lockKey string) *gorm.DB {
-	return tx.Exec("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", lockKey)
+	return lockTransactionResource(tx, lockKey)
 }
 
 func engagementAggregateLockKey(contentableType models.EngagementContentableType, contentableID uuid.UUID) string {
@@ -175,7 +177,7 @@ func reciprocalInteractionDedupeKey(interaction domainuser.InteractionKind, dire
 func syncEngagementKindCount(tx *gorm.DB, engagementID uuid.UUID, kind models.EngagementKind) error {
 	keys, ok := models.EngagementCountKeys[kind]
 	if !ok || keys.CountKey == "" {
-		return fmt.Errorf("missing engagement counter for kind %s", kind)
+		return constants.ErrEngagementCounterMissing.Format(kind)
 	}
 
 	var count int64
@@ -201,7 +203,7 @@ func syncEngagementKindCount(tx *gorm.DB, engagementID uuid.UUID, kind models.En
 			return result.Error
 		}
 		if result.RowsAffected != 1 {
-			return errors.New("engagement aggregate was not updated")
+			return constants.ErrEngagementAggregateNotUpdated
 		}
 		return nil
 	}
@@ -237,7 +239,7 @@ func setReciprocalInteractionDetail(
 ) error {
 	if aggregate == nil {
 		if enabled {
-			return errors.New("engagement aggregate is required")
+			return constants.ErrEngagementAggregateRequired
 		}
 		return nil
 	}
@@ -271,7 +273,7 @@ func setReciprocalInteractionDetail(
 				return insert.Error
 			}
 			if insert.RowsAffected != 1 {
-				return errors.New("reciprocal interaction detail conflict")
+				return constants.ErrReciprocalInteractionConflict
 			}
 			mutated = true
 		} else if len(existing) > 1 {
@@ -301,6 +303,71 @@ func setReciprocalInteractionDetail(
 	return syncEngagementKindCount(tx, aggregate.ID, kind)
 }
 
+func ensureSocialInteractionAllowed(tx *gorm.DB, actorID, targetID uuid.UUID, kind domainuser.InteractionKind) error {
+	var users []matchUserIdentity
+	if err := tx.Table("users").Select("id", "domain", "privacy_level").
+		Where("id IN ? AND deleted_at IS NULL AND is_bot = FALSE", []uuid.UUID{actorID, targetID}).
+		Where("user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted, constants.UserRolePending}).
+		Find(&users).Error; err != nil {
+		return err
+	}
+	if len(users) != 2 || users[0].Domain != users[1].Domain {
+		return domainuser.ErrInteractionUnavailable
+	}
+	for _, user := range users {
+		if user.ID == targetID && kind == domainuser.InteractionLike && user.PrivacyLevel != constants.PrivacyPublic {
+			return domainuser.ErrInteractionUnavailable
+		}
+	}
+	for _, pair := range [][2]uuid.UUID{{actorID, targetID}, {targetID, actorID}} {
+		blocked, err := userMatchDetailExists(tx, pair[0], pair[1], models.EngagementKindBlocking)
+		if err != nil {
+			return err
+		}
+		if blocked {
+			return domainuser.ErrInteractionBlocked
+		}
+	}
+	return nil
+}
+
+var blockedRelationshipKinds = []models.EngagementKind{
+	models.EngagementKindFollowing, models.EngagementKindFollower,
+	models.EngagementKindSubscribing, models.EngagementKindSubscribedBy,
+	models.EngagementKindLikeGiven, models.EngagementKindLikeReceived,
+	models.EngagementKindDislikeGiven, models.EngagementKindDisLikeReceived,
+	models.EngagementKindMatched,
+}
+
+func clearBlockedUserRelationships(tx *gorm.DB, actor, target *models.Engagement) error {
+	first, second := friendshipPair(actor.ContentableID, target.ContentableID)
+	if err := tx.Model(&models.Friendship{}).Where("first_user_id = ? AND second_user_id = ? AND status IN ?", first, second, []domainuser.FriendshipStatus{domainuser.FriendshipPending, domainuser.FriendshipAccepted}).Updates(map[string]any{"status": domainuser.FriendshipRemoved, "updated_at": time.Now().UTC()}).Error; err != nil {
+		return err
+	}
+	var friendship models.Friendship
+	result := tx.Where("first_user_id = ? AND second_user_id = ?", first, second).Take(&friendship)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return result.Error
+	}
+	if result.Error == nil {
+		if err := resolveFriendshipNotification(tx, friendship); err != nil {
+			return err
+		}
+	}
+	if err := tx.Where("engagement_id IN ?", []uuid.UUID{actor.ID, target.ID}).
+		Where("(engager_id = ? AND engagee_id = ?) OR (engager_id = ? AND engagee_id = ?)",
+			actor.ContentableID, target.ContentableID, target.ContentableID, actor.ContentableID).
+		Where("kind IN ?", blockedRelationshipKinds).
+		Delete(&models.EngagementDetail{}).Error; err != nil {
+		return err
+	}
+	kinds := append(append([]models.EngagementKind{}, blockedRelationshipKinds...), models.EngagementKindBlocking, models.EngagementKindBlockedBy)
+	if err := syncUserAggregateKinds(tx, actor, kinds); err != nil {
+		return err
+	}
+	return syncUserAggregateKinds(tx, target, kinds)
+}
+
 // ApplyReciprocalUserInteraction atomically writes the actor-facing and the
 // reciprocal target-facing relationship rows. Explicit state intents are
 // idempotent; toggle intents resolve their next state while both user
@@ -312,7 +379,7 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 	intent domainuser.InteractionStateIntent,
 ) (domainuser.InteractionStateTransition, error) {
 	if actorID == uuid.Nil || targetID == uuid.Nil {
-		return domainuser.InteractionStateTransition{}, errors.New("interaction user identifiers are required")
+		return domainuser.InteractionStateTransition{}, constants.ErrInteractionUserIdentifiersRequired
 	}
 	if actorID == targetID {
 		return domainuser.InteractionStateTransition{}, fmt.Errorf("%w: %s", domainuser.ErrSelfInteraction, intent.Interaction())
@@ -326,7 +393,7 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 	receivedKind := models.EngagementKind(pair.Received)
 	for _, kind := range []models.EngagementKind{givenKind, receivedKind} {
 		if _, ok := models.EngagementCountKeys[kind]; !ok {
-			return domainuser.InteractionStateTransition{}, fmt.Errorf("missing engagement counter for kind %s", kind)
+			return domainuser.InteractionStateTransition{}, constants.ErrEngagementCounterMissing.Format(kind)
 		}
 	}
 
@@ -338,6 +405,11 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 
 	var transition domainuser.InteractionStateTransition
 	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if intent.Interaction() == domainuser.InteractionBlock {
+			if err := lockPrivatePhotoAccessPair(tx, actorID, targetID); err != nil {
+				return err
+			}
+		}
 		if isPostgres {
 			if err := lockUserEngagementAggregates(tx, actorID, targetID); err != nil {
 				return err
@@ -361,8 +433,13 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 		if err != nil {
 			return err
 		}
+		if transition.Enabled && intent.Interaction() != domainuser.InteractionBlock {
+			if err := ensureSocialInteractionAllowed(tx, actorID, targetID, intent.Interaction()); err != nil {
+				return err
+			}
+		}
 
-		if transition.Enabled {
+		if transition.Enabled || intent.Interaction() == domainuser.InteractionLike {
 			actorAggregate, err = ensureUserEngagementAggregate(tx, actorAggregate, actorID)
 			if err != nil {
 				return err
@@ -371,6 +448,25 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 			if err != nil {
 				return err
 			}
+		}
+		if intent.Interaction() == domainuser.InteractionLike {
+			if err := setUserReaction(tx, actorAggregate, targetAggregate, pair, transition.Enabled); err != nil {
+				return err
+			}
+			transition.Matched, transition.NewMatch, err = syncMutualUserMatch(tx, actorAggregate, targetAggregate)
+			if err != nil {
+				return err
+			}
+			if err := syncMatchingAggregateCounts(tx, actorAggregate); err != nil {
+				return err
+			}
+			if err := syncMatchingAggregateCounts(tx, targetAggregate); err != nil {
+				return err
+			}
+			if transition.NewMatch {
+				return enqueueMatchNotifications(tx, actorID, targetID)
+			}
+			return nil
 		}
 
 		if err := setReciprocalInteractionDetail(
@@ -384,7 +480,7 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 		); err != nil {
 			return err
 		}
-		return setReciprocalInteractionDetail(
+		if err := setReciprocalInteractionDetail(
 			tx,
 			targetAggregate,
 			targetID,
@@ -392,7 +488,21 @@ func (r *EngagementRepository) ApplyReciprocalUserInteraction(
 			receivedKind,
 			reciprocalInteractionDedupeKey(intent.Interaction(), "received", receivedKind, actorID, targetID),
 			transition.Enabled,
-		)
+		); err != nil {
+			return err
+		}
+		if intent.Interaction() == domainuser.InteractionBlock && transition.Enabled {
+			if err := clearBlockedUserRelationships(tx, actorAggregate, targetAggregate); err != nil {
+				return err
+			}
+			// Commit the block and grant revocations together. A failed cleanup
+			// must never allow old approvals to reappear after a later unblock.
+			return (&PrivatePhotoRepository{db: tx}).RevokePrivatePhotoAccessBetween(ctx, actorID, targetID, time.Now().UTC())
+		}
+		if intent.Interaction() == domainuser.InteractionFollow && transition.Changed {
+			return enqueueFollowNotifications(tx, actorID, targetID, transition.Enabled)
+		}
+		return nil
 	})
 	if err != nil {
 		return domainuser.InteractionStateTransition{}, err
@@ -414,18 +524,24 @@ func (r *EngagementRepository) RecordViewOnce(
 	contentableType models.EngagementContentableType,
 ) (bool, error) {
 	if engagerID == uuid.Nil || engageeID == uuid.Nil || contentableID == uuid.Nil {
-		return false, errors.New("view identifiers are required")
+		return false, constants.ErrViewIdentifiersRequired
 	}
 	if engagerID == engageeID {
 		return false, nil
 	}
+	if r == nil || r.db == nil {
+		return false, constants.ErrEngagementRepositoryNotConfigured
+	}
 	if kind != models.EngagementKindView && kind != models.EngagementKindViewGiven && kind != models.EngagementKindViewReceived {
-		return false, fmt.Errorf("unsupported view engagement kind: %s", kind)
+		return false, constants.ErrUnsupportedViewEngagementKind.Format(kind)
 	}
 
+	if contentableType == models.EngagementContentableTypeUser {
+		return r.recordProfileViewOnce(ctx, engagerID, engageeID)
+	}
 	countKeys, ok := models.EngagementCountKeys[kind]
 	if !ok || countKeys.CountKey == "" {
-		return false, fmt.Errorf("missing counter for view engagement kind: %s", kind)
+		return false, constants.ErrViewEngagementCounterMissing.Format(kind)
 	}
 
 	dedupeKey := fmt.Sprintf("view:%s:%s:%s", contentableType, contentableID, engagerID)
@@ -438,6 +554,12 @@ func (r *EngagementRepository) RecordViewOnce(
 
 	counted := false
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := lockUserEngagementAggregates(tx, engagerID, engageeID); err != nil {
+			return err
+		}
+		if err := ensureSocialInteractionAllowed(tx, engagerID, engageeID, domainuser.InteractionFollow); err != nil {
+			return err
+		}
 		if isPostgres {
 			if err := lockViewAggregate(tx, aggregateLockKey).Error; err != nil {
 				return err
@@ -470,7 +592,7 @@ func (r *EngagementRepository) RecordViewOnce(
 			return updateAggregate.Error
 		}
 		if updateAggregate.RowsAffected != 1 {
-			return errors.New("view aggregate was not updated")
+			return constants.ErrViewAggregateNotUpdated
 		}
 
 		counted = true
@@ -482,7 +604,7 @@ func (r *EngagementRepository) RecordViewOnce(
 
 func (r *EngagementRepository) CreateEngagementDetail(ctx context.Context, detail *models.EngagementDetail) error {
 	if detail == nil {
-		return errors.New("detail is nil")
+		return constants.ErrEngagementDetailRequired
 	}
 
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -492,10 +614,10 @@ func (r *EngagementRepository) CreateEngagementDetail(ctx context.Context, detai
 
 func createEngagementDetailInTransaction(tx *gorm.DB, detail *models.EngagementDetail) error {
 	if tx == nil {
-		return errors.New("transaction is nil")
+		return constants.ErrTransactionRequired
 	}
 	if detail == nil {
-		return errors.New("detail is nil")
+		return constants.ErrEngagementDetailRequired
 	}
 
 	var engagement models.Engagement
@@ -503,7 +625,7 @@ func createEngagementDetailInTransaction(tx *gorm.DB, detail *models.EngagementD
 		Where("id = ?", detail.EngagementID).
 		First(&engagement).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New("engagement record not found for engagement_id: " + detail.EngagementID.String())
+		return constants.ErrEngagementRecordNotFound.Format(detail.EngagementID.String())
 	}
 	if err != nil {
 		return err
@@ -536,7 +658,7 @@ func createEngagementDetailInTransaction(tx *gorm.DB, detail *models.EngagementD
 
 	keys, ok := models.EngagementCountKeys[detail.Kind]
 	if !ok {
-		return errors.New("unknown engagement kind: " + string(detail.Kind))
+		return constants.ErrUnknownEngagementKind.Format(string(detail.Kind))
 	}
 	countVal, _ := counts[keys.CountKey].(float64)
 	counts[keys.CountKey] = int64(countVal) + 1
@@ -548,7 +670,7 @@ func createEngagementDetailInTransaction(tx *gorm.DB, detail *models.EngagementD
 		}
 		amountText, ok := detailsMap["amount"].(string)
 		if !ok {
-			return errors.New("engagement amount must be a decimal string")
+			return constants.ErrEngagementAmountInvalid
 		}
 		amount, err := decimal.NewFromString(amountText)
 		if err != nil {
@@ -620,26 +742,37 @@ func (r *EngagementRepository) GetEngagementDetails(ctx context.Context, engagem
 	return details, nil
 }
 
-func (r *EngagementRepository) GetEngagementDetailsWithCursor(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
-	var details []models.EngagementDetail
+func (r *EngagementRepository) GetEngagementDetailsWithCursor(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind, cursor *types.MatchListCursor, limit int) ([]models.EngagementDetail, *types.MatchListCursor, error) {
 	filters := models.EngagementDetail{
 		EngagementID: engagementID,
 	}
 	if kind != nil {
 		filters.Kind = *kind
 	}
-	q := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+	q := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).Where(&filters)
+	return engagementDetailsPage(q, cursor, limit)
+}
+
+func engagementDetailsPage(query *gorm.DB, cursor *types.MatchListCursor, limit int) ([]models.EngagementDetail, *types.MatchListCursor, error) {
+	var details []models.EngagementDetail
+	q := query.Select("engagement_details.*").
 		Preload("Engager.Avatar.File").
-		Preload("Engagee.Avatar.File").
-		Where(&filters)
+		Preload("Engagee.Avatar.File")
 	if cursor != nil {
-		q = q.Where("created_at < ?", *cursor)
+		if cursor.DetailID == uuid.Nil {
+			q = q.Where("engagement_details.created_at < ?", cursor.OccurredAt)
+		} else {
+			q = q.Where("engagement_details.created_at < ? OR (engagement_details.created_at = ? AND engagement_details.id < ?)", cursor.OccurredAt, cursor.OccurredAt, cursor.DetailID)
+		}
 	}
 	if limit <= 0 {
-		limit = 100
+		limit = constants.DEFAULT_LIMIT
 	}
-	err := q.Order("created_at DESC").
-		Limit(limit).
+	if limit > constants.MAXIMUM_LIMIT {
+		limit = constants.MAXIMUM_LIMIT
+	}
+	err := q.Order("engagement_details.created_at DESC, engagement_details.id DESC").
+		Limit(limit + 1).
 		Find(&details).
 		Error
 
@@ -649,19 +782,21 @@ func (r *EngagementRepository) GetEngagementDetailsWithCursor(ctx context.Contex
 	if len(details) == 0 {
 		return []models.EngagementDetail{}, nil, nil
 	}
-	last := details[len(details)-1].CreatedAt
-	nextCursor := &last
-
-	return details, nextCursor, nil
+	if len(details) <= limit {
+		return details, nil, nil
+	}
+	details = details[:limit]
+	last := details[len(details)-1]
+	return details, &types.MatchListCursor{OccurredAt: last.CreatedAt, DetailID: last.ID}, nil
 }
 
 // RemoveEngagementDetail deletes an engagement detail and decrements the count/amount in aggregate
 func (r *EngagementRepository) RemoveEngagementDetail(ctx context.Context, detailID uuid.UUID) error {
 	if r == nil || r.db == nil {
-		return errors.New("engagement repository is not configured")
+		return constants.ErrEngagementRepositoryNotConfigured
 	}
 	if detailID == uuid.Nil {
-		return errors.New("engagement detail identifier is required")
+		return constants.ErrEngagementDetailIDRequired
 	}
 
 	// Every other aggregate writer takes the canonical owner lock before row
@@ -684,12 +819,12 @@ type engagementDetailOwner struct {
 
 // lockEngagementDetailOwnerInTransaction resolves the canonical aggregate
 // owner without taking a row lock, then acquires locks in the global order:
-// owner advisory lock -> aggregate row -> detail row. Resolving first is safe:
+// owner resource row -> aggregate row -> detail row. Resolving first is safe:
 // detail ownership is immutable, and the final locked read detects a racing
 // delete instead of mutating a different aggregate.
 func lockEngagementDetailOwnerInTransaction(tx *gorm.DB, detailID uuid.UUID) (*models.Engagement, *models.EngagementDetail, error) {
 	if tx == nil {
-		return nil, nil, errors.New("transaction is nil")
+		return nil, nil, constants.ErrTransactionRequired
 	}
 
 	var owner engagementDetailOwner
@@ -702,7 +837,7 @@ func lockEngagementDetailOwnerInTransaction(tx *gorm.DB, detailID uuid.UUID) (*m
 		return nil, nil, err
 	}
 	if owner.EngagementID == uuid.Nil || owner.ContentableID == uuid.Nil || owner.ContentableType == "" {
-		return nil, nil, errors.New("engagement detail owner is invalid")
+		return nil, nil, constants.ErrEngagementDetailOwnerInvalid
 	}
 
 	if tx.Name() == "postgres" {
@@ -738,13 +873,13 @@ func removeEngagementDetailInTransaction(tx *gorm.DB, detailID uuid.UUID) error 
 // row in that order.
 func removeLockedEngagementDetailInTransaction(tx *gorm.DB, engagement *models.Engagement, detail *models.EngagementDetail) error {
 	if tx == nil {
-		return errors.New("transaction is nil")
+		return constants.ErrTransactionRequired
 	}
 	if engagement == nil || engagement.ID == uuid.Nil {
-		return errors.New("engagement aggregate is required")
+		return constants.ErrEngagementAggregateRequired
 	}
 	if detail == nil || detail.ID == uuid.Nil || detail.EngagementID != engagement.ID {
-		return errors.New("locked engagement detail does not belong to aggregate")
+		return constants.ErrEngagementDetailAggregateMismatch
 	}
 
 	counts := make(map[string]interface{})
@@ -755,7 +890,7 @@ func removeLockedEngagementDetailInTransaction(tx *gorm.DB, engagement *models.E
 	}
 	keys, ok := models.EngagementCountKeys[detail.Kind]
 	if !ok {
-		return errors.New("unknown engagement kind: " + string(detail.Kind))
+		return constants.ErrUnknownEngagementKind.Format(string(detail.Kind))
 	}
 
 	countValue := int64(0)
@@ -765,7 +900,7 @@ func removeLockedEngagementDetailInTransaction(tx *gorm.DB, engagement *models.E
 	case string:
 		parsed, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid engagement count %q: %w", value, err)
+			return constants.ErrEngagementCountInvalid.Format(value, err)
 		}
 		countValue = parsed
 	}
@@ -781,7 +916,7 @@ func removeLockedEngagementDetailInTransaction(tx *gorm.DB, engagement *models.E
 		}
 		amountText, ok := detailsMap["amount"].(string)
 		if !ok {
-			return errors.New("engagement amount must be a decimal string")
+			return constants.ErrEngagementAmountInvalid
 		}
 		amount, err := decimal.NewFromString(amountText)
 		if err != nil {
@@ -847,17 +982,17 @@ func (r *EngagementRepository) HasUserEngaged(ctx context.Context, engagerID uui
 // engageeID,	// Etkilesimi alan kullanici ornegin: takip edilen
 func (r *EngagementRepository) ToggleEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) (bool, error) {
 	if r == nil || r.db == nil {
-		return false, errors.New("engagement repository is not configured")
+		return false, constants.ErrEngagementRepositoryNotConfigured
 	}
 	if engagerID == uuid.Nil || engageeID == uuid.Nil || contentableID == uuid.Nil || contentableType == "" {
-		return false, errors.New("engagement identifiers are required")
+		return false, constants.ErrEngagementIdentifiersRequired
 	}
 	keys, ok := models.EngagementCountKeys[kind]
 	if !ok {
-		return false, errors.New("unknown engagement kind: " + string(kind))
+		return false, constants.ErrUnknownEngagementKind.Format(string(kind))
 	}
 	if keys.AmountKey != "" {
-		return false, errors.New("amount engagement kinds cannot be toggled")
+		return false, constants.ErrAmountEngagementToggleDenied
 	}
 
 	isPostgres := r.db.Name() == "postgres"
@@ -907,29 +1042,48 @@ func (r *EngagementRepository) ToggleEngagement(ctx context.Context, engagerID u
 	return enabled, err
 }
 
-func (r *EngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableId uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+func (r *EngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableId uuid.UUID, engagementKind models.EngagementKind, cursor *types.MatchListCursor, limit int, viewers ...uuid.UUID) ([]models.EngagementDetail, *types.MatchListCursor, error) {
 	engagement, err := r.GetEngagement(ctx, contentableId, contentableType)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return []models.EngagementDetail{}, nil, nil
+	}
 	if err != nil {
 
 		return []models.EngagementDetail{}, nil, err
 	}
 
-	return r.GetEngagementDetailsWithCursor(ctx, engagement.ID, &engagementKind, cursor, limit)
+	viewerID := contentableId
+	if len(viewers) > 0 {
+		viewerID = viewers[0]
+	}
+	query := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+		Where("engagement_details.engagement_id = ? AND engagement_details.kind = ?", engagement.ID, engagementKind)
+	if engagementKind == models.EngagementKindFollowing || engagementKind == models.EngagementKindFollower {
+		query = query.Joins("JOIN users ON users.id = engagement_details.engagee_id").
+			Where("users.deleted_at IS NULL AND users.is_bot = FALSE").
+			Where("users.user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted, constants.UserRolePending}).
+			Where("users.domain = (?)", userDomainSubquery(r.db, contentableId))
+		query = userBlockScope(query, viewerID, "users")
+		if viewerID != contentableId {
+			query = profileViewerScope(query, viewerID)
+		}
+	}
+	return engagementDetailsPage(query, cursor, limit)
 }
 
 func (r *EngagementRepository) AddEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) error {
 	if r == nil || r.db == nil {
-		return errors.New("engagement repository is not configured")
+		return constants.ErrEngagementRepositoryNotConfigured
 	}
 	if engagerID == uuid.Nil || engageeID == uuid.Nil || contentableID == uuid.Nil || contentableType == "" {
-		return errors.New("engagement identifiers are required")
+		return constants.ErrEngagementIdentifiersRequired
 	}
 	keys, ok := models.EngagementCountKeys[kind]
 	if !ok {
-		return errors.New("unknown engagement kind: " + string(kind))
+		return constants.ErrUnknownEngagementKind.Format(string(kind))
 	}
 	if keys.AmountKey != "" {
-		return errors.New("amount engagement kinds require AddTip")
+		return constants.ErrAmountEngagementRequiresAddTip
 	}
 
 	isPostgres := r.db.Name() == "postgres"
@@ -988,17 +1142,17 @@ func withAmountEngagementDetail(key, value string) amountEngagementOption {
 
 func addTipInTransaction(tx *gorm.DB, engagerID uuid.UUID, engageeID uuid.UUID, tipAmount decimal.Decimal, contentableID uuid.UUID, contentableType models.EngagementContentableType, kind models.EngagementKind, options ...amountEngagementOption) error {
 	if tx == nil {
-		return errors.New("transaction is nil")
+		return constants.ErrTransactionRequired
 	}
 	if engagerID == uuid.Nil || engageeID == uuid.Nil || contentableID == uuid.Nil || contentableType == "" {
-		return errors.New("amount engagement identifiers are required")
+		return constants.ErrAmountEngagementIdentifiersRequired
 	}
 	keys, ok := models.EngagementCountKeys[kind]
 	if !ok {
-		return errors.New("unknown engagement kind: " + string(kind))
+		return constants.ErrUnknownEngagementKind.Format(string(kind))
 	}
 	if keys.AmountKey == "" {
-		return errors.New("engagement kind does not support an amount: " + string(kind))
+		return constants.ErrEngagementAmountUnsupported.Format(string(kind))
 	}
 	if err := domainwallet.ValidateMoneyRepresentation(tipAmount); err != nil {
 		return err

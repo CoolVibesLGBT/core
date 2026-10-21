@@ -10,6 +10,8 @@ import (
 // Its result contract is persistence-free: adapters cannot return models.Post,
 // models.User or models.Media across this boundary.
 type PublicPostReader interface {
+	FindPublicPostByIDIncludingUnpublished(id uuid.UUID) (*types.PublicPost, error)
+	FetchPublicPostsByKind(filters types.Filter) (types.PublicPostPage, error)
 	FindPublicPostByID(id uuid.UUID) (*types.PublicPost, error)
 	FindPublicPostBySlug(filters types.Filter) (*types.PublicPost, error)
 	FindPublicPostByPublicID(id int64) (*types.PublicPost, error)

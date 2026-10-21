@@ -6,10 +6,7 @@ import (
 	"core/constants"
 	domainuser "core/domain/user"
 	"core/models"
-	"errors"
 )
-
-var ErrSessionUserNotFound = errors.New("session user not found")
 
 type SessionService struct {
 	users        ports.SessionRepository

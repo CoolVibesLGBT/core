@@ -6,8 +6,10 @@ import (
 )
 
 var (
-	ErrSelfInteraction = errors.New("self interaction is not allowed")
-	ErrActorMismatch   = errors.New("interaction actor does not match authenticated principal")
+	ErrSelfInteraction        = errors.New("self interaction is not allowed")
+	ErrActorMismatch          = errors.New("interaction actor does not match authenticated principal")
+	ErrInteractionBlocked     = errors.New("interaction is blocked")
+	ErrInteractionUnavailable = errors.New("interaction user is unavailable")
 )
 
 type InteractionKind string

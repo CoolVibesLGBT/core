@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"core/adapters/inbound/http/middleware"
-	legacyviews "core/application/legacyviews"
+	upload "core/adapters/media"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/utils"
@@ -35,12 +35,12 @@ func HandleCreateNews(s *usecases.NewsService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
-		post, err := s.CreateNews(c.Context(), uploadedFormData(formParams, images, videos), user)
+		post, err := s.CreateNews(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrNewsCreateFailed, "Failed to create post: "+err.Error())
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, legacyviews.ProjectPublicPost(*post), "Post created successfully")
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Post created successfully")
 	}
 }
 

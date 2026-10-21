@@ -1,4 +1,4 @@
-package legacyviews
+package repositories
 
 import (
 	"core/constants"
@@ -88,7 +88,7 @@ func TestProjectPublicPostRemovesPersistenceAndAccountSecrets(t *testing.T) {
 		CreatedAt: time.Now().UTC(),
 	}
 
-	encoded, err := json.Marshal(ProjectPublicPost(item))
+	encoded, err := json.Marshal(publicPostView(item))
 	if err != nil {
 		t.Fatalf("json.Marshal() error = %v", err)
 	}
@@ -129,7 +129,7 @@ func TestProjectPublicPostDropsNonPublicMedia(t *testing.T) {
 			{PublicID: 3, IsPublic: true, File: modelutils.FileMetadata{URL: "https://cdn.test/public.jpg"}},
 		},
 	}
-	projected := ProjectPublicPost(item)
+	projected := publicPostView(item)
 	if len(projected.Attachments) != 1 || projected.Attachments[0].PublicID != 3 {
 		t.Fatalf("attachments = %#v", projected.Attachments)
 	}

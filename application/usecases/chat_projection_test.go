@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"core/application/ports"
 	"core/constants"
 	"core/models"
 	chatmodel "core/models/chat"
@@ -214,7 +213,7 @@ func TestChatMessageSocketUsesSafeApplicationProjection(t *testing.T) {
 	notifier := &fakeRealtimeNotifier{}
 	service := NewChatService(notifier, &fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeMatchesRepository{}, &fakeChatRepository{message: message}, &fakeNotificationRepository{})
 
-	created, err := service.AddMessageToChat(context.Background(), ports.FormData{}, author)
+	created, err := service.AddMessageToChat(context.Background(), nil, nil, author)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package legacyviews
+package repositories
 
 import (
 	"core/application/types"
@@ -52,41 +52,37 @@ var publicPostEngagementKinds = map[models.EngagementKind]struct{}{
 	models.EngagementKindGift:            {},
 }
 
-// ProjectPublicPost is the single compatibility mapper between persistence
-// entities and the public application read model. Query visibility remains a
+// publicPostView maps persistence entities to the public application read model.
+// Query visibility remains a
 // repository concern; this mapper only constrains what may be serialized.
-func ProjectPublicPost(source post.Post) types.PublicPost {
+func publicPostView(source post.Post) types.PublicPost {
 	return projectPublicPost(source, nil, make(map[uuid.UUID]struct{}))
 }
 
-func ProjectPublicPosts(posts []post.Post) []types.PublicPost {
+func publicPostViews(posts []post.Post) []types.PublicPost {
 	result := make([]types.PublicPost, 0, len(posts))
 	for i := range posts {
-		result = append(result, ProjectPublicPost(posts[i]))
+		result = append(result, publicPostView(posts[i]))
 	}
 	return result
 }
 
-func ProjectPublicPostPointers(posts []*post.Post) []types.PublicPost {
+func publicPostPointerViews(posts []*post.Post) []types.PublicPost {
 	result := make([]types.PublicPost, 0, len(posts))
 	for _, item := range posts {
 		if item == nil {
 			continue
 		}
-		result = append(result, ProjectPublicPost(*item))
+		result = append(result, publicPostView(*item))
 	}
 	return result
 }
 
-func ProjectPublicPostPage(result TimelineResult) types.PublicPostPage {
-	return types.PublicPostPage{Posts: ProjectPublicPosts(result.Posts), Cursor: result.Cursor}
+func publicPostPage(result postQueryPage) types.PublicPostPage {
+	return types.PublicPostPage{Posts: publicPostViews(result.Posts), Cursor: result.Cursor}
 }
 
-func ProjectPublicPostsResult(result PostsResult) types.PublicPostPage {
-	return types.PublicPostPage{Posts: ProjectPublicPosts(result.Posts), Cursor: result.Cursor}
-}
-
-func ProjectPublicMediaItems(items []MediaWithUser) []types.PublicPostMediaWithUser {
+func publicPostMediaViews(items []postMediaRow) []types.PublicPostMediaWithUser {
 	result := make([]types.PublicPostMediaWithUser, 0, len(items))
 	for i := range items {
 		result = append(result, types.PublicPostMediaWithUser{
@@ -494,4 +490,15 @@ func marshalRaw(value any) json.RawMessage {
 		return nil
 	}
 	return encoded
+}
+
+// These are local query rows, never application or HTTP contracts.
+type postQueryPage struct {
+	Posts  []post.Post
+	Cursor *string
+}
+
+type postMediaRow struct {
+	media.Media
+	User models.User
 }

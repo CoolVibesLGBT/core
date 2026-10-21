@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"core/application/ports"
 	"core/application/types"
 	domainuser "core/domain/user"
 	"core/models"
@@ -360,6 +359,84 @@ func TestFetchProfileViewEngagementsRequiresProfileOwner(t *testing.T) {
 	}
 }
 
+func TestFetchPrivateSocialListsRequiresOwner(t *testing.T) {
+	owner := models.User{ID: uuid.New(), PublicID: 10}
+	visitor := models.User{ID: uuid.New(), PublicID: 20}
+	service := NewUserService(&fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeEngagementRepository{}, &fakeNotificationRepository{})
+	for _, kind := range []models.EngagementKind{models.EngagementKindLikeGiven, models.EngagementKindDislikeGiven,
+		models.EngagementKindLikeReceived, models.EngagementKindMatched, models.EngagementKindBlocking,
+		models.EngagementKindBlockedBy, models.EngagementKindReport, models.EngagementKindSubscribing} {
+		if _, _, err := service.FetchUserEngagements(context.Background(), &visitor, owner.ID, models.EngagementContentableTypeUser, kind, nil, 10); err == nil {
+			t.Fatalf("visitor could read private list %s", kind)
+		}
+	}
+}
+
+func TestProfileLikeNotifiesBothUsersWhenItCreatesMatch(t *testing.T) {
+	actor := models.User{ID: uuid.New(), PublicID: 10}
+	target := models.User{ID: uuid.New(), PublicID: 20}
+	users := &fakeUserRepository{byPublicID: map[int64]*models.User{10: &actor, 20: &target}}
+	repo := &fakeEngagementRepository{reciprocalNewMatch: true}
+	notifier := &fakeNotificationRepository{}
+	service := NewUserService(users, &fakePostRepository{}, &fakeMediaRepository{}, repo, notifier)
+	if _, _, err := service.Like(context.Background(), actor, actor.PublicID, target.PublicID); err != nil {
+		t.Fatal(err)
+	}
+	if len(notifier.sent) != 2 || notifier.sent[0] != notifications.NotificationTypeNewMatch || notifier.sent[1] != notifications.NotificationTypeNewMatch {
+		t.Fatalf("new profile match notifications = %v", notifier.sent)
+	}
+}
+
+func TestFetchSocialListsDoesNotSerializePrivateAccountFields(t *testing.T) {
+	owner := models.User{ID: uuid.New(), PublicID: 10, UserName: "owner"}
+	target := models.User{ID: uuid.New(), PublicID: 20, UserName: "target", PreferencesFlags: "private-flags"}
+	repo := &fakeEngagementRepository{engagements: []models.EngagementDetail{{
+		ID: uuid.New(), EngagementID: uuid.New(), EngagerID: owner.ID, EngageeID: target.ID,
+		Engager: owner, Engagee: target, Kind: models.EngagementKindFollowing,
+	}}}
+	service := NewUserService(&fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, repo, &fakeNotificationRepository{})
+	rows, _, err := service.FetchUserEngagements(context.Background(), &owner, owner.ID, models.EngagementContentableTypeUser, models.EngagementKindFollowing, nil, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(rows)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, forbidden := range []string{"preferences_flags", "balance", "user_role", "broadcast_info", "engagement_id", owner.ID.String(), target.ID.String()} {
+		if strings.Contains(string(encoded), forbidden) {
+			t.Fatalf("social list leaked %s: %s", forbidden, encoded)
+		}
+	}
+}
+
+func TestForeignFollowListsRequireVisibleUnblockedOwner(t *testing.T) {
+	for _, state := range []string{"public", "private", "blocked", "other domain"} {
+		t.Run(state, func(t *testing.T) {
+			visitor := &models.User{ID: uuid.New(), PublicID: 10, Domain: models.CoolVibes}
+			owner := &models.User{ID: uuid.New(), PublicID: 20, Domain: models.CoolVibes, PrivacyLevel: "public"}
+			repo := &fakeEngagementRepository{}
+			switch state {
+			case "private":
+				owner.PrivacyLevel = "private"
+			case "blocked":
+				repo.has = map[models.EngagementKind]bool{models.EngagementKindBlocking: true}
+			case "other domain":
+				owner.Domain = "another-domain"
+			}
+			users := &fakeUserRepository{byUUID: map[uuid.UUID]*models.User{owner.ID: owner}}
+			service := NewUserService(users, &fakePostRepository{}, &fakeMediaRepository{}, repo, &fakeNotificationRepository{})
+			_, _, err := service.FetchUserEngagements(context.Background(), visitor, owner.ID, models.EngagementContentableTypeUser, models.EngagementKindFollower, nil, 10)
+			if state == "public" && err != nil {
+				t.Fatal(err)
+			}
+			if state != "public" && !errors.Is(err, ErrPrivateEngagements) {
+				t.Fatalf("restricted follow list %s = %v", state, err)
+			}
+		})
+	}
+}
+
 func TestUpdateUserProfileNormalizesFieldsAndUpsertsLocation(t *testing.T) {
 	userID := uuid.New()
 	userRepo := &fakeUserRepository{
@@ -642,13 +719,13 @@ func TestUserServiceSimpleRepositoryDelegates(t *testing.T) {
 		t.Fatalf("FetchUserNotifications() = %#v, %v, %v", notifications, next, err)
 	}
 
-	engagements, _, err := service.FetchUserEngagements(context.Background(), &authUser, uuid.New(), models.EngagementContentableTypeUser, models.EngagementKindFollowing, nil, 2)
+	engagements, _, err := service.FetchUserEngagements(context.Background(), &authUser, authUser.ID, models.EngagementContentableTypeUser, models.EngagementKindFollowing, nil, 2)
 	if err != nil || engagements != nil {
 		t.Fatalf("FetchUserEngagements() = %#v, %v", engagements, err)
 	}
 
-	checkin, err := service.CheckIn(context.Background(), ports.FormData{}, &authUser, post.PostKindCheckIn)
-	if err != nil || checkin.PostKind != post.PostKindCheckIn {
+	checkin, err := service.CheckIn(context.Background(), nil, nil, &authUser, post.PostKindCheckIn)
+	if err != nil || checkin.PostKind != string(post.PostKindCheckIn) {
 		t.Fatalf("CheckIn() = %#v, %v", checkin, err)
 	}
 	checkins, err := service.FetchCheckIns(types.Filter{PostKind: post.PostKindCheckIn})

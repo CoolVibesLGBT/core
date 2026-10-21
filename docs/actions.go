@@ -3,6 +3,10 @@ package docs
 import "core/constants"
 
 func ActionDocuments() []ActionDoc {
+	return append(append(baseActionDocuments(), socialActionDocuments()...), financialActionDocuments()...)
+}
+
+func baseActionDocuments() []ActionDoc {
 	return []ActionDoc{
 		{
 			Action:      constants.CMD_INITIAL_SYNC,
@@ -65,7 +69,7 @@ func ActionDocuments() []ActionDoc {
 				stringParam("email", "Optional email address.", false),
 				stringParam("captcha", "Captcha token fallback.", false),
 				stringParam("recaptchaToken", "Google reCAPTCHA token.", false),
-				stringParam("referralCode", "Optional referrer public user id, username, email, or display name.", false),
+				stringParam("referralCode", "Optional referrer public user id, username, or email. Display names are not accepted. Invalid codes reject registration; account creation and a pending reward commit together. The reward becomes spendable only after independent administrator verification and approval.", false),
 			},
 		},
 		{
@@ -98,8 +102,8 @@ func ActionDocuments() []ActionDoc {
 			Action:      constants.CMD_USER_FETCH_PROFILE,
 			Tag:         "Users",
 			Summary:     "Fetch user profile",
-			Description: "Fetches a public profile by nickname or username. One of nickname or username is required.",
-			Auth:        AuthNone,
+			Description: "Fetches a profile by nickname or username. Anonymous viewers see public profiles; authenticated viewers may also see their own profile or profiles allowed by friendship, following, or mutual following. Blocking overrides those grants.",
+			Auth:        AuthOptional,
 			Params: []Param{
 				stringParam("nickname", "Profile nickname lookup.", false),
 				stringParam("username", "Profile username lookup fallback.", false),
@@ -168,12 +172,12 @@ func ActionDocuments() []ActionDoc {
 			Action:      constants.CMD_USER_FETCH_ENGAGEMENTS,
 			Tag:         "Users",
 			Summary:     "Fetch user engagements",
-			Description: "Returns engagement detail rows for a user and engagement type with RFC3339 cursor pagination.",
+			Description: "Returns relationship rows with public user summaries. Only follower/following lists of visible, unblocked profiles are available to other users; other lists require the profile owner. Supports opaque continuation cursors and legacy RFC3339 cursors.",
 			Auth:        AuthRequired,
 			Params: []Param{
 				enumParam("engagement_type", "Engagement kind to fetch.", true, engagementKinds()...),
 				intParam("user_id", "Target user's public id.", true, nil),
-				stringParam("cursor", "RFC3339 timestamp cursor.", false),
+				stringParam("cursor", "Opaque continuation cursor or legacy RFC3339 timestamp.", false),
 				intParam("limit", "Maximum item count. Default 100.", false, 100),
 			},
 		},
@@ -483,8 +487,9 @@ func ActionDocuments() []ActionDoc {
 			Action:      constants.CMD_MATCH_GET_UNSEEN,
 			Tag:         "Matches",
 			Summary:     "Fetch unseen match users",
-			Description: "Returns up to 10 users not yet seen by the authenticated user.",
+			Description: "Returns up to 10 eligible users not swiped on in the last 24 hours, excluding current matches. Ranks shared interests (60%), languages (20%), and proximity (20%). Coordinates and private preference flags are never returned. Missing coordinates do not contribute proximity; a distance filter excludes unknown positions.",
 			Auth:        AuthRequired,
+			Params:      []Param{intParam("min_age", "Optional minimum age, 18–120.", false, nil), intParam("max_age", "Optional maximum age, 18–120.", false, nil), {Name: "max_distance_km", Type: "number", Description: "Optional maximum distance in km, greater than zero and at most 20050."}},
 		},
 		{
 			Action:      constants.CMD_MATCH_CREATE,
@@ -494,7 +499,7 @@ func ActionDocuments() []ActionDoc {
 			Auth:        AuthRequired,
 			Params: []Param{
 				intParam("public_id", "Target user public id.", true, nil),
-				enumParam("reaction", "Reaction type.", false, "like", "dislike", "favorite", "bookmark", "matched", "superlike"),
+				enumParam("reaction", "Reaction type. Replaying the same reaction preserves its state.", true, "like", "dislike"),
 			},
 		},
 		matchCursorDoc(constants.CMD_MATCH_FETCH_MATCHED, "Fetch matched users", "Fetches matched users after an optional RFC3339 cursor."),
@@ -503,10 +508,10 @@ func ActionDocuments() []ActionDoc {
 			Action:      constants.CMD_MATCH_FETCH_LIKED,
 			Tag:         "Matches",
 			Summary:     "Fetch liked users",
-			Description: "Fetches liked users. This handler reads cursor and limit from query parameters.",
+			Description: "Fetches liked users after an optional opaque cursor. Legacy RFC3339 cursors remain accepted.",
 			Auth:        AuthRequired,
 			Params: []Param{
-				{Name: "cursor", In: "query", Type: "string", Format: "date-time", Description: "RFC3339 timestamp cursor."},
+				{Name: "cursor", In: "query", Type: "string", Description: "Opaque cursor returned by the previous page, or a legacy RFC3339 timestamp."},
 				{Name: "limit", In: "query", Type: "integer", Format: "int64", Description: "Maximum item count. Default 10.", Default: 10},
 			},
 		},
@@ -523,13 +528,30 @@ func ActionDocuments() []ActionDoc {
 			Action:      constants.CMD_CHAT_CREATE,
 			Tag:         "Chat",
 			Summary:     "Create chat",
-			Description: "Creates a private chat for one resolved participant. Send the participant public snowflake ID; legacy UUID clients remain supported.",
+			Description: "Creates a private chat with one participant or a group with the selected participants. The creator is included automatically; duplicate users are collapsed. Send public snowflake IDs; UUID identifiers are also accepted.",
 			Auth:        AuthRequired,
 			Params: []Param{
-				enumParam("type", "Chat type.", true, "private", "group", "channel"),
-				{Name: "participant_ids", In: "form", Type: "string", Required: false, Description: "JSON array containing exactly one participant public snowflake ID (preferred) or legacy UUID."},
-				{Name: "participant_ids[]", In: "form", Type: "string", Required: false, Description: "Repeated-form compatibility alias. Exactly one value is accepted."},
+				enumParam("type", "Chat type.", true, "private", "group"),
+				{Name: "participant_ids", In: "form", Type: "string", Required: false, Description: "JSON array of participant public snowflake IDs or UUIDs. Private chats require exactly one; groups require at least one other user."},
+				{Name: "participant_ids[]", In: "form", Type: "string", Required: false, Description: "Repeated-form alternative to participant_ids."},
+				stringParam("title", "Group title in the creator language.", false),
+				stringParam("description", "Group description in the creator language.", false),
 			},
+		},
+		{
+			Action: constants.CMD_CHAT_PARTICIPANT_ADD, Tag: "Chat", Summary: "Add group participant", Auth: AuthRequired,
+			Description: "An active group moderator adds a participant. Repeated adds are idempotent; a departed participant is reactivated. Unavailable, blocked, or cross-domain users cannot be added.",
+			Params:      []Param{uuidParam("chat_id", "Group UUID.", true), stringParam("participant_id", "User public snowflake ID or UUID.", true)},
+		},
+		{
+			Action: constants.CMD_CHAT_PARTICIPANT_REMOVE, Tag: "Chat", Summary: "Remove participant or leave group", Auth: AuthRequired,
+			Description: "Omit participant_id to leave the group. Removing another member requires group moderation rights. The creator cannot leave while others remain or be removed by another moderator.",
+			Params:      []Param{uuidParam("chat_id", "Group UUID.", true), stringParam("participant_id", "User public snowflake ID or UUID; defaults to the authenticated user.", false)},
+		},
+		{
+			Action: constants.CMD_CHAT_PARTICIPANTS_FETCH, Tag: "Chat", Summary: "List group participants", Auth: AuthRequired,
+			Description: "Returns active participants using public user identities. Requires active group membership. Membership changes emit chat.participants.changed with chat_id to refresh this list.",
+			Params:      []Param{uuidParam("chat_id", "Group UUID.", true)},
 		},
 		{
 			Action:      constants.CMD_CHAT_MESSAGE_READ,
@@ -871,7 +893,7 @@ func matchCursorDoc(action, summary, description string) ActionDoc {
 		Description: description,
 		Auth:        AuthRequired,
 		Params: []Param{
-			stringParam("cursor", "RFC3339 timestamp cursor.", false),
+			stringParam("cursor", "Opaque cursor returned by the previous page, or a legacy RFC3339 timestamp.", false),
 			intParam("limit", "Maximum item count. Default 10.", false, 10),
 		},
 	}

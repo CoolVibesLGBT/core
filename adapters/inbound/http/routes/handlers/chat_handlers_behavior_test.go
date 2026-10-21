@@ -5,6 +5,7 @@ import (
 	"core/application/ports"
 	"core/application/types"
 	usecases "core/application/usecases"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/chat"
 	"core/models/post"
@@ -51,7 +52,8 @@ type chatHandlerRepo struct {
 	chatListQuery  ports.ChatListQuery
 	chatListPage   ports.ChatListPage
 	messageAuthor  *models.User
-	messageForm    ports.FormData
+	messageValues  map[string][]string
+	messageFiles   []*domainmedia.UploadedFile
 	messageQuery   ports.ChatMessageListQuery
 	messagePage    ports.ChatMessageListPage
 	messageErr     error
@@ -97,9 +99,9 @@ func (r *chatHandlerRepo) ListChats(_ context.Context, query ports.ChatListQuery
 	return r.chatListPage, nil
 }
 
-func (r *chatHandlerRepo) AddMessageToChat(ctx context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
+func (r *chatHandlerRepo) AddMessageToChat(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*post.Post, error) {
 	r.messageAuthor = author
-	r.messageForm = form
+	r.messageValues, r.messageFiles = values, files
 	chatID := uuid.New()
 	return &post.Post{ID: uuid.New(), PublicID: 9001, AuthorID: author.ID, ContentableID: &chatID, PostKind: post.PostKindMessage}, nil
 }
@@ -326,14 +328,14 @@ func TestHandleSendMessagePassesMultipartFormAndAuthUser(t *testing.T) {
 	if chatRepo.messageAuthor == nil || chatRepo.messageAuthor.ID != authUser.ID {
 		t.Fatalf("expected auth user to be message author, got %#v", chatRepo.messageAuthor)
 	}
-	if got := chatRepo.messageForm.Values["content"]; len(got) != 1 || got[0] != "hello" {
-		t.Fatalf("expected content form value, got %#v", chatRepo.messageForm.Values)
+	if got := chatRepo.messageValues["content"]; len(got) != 1 || got[0] != "hello" {
+		t.Fatalf("expected content form value, got %#v", chatRepo.messageValues)
 	}
-	if len(chatRepo.messageForm.Files) != 1 {
-		t.Fatalf("expected one uploaded file, got %d", len(chatRepo.messageForm.Files))
+	if len(chatRepo.messageFiles) != 1 {
+		t.Fatalf("expected one uploaded file, got %d", len(chatRepo.messageFiles))
 	}
-	if chatRepo.messageForm.ExpiresInSeconds == nil || *chatRepo.messageForm.ExpiresInSeconds != 60 {
-		t.Fatalf("expected duration 60 without starting expiry, got %v", chatRepo.messageForm.ExpiresInSeconds)
+	if duration, err := chat.ParseExpiresInSeconds(chatRepo.messageValues["expires_in_seconds"]); err != nil || duration == nil || *duration != 60 {
+		t.Fatalf("expected duration 60 without starting expiry, got %v", chatRepo.messageValues["expires_in_seconds"])
 	}
 	if notifier.event != "chat" {
 		t.Fatalf("expected chat broadcast, got event=%q", notifier.event)
@@ -373,11 +375,11 @@ func TestHandleSendMessageParsesViewOnceAndClientID(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Fatalf("expected status 200, got %d", resp.StatusCode)
 	}
-	if !chatRepo.messageForm.ViewOnce || chatRepo.messageForm.ImageCount != 1 || chatRepo.messageForm.VideoCount != 0 {
-		t.Fatalf("unexpected view-once form: %#v", chatRepo.messageForm)
+	if chatRepo.messageValues["view_once"][0] != "on" || len(chatRepo.messageFiles) != 1 {
+		t.Fatalf("unexpected view-once form: %#v", chatRepo.messageValues)
 	}
-	if chatRepo.messageForm.ClientID != "optimistic-123" {
-		t.Fatalf("expected client id roundtrip input, got %q", chatRepo.messageForm.ClientID)
+	if chatRepo.messageValues["client_id"][0] != "optimistic-123" {
+		t.Fatalf("expected client id roundtrip input, got %q", chatRepo.messageValues["client_id"][0])
 	}
 }
 

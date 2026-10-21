@@ -39,7 +39,7 @@ func TestExactClusterLookupQueryUsesExactSlugAndParent(t *testing.T) {
 	}
 }
 
-func TestTaxonomyPillarMatchQueryUsesExistsSubquery(t *testing.T) {
+func TestTaxonomyPillarMatchQueryUsesGORMSubqueries(t *testing.T) {
 	db := newDryRunTaxonomyDB(t)
 
 	var pillars []taxonomy.Pillar
@@ -53,11 +53,11 @@ func TestTaxonomyPillarMatchQueryUsesExistsSubquery(t *testing.T) {
 	sql := tx.Statement.SQL.String()
 	for _, fragment := range []string{
 		"FROM \"pillars\"",
-		"EXISTS (",
-		"FROM clusters",
-		"FROM synonyms",
+		"pillars.id IN (",
+		"FROM \"clusters\"",
+		"FROM \"synonyms\"",
 		"pillars.slug =",
-		"clusters.search_vector ILIKE",
+		"search_vector ILIKE",
 	} {
 		if !strings.Contains(sql, fragment) {
 			t.Fatalf("expected SQL to contain %q, got %s", fragment, sql)
@@ -77,12 +77,12 @@ func TestApplyTaxonomyCategoryFilterUsesTaxonomyRelations(t *testing.T) {
 
 	sql := tx.Statement.SQL.String()
 	for _, fragment := range []string{
-		"FROM post_clusters",
+		"FROM \"post_clusters\"",
 		"JOIN clusters",
 		"JOIN pillars",
 		"LEFT JOIN synonyms",
-		"post_clusters.post_id = posts.id",
-		"clusters.search_vector ILIKE",
+		"posts.id IN (",
+		"search_vector ILIKE",
 	} {
 		if !strings.Contains(sql, fragment) {
 			t.Fatalf("expected SQL to contain %q, got %s", fragment, sql)

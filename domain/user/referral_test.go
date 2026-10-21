@@ -65,3 +65,18 @@ func TestReferralHasStableIdentityAndCreditsBalance(t *testing.T) {
 		t.Fatal("Credit() allowed a balance beyond NUMERIC(38,18)")
 	}
 }
+
+func TestReferralIdentityBelongsToReferredUser(t *testing.T) {
+	referred := uuid.New()
+	first, err := NewReferral(uuid.New(), referred, decimal.NewFromInt(50))
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := NewReferral(uuid.New(), referred, decimal.NewFromInt(100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.DedupeKey() != other.DedupeKey() {
+		t.Fatal("changing referrer must not create a new reward identity")
+	}
+}

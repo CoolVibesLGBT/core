@@ -2,7 +2,7 @@ package news
 
 import (
 	"context"
-	"core/application/ports"
+	upload "core/adapters/media"
 	"core/application/types"
 	"core/constants"
 	"core/helpers"
@@ -91,11 +91,11 @@ func ArticleToNewsRequest(article *ArticleResult) (map[string][]string, error) {
 	}, nil
 }
 
-func CreateNew(article *ArticleResult, dependencies Dependencies) (*post.Post, error) {
+func CreateNew(article *ArticleResult, dependencies Dependencies) (*types.PublicPost, error) {
 	return CreateNewContext(context.Background(), article, dependencies)
 }
 
-func CreateNewContext(ctx context.Context, article *ArticleResult, dependencies Dependencies) (*post.Post, error) {
+func CreateNewContext(ctx context.Context, article *ArticleResult, dependencies Dependencies) (*types.PublicPost, error) {
 	if err := dependencies.validate(); err != nil {
 		return nil, err
 	}
@@ -117,14 +117,14 @@ func CreateNewContext(ctx context.Context, article *ArticleResult, dependencies 
 		helpers.Println("Image", img)
 	}
 
-	files, err := newDiskUploadedFiles(article.LocalImages)
+	files, err := upload.FromPaths(article.LocalImages...)
 	if err != nil {
 		fmt.Println("FilesFromDisk", err)
 		return nil, err
 	}
 
 	for _, file := range files {
-		fmt.Println("FileName:", file.Filename())
+		fmt.Println("FileName:", file.Filename)
 	}
 
 	fmt.Println("ImageLen", len(article.LocalImages), "FILELEN", len(files))
@@ -143,10 +143,7 @@ func CreateNewContext(ctx context.Context, article *ArticleResult, dependencies 
 
 	request["extras[source]"] = []string{string(articleJSON)}
 	if !isExists {
-		return dependencies.News.CreateNews(ctx, ports.FormData{
-			Values: request,
-			Files:  files,
-		}, authUser)
+		return dependencies.News.CreateNews(ctx, request, files, authUser)
 	} else {
 		helpers.Println("AlreadyExists: %s", *filters.Search)
 	}

@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"bytes"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 	usecases "core/application/usecases"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/media"
 	"core/models/post"
@@ -33,17 +33,17 @@ type searchHandlerPostRepository struct {
 	filters []types.Filter
 }
 
-func (r *searchHandlerPostRepository) FindPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *searchHandlerPostRepository) SearchPublicPosts(filters types.Filter) (types.PublicPostPage, error) {
 	r.filters = append(r.filters, filters)
-	result := post.Post{ID: uuid.New(), PublicID: 100, PostKind: filters.PostKind}
-	return legacyviews.PostsResult{Posts: []post.Post{result}}, nil
+	result := types.PublicPost{ID: 100, PublicID: 100, PostKind: string(filters.PostKind)}
+	return types.PublicPostPage{Posts: []types.PublicPost{result}}, nil
 }
 
 type searchHandlerMediaRepository struct {
 	ports.MediaRepository
 }
 
-func (r *searchHandlerMediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file ports.UploadedFile) (*media.Media, error) {
+func (r *searchHandlerMediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file *domainmedia.UploadedFile) (*media.Media, error) {
 	return nil, errors.New("not used")
 }
 

@@ -1,16 +1,22 @@
 package repositories
 
 import (
+	domainmedia "core/domain/media"
+	"core/helpers"
 	"core/models/media"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 type generatedUploadReader struct {
 	remaining   int64
 	largestRead int
+	closeErr    error
 }
 
 func (r *generatedUploadReader) Read(buffer []byte) (int, error) {
@@ -28,20 +34,7 @@ func (r *generatedUploadReader) Read(buffer []byte) (int, error) {
 	return len(buffer), nil
 }
 
-func (*generatedUploadReader) Close() error { return nil }
-
-type generatedUploadedFile struct {
-	size   int64
-	reader *generatedUploadReader
-}
-
-func (*generatedUploadedFile) Filename() string    { return "large.bin" }
-func (f *generatedUploadedFile) Size() int64       { return f.size }
-func (*generatedUploadedFile) ContentType() string { return "application/octet-stream" }
-func (f *generatedUploadedFile) Open() (io.ReadCloser, error) {
-	f.reader = &generatedUploadReader{remaining: f.size}
-	return f.reader, nil
-}
+func (r *generatedUploadReader) Close() error { return r.closeErr }
 
 func TestShouldProcessAsync(t *testing.T) {
 	if !shouldProcessAsync("image/jpeg") {
@@ -91,11 +84,12 @@ func TestProtectedMediaRolesArePrivate(t *testing.T) {
 
 func TestSaveUploadedFileStreamsWithoutApplicationByteCap(t *testing.T) {
 	const size = int64(8 << 20)
-	upload := &generatedUploadedFile{size: size}
+	reader := &generatedUploadReader{remaining: size}
+	file := domainmedia.NewUploadedFile("large.bin", size, "application/octet-stream", func() (io.ReadCloser, error) { return reader, nil })
 	destination := filepath.Join(t.TempDir(), "nested", "large.bin")
 
 	repository := &MediaRepository{}
-	if err := repository.SaveUploadedFile(upload, destination); err != nil {
+	if err := repository.SaveUploadedFile(file, destination); err != nil {
 		t.Fatalf("SaveUploadedFile() error = %v", err)
 	}
 	stat, err := os.Stat(destination)
@@ -105,7 +99,43 @@ func TestSaveUploadedFileStreamsWithoutApplicationByteCap(t *testing.T) {
 	if stat.Size() != size {
 		t.Fatalf("stored size = %d, want %d", stat.Size(), size)
 	}
-	if upload.reader == nil || upload.reader.largestRead <= 0 || int64(upload.reader.largestRead) >= size {
-		t.Fatalf("upload was not copied incrementally: reader=%#v", upload.reader)
+	if reader == nil || reader.largestRead <= 0 || int64(reader.largestRead) >= size {
+		t.Fatalf("upload was not copied incrementally: reader=%#v", reader)
+	}
+}
+
+func TestSaveUploadedFileReturnsCloseError(t *testing.T) {
+	closeErr := errors.New("source close failed")
+	file := domainmedia.NewUploadedFile("file.bin", 5, "application/octet-stream", func() (io.ReadCloser, error) {
+		return &generatedUploadReader{remaining: 5, closeErr: closeErr}, nil
+	})
+	repository := &MediaRepository{}
+	if err := repository.SaveUploadedFile(file, filepath.Join(t.TempDir(), "file.bin")); !errors.Is(err, closeErr) {
+		t.Fatalf("close failure was swallowed: %v", err)
+	}
+}
+
+func TestAddMediaCleansUpWhenUploadCloseFails(t *testing.T) {
+	t.Chdir(t.TempDir())
+	closeErr := errors.New("source close failed")
+	file := domainmedia.NewUploadedFile("file.bin", 5, "application/octet-stream", func() (io.ReadCloser, error) {
+		return &generatedUploadReader{remaining: 5, closeErr: closeErr}, nil
+	})
+	pool := &recordingTransactionPool{tx: &recordingTransaction{}}
+	database := newRecordingPostCreationDB(t, pool)
+	node, err := helpers.NewDefaultNode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repository := NewMediaRepository(database, node)
+	created, err := repository.AddMedia(uuid.New(), media.OwnerPost, uuid.New(), media.RolePost, file)
+	if !errors.Is(err, closeErr) || created != nil {
+		t.Fatalf("failed upload was persisted: created=%#v error=%v", created, err)
+	}
+	if pool.beginCount != 0 {
+		t.Fatal("failed upload started persistence")
+	}
+	if files := storedUploadFiles(t); len(files) != 0 {
+		t.Fatalf("failed upload left stored files: %v", files)
 	}
 }

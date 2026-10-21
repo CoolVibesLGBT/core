@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"core/application/ports"
+	"core/application/types"
 	"core/application/usecases"
 	"core/models/post"
 	"testing"
@@ -9,17 +10,17 @@ import (
 
 type chatGuardPostRepository struct {
 	ports.PostRepository
-	item *post.Post
+	item *types.PublicPost
 }
 
-func (r *chatGuardPostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
+func (r *chatGuardPostRepository) FindPublicPostByPublicID(id int64) (*types.PublicPost, error) {
 	return r.item, nil
 }
 
 func TestHandleFetchPostRejectsChatMessagesFromPublicEndpoint(t *testing.T) {
 	contentableType := string(post.PostKindChat)
-	repo := &chatGuardPostRepository{item: &post.Post{
-		PublicID: 8181, PostKind: post.PostKindMessage, ContentableType: &contentableType,
+	repo := &chatGuardPostRepository{item: &types.PublicPost{
+		PublicID: 8181, PostKind: string(post.PostKindMessage), ContentableType: &contentableType,
 	}}
 	service := usecases.NewPostService(nil, repo, nil)
 	resp := performMultipartHandlerRequest(t, HandleFetchPost(service), nil, map[string]string{"post_id": "8181"}, nil)

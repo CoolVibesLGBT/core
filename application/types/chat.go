@@ -1,6 +1,7 @@
 package types
 
 import (
+	chatmodel "core/models/chat"
 	"encoding/json"
 	"time"
 
@@ -61,9 +62,10 @@ type Chat struct {
 }
 
 type ChatMessage struct {
-	ID       uuid.UUID    `json:"id"`
-	ParentID *uuid.UUID   `json:"parent_id,omitempty"`
-	Parent   *ChatMessage `json:"parent,omitempty"`
+	Emoticon *chatmodel.Emoticon `json:"emoticon,omitempty"`
+	ID       uuid.UUID           `json:"id"`
+	ParentID *uuid.UUID          `json:"parent_id,omitempty"`
+	Parent   *ChatMessage        `json:"parent,omitempty"`
 
 	PublicID SnowflakeID `json:"public_id"`
 	PostKind string      `json:"post_kind"`

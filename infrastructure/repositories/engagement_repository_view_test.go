@@ -26,7 +26,7 @@ func TestViewWriteSQLIsConflictSafeAndAtomic(t *testing.T) {
 		t.Fatalf("lockViewAggregate() error = %v", lock.Error)
 	}
 	lockSQL := strings.ToLower(lock.Statement.SQL.String())
-	if !strings.Contains(lockSQL, "pg_advisory_xact_lock") || !strings.Contains(lockSQL, "hashtextextended") {
+	if !strings.Contains(lockSQL, "transaction_locks") || !strings.Contains(lockSQL, "for update") {
 		t.Fatalf("view aggregate creation is not transaction-locked: %s", lock.Statement.SQL.String())
 	}
 

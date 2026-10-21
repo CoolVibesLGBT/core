@@ -48,8 +48,8 @@ func TestReciprocalInteractionDedupeKeysAreDirectional(t *testing.T) {
 	}
 }
 
-func TestApplyReciprocalUserInteractionKeepsLikeAndDislikeKeysDistinctIntegration(t *testing.T) {
-	db := engagementViewIntegrationDB(t)
+func TestApplyReciprocalUserInteractionKeepsLikeAndDislikeExclusiveIntegration(t *testing.T) {
+	db := socialGraphIntegrationDB(t)
 	if err := db.AutoMigrate(&models.Engagement{}, &models.EngagementDetail{}); err != nil {
 		t.Fatalf("migrate reciprocal engagement schema: %v", err)
 	}
@@ -67,14 +67,14 @@ func TestApplyReciprocalUserInteractionKeepsLikeAndDislikeKeysDistinctIntegratio
 		}
 	}
 
-	assertReciprocalDetailCount(t, db, actor.ID, target.ID, models.EngagementKindLikeGiven, 1)
-	assertReciprocalDetailCount(t, db, target.ID, actor.ID, models.EngagementKindLikeReceived, 1)
+	assertReciprocalDetailCount(t, db, actor.ID, target.ID, models.EngagementKindLikeGiven, 0)
+	assertReciprocalDetailCount(t, db, target.ID, actor.ID, models.EngagementKindLikeReceived, 0)
 	assertReciprocalDetailCount(t, db, actor.ID, target.ID, models.EngagementKindDislikeGiven, 1)
 	assertReciprocalDetailCount(t, db, target.ID, actor.ID, models.EngagementKindDisLikeReceived, 1)
 }
 
 func TestApplyReciprocalUserInteractionIsIdempotentIntegration(t *testing.T) {
-	db := engagementViewIntegrationDB(t)
+	db := socialGraphIntegrationDB(t)
 	if err := db.AutoMigrate(&models.Engagement{}, &models.EngagementDetail{}); err != nil {
 		t.Fatalf("migrate reciprocal engagement schema: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestApplyReciprocalUserInteractionIsIdempotentIntegration(t *testing.T) {
 }
 
 func TestApplyReciprocalUserInteractionRollsBackBothSidesIntegration(t *testing.T) {
-	db := engagementViewIntegrationDB(t)
+	db := socialGraphIntegrationDB(t)
 	if err := db.AutoMigrate(&models.Engagement{}, &models.EngagementDetail{}); err != nil {
 		t.Fatalf("migrate reciprocal engagement schema: %v", err)
 	}

@@ -2,11 +2,11 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 	"core/constants"
 	domainevents "core/domain/events"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 	domainwallet "core/domain/wallet"
 	"core/models"
@@ -131,6 +131,7 @@ type fakeUserRepository struct {
 	referralReferrerID  uuid.UUID
 	referralReferredID  uuid.UUID
 	referralReward      decimal.Decimal
+	referralErr         error
 	reportUserPublicID  int64
 	reportKind          string
 	reportDescription   string
@@ -169,6 +170,15 @@ func (r *fakeUserRepository) Create(user *models.User) error {
 	}
 	r.byID[user.ID] = user
 	return nil
+}
+
+func (r *fakeUserRepository) CreateRegisteredUser(ctx context.Context, user *models.User, referral *domainuser.Referral) error {
+	if referral != nil {
+		if _, err := r.AddReferral(ctx, referral.ReferrerID(), referral.ReferredID(), referral.RewardAmount()); err != nil {
+			return err
+		}
+	}
+	return r.Create(user)
 }
 
 func (r *fakeUserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
@@ -218,7 +228,7 @@ func (r *fakeUserRepository) GetUserByUUIDdWithoutRelations(filters types.Filter
 	return nil, ports.ErrNotFound
 }
 
-func (r *fakeUserRepository) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
+func (r *fakeUserRepository) GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error) {
 	if id, ok := r.userUUIDByPublicID[publicID]; ok {
 		return id, nil
 	}
@@ -348,19 +358,24 @@ func (r *fakeUserRepository) AddReferral(ctx context.Context, referrerID uuid.UU
 	r.referralReferrerID = referrerID
 	r.referralReferredID = referredUserID
 	r.referralReward = rewardAmount
+	if r.referralErr != nil {
+		return nil, r.referralErr
+	}
 	balance := decimal.NewFromInt(1)
 	return &balance, nil
 }
 
 type fakeEngagementRepository struct {
 	ports.EngagementRepository
+	engagements []models.EngagementDetail
 
 	toggles []engagementToggle
 	has     map[models.EngagementKind]bool
 
-	reciprocalCalls  []reciprocalInteractionCall
-	reciprocalStates map[domainuser.EngagementKind]bool
-	reciprocalErr    error
+	reciprocalCalls    []reciprocalInteractionCall
+	reciprocalStates   map[domainuser.EngagementKind]bool
+	reciprocalErr      error
+	reciprocalNewMatch bool
 
 	recordedViews    []engagementToggle
 	recordViewResult bool
@@ -402,6 +417,7 @@ func (r *fakeEngagementRepository) ApplyReciprocalUserInteraction(ctx context.Co
 		return domainuser.InteractionStateTransition{}, err
 	}
 	r.reciprocalStates[pair.Given] = transition.Enabled
+	transition.NewMatch = r.reciprocalNewMatch
 	return transition, nil
 }
 
@@ -426,8 +442,8 @@ func (r *fakeEngagementRepository) HasUserEngaged(ctx context.Context, engagerID
 	return r.has[kind], nil
 }
 
-func (r *fakeEngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
-	return nil, nil, nil
+func (r *fakeEngagementRepository) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *types.MatchListCursor, limit int, viewers ...uuid.UUID) ([]models.EngagementDetail, *types.MatchListCursor, error) {
+	return r.engagements, nil, nil
 }
 
 type fakeNotificationRepository struct {
@@ -435,7 +451,7 @@ type fakeNotificationRepository struct {
 	sent []string
 }
 
-func (r *fakeNotificationRepository) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
+func (r *fakeNotificationRepository) SendNotificationToUser(ctx context.Context, sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
 	r.sent = append(r.sent, notificationType)
 	return nil
 }
@@ -444,30 +460,31 @@ type fakePostRepository struct {
 	ports.PostRepository
 
 	createContentableType string
-	createForm            ports.FormData
+	createValues          map[string][]string
+	createFiles           []*domainmedia.UploadedFile
 	createAuthor          *models.User
 	createdPostID         uuid.UUID
-	getPostByID           *post.Post
+	getPostByID           *types.PublicPost
 	getPostBySlugFilter   types.Filter
-	getPostBySlug         *post.Post
-	getPostByPublicID     *post.Post
+	getPostBySlug         *types.PublicPost
+	getPostByPublicID     *types.PublicPost
 	getPostByPublicIDArg  int64
 	timelineFilter        types.Filter
 	userPostsUserID       uuid.UUID
 	userPostsFilter       types.Filter
-	userPosts             []post.Post
+	userPosts             []types.PublicPost
 	userRepliesFilter     types.Filter
-	userReplies           []post.Post
+	userReplies           []types.PublicPost
 	userMediasFilter      types.Filter
-	userMedias            []legacyviews.MediaWithUser
+	userMedias            []types.PublicPostMediaWithUser
 	userMediasCursor      *int64
 	recentHashtagsFilter  types.Filter
 	recentHashtags        []types.HashtagStats
-	timeline              legacyviews.TimelineResult
+	timeline              types.PublicPostPage
 	timelineVibesFilter   types.Filter
-	timelineVibes         legacyviews.TimelineResult
+	timelineVibes         types.PublicPostPage
 	searchFilter          types.Filter
-	search                legacyviews.PostsResult
+	search                types.PublicPostPage
 	voteChoiceID          uuid.UUID
 	voteWeight            int
 	voteRank              int
@@ -498,9 +515,9 @@ type fakePostRepository struct {
 	pillars               []taxonomy.Pillar
 }
 
-func (r *fakePostRepository) CreateContentablePost(ctx context.Context, form ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+func (r *fakePostRepository) CreateContentablePost(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	r.createContentableType = contentableType
-	r.createForm = form
+	r.createValues, r.createFiles = values, files
 	r.createAuthor = author
 	if r.createdPostID == uuid.Nil {
 		r.createdPostID = uuid.New()
@@ -508,7 +525,7 @@ func (r *fakePostRepository) CreateContentablePost(ctx context.Context, form por
 	return &post.Post{ID: r.createdPostID, PostKind: post.PostKind(contentableType)}, nil
 }
 
-func (r *fakePostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
+func (r *fakePostRepository) FindPublicPostByID(id uuid.UUID) (*types.PublicPost, error) {
 	if r.getPostByID != nil {
 		return r.getPostByID, nil
 	}
@@ -516,53 +533,53 @@ func (r *fakePostRepository) GetPostByID(id uuid.UUID) (*post.Post, error) {
 	if r.createContentableType != "" {
 		kind = post.PostKind(r.createContentableType)
 	}
-	return &post.Post{ID: id, PostKind: kind}, nil
+	return &types.PublicPost{PostKind: string(kind)}, nil
 }
 
-func (r *fakePostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
-	return r.GetPostByID(id)
+func (r *fakePostRepository) FindPublicPostByIDIncludingUnpublished(id uuid.UUID) (*types.PublicPost, error) {
+	return r.FindPublicPostByID(id)
 }
 
-func (r *fakePostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error) {
+func (r *fakePostRepository) FindPublicPostBySlug(filters types.Filter) (*types.PublicPost, error) {
 	r.getPostBySlugFilter = filters
 	if r.getPostBySlug != nil {
 		return r.getPostBySlug, nil
 	}
-	return &post.Post{ID: uuid.New(), Slug: filters.Slug}, nil
+	return &types.PublicPost{Slug: filters.Slug}, nil
 }
 
-func (r *fakePostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
+func (r *fakePostRepository) FindPublicPostByPublicID(id int64) (*types.PublicPost, error) {
 	r.getPostByPublicIDArg = id
 	if r.getPostByPublicID != nil {
 		return r.getPostByPublicID, nil
 	}
-	return &post.Post{ID: uuid.New(), PublicID: id}, nil
+	return &types.PublicPost{ID: types.SnowflakeID(id), PublicID: types.SnowflakeID(id)}, nil
 }
 
-func (r *fakePostRepository) GetTimeline(filters types.Filter) (legacyviews.TimelineResult, error) {
+func (r *fakePostRepository) FetchPublicTimeline(filters types.Filter) (types.PublicPostPage, error) {
 	r.timelineFilter = filters
 	return r.timeline, nil
 }
 
-func (r *fakePostRepository) FindPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *fakePostRepository) SearchPublicPosts(filters types.Filter) (types.PublicPostPage, error) {
 	r.searchFilter = filters
 	return r.search, nil
 }
 
-func (r *fakePostRepository) GetUserPosts(userID uuid.UUID, filters types.Filter) ([]post.Post, error) {
+func (r *fakePostRepository) FetchPublicUserPosts(userID uuid.UUID, filters types.Filter) ([]types.PublicPost, error) {
 	r.userPostsUserID = userID
 	r.userPostsFilter = filters
 	return r.userPosts, nil
 }
 
-func (r *fakePostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, error) {
+func (r *fakePostRepository) FetchPublicUserPostReplies(filters types.Filter) ([]types.PublicPost, error) {
 	r.userRepliesFilter = filters
 	return r.userReplies, nil
 }
 
-func (r *fakePostRepository) GetUserMedias(filters types.Filter) ([]legacyviews.MediaWithUser, *int64, error) {
+func (r *fakePostRepository) FetchPublicUserMedia(filters types.Filter) (types.PublicPostMediaPage, error) {
 	r.userMediasFilter = filters
-	return r.userMedias, r.userMediasCursor, nil
+	return types.PublicPostMediaPage{Items: r.userMedias, NextPublicID: r.userMediasCursor}, nil
 }
 
 func (r *fakePostRepository) GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error) {
@@ -570,7 +587,7 @@ func (r *fakePostRepository) GetRecentHashtags(filters types.Filter) ([]types.Ha
 	return r.recentHashtags, nil
 }
 
-func (r *fakePostRepository) GetTimelineVibes(filters types.Filter) (legacyviews.TimelineResult, error) {
+func (r *fakePostRepository) FetchPublicTimelineVibes(filters types.Filter) (types.PublicPostPage, error) {
 	r.timelineVibesFilter = filters
 	return r.timelineVibes, nil
 }
@@ -647,8 +664,8 @@ func (r *fakePostRepository) GetPillarsWithClusters(filters types.Filter) ([]tax
 	return r.pillars, nil
 }
 
-func (r *fakePostRepository) GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
-	return legacyviews.PostsResult{Posts: []post.Post{{PostKind: filters.PostKind}}}, nil
+func (r *fakePostRepository) FetchPublicPostsByKind(filters types.Filter) (types.PublicPostPage, error) {
+	return types.PublicPostPage{Posts: []types.PublicPost{{PostKind: string(filters.PostKind)}}}, nil
 }
 
 type fakeChatRepository struct {
@@ -721,7 +738,7 @@ func (r *fakeChatRepository) ListChats(_ context.Context, query ports.ChatListQu
 	return ports.ChatListPage{Chats: r.chatsByUserID, HasMore: r.chatListHasMore}, nil
 }
 
-func (r *fakeChatRepository) AddMessageToChat(ctx context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
+func (r *fakeChatRepository) AddMessageToChat(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*post.Post, error) {
 	if r.message != nil {
 		return r.message, nil
 	}
@@ -832,7 +849,7 @@ type fakeMediaRepository struct {
 	ports.MediaRepository
 }
 
-func (r *fakeMediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file ports.UploadedFile) (*media.Media, error) {
+func (r *fakeMediaRepository) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file *domainmedia.UploadedFile) (*media.Media, error) {
 	return &media.Media{ID: uuid.New(), OwnerID: ownerID, OwnerType: ownerType, UserID: userID, Role: role}, nil
 }
 

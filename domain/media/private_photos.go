@@ -2,7 +2,6 @@ package media
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 )
 
@@ -12,13 +11,6 @@ const (
 	PrivatePhotoAccessPending  PrivatePhotoAccessStatus = "pending"
 	PrivatePhotoAccessApproved PrivatePhotoAccessStatus = "approved"
 	PrivatePhotoAccessDenied   PrivatePhotoAccessStatus = "denied"
-)
-
-var (
-	ErrInvalidPrivatePhotoAccessStatus     = errors.New("invalid private photo access status")
-	ErrInvalidPrivatePhotoAccessTransition = errors.New("invalid private photo access transition")
-	ErrPrivatePhotoImageRequired           = errors.New("private photos must be image files")
-	ErrPrivatePhotoImageDimensions         = errors.New("private photo dimensions are too large")
 )
 
 // IsPrivatePhotoImageHeader validates the file's bytes instead of trusting a

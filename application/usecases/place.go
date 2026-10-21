@@ -2,13 +2,13 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
+	"core/constants"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/post"
 	"core/models/taxonomy"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,18 +33,18 @@ func (s *PlaceService) ServiceName() string {
 	return "PlaceService"
 }
 
-func (s *PlaceService) CreatePlace(context context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(post.PostKindPlace), nil)
+func (s *PlaceService) CreatePlace(context context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*types.PublicPost, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, values, files, author, string(post.PostKindPlace), nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
+	return s.postRepo.FindPublicPostByIDIncludingUnpublished(_post.ID)
 }
 
-func (s *PlaceService) GetPostByID(id uuid.UUID) (*post.Post, error) {
-	postData, err := s.postRepo.GetPostByID(id)
+func (s *PlaceService) GetPostByID(id uuid.UUID) (*types.PublicPost, error) {
+	postData, err := s.postRepo.FindPublicPostByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
 	return postData, nil
 }
@@ -65,7 +65,7 @@ func (s *PlaceService) GetNearByPlaces(filters types.Filter) ([]types.PublicPost
 	if err != nil {
 		return nil, types.Cursor{}, err
 	}
-	return legacyviews.ProjectPublicPostPointers(places), cursor, nil
+	return places, cursor, nil
 }
 
 func (s *PlaceService) GetPlacesCategories(filters types.Filter) ([]taxonomy.Pillar, error) {

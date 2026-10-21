@@ -297,3 +297,16 @@ func isPackageOrSubpackage(pkg, root string) bool {
 	root = strings.TrimSuffix(root, "/")
 	return pkg == root || strings.HasPrefix(pkg, root+"/")
 }
+
+func TestRemovedResponseCompatibilityPackageIsNotUsed(t *testing.T) {
+	for pkg, imports := range listPackageImports(t) {
+		if isPackageOrSubpackage(pkg, "core/application/legacyviews") {
+			t.Fatalf("removed response compatibility package was restored: %s", pkg)
+		}
+		for _, imported := range imports {
+			if isPackageOrSubpackage(imported, "core/application/legacyviews") {
+				t.Fatalf("%s imports removed response compatibility package %s", pkg, imported)
+			}
+		}
+	}
+}

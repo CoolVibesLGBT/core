@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	upload "core/adapters/media"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/models/media"
@@ -39,7 +40,7 @@ func (h *UploadHandler) HandleUploadMedia(s *usecases.MediaService) fiber.Handle
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "No file uploaded")
 		}
 
-		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), uploadedFile(files[0]))
+		media, err := s.AddMedia(ownerID, media.OwnerType(ownerTypeStr), ownerID, media.MediaRole(roleStr), upload.FromMultipart(files[0]))
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed, "Media upload failed")
 		}

@@ -5,14 +5,12 @@ import (
 	"core/application/types"
 	"core/constants"
 	domainuser "core/domain/user"
-	"core/helpers"
 	"core/models"
 	"core/models/notifications"
 	modelutils "core/models/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,7 +25,7 @@ type MatchesRepository struct {
 }
 
 type matchNotificationWriter interface {
-	CreateNotification(senderUser uuid.UUID, receiverUser uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (*notifications.Notification, error)
+	CreateNotification(ctx context.Context, senderUser uuid.UUID, receiverUser uuid.UUID, notifType, title, message string, payload notifications.NotificationPayload) (*notifications.Notification, error)
 }
 
 func NewMatchesRepository(db *gorm.DB, notificationRepo matchNotificationWriter) *MatchesRepository {
@@ -61,11 +59,15 @@ func setCanonicalMatchDetail(
 	enabled bool,
 ) error {
 	if tx == nil || expectedAggregate == nil || otherAggregate == nil {
-		return errors.New("match engagement aggregate is required")
+		return constants.ErrMatchEngagementAggregateRequired
 	}
 
 	var existing []models.EngagementDetail
-	if err := tx.
+	query := tx
+	if kind == models.EngagementKindViewReceived {
+		query = query.Where("engagement_details.engagement_id = ?", expectedAggregate.ID)
+	}
+	if err := query.
 		Joins("JOIN engagements AS match_aggregate ON match_aggregate.id = engagement_details.engagement_id").
 		Where("match_aggregate.contentable_type = ?", models.EngagementContentableTypeUser).
 		Where("match_aggregate.contentable_id IN ?", []uuid.UUID{expectedAggregate.ContentableID, otherAggregate.ContentableID}).
@@ -140,8 +142,12 @@ var matchingEngagementKinds = []models.EngagementKind{
 }
 
 func syncMatchingAggregateCounts(tx *gorm.DB, aggregate *models.Engagement) error {
+	return syncUserAggregateKinds(tx, aggregate, matchingEngagementKinds)
+}
+
+func syncUserAggregateKinds(tx *gorm.DB, aggregate *models.Engagement, kinds []models.EngagementKind) error {
 	if tx == nil || aggregate == nil {
-		return errors.New("match engagement aggregate is required")
+		return constants.ErrMatchEngagementAggregateRequired
 	}
 	type engagementKindCount struct {
 		Kind  models.EngagementKind `gorm:"column:kind"`
@@ -150,7 +156,7 @@ func syncMatchingAggregateCounts(tx *gorm.DB, aggregate *models.Engagement) erro
 	var rows []engagementKindCount
 	if err := tx.Model(&models.EngagementDetail{}).
 		Select("kind, COUNT(*) AS count").
-		Where("engagement_id = ? AND kind IN ?", aggregate.ID, matchingEngagementKinds).
+		Where("engagement_id = ? AND kind IN ?", aggregate.ID, kinds).
 		Group("kind").
 		Find(&rows).Error; err != nil {
 		return err
@@ -165,10 +171,10 @@ func syncMatchingAggregateCounts(tx *gorm.DB, aggregate *models.Engagement) erro
 	if counts == nil {
 		counts = make(map[string]interface{})
 	}
-	for _, kind := range matchingEngagementKinds {
+	for _, kind := range kinds {
 		countKey, ok := models.EngagementCountKeys[kind]
 		if !ok || countKey.CountKey == "" {
-			return fmt.Errorf("missing engagement counter for kind %s", kind)
+			return constants.ErrEngagementCounterMissing.Format(kind)
 		}
 		counts[countKey.CountKey] = int64(0)
 	}
@@ -185,6 +191,68 @@ func syncMatchingAggregateCounts(tx *gorm.DB, aggregate *models.Engagement) erro
 		Updates(map[string]interface{}{"counts": aggregate.Counts, "updated_at": time.Now().UTC()}).Error
 }
 
+// Both profile reactions and swipe reactions must update the same canonical
+// rows. A selected reaction replaces its opposite; removing it selects none.
+func setUserReaction(tx *gorm.DB, actor, target *models.Engagement, pair domainuser.EngagementPair, enabled bool) error {
+	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKind(pair.Given), enabled); err != nil {
+		return err
+	}
+	if err := setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKind(pair.Received), enabled); err != nil {
+		return err
+	}
+	if !enabled {
+		return nil
+	}
+	opposite, err := domainuser.InteractionEngagementPair(domainuser.InteractionLike, pair.Given != domainuser.EngagementLikeGiven)
+	if err != nil {
+		return err
+	}
+	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKind(opposite.Given), false); err != nil {
+		return err
+	}
+	return setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKind(opposite.Received), false)
+}
+
+func syncMutualUserMatch(tx *gorm.DB, actor, target *models.Engagement) (matched, newMatch bool, err error) {
+	forward, err := userMatchDetailExists(tx, actor.ContentableID, target.ContentableID, models.EngagementKindLikeGiven)
+	if err != nil {
+		return false, false, err
+	}
+	reverse, err := userMatchDetailExists(tx, target.ContentableID, actor.ContentableID, models.EngagementKindLikeGiven)
+	if err != nil {
+		return false, false, err
+	}
+	hadForward, err := userMatchDetailExists(tx, actor.ContentableID, target.ContentableID, models.EngagementKindMatched)
+	if err != nil {
+		return false, false, err
+	}
+	hadReverse, err := userMatchDetailExists(tx, target.ContentableID, actor.ContentableID, models.EngagementKindMatched)
+	if err != nil {
+		return false, false, err
+	}
+	matched = forward && reverse
+	if matched {
+		for _, pair := range [][2]uuid.UUID{{actor.ContentableID, target.ContentableID}, {target.ContentableID, actor.ContentableID}} {
+			blocked, err := userMatchDetailExists(tx, pair[0], pair[1], models.EngagementKindBlocking)
+			if err != nil {
+				return false, false, err
+			}
+			if blocked {
+				matched = false
+				break
+			}
+		}
+	}
+	newMatch = matched && !hadForward && !hadReverse
+	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKindMatched, matched); err != nil {
+		return false, false, err
+	}
+	if err := setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKindMatched, matched); err != nil {
+		return false, false, err
+	}
+	return matched, newMatch, nil
+}
+
 func userMatchDetailExists(tx *gorm.DB, engagerID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error) {
 	var count int64
 	err := tx.Model(&models.EngagementDetail{}).
@@ -197,7 +265,7 @@ func userMatchDetailExists(tx *gorm.DB, engagerID, engageeID uuid.UUID, kind mod
 
 func (m *MatchesRepository) RecordView(ctx context.Context, fromUserID uuid.UUID, toUserID uuid.UUID, reaction domainuser.MatchReaction) (bool, error) {
 	if m == nil || m.db == nil {
-		return false, errors.New("matches repository is not configured")
+		return false, constants.ErrMatchesRepositoryNotConfigured
 	}
 	if fromUserID == uuid.Nil || toUserID == uuid.Nil {
 		return false, domainuser.ErrInvalidMatchReaction
@@ -205,7 +273,7 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserID uuid.UUID
 	if fromUserID == toUserID {
 		return false, domainuser.ErrSelfInteraction
 	}
-	selectedPair, oppositePair, err := reaction.EngagementPairs()
+	selectedPair, _, err := reaction.EngagementPairs()
 	if err != nil {
 		return false, err
 	}
@@ -230,7 +298,7 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserID uuid.UUID
 			return err
 		}
 		if len(users) != 2 {
-			return gorm.ErrRecordNotFound
+			return domainuser.ErrMatchTargetUnavailable
 		}
 		identities = make(map[uuid.UUID]matchUserIdentity, len(users))
 		for _, user := range users {
@@ -275,87 +343,34 @@ func (m *MatchesRepository) RecordView(ctx context.Context, fromUserID uuid.UUID
 			return err
 		}
 
-		if err := setCanonicalMatchDetail(tx, fromAggregate, toAggregate, fromUserID, toUserID, models.EngagementKind(selectedPair.Given), true); err != nil {
-			return err
-		}
-		if err := setCanonicalMatchDetail(tx, toAggregate, fromAggregate, toUserID, fromUserID, models.EngagementKind(selectedPair.Received), true); err != nil {
-			return err
-		}
-		if err := setCanonicalMatchDetail(tx, fromAggregate, toAggregate, fromUserID, toUserID, models.EngagementKind(oppositePair.Given), false); err != nil {
-			return err
-		}
-		if err := setCanonicalMatchDetail(tx, toAggregate, fromAggregate, toUserID, fromUserID, models.EngagementKind(oppositePair.Received), false); err != nil {
+		if err := setUserReaction(tx, fromAggregate, toAggregate, selectedPair, true); err != nil {
 			return err
 		}
 
-		// A view is an idempotent fact. Replaying a swipe must not toggle it off.
-		if err := setCanonicalMatchDetail(tx, fromAggregate, toAggregate, fromUserID, toUserID, models.EngagementKindViewGiven, true); err != nil {
-			return err
-		}
-		if err := setCanonicalMatchDetail(tx, toAggregate, fromAggregate, toUserID, fromUserID, models.EngagementKindViewReceived, true); err != nil {
+		if _, err := recordCanonicalUserView(tx, fromAggregate, toAggregate, true); err != nil {
 			return err
 		}
 
-		hadForwardMatch, err := userMatchDetailExists(tx, fromUserID, toUserID, models.EngagementKindMatched)
+		matched, newMatch, err = syncMutualUserMatch(tx, fromAggregate, toAggregate)
 		if err != nil {
-			return err
-		}
-		hadReverseMatch, err := userMatchDetailExists(tx, toUserID, fromUserID, models.EngagementKindMatched)
-		if err != nil {
-			return err
-		}
-		otherUserLikes, err := userMatchDetailExists(tx, toUserID, fromUserID, models.EngagementKindLikeGiven)
-		if err != nil {
-			return err
-		}
-		matched = reaction.IsLike() && otherUserLikes
-		newMatch = matched && !hadForwardMatch && !hadReverseMatch
-
-		if err := setCanonicalMatchDetail(tx, fromAggregate, toAggregate, fromUserID, toUserID, models.EngagementKindMatched, matched); err != nil {
-			return err
-		}
-		if err := setCanonicalMatchDetail(tx, toAggregate, fromAggregate, toUserID, fromUserID, models.EngagementKindMatched, matched); err != nil {
 			return err
 		}
 		if err := syncMatchingAggregateCounts(tx, fromAggregate); err != nil {
 			return err
 		}
-		return syncMatchingAggregateCounts(tx, toAggregate)
+		if err := syncMatchingAggregateCounts(tx, toAggregate); err != nil {
+			return err
+		}
+		if newMatch {
+			return enqueueMatchNotifications(tx, fromUserID, toUserID)
+		}
+		return nil
 	})
 	if err != nil {
 		return false, err
 	}
 
-	if newMatch {
-		m.notifyNewMatch(fromUserID, toUserID, identities)
-	}
 	return matched, nil
-}
-
-func (m *MatchesRepository) notifyNewMatch(fromUserID, toUserID uuid.UUID, identities map[uuid.UUID]matchUserIdentity) {
-	if m.notificationRepo == nil {
-		return
-	}
-	fromUser, fromOK := identities[fromUserID]
-	toUser, toOK := identities[toUserID]
-	if !fromOK || !toOK {
-		return
-	}
-
-	for _, item := range []struct {
-		sender, receiver uuid.UUID
-		matchedPublicID  int64
-	}{
-		{sender: toUserID, receiver: fromUserID, matchedPublicID: toUser.PublicID},
-		{sender: fromUserID, receiver: toUserID, matchedPublicID: fromUser.PublicID},
-	} {
-		payload := notifications.NotificationPayload{
-			Data: map[string]string{"match_user_id": strconv.FormatInt(item.matchedPublicID, 10)},
-		}
-		if _, err := m.notificationRepo.CreateNotification(item.sender, item.receiver, string(notifications.NotificationTypeNewMatch), "It's a Match!", "You have a new match.", payload); err != nil {
-			helpers.Println("Failed to create match notification for user", item.receiver, ":", err)
-		}
-	}
 }
 
 const matchPublicUserProjection = `
@@ -387,20 +402,6 @@ const unseenPublicUserProjection = `
 	avatar_file.url AS avatar_url,
 	avatar_file.variants AS avatar_variants
 `
-
-const matchBlockExclusionSQL = `NOT EXISTS (
-	SELECT 1
-	FROM engagement_details AS block_detail
-	JOIN engagements AS block_aggregate
-	  ON block_aggregate.id = block_detail.engagement_id
-	 AND block_aggregate.contentable_type = 'user'
-	WHERE block_detail.kind = 'blocking'
-	  AND (
-		(block_detail.engager_id = ? AND block_detail.engagee_id = users.id)
-		OR
-		(block_detail.engager_id = users.id AND block_detail.engagee_id = ?)
-	  )
-)`
 
 func normalizedMatchLimit(limit int) int {
 	if limit <= 0 {
@@ -438,9 +439,8 @@ func (m *MatchesRepository) matchListPage(
 		Joins("JOIN engagements AS relationship_aggregate ON relationship_aggregate.id = engagement_details.engagement_id AND relationship_aggregate.contentable_type = ?", models.EngagementContentableTypeUser).
 		Joins("JOIN users ON users.id = engagement_details.engagee_id").
 		Where("engagement_details.engager_id = ? AND engagement_details.kind = ?", userID, kind).
-		Where("users.domain = (SELECT auth_user.domain FROM users AS auth_user WHERE auth_user.id = ?)", userID).
-		Where(matchBlockExclusionSQL, userID, userID)
-	query = applyMatchPublicUserJoins(query)
+		Where("users.domain = (?)", userDomainSubquery(m.db, userID))
+	query = applyMatchPublicUserJoins(userBlockScope(query, userID, "users"))
 	query = publicUserVisibilityScope(query)
 
 	if cursor != nil {
@@ -505,34 +505,49 @@ func (m *MatchesRepository) GetUnseenUsers(
 	ctx context.Context,
 	userID uuid.UUID,
 	limit int,
+	options ...domainuser.MatchCriteria,
 ) ([]types.PublicUserSummary, error) {
+	criteria := domainuser.MatchCriteria{}
+	if len(options) > 1 {
+		return nil, domainuser.ErrInvalidMatchCriteria
+	}
+	if len(options) == 1 {
+		criteria = options[0]
+	}
+	if err := criteria.Validate(); err != nil {
+		return nil, err
+	}
 
 	limit = normalizedMatchLimit(limit)
 	recentlySeen := m.db.
 		Table("engagement_details AS seen_detail").
 		Select("seen_detail.engagee_id").
 		Joins("JOIN engagements AS seen_aggregate ON seen_aggregate.id = seen_detail.engagement_id AND seen_aggregate.contentable_type = ?", models.EngagementContentableTypeUser).
-		Where("seen_detail.engager_id = ? AND seen_detail.created_at >= NOW() - INTERVAL '24 hours' AND seen_detail.kind = ?", userID, models.EngagementKindViewGiven)
+		Where("seen_detail.engagee_id IS NOT NULL").
+		Where("seen_detail.engager_id = ? AND seen_detail.updated_at >= ? AND seen_detail.kind = ?", userID, time.Now().UTC().Add(-24*time.Hour), models.EngagementKindViewGiven)
 
 	query := m.db.WithContext(ctx).
 		Table("users").
 		Select(unseenPublicUserProjection).
 		Where("users.id != ?", userID).
 		Where("users.id NOT IN (?)", recentlySeen).
-		Where("users.domain = (SELECT auth_user.domain FROM users AS auth_user WHERE auth_user.id = ?)", userID).
-		Where(matchBlockExclusionSQL, userID, userID)
-	query = applyMatchPublicUserJoins(query)
-	query = publicUserVisibilityScope(query)
-
-	var rows []publicUserProjectionRow
-	if err := query.Order("users.public_id ASC").Limit(limit).Scan(&rows).Error; err != nil {
+		Where("users.id NOT IN (?)", userRelationshipTargets(m.db, userID, models.EngagementKindMatched, false)).
+		Where("users.domain = (?)", userDomainSubquery(m.db, userID))
+	var principal models.User
+	if err := m.db.WithContext(ctx).Preload("Location", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "contentable_id", "contentable_type", "latitude", "longitude")
+	}).First(&principal, "id = ?", userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []types.PublicUserSummary{}, nil
+		}
 		return nil, err
 	}
-	users := make([]types.PublicUserSummary, 0, len(rows))
-	for index := range rows {
-		users = append(users, rows[index].summaryView())
+	query = publicUserVisibilityScope(userBlockScope(query, userID, "users")).Model(&models.User{})
+	ids, err := rankMatchingUsers(query, principal, criteria, limit)
+	if err != nil {
+		return nil, err
 	}
-	return users, nil
+	return matchingSummaryPage(m.db.WithContext(ctx), userID, ids)
 }
 
 func (m *MatchesRepository) GetPassesAfter(
@@ -542,4 +557,51 @@ func (m *MatchesRepository) GetPassesAfter(
 	limit int,
 ) (types.MatchListPage, error) {
 	return m.matchListPage(ctx, userID, models.EngagementKindDislikeGiven, cursor, limit)
+}
+
+func (m *MatchesRepository) RemoveMatch(ctx context.Context, actorID, targetID uuid.UUID) error {
+	if actorID == uuid.Nil || targetID == uuid.Nil {
+		return domainuser.ErrInvalidMatchReaction
+	}
+	if actorID == targetID {
+		return domainuser.ErrSelfInteraction
+	}
+	return m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := lockUserEngagementAggregates(tx, actorID, targetID); err != nil {
+			return err
+		}
+		actor, err := loadUserEngagementAggregate(tx, actorID)
+		if err != nil {
+			return err
+		}
+		target, err := loadUserEngagementAggregate(tx, targetID)
+		if err != nil {
+			return err
+		}
+		if actor == nil && target == nil {
+			return nil
+		}
+		actor, err = ensureUserEngagementAggregate(tx, actor, actorID)
+		if err != nil {
+			return err
+		}
+		target, err = ensureUserEngagementAggregate(tx, target, targetID)
+		if err != nil {
+			return err
+		}
+		pair, _ := domainuser.InteractionEngagementPair(domainuser.InteractionLike, true)
+		if err := setUserReaction(tx, actor, target, pair, false); err != nil {
+			return err
+		}
+		if err := setUserReaction(tx, target, actor, pair, false); err != nil {
+			return err
+		}
+		if _, _, err := syncMutualUserMatch(tx, actor, target); err != nil {
+			return err
+		}
+		if err := syncMatchingAggregateCounts(tx, actor); err != nil {
+			return err
+		}
+		return syncMatchingAggregateCounts(tx, target)
+	})
 }

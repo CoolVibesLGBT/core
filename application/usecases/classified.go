@@ -2,12 +2,12 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
+	"core/constants"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/post"
-	"fmt"
 )
 
 type ClassifiedService struct {
@@ -31,21 +31,20 @@ func (s *ClassifiedService) ServiceName() string {
 	return "ClassifiedService"
 }
 
-func (s *ClassifiedService) CreateClassified(context context.Context, form ports.FormData, author *models.User) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(post.PostKindClassified), nil)
+func (s *ClassifiedService) CreateClassified(context context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*types.PublicPost, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, values, files, author, string(post.PostKindClassified), nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
+	return s.postRepo.FindPublicPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *ClassifiedService) GetClassified(filters types.Filter) (*types.PublicPost, error) {
 	postData, err := s.listingsRepo.GetClassified(filters)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
-	result := legacyviews.ProjectPublicPost(*postData)
-	return &result, nil
+	return postData, nil
 }
 
 func (s *ClassifiedService) GetJobOffers(filters types.Filter) (types.PublicPostPage, error) {
@@ -53,7 +52,7 @@ func (s *ClassifiedService) GetJobOffers(filters types.Filter) (types.PublicPost
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
+	return result, nil
 }
 
 func (s *ClassifiedService) GetJobSearches(filters types.Filter) (types.PublicPostPage, error) {
@@ -61,5 +60,5 @@ func (s *ClassifiedService) GetJobSearches(filters types.Filter) (types.PublicPo
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
+	return result, nil
 }

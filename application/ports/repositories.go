@@ -2,8 +2,8 @@ package ports
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/types"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 	domainwallet "core/domain/wallet"
 	"core/models"
@@ -27,12 +27,13 @@ type UserRepository interface {
 	ExistsByUsername(username string) (bool, error)
 	ExistsByEmail(email string) (bool, error)
 	Create(user *models.User) error
+	CreateRegisteredUser(ctx context.Context, user *models.User, referral *domainuser.Referral) error
 	GetByID(userID uuid.UUID) (*models.User, error)
 	GetByNameOrMailWithoutRelations(input string) (*models.User, error)
 	GetByUserNameOrEmailOrUsername(input string) (*models.User, error)
 	GetUserByPublicIdWithoutRelations(filters types.Filter) (*models.User, error)
 	GetUserByUUIDdWithoutRelations(filters types.Filter) (*models.User, error)
-	GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error)
+	GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error)
 	GetUsersStartingWith(letter string, limit int) ([]models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(filters types.Filter) error
@@ -58,7 +59,7 @@ type PublicUserSearchReader interface {
 }
 
 type MediaRepository interface {
-	AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file UploadedFile) (*media.Media, error)
+	AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file *domainmedia.UploadedFile) (*media.Media, error)
 }
 
 type MediaFileAccess struct {
@@ -88,19 +89,9 @@ type MediaAccessRepository interface {
 }
 
 type PostRepository interface {
-	CreateContentablePost(ctx context.Context, form FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error)
-	GetPostByID(id uuid.UUID) (*post.Post, error)
-	GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error)
-	GetPostBySlug(filters types.Filter) (*post.Post, error)
-	GetPostByPublicID(id int64) (*post.Post, error)
-	GetTimeline(filters types.Filter) (legacyviews.TimelineResult, error)
-	FindPostsByKind(filters types.Filter) (legacyviews.PostsResult, error)
-	GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error)
-	GetUserPosts(userID uuid.UUID, filters types.Filter) ([]post.Post, error)
-	GetUserPostReplies(filters types.Filter) ([]post.Post, error)
-	GetUserMedias(filters types.Filter) ([]legacyviews.MediaWithUser, *int64, error)
+	PublicPostReader
+	CreateContentablePost(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error)
 	GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error)
-	GetTimelineVibes(filters types.Filter) (legacyviews.TimelineResult, error)
 	Vote(ctx context.Context, choiceID uuid.UUID, weight int, rank int, userID uuid.UUID) error
 	SetEventRSVP(ctx context.Context, postPublicID int64, userID uuid.UUID, status *postpayloads.EventAttendanceStatus) (*postpayloads.EventRSVPResult, error)
 	Like(filters types.Filter) error
@@ -119,12 +110,12 @@ type EngagementRepository interface {
 	ToggleEngagement(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) (bool, error)
 	RecordViewOnce(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind, contentableID uuid.UUID, contentableType models.EngagementContentableType) (bool, error)
 	HasUserEngaged(ctx context.Context, engagerID uuid.UUID, engageeID uuid.UUID, kind models.EngagementKind) (bool, error)
-	GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error)
+	GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *types.MatchListCursor, limit int, viewers ...uuid.UUID) ([]models.EngagementDetail, *types.MatchListCursor, error)
 }
 
 type NotificationRepository interface {
-	SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error
-	FetchAndMarkShownNotifications(userID uuid.UUID, limit int) ([]notifications.Notification, error)
+	SendNotificationToUser(ctx context.Context, sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error
+	FetchAndMarkShownNotifications(ctx context.Context, userID uuid.UUID, limit int) ([]notifications.Notification, error)
 }
 
 type NotificationReadMarker interface {
@@ -132,26 +123,27 @@ type NotificationReadMarker interface {
 }
 
 type NewsRepository interface {
-	GetNews(filters types.Filter) (legacyviews.PostsResult, error)
-	Get(filters types.Filter) (*post.Post, error)
+	GetNews(filters types.Filter) (types.PublicPostPage, error)
+	Get(filters types.Filter) (*types.PublicPost, error)
 	IsNewsExists(filters types.Filter) (bool, error)
 	Categories(filters types.Filter) ([]*taxonomy.Pillar, error)
 	Category(filters types.Filter) (*taxonomy.Pillar, error)
 }
 
 type PlaceRepository interface {
-	GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error)
+	GetNearByPlaces(filters types.Filter) ([]types.PublicPost, types.Cursor, error)
 	GetPlacesCategories(filters types.Filter) ([]taxonomy.Pillar, error)
 }
 
 type ListingRepository interface {
-	GetClassified(filters types.Filter) (*post.Post, error)
-	GetJobOffers(filters types.Filter) (legacyviews.PostsResult, error)
-	GetJobSearches(filters types.Filter) (legacyviews.PostsResult, error)
+	GetClassified(filters types.Filter) (*types.PublicPost, error)
+	GetJobOffers(filters types.Filter) (types.PublicPostPage, error)
+	GetJobSearches(filters types.Filter) (types.PublicPostPage, error)
 }
 
 type MatchesRepository interface {
-	GetUnseenUsers(ctx context.Context, userID uuid.UUID, limit int) ([]types.PublicUserSummary, error)
+	RemoveMatch(ctx context.Context, userID, targetID uuid.UUID) error
+	GetUnseenUsers(ctx context.Context, userID uuid.UUID, limit int, criteria ...domainuser.MatchCriteria) ([]types.PublicUserSummary, error)
 	RecordView(ctx context.Context, userID uuid.UUID, targetID uuid.UUID, reaction domainuser.MatchReaction) (bool, error)
 	GetMatchesAfter(ctx context.Context, userID uuid.UUID, cursor *types.MatchListCursor, limit int) (types.MatchListPage, error)
 	GetLikesAfter(ctx context.Context, userID uuid.UUID, cursor *types.MatchListCursor, limit int) (types.MatchListPage, error)
@@ -162,15 +154,19 @@ type MatchesRepository interface {
 // commands. Services must not depend on the full persistence-shaped user
 // repository merely to translate a public identifier.
 type UserPublicIDResolver interface {
-	GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error)
+	GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error)
 }
 
 type ChatRepository interface {
+	CreateGroupChat(ctx context.Context, creatorID uuid.UUID, participantIDs []uuid.UUID, title, description *utils.LocalizedString) (*chat.Chat, error)
+	AddParticipant(ctx context.Context, actor *models.User, chatID, userID uuid.UUID) error
+	RemoveParticipant(ctx context.Context, actor *models.User, chatID, userID uuid.UUID) error
+	GetParticipants(ctx context.Context, actor *models.User, chatID uuid.UUID) ([]chat.ChatParticipant, error)
 	SendTypingEvent(chatID, userID uuid.UUID, typing bool) error
 	GetPrivateChatBetweenUsers(fromUser, toUser uuid.UUID) (*chat.Chat, error)
 	CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Chat, error)
 	ListChats(ctx context.Context, query ChatListQuery) (ChatListPage, error)
-	AddMessageToChat(ctx context.Context, form FormData, author *models.User) (*post.Post, error)
+	AddMessageToChat(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*post.Post, error)
 	ListChatMessages(ctx context.Context, query ChatMessageListQuery) (ChatMessageListPage, error)
 	PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error
 	UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error

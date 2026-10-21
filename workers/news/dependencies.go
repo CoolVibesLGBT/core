@@ -2,10 +2,9 @@ package news
 
 import (
 	"context"
-	"core/application/ports"
 	"core/application/types"
+	domainmedia "core/domain/media"
 	"core/models"
-	"core/models/post"
 	"errors"
 )
 
@@ -17,12 +16,12 @@ type UserService interface {
 // NewsService is the minimum application boundary needed to publish an item.
 type NewsService interface {
 	IsNewsExists(types.Filter) (bool, error)
-	CreateNews(context.Context, ports.FormData, *models.User) (*post.Post, error)
+	CreateNews(context.Context, map[string][]string, []*domainmedia.UploadedFile, *models.User) (*types.PublicPost, error)
 }
 
 // Notifier is an optional outbound notification boundary.
 type Notifier interface {
-	SendNews(*post.Post) error
+	SendNews(post *types.PublicPost, localImages []string) error
 }
 
 // Dependencies are assembled by the infrastructure composition root.

@@ -40,6 +40,10 @@ const (
 	CMD_CHAT_MESSAGE_OPENED         = "chat.message_opened"
 	CMD_CHAT_MESSAGE_EXPIRED        = "chat.message_expired"
 	CMD_CHAT_CREATE                 = "chat.create"
+	CMD_CHAT_PARTICIPANT_ADD        = "chat.participant.add"
+	CMD_CHAT_PARTICIPANT_REMOVE     = "chat.participant.remove"
+	CMD_CHAT_PARTICIPANTS_FETCH     = "chat.participants.fetch"
+	CMD_CHAT_PARTICIPANTS_CHANGED   = "chat.participants.changed"
 	CMD_TYPING                      = "chat.typing"
 	CMD_SEND_MESSAGE                = "chat.send_message"
 	CMD_EDIT_MESSAGE                = "chat.edit_message"
@@ -91,9 +95,15 @@ const (
 	CMD_USER_FETCH_FOLLOWINGS = "user.fetch.followings"
 	CMD_USER_FETCH_FOLLOWERS  = "user.fetch.followers"
 
-	CMD_USER_FOLLOW        = "user.follow"
-	CMD_USER_UNFOLLOW      = "user.unfollow"
-	CMD_USER_TOGGLE_FOLLOW = "user.follow.toggle"
+	CMD_USER_FOLLOW          = "user.follow"
+	CMD_USER_UNFOLLOW        = "user.unfollow"
+	CMD_USER_TOGGLE_FOLLOW   = "user.follow.toggle"
+	CMD_USER_FRIEND_REQUEST  = "user.friend.request"
+	CMD_USER_FRIEND_RESPOND  = "user.friend.respond"
+	CMD_USER_FRIEND_CANCEL   = "user.friend.cancel"
+	CMD_USER_FRIEND_REMOVE   = "user.friend.remove"
+	CMD_USER_FRIEND_FETCH    = "user.friend.fetch"
+	CMD_USER_FRIEND_REQUESTS = "user.friend.requests"
 
 	CMD_USER_LIKE           = "user.like"
 	CMD_USER_DISLIKE        = "user.dislike"
@@ -191,8 +201,8 @@ const (
 	CMD_BROADCASTS_VIEW   = "broadcast.view"
 	CMD_BROADCASTS_CREATE = "broadcast.create"
 	CMD_BROADCASTS_LIKE   = "broadcast.like"
-	CMD_BROADCASTS_CHAT		= "broadcast.chat"
-	CMD_BROADCAST_GIFT		= "broadcast.gift"
+	CMD_BROADCASTS_CHAT   = "broadcast.chat"
+	CMD_BROADCAST_GIFT    = "broadcast.gift"
 )
 
 /*
@@ -217,3 +227,13 @@ func main() {
 	}
 }
 */
+
+const (
+	CMD_BROADCAST_SESSION_START     = "broadcast.session.start"
+	CMD_BROADCAST_SESSION_HEARTBEAT = "broadcast.session.heartbeat"
+	CMD_BROADCAST_SESSION_END       = "broadcast.session.end"
+	CMD_BROADCAST_SESSION_FETCH     = "broadcast.session.fetch"
+	CMD_USER_REFERRAL_FETCH         = "user.referral.fetch"
+	CMD_ADMIN_REFERRAL_FETCH        = "admin.referral.fetch"
+	CMD_ADMIN_REFERRAL_REVIEW       = "admin.referral.review"
+)

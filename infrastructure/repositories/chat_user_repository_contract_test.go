@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"context"
+	upload "core/adapters/media"
 	"core/application/ports"
 	"core/application/types"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/chat"
 	"core/models/media"
@@ -11,7 +13,6 @@ import (
 	modelutils "core/models/utils"
 	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 	"time"
@@ -19,15 +20,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-type chatContractUploadedFile struct{ mime string }
-
-func (f chatContractUploadedFile) Filename() string    { return "image.jpg" }
-func (f chatContractUploadedFile) Size() int64         { return 5 }
-func (f chatContractUploadedFile) ContentType() string { return f.mime }
-func (f chatContractUploadedFile) Open() (io.ReadCloser, error) {
-	return io.NopCloser(strings.NewReader("image")), nil
-}
 
 func TestChatMessagesByChatIDQueryFiltersDeletedMessagesAndClearTime(t *testing.T) {
 	db := newDryRunTaxonomyDB(t)
@@ -49,9 +41,9 @@ func TestChatMessagesByChatIDQueryFiltersDeletedMessagesAndClearTime(t *testing.
 		"posts.post_kind",
 		"posts.contentable_type",
 		"posts.contentable_id",
-		"NOT EXISTS",
-		"FROM engagements",
-		"JOIN engagement_details",
+		"NOT IN (",
+		"FROM \"engagements\"",
+		"FROM \"engagement_details\"",
 		"posts.created_at >",
 		"posts.expires_at IS NULL OR posts.expires_at >",
 	} {
@@ -89,11 +81,11 @@ func TestChatListPageQueryUsesCompositeCursorAndLimitPlusOne(t *testing.T) {
 
 	sql := tx.Statement.SQL.String()
 	for _, fragment := range []string{
-		"EXISTS",
-		"cp.user_id",
-		"cp.left_at IS NULL",
-		"NOT EXISTS",
-		"ed.engager_id",
+		"chats.id IN (",
+		"user_id =",
+		"left_at IS NULL",
+		"NOT IN (",
+		"engager_id =",
 		"COALESCE(chats.last_message_timestamp, chats.created_at) <",
 		"chats.id <",
 		"ORDER BY COALESCE(chats.last_message_timestamp, chats.created_at) DESC, chats.id DESC",
@@ -167,35 +159,35 @@ func TestChatMessagePageQueryUsesPublicIDCursorAndLimitPlusOne(t *testing.T) {
 }
 
 func TestValidateMessageFormRequiresTextOrAttachment(t *testing.T) {
-	if err := validateMessageForm(ports.FormData{Values: map[string][]string{"content": {"  "}}}); err != chat.ErrEmptyMessage {
+	if err := validateMessageForm(map[string][]string{"content": {"  "}}, nil); err != chat.ErrEmptyMessage {
 		t.Fatalf("validateMessageForm() error = %v, want %v", err, chat.ErrEmptyMessage)
 	}
-	if err := validateMessageForm(ports.FormData{Values: map[string][]string{"content": {"hello"}}}); err != nil {
+	if err := validateMessageForm(map[string][]string{"content": {"hello"}}, nil); err != nil {
 		t.Fatalf("text message should be valid: %v", err)
 	}
-	if err := validateMessageForm(ports.FormData{Files: []ports.UploadedFile{nil}}); err != nil {
+	if err := validateMessageForm(nil, []*domainmedia.UploadedFile{nil}); err != nil {
 		t.Fatalf("attachment message should be valid: %v", err)
 	}
 }
 
 func TestValidateMessageFormRequiresExactlyOneImageForViewOnce(t *testing.T) {
-	image := chatContractUploadedFile{mime: "image/jpeg"}
-	valid := ports.FormData{ViewOnce: true, ImageCount: 1, Files: []ports.UploadedFile{image}}
-	if err := validateMessageForm(valid); err != nil {
+	image := upload.FromBytes("image.jpg", "image/jpeg", []byte("image"))
+	values := map[string][]string{"view_once": {"true"}}
+	if err := validateMessageForm(values, []*domainmedia.UploadedFile{image}); err != nil {
 		t.Fatalf("valid view-once image rejected: %v", err)
 	}
-	unknownMIME := ports.FormData{ViewOnce: true, ImageCount: 1, Files: []ports.UploadedFile{chatContractUploadedFile{mime: "application/octet-stream"}}}
-	if err := validateMessageForm(unknownMIME); err != nil {
+	if err := validateMessageForm(values, []*domainmedia.UploadedFile{upload.FromBytes("image.jpg", "application/octet-stream", []byte("image"))}); err != nil {
 		t.Fatalf("image extension with generic browser MIME rejected: %v", err)
 	}
-	for name, form := range map[string]ports.FormData{
-		"no image":   {ViewOnce: true},
-		"two images": {ViewOnce: true, ImageCount: 2, Files: []ports.UploadedFile{image, image}},
-		"video":      {ViewOnce: true, VideoCount: 1, Files: []ports.UploadedFile{chatContractUploadedFile{mime: "video/mp4"}}},
-		"wrong mime": {ViewOnce: true, ImageCount: 1, Files: []ports.UploadedFile{chatContractUploadedFile{mime: "video/mp4"}}},
+	for name, files := range map[string][]*domainmedia.UploadedFile{
+		"no image":        nil,
+		"two images":      {image, image},
+		"video":           {upload.FromBytes("image.jpg", "video/mp4", []byte("image"))},
+		"image and video": {image, upload.FromBytes("image.jpg", "video/mp4", []byte("image"))},
+		"nil file":        {nil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if err := validateMessageForm(form); err != chat.ErrInvalidViewOnce {
+			if err := validateMessageForm(values, files); err != chat.ErrInvalidViewOnce {
 				t.Fatalf("error = %v, want %v", err, chat.ErrInvalidViewOnce)
 			}
 		})

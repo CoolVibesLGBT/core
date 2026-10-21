@@ -10,8 +10,11 @@ import (
 
 	"core/application/ports"
 	usecases "core/application/usecases"
+	"core/constants"
 	domainwallet "core/domain/wallet"
 	"core/models"
+	"io"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -118,5 +121,48 @@ func TestHandlePostTipMapsIdempotencyConflictToHTTP409(t *testing.T) {
 	}
 	if response.StatusCode != fiber.StatusConflict {
 		t.Fatalf("conflict status = %d, want 409", response.StatusCode)
+	}
+}
+
+func TestHandlePostTipMapsExpectedFinancialErrors(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		err    error
+		status int
+	}{
+		{"blocked", domainwallet.ErrTransferBlocked, fiber.StatusForbidden},
+		{"unavailable", domainwallet.ErrTransferUnavailable, fiber.StatusForbidden},
+		{"insufficient", errors.New(constants.ErrInsufficientBalance.String()), fiber.StatusBadRequest},
+		{"own post", errors.New(constants.ErrCannotTipOwnPost.String()), fiber.StatusBadRequest},
+		{"missing post", errors.New(constants.ErrPostNotFound.String()), fiber.StatusNotFound},
+		{"database", errors.New("sensitive database detail"), fiber.StatusInternalServerError},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repository := &tipHandlerPostRepository{err: test.err}
+			service := usecases.NewPostService(&handlerUserRepo{}, repository, &handlerMediaRepo{})
+			app := fiber.New()
+			app.Post("/", func(c fiber.Ctx) error {
+				c.Locals("authenticatedUser", &models.User{ID: uuid.New(), PublicID: 10})
+				return HandlePostTip(service)(c)
+			})
+			request := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("post_id=123&amount=2.25"))
+			request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationForm)
+			request.Header.Set("Idempotency-Key", "financial-error-test")
+			response, err := app.Test(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != test.status {
+				t.Fatalf("status %d, want %d", response.StatusCode, test.status)
+			}
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(string(body), "sensitive database detail") {
+				t.Fatal("database details leaked")
+			}
+		})
 	}
 }

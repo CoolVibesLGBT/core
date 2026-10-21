@@ -131,7 +131,6 @@ core/
 ├── application/
 │   ├── ports/               # Repository and external-system boundaries
 │   ├── types/               # Persistence-free application DTOs
-│   ├── legacyviews/         # Quarantined legacy response projections
 │   └── usecases/            # Application orchestration
 ├── domain/                  # Framework-independent business rules
 ├── infrastructure/

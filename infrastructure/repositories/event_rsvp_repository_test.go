@@ -6,13 +6,11 @@ import (
 	"core/models"
 	"core/models/post"
 	postpayloads "core/models/post/payloads"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -37,37 +35,25 @@ func TestEventAttendeePreloadSelectsOnlySafeProfileProjection(t *testing.T) {
 	}
 }
 
-func TestEventRSVPUsesEventLevelAdvisoryLock(t *testing.T) {
+func TestEventRSVPUsesEventLevelRowLock(t *testing.T) {
 	db := newDryRunTaxonomyDB(t).Session(&gorm.Session{SkipDefaultTransaction: true})
 	tx := lockEventRSVP(db, 123)
 	if tx.Error != nil {
 		t.Fatalf("lockEventRSVP() error = %v", tx.Error)
 	}
 	sql := strings.ToLower(tx.Statement.SQL.String())
-	if !strings.Contains(sql, "pg_advisory_xact_lock") || !strings.Contains(sql, "hashtextextended") {
+	if !strings.Contains(sql, "transaction_locks") || !strings.Contains(sql, "for update") {
 		t.Fatalf("RSVP write is not event-serialized: %s", tx.Statement.SQL.String())
 	}
 }
 
 func eventRSVPIntegrationDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	if dsn == "" && os.Getenv("ENV") == "test" {
-		dsn = os.Getenv("DATABASE_URL")
+	db := privatePhotoIntegrationDB(t)
+	if err := db.AutoMigrate(&post.Post{}, &postpayloads.Event{}, &postpayloads.EventAttendee{}, &models.ReportKind{}, &models.Report{}); err != nil {
+		t.Fatal(err)
 	}
-	if dsn == "" {
-		t.Skip("TEST_DATABASE_URL is not configured")
-	}
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("open test database: %v", err)
-	}
-	tx := db.Begin()
-	if tx.Error != nil {
-		t.Fatalf("begin test transaction: %v", tx.Error)
-	}
-	t.Cleanup(func() { tx.Rollback() })
-	return tx
+	return db
 }
 
 func TestSetEventRSVPChangesTogglesRepairsDuplicatesAndCounts(t *testing.T) {

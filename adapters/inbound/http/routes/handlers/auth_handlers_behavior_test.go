@@ -6,6 +6,7 @@ import (
 	"core/application/types"
 	usecases "core/application/usecases"
 	"core/constants"
+	domainuser "core/domain/user"
 	"core/models"
 	"core/models/media"
 	modelutils "core/models/utils"
@@ -50,6 +51,10 @@ func (r *authHandlerUserRepo) Create(user *models.User) error {
 	return nil
 }
 
+func (r *authHandlerUserRepo) CreateRegisteredUser(_ context.Context, user *models.User, _ *domainuser.Referral) error {
+	return r.Create(user)
+}
+
 func (r *authHandlerUserRepo) GetByID(userID uuid.UUID) (*models.User, error) {
 	r.requestedID = userID
 	if r.getByIDErr != nil {
@@ -71,7 +76,7 @@ func (r *authHandlerUserRepo) GetByUserNameOrEmailOrUsername(input string) (*mod
 	return nil, errors.New("user not found")
 }
 
-func (r *authHandlerUserRepo) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
+func (r *authHandlerUserRepo) GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error) {
 	return uuid.New(), nil
 }
 

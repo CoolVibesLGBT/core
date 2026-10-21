@@ -62,7 +62,7 @@ func HandleFetchBroadcasts(service *usecases.UserService) fiber.Handler {
 
 		isLive := true
 		filters.IsLive = &isLive
-		users, err := service.FetchLiveUsers(filters)
+		users, err := service.FetchPublicLiveUsers(filters)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrDatabaseError)
 		}
@@ -70,7 +70,7 @@ func HandleFetchBroadcasts(service *usecases.UserService) fiber.Handler {
 		var cursor types.Cursor
 		if len(users) > 0 {
 			last := users[len(users)-1]
-			nextCursor, cursorErr := types.NewPublicIDDistanceCursor(last.PublicID, filters.Distance)
+			nextCursor, cursorErr := types.NewPublicIDDistanceCursor(int64(last.PublicID), filters.Distance)
 			if cursorErr != nil {
 				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
 			}

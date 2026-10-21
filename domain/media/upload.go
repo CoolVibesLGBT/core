@@ -1,32 +1,38 @@
 package media
 
 import (
-	"errors"
+	"io"
 	"strings"
 )
 
-var (
-	ErrEmptyFilename = errors.New("uploaded file name cannot be empty")
-	ErrEmptyFile     = errors.New("uploaded file cannot be empty")
-)
-
+// UploadedFile is the shared input to the media pipeline, independent of its
+// HTTP, disk or memory source. Validate is called before persistence.
 type UploadedFile struct {
 	Filename    string
 	Size        int64
 	ContentType string
+	// Open supplies a fresh stream for each read without buffering the upload.
+	Open func() (io.ReadCloser, error) `json:"-"`
 }
 
-func NewUploadedFile(filename string, size int64, contentType string) (UploadedFile, error) {
-	file := UploadedFile{
+func NewUploadedFile(filename string, size int64, contentType string, open func() (io.ReadCloser, error)) *UploadedFile {
+	return &UploadedFile{
 		Filename:    strings.TrimSpace(filename),
 		Size:        size,
 		ContentType: strings.TrimSpace(contentType),
+		Open:        open,
 	}
-	if file.Filename == "" {
-		return UploadedFile{}, ErrEmptyFilename
+}
+
+func (file *UploadedFile) Validate() error {
+	if file == nil {
+		return ErrEmptyFile
 	}
-	if file.Size <= 0 {
-		return UploadedFile{}, ErrEmptyFile
+	if strings.TrimSpace(file.Filename) == "" {
+		return ErrEmptyFilename
 	}
-	return file, nil
+	if file.Size <= 0 || file.Open == nil {
+		return ErrEmptyFile
+	}
+	return nil
 }

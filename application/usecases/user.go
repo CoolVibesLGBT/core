@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 	"core/constants"
@@ -41,23 +40,6 @@ type UserService struct {
 	privatePhotoBlockRevoker ports.PrivatePhotoBlockRevoker
 	privatePhotoRealtime     ports.PrivatePhotoRealtimePublisher
 }
-
-var (
-	ErrPrivateViewEngagements   = errors.New("profile view engagements are private")
-	ErrCannotReportSelf         = domainmoderation.ErrCannotReportSelf
-	ErrUserIDRequired           = errors.New("user_id is required")
-	ErrCaptchaNotConfigured     = errors.New("captcha verifier is not configured")
-	ErrPasswordNotConfigured    = errors.New("password hasher is not configured")
-	ErrTokenIssuerNotConfigured = errors.New("token issuer is not configured")
-	ErrPublicIDNotConfigured    = errors.New("public ID generator is not configured")
-	ErrInvalidCredentials       = errors.New("invalid username/email/nickname or password")
-	ErrUsernameAlreadyExists    = domainuser.ErrUsernameAlreadyExists
-	ErrEmailAlreadyExists       = domainuser.ErrEmailAlreadyExists
-	ErrInvalidCurrentPassword   = errors.New("current password is invalid")
-	ErrLegacyPasswordField      = errors.New("password field is unsupported; use current_password, new_password, and new_password_confirmation")
-	ErrLocationCoordinates      = errors.New("both location latitude and longitude are required")
-	ErrInvalidLocationOwner     = errors.New("profile location contentable_type must be user")
-)
 
 type UserServiceOption func(*UserService)
 
@@ -172,7 +154,7 @@ func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*m
 		return nil, "", err
 	}
 	if !captchaValid {
-		return nil, "", errors.New("invalid captcha")
+		return nil, "", constants.ErrInvalidCaptcha
 	}
 
 	usernameExists, err := s.userRepo.ExistsByUsername(registration.Nickname)
@@ -195,7 +177,7 @@ func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*m
 
 	hash, err := s.hashPassword(registration.Password)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create hash password: %w", err)
+		return nil, "", constants.ErrPasswordHashFailed.Format(err)
 	}
 
 	publicID, err := s.generatePublicID()
@@ -217,17 +199,35 @@ func (s *UserService) RegisterUser(ctx context.Context, input RegisterInput) (*m
 		IsPremium:   false,
 	}
 
-	if err := s.userRepo.Create(userObj); err != nil {
-		return nil, "", err
+	var referral *domainuser.Referral
+	if strings.TrimSpace(input.Referral) != "" {
+		referrer, err := s.resolveReferralUser(ctx, input.Referral)
+		if err != nil {
+			if errors.Is(err, ports.ErrNotFound) {
+				return nil, "", domainuser.ErrInvalidReferralCode
+			}
+			return nil, "", fmt.Errorf("%w: %w", ports.ErrRegistrationPersistence, err)
+		}
+		if referrer == nil {
+			return nil, "", domainuser.ErrInvalidReferralCode
+		}
+		value, err := domainuser.NewReferral(referrer.ID, userID, constants.DEFAULT_REFERRAL_REWARD)
+		if err != nil {
+			return nil, "", err
+		}
+		referral = &value
+	}
+
+	if err := s.userRepo.CreateRegisteredUser(ctx, userObj, referral); err != nil {
+		if errors.Is(err, domainuser.ErrReferralUnavailable) {
+			return nil, "", err
+		}
+		return nil, "", fmt.Errorf("%w: %w", ports.ErrRegistrationPersistence, err)
 	}
 
 	userInfo, err := s.GetUserByID(userObj.ID)
 	if err != nil {
 		return nil, "", err
-	}
-
-	if input.Referral != "" {
-		s.applyReferral(ctx, input.Referral, userInfo.ID)
 	}
 
 	if err := s.publishEvent(ctx, domainuser.NewRegisteredEvent(userObj.ID.String(), userObj.PublicID, registration.Domain, time.Now().UTC())); err != nil {
@@ -315,24 +315,10 @@ func (s *UserService) publishEvent(ctx context.Context, event domainevents.Event
 	return s.eventPublisher.Publish(ctx, event)
 }
 
-func (s *UserService) applyReferral(ctx context.Context, referral string, userID uuid.UUID) {
-	referralUser, err := s.resolveReferralUser(ctx, referral)
-	if err != nil {
-		return
-	}
-	if referralUser.ID == userID {
-		return
-	}
-
-	if _, err := s.userRepo.AddReferral(ctx, referralUser.ID, userID, constants.DEFAULT_REFERRAL_REWARD); err != nil {
-		return
-	}
-}
-
 func (s *UserService) resolveReferralUser(ctx context.Context, referral string) (*models.User, error) {
 	referral = strings.TrimSpace(referral)
 	if referral == "" {
-		return nil, errors.New("referral is empty")
+		return nil, constants.ErrReferralEmpty
 	}
 
 	if referralID, err := strconv.ParseInt(referral, 10, 64); err == nil {
@@ -363,9 +349,18 @@ func (s *UserService) FetchPublicUserProfileByUsername(ctx context.Context, user
 		return nil, err
 	}
 	if !isPublicDiscoverableUser(user) {
-		return nil, errors.New(constants.ErrUserNotFound.String())
+		return nil, constants.ErrUserNotFound
 	}
 	return publicUserProfileFromModel(user), nil
+}
+
+func (s *UserService) FetchUserProfileForViewer(ctx context.Context, username string, viewer *models.User) (*types.PublicUserProfile, error) {
+	if viewer != nil && viewer.ID != uuid.Nil {
+		if reader, ok := s.userRepo.(ports.ViewerUserProfileReader); ok {
+			return reader.FetchUserProfileForViewer(ctx, username, viewer.ID)
+		}
+	}
+	return s.FetchPublicUserProfileByUsername(ctx, username)
 }
 
 func (s *UserService) GetUserByPublicID(ctx context.Context, publicID int64) (*models.User, error) {
@@ -384,7 +379,7 @@ func (s *UserService) ViewProfile(ctx context.Context, authUser *models.User, ta
 		return false, err
 	}
 	if target == nil {
-		return false, errors.New(constants.ErrUserNotFound.String())
+		return false, constants.ErrUserNotFound
 	}
 	if target.ID == authUser.ID {
 		return false, nil
@@ -420,13 +415,13 @@ func (s *UserService) CreateBotUser(ctx context.Context, userObj *models.User) (
 	return userObj, nil
 }
 
-func (s *UserService) UpdateAvatar(ctx context.Context, file ports.UploadedFile, user *models.User) (*media.Media, error) {
+func (s *UserService) UpdateAvatar(ctx context.Context, file *domainmedia.UploadedFile, user *models.User) (*media.Media, error) {
 	if user == nil || user.ID == uuid.Nil {
-		return nil, errors.New("authenticated user is required")
+		return nil, constants.ErrAuthenticatedUserRequired
 	}
 	persistedUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: user.ID})
 	if err != nil {
-		return nil, fmt.Errorf("failed to load user for avatar update: %w", err)
+		return nil, constants.ErrAvatarUserLookupFailed.Format(err)
 	}
 
 	newMedia, err := s.mediaRepo.AddMedia(
@@ -437,7 +432,7 @@ func (s *UserService) UpdateAvatar(ctx context.Context, file ports.UploadedFile,
 		file,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+		return nil, constants.ErrAvatarUploadFailed.Format(err)
 	}
 
 	// User tablosunu güncelle
@@ -445,14 +440,14 @@ func (s *UserService) UpdateAvatar(ctx context.Context, file ports.UploadedFile,
 	persistedUser.Avatar = newMedia
 
 	if err := s.userRepo.UpdateUser(persistedUser); err != nil {
-		return nil, fmt.Errorf("failed to update user avatar: %w", err)
+		return nil, constants.ErrAvatarUpdateFailed.Format(err)
 	}
 	return newMedia, nil
 }
 
 func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, user *models.User) (*media.Media, error) {
 	if s.remoteImage == nil {
-		return nil, errors.New("remote image fetcher is not configured")
+		return nil, constants.ErrRemoteImageFetcherNotConfigured
 	}
 
 	file, err := s.remoteImage.FetchImage(ctx, imgUrl)
@@ -463,13 +458,13 @@ func (s *UserService) UpdateAvatarFromURL(ctx context.Context, imgUrl string, us
 	return s.UpdateAvatar(ctx, file, user)
 }
 
-func (s *UserService) UpdateCover(ctx context.Context, file ports.UploadedFile, user *models.User) (*media.Media, error) {
+func (s *UserService) UpdateCover(ctx context.Context, file *domainmedia.UploadedFile, user *models.User) (*media.Media, error) {
 	if user == nil || user.ID == uuid.Nil {
-		return nil, errors.New("authenticated user is required")
+		return nil, constants.ErrAuthenticatedUserRequired
 	}
 	persistedUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: user.ID})
 	if err != nil {
-		return nil, fmt.Errorf("failed to load user for cover update: %w", err)
+		return nil, constants.ErrCoverUserLookupFailed.Format(err)
 	}
 
 	newMedia, err := s.mediaRepo.AddMedia(
@@ -480,47 +475,47 @@ func (s *UserService) UpdateCover(ctx context.Context, file ports.UploadedFile, 
 		file,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload cover: %w", err)
+		return nil, constants.ErrCoverUploadFailed.Format(err)
 	}
 	persistedUser.CoverID = &newMedia.ID
 	persistedUser.Cover = newMedia
 
 	if err := s.userRepo.UpdateUser(persistedUser); err != nil {
-		return nil, fmt.Errorf("failed to update user cover: %w", err)
+		return nil, constants.ErrCoverUpdateFailed.Format(err)
 	}
 	return newMedia, nil
 }
 
-func (s *UserService) AddStory(ctx context.Context, form ports.FormData, user *models.User) (*post.Post, error) {
-	form.Values = cloneFormValues(form.Values)
-	if form.Values == nil {
-		form.Values = make(map[string][]string)
+func (s *UserService) AddStory(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, user *models.User) (*types.PublicPost, error) {
+	values = cloneFormValues(values)
+	if values == nil {
+		values = make(map[string][]string)
 	}
 
-	if caption := firstFormValue(form.Values, "caption"); caption != "" && firstFormValue(form.Values, "content") == "" {
-		form.Values["content"] = []string{caption}
+	if caption := firstFormValue(values, "caption"); caption != "" && firstFormValue(values, "content") == "" {
+		values["content"] = []string{caption}
 	}
-	if firstFormValue(form.Values, "audience") == "" {
-		form.Values["audience"] = []string{"public"}
+	if firstFormValue(values, "audience") == "" {
+		values["audience"] = []string{"public"}
 	}
-	if firstFormValue(form.Values, "slug") == "" && firstFormValue(form.Values, "title") == "" {
-		form.Values["slug"] = []string{fmt.Sprintf("story-%d", time.Now().UnixNano())}
+	if firstFormValue(values, "slug") == "" && firstFormValue(values, "title") == "" {
+		values["slug"] = []string{fmt.Sprintf("story-%d", time.Now().UnixNano())}
 	}
-	if firstFormValue(form.Values, "extras") == "" {
+	if firstFormValue(values, "extras") == "" {
 		extras, err := json.Marshal(map[string]string{
 			"expires_at": time.Now().Add(24 * time.Hour).UTC().Format(time.RFC3339),
 		})
 		if err != nil {
 			return nil, err
 		}
-		form.Values["extras"] = []string{string(extras)}
+		values["extras"] = []string{string(extras)}
 	}
 
-	createdPost, err := s.postRepo.CreateContentablePost(ctx, form, user, string(post.PostKindStory), nil)
+	createdPost, err := s.postRepo.CreateContentablePost(ctx, values, files, user, string(post.PostKindStory), nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByIDIncludingUnpublished(createdPost.ID)
+	return s.postRepo.FindPublicPostByIDIncludingUnpublished(createdPost.ID)
 }
 
 func cloneFormValues(values map[string][]string) map[string][]string {
@@ -544,22 +539,22 @@ func firstFormValue(values map[string][]string, key string) string {
 
 func (s *UserService) UpsertUserPreference(ctx context.Context, userID uuid.UUID, preferenceItemID string, enabled bool) error {
 	if userID == uuid.Nil {
-		return errors.New("authenticated user is required")
+		return constants.ErrAuthenticatedUserRequired
 	}
 	err := s.userRepo.UpsertUserPreference(ctx, userID, preferenceItemID, enabled)
 	if err != nil {
-		return fmt.Errorf("failed to upsert user attribute: %w", err)
+		return constants.ErrUserAttributeUpsertFailed.Format(err)
 	}
 	return err
 }
 
 func (s *UserService) GetAllStories(filters types.Filter) (types.PublicPostPage, error) {
 	filters.PostKind = post.PostKindStory
-	result, err := s.postRepo.GetPostsByKind(filters)
+	result, err := s.postRepo.FetchPublicPostsByKind(filters)
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
+	return result, nil
 }
 
 func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]types.NearbyUser, *float64, error) {
@@ -580,6 +575,38 @@ func (s *UserService) FetchNearbyUsers(filters types.Filter) ([]types.NearbyUser
 
 func (s *UserService) FetchLiveUsers(filters types.Filter) ([]*models.User, error) {
 	return s.userRepo.FetchLiveUsers(filters)
+}
+
+func (s *UserService) FetchPublicLiveUsers(filters types.Filter) ([]types.LiveUser, error) {
+	users, err := s.userRepo.FetchLiveUsers(filters)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]types.LiveUser, 0, len(users))
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		row := types.LiveUser{PublicUserSummary: publicUserSummaryFromModel(user), IsLive: user.IsLive, CanReceiveGifts: !user.IsBot}
+		if user.IsBot {
+			var metadata map[string]json.RawMessage
+			if json.Unmarshal(user.BroadcastInfo, &metadata) == nil {
+				row.BroadcastInfo = make(map[string]json.RawMessage)
+				// Viewer credentials are necessary for existing external playback. Never
+				// expose publisher credentials, ACLs, provider accounts or arbitrary data.
+				for _, key := range []string{"objectId", "provider", "streamDescription", "description", "currentViewers", "totalViewers", "totalLikes", "totalDiamonds", "broadcasterLifetimeDiamonds", "language", "viewerToken", "viewerTokenExpiration", "agoraAppId"} {
+					if value, ok := metadata[key]; ok {
+						row.BroadcastInfo[key] = value
+					}
+				}
+				_ = json.Unmarshal(metadata["provider"], &row.Provider)
+			}
+		} else {
+			row.Provider = "local"
+		}
+		result = append(result, row)
+	}
+	return result, nil
 }
 
 func (s *UserService) GetUsersStartingWith(letter string, limit int) ([]models.User, error) {
@@ -843,57 +870,60 @@ func (s *UserService) applyFollowIntent(ctx context.Context, followerID, followe
 		return transition.Enabled, nil
 	}
 
-	if transition.Enabled {
-		// Follow started
-		notificationTitleToFollowee := "New Follower"
-		notificationBodyToFollowee := followerUser.UserName + " started following you."
+	if !s.socialNotificationsTransactional() {
+		if transition.Enabled {
+			// Follow started
+			notificationTitleToFollowee := "New Follower"
+			notificationBodyToFollowee := followerUser.UserName + " started following you."
 
-		payloadToFollowee := notifications.NotificationPayload{
-			Title: notificationTitleToFollowee,
-			Body:  notificationBodyToFollowee,
-		}
-		err := s.notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
-		if err != nil {
-			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+			payloadToFollowee := notifications.NotificationPayload{
+				Title: notificationTitleToFollowee,
+				Body:  notificationBodyToFollowee,
+			}
+			err := s.notificationRepo.SendNotificationToUser(ctx, *followerUser, *followeeUser, notifications.NotificationTypeFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+			if err != nil {
+				fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+			}
+
+			notificationTitleToFollower := "Follow Started"
+			notificationBodyToFollower := "You started following " + followeeUser.UserName + "."
+
+			payloadToFollower := notifications.NotificationPayload{
+				Title: notificationTitleToFollower,
+				Body:  notificationBodyToFollower,
+			}
+			err = s.notificationRepo.SendNotificationToUser(ctx, *followeeUser, *followerUser, notifications.NotificationTypeFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+			if err != nil {
+				fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+			}
+
+		} else {
+			// Follow stopped
+			notificationTitleToFollowee := "Unfollowed"
+			notificationBodyToFollowee := followerUser.UserName + " unfollowed you."
+
+			payloadToFollowee := notifications.NotificationPayload{
+				Title: notificationTitleToFollowee,
+				Body:  notificationBodyToFollowee,
+			}
+			err := s.notificationRepo.SendNotificationToUser(ctx, *followerUser, *followeeUser, notifications.NotificationTypeUnFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
+			if err != nil {
+				fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
+			}
+
+			notificationTitleToFollower := "Unfollowed"
+			notificationBodyToFollower := "You unfollowed " + followeeUser.UserName + "."
+
+			payloadToFollower := notifications.NotificationPayload{
+				Title: notificationTitleToFollower,
+				Body:  notificationBodyToFollower,
+			}
+			err = s.notificationRepo.SendNotificationToUser(ctx, *followeeUser, *followerUser, notifications.NotificationTypeUnFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
+			if err != nil {
+				fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
+			}
 		}
 
-		notificationTitleToFollower := "Follow Started"
-		notificationBodyToFollower := "You started following " + followeeUser.UserName + "."
-
-		payloadToFollower := notifications.NotificationPayload{
-			Title: notificationTitleToFollower,
-			Body:  notificationBodyToFollower,
-		}
-		err = s.notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
-		if err != nil {
-			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
-		}
-
-	} else {
-		// Follow stopped
-		notificationTitleToFollowee := "Unfollowed"
-		notificationBodyToFollowee := followerUser.UserName + " unfollowed you."
-
-		payloadToFollowee := notifications.NotificationPayload{
-			Title: notificationTitleToFollowee,
-			Body:  notificationBodyToFollowee,
-		}
-		err := s.notificationRepo.SendNotificationToUser(*followerUser, *followeeUser, notifications.NotificationTypeUnFollow, notificationTitleToFollowee, notificationBodyToFollowee, payloadToFollowee)
-		if err != nil {
-			fmt.Printf("Failed to send notification to user %d: %v\n", followeeUser.ID, err)
-		}
-
-		notificationTitleToFollower := "Unfollowed"
-		notificationBodyToFollower := "You unfollowed " + followeeUser.UserName + "."
-
-		payloadToFollower := notifications.NotificationPayload{
-			Title: notificationTitleToFollower,
-			Body:  notificationBodyToFollower,
-		}
-		err = s.notificationRepo.SendNotificationToUser(*followeeUser, *followerUser, notifications.NotificationTypeUnFollow, notificationTitleToFollower, notificationBodyToFollower, payloadToFollower)
-		if err != nil {
-			fmt.Printf("Failed to send notification to user %d: %v\n", followerUser.ID, err)
-		}
 	}
 
 	if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(followerID, followeeID, domainuser.InteractionFollow, transition.Enabled, time.Now().UTC())); err != nil {
@@ -1120,6 +1150,9 @@ func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, like
 	if err != nil {
 		return isLike, false, err
 	}
+	if transition.NewMatch && !s.socialNotificationsTransactional() {
+		s.notifyNewUserMatch(ctx, likerUser, likeeUser)
+	}
 
 	if transition.Changed {
 		if err := s.publishEvent(ctx, domainuser.NewInteractionToggledEvent(likerId, likeeId, domainuser.InteractionLike, transition.Enabled, time.Now().UTC())); err != nil {
@@ -1128,6 +1161,19 @@ func (s *UserService) ToggleLike(ctx context.Context, authUser models.User, like
 	}
 
 	return isLike, transition.Enabled, nil
+}
+
+func (s *UserService) notifyNewUserMatch(ctx context.Context, first, second *models.User) {
+	if s.notificationRepo == nil {
+		return
+	}
+	for _, pair := range [][2]*models.User{{first, second}, {second, first}} {
+		payload := notifications.NotificationPayload{
+			Data: map[string]string{"match_user_id": strconv.FormatInt(pair[0].PublicID, 10)},
+		}
+		_ = s.notificationRepo.SendNotificationToUser(ctx, *pair[0], *pair[1], notifications.NotificationTypeNewMatch,
+			"It's a Match!", "You have a new match.", payload)
+	}
 }
 
 // return Params : bool isLike, bool success, error
@@ -1281,31 +1327,82 @@ func (s *UserService) Report(ctx context.Context, userPublicID int64, kind strin
 	)
 }
 
-func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+func (s *UserService) FetchUserEngagements(ctx context.Context, authUser *models.User, contentableID uuid.UUID, contentableType models.EngagementContentableType, engagementKind models.EngagementKind, cursor *types.MatchListCursor, limit int) ([]types.UserEngagement, *types.MatchListCursor, error) {
 	if (engagementKind == models.EngagementKindViewGiven || engagementKind == models.EngagementKindViewReceived) &&
 		(authUser == nil || authUser.ID != contentableID) {
 		return nil, nil, ErrPrivateViewEngagements
 	}
-	return s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit)
+	if authUser == nil || authUser.ID == uuid.Nil || contentableType != models.EngagementContentableTypeUser {
+		return nil, nil, ErrPrivateEngagements
+	}
+	if authUser.ID != contentableID {
+		if engagementKind != models.EngagementKindFollowing && engagementKind != models.EngagementKindFollower {
+			return nil, nil, ErrPrivateEngagements
+		}
+		owner, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: contentableID})
+		if err != nil {
+			return nil, nil, err
+		}
+		visible := isPublicDiscoverableUser(owner) && owner.Domain == authUser.Domain
+		if access, ok := s.userRepo.(ports.UserProfileAccess); ok {
+			var err error
+			visible, err = access.CanViewUserProfile(ctx, contentableID, authUser.ID)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if !visible {
+			return nil, nil, ErrPrivateEngagements
+		}
+		for _, pair := range [][2]uuid.UUID{{authUser.ID, contentableID}, {contentableID, authUser.ID}} {
+			blocked, err := s.engagementRepo.HasUserEngaged(ctx, pair[0], pair[1], models.EngagementKindBlocking)
+			if err != nil {
+				return nil, nil, err
+			}
+			if blocked {
+				return nil, nil, ErrPrivateEngagements
+			}
+		}
+	}
+	rows, next, err := s.engagementRepo.GetEngagements(ctx, contentableType, contentableID, engagementKind, cursor, limit, authUser.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	var views []types.UserEngagement
+	if rows != nil {
+		views = make([]types.UserEngagement, 0, len(rows))
+	}
+	for _, row := range rows {
+		views = append(views, types.UserEngagement{
+			ID: row.ID.String(), Kind: string(row.Kind), CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+			Engager: publicUserSummaryFromModel(&row.Engager), Engagee: publicUserSummaryFromModel(&row.Engagee),
+		})
+	}
+	return views, next, nil
 }
 
-func (s *UserService) CheckIn(context context.Context, form ports.FormData, author *models.User, postKind post.PostKind) (*post.Post, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(postKind), nil)
+func (s *UserService) CheckIn(context context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, postKind post.PostKind) (*types.PublicPost, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, values, files, author, string(postKind), nil)
 	if err != nil {
 		return nil, err
 	}
-	return s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
+	return s.postRepo.FindPublicPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *UserService) FetchCheckIns(filters types.Filter) (types.PublicPostPage, error) {
-	result, err := s.postRepo.GetPostsByKind(filters)
+	result, err := s.postRepo.FetchPublicPostsByKind(filters)
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
+	return result, nil
 }
 
 func (s *UserService) DeleteUser(filters types.Filter) error {
 	return s.userRepo.DeleteUser(filters)
 
+}
+
+func (s *UserService) socialNotificationsTransactional() bool {
+	adapter, ok := s.engagementRepo.(ports.TransactionalSocialNotifications)
+	return ok && adapter.SocialNotificationsTransactional()
 }

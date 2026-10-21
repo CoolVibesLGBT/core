@@ -160,6 +160,11 @@ func chatMessageProjection(message *post.Post, users map[uuid.UUID]*models.User,
 		CreatedAt:        message.CreatedAt,
 		UpdatedAt:        message.UpdatedAt,
 	}
+	if !message.ContentHidden {
+		if emoticon, err := chatmodel.ParseEmoticonExtras([]string{string(message.Extras)}); err == nil {
+			result.Emoticon = emoticon
+		}
+	}
 	if parentDepth > 0 {
 		result.Parent = chatMessageProjection(message.Parent, users, parentDepth-1)
 	}

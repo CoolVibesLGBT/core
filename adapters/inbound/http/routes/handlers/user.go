@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"core/adapters/inbound/http/middleware"
-	legacyviews "core/application/legacyviews"
+	upload "core/adapters/media"
 	"core/application/ports"
 	"core/application/types"
 	usecases "core/application/usecases"
@@ -12,7 +12,6 @@ import (
 	"core/models"
 	"core/utils"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -78,6 +77,12 @@ func HandleRegister(s *usecases.UserService) fiber.Handler {
 			Referral:       multipartValue(form.Value, "referralCode"),
 		})
 		if err != nil {
+			if errors.Is(err, domainuser.ErrInvalidReferralCode) || errors.Is(err, domainuser.ErrReferralUnavailable) {
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+			}
+			if errors.Is(err, ports.ErrRegistrationPersistence) {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrDatabaseError)
+			}
 			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUserExists, err.Error())
 		}
 
@@ -139,6 +144,7 @@ func HandleAuthCheck(s *usecases.UserService) fiber.Handler {
 
 func HandleFetchUserProfile(s *usecases.UserService) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		c.Set(fiber.HeaderCacheControl, "private, no-store")
 		username := c.FormValue("nickname")
 		if username == "" {
 			username = c.FormValue("username")
@@ -147,7 +153,8 @@ func HandleFetchUserProfile(s *usecases.UserService) fiber.Handler {
 		if username == "" {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUsernameRequired)
 		}
-		userObj, err := s.FetchPublicUserProfileByUsername(c.Context(), username)
+		viewer, _ := middleware.GetAuthenticatedUser(c)
+		userObj, err := s.FetchUserProfileForViewer(c.Context(), username, viewer)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUserNotFound)
 		}
@@ -169,7 +176,7 @@ func HandleUploadAvatar(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		newAvatar, err := s.UpdateAvatar(c.Context(), uploadedFile(fileHeader), user)
+		newAvatar, err := s.UpdateAvatar(c.Context(), upload.FromMultipart(fileHeader), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
@@ -202,7 +209,7 @@ func HandleUploadCover(s *usecases.UserService) fiber.Handler {
 		}
 
 		// UpdateCover fonksiyonunu çağır
-		newCover, err := s.UpdateCover(c.Context(), uploadedFile(fileHeader), user)
+		newCover, err := s.UpdateCover(c.Context(), upload.FromMultipart(fileHeader), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
@@ -240,13 +247,13 @@ func HandleUploadStory(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		newStory, err := s.AddStory(c.Context(), uploadedFormData(form.Value, storyFiles, images, videos), user)
+		newStory, err := s.AddStory(c.Context(), form.Value, upload.FromMultipartFiles(storyFiles, images, videos), user)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrMediaUploadFailed)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
-			"story": legacyviews.ProjectPublicPost(*newStory),
+			"story": newStory,
 		}, "Story added successfully")
 	}
 }
@@ -385,7 +392,7 @@ func HandleFollow(s *usecases.UserService) fiber.Handler {
 
 		status, err := s.Follow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
+			return userInteractionError(c, err)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
@@ -419,7 +426,7 @@ func HandleUnfollow(s *usecases.UserService) fiber.Handler {
 
 		status, err := s.Unfollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
+			return userInteractionError(c, err)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
@@ -451,11 +458,9 @@ func HandleToggleFollow(s *usecases.UserService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid followee ID")
 		}
 
-		fmt.Println("FOLLOWER,FOLLOWEE", followerID, followeeID)
-
 		status, err := s.ToggleFollow(c.Context(), followerID, followeeID)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrDatabaseError, err.Error())
+			return userInteractionError(c, err)
 		}
 
 		message := "User unfollowed successfully"
@@ -589,26 +594,37 @@ func isProfileValidationError(err error) bool {
 }
 
 func HandleFetchUserEngagements(s *usecases.UserService) fiber.Handler {
+	return HandleUserRelationshipList(s, "")
+}
+
+func HandleUserRelationshipList(s *usecases.UserService, fixedKind string) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		c.Set(fiber.HeaderCacheControl, "private, no-store")
 		auth_user, ok := middleware.GetAuthenticatedUser(c)
 		if !ok {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
 		}
 
-		engagement_type := c.FormValue("engagement_type")
-		engageeIdStr := c.FormValue("user_id")
+		engagement_type := fixedKind
+		if engagement_type == "" {
+			engagement_type = requestField(c, "engagement_type")
+		}
+		engageeIdStr := requestField(c, "user_id")
+		if engageeIdStr == "" {
+			engageeIdStr = strconv.FormatInt(auth_user.PublicID, 10)
+		}
 		engageeId, err := strconv.ParseInt(engageeIdStr, 10, 64)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid engagee ID")
 		}
 
-		cursor, err := parseTimeCursor(c.FormValue("cursor"))
+		cursor, err := parseMatchListCursor(requestField(c, "cursor"))
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid cursor format.")
 		}
 
 		limit := 100 // default limit
-		limitStr := c.FormValue("limit")
+		limitStr := requestField(c, "limit")
 		if limitStr != "" {
 			parsedLimit, err := strconv.Atoi(limitStr)
 			if err != nil || parsedLimit <= 0 {
@@ -634,12 +650,12 @@ func HandleFetchUserEngagements(s *usecases.UserService) fiber.Handler {
 
 		engagements, nextCursor, err := s.FetchUserEngagements(c.Context(), auth_user, engageeUser.ID, models.EngagementContentableTypeUser, engagementKind, cursor, limit)
 		if err != nil {
-			if errors.Is(err, usecases.ErrPrivateViewEngagements) {
+			if errors.Is(err, usecases.ErrPrivateViewEngagements) || errors.Is(err, usecases.ErrPrivateEngagements) {
 				return utils.SendErrorWithMessage(c, fiber.StatusForbidden, constants.ErrUnauthorized, err.Error())
 			}
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrEngagementNotFound, "Engagement not found")
 		}
-		prevCursorToken, nextCursorToken, err := encodeTimeCursorPair(cursor, nextCursor)
+		prevCursorToken, nextCursorToken, err := encodeSocialCursorPair(cursor, nextCursor)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInternalServer, err.Error())
 		}
@@ -705,7 +721,7 @@ func HandleUserLike(s *usecases.UserService) fiber.Handler {
 
 		_, status, err := s.Like(c.Context(), *auth_user, likerId, likeeId)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+			return userInteractionError(c, err)
 		}
 
 		message := "User liked successfully"
@@ -740,7 +756,7 @@ func HandleUserDislike(s *usecases.UserService) fiber.Handler {
 
 		_, status, err := s.Dislike(c.Context(), *auth_user, likerId, likeeId)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+			return userInteractionError(c, err)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
@@ -767,10 +783,9 @@ func HandleUserToggleLikeDislike(s *usecases.UserService, isLike bool) fiber.Han
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 
-		fmt.Println("LIKER, LIKEE", likerId, likeeId)
 		_, status, err := s.ToggleLike(c.Context(), *auth_user, likerId, likeeId, isLike)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+			return userInteractionError(c, err)
 		}
 
 		var message string
@@ -910,7 +925,7 @@ func HandleUserToggleSubscribe(s *usecases.UserService) fiber.Handler {
 
 		status, err := s.ToggleSubscribe(c.Context(), *auth_user, subscriberId, subscribedId)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrDatabaseError)
+			return userInteractionError(c, err)
 		}
 
 		var message string

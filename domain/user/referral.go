@@ -12,6 +12,9 @@ import (
 var (
 	ErrReferralPartiesRequired = errors.New("referral parties are required")
 	ErrSelfReferral            = errors.New("users cannot refer themselves")
+	ErrReferralAlreadyAssigned = errors.New("referred user already has a referrer")
+	ErrReferralUnavailable     = errors.New("referral participants are unavailable")
+	ErrInvalidReferralCode     = errors.New("invalid referral code")
 	ErrInvalidReferralReward   = errors.New("referral reward must be positive")
 )
 
@@ -49,7 +52,7 @@ func (r Referral) ReferredID() uuid.UUID         { return r.referredID }
 func (r Referral) RewardAmount() decimal.Decimal { return r.rewardAmount }
 
 func (r Referral) DedupeKey() string {
-	return fmt.Sprintf("user-referral:%s:%s", r.referredID, r.referrerID)
+	return fmt.Sprintf("user-referral:%s", r.referredID)
 }
 
 func (r Referral) Credit(balance decimal.Decimal) (decimal.Decimal, error) {

@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 	"core/application/ports"
-	"fmt"
+	"core/constants"
 )
 
 type AIService struct {
@@ -59,7 +59,7 @@ func (s *AIService) DefaultModel(provider string) string {
 
 func (s *AIService) GenerateText(ctx context.Context, input GenerateTextInput) (GenerateTextResult, error) {
 	if !s.IsConfigured() {
-		return GenerateTextResult{}, fmt.Errorf("no AI provider is configured")
+		return GenerateTextResult{}, constants.ErrAIProviderNotConfigured
 	}
 
 	result, err := s.generator.GenerateText(ctx, ports.TextGenerationInput{

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 
@@ -15,7 +14,7 @@ func (r *PostRepository) FindPublicPostByID(id uuid.UUID) (*types.PublicPost, er
 	if err != nil {
 		return nil, err
 	}
-	projected := legacyviews.ProjectPublicPost(*result)
+	projected := publicPostView(*result)
 	return &projected, nil
 }
 
@@ -24,7 +23,7 @@ func (r *PostRepository) FindPublicPostBySlug(filters types.Filter) (*types.Publ
 	if err != nil {
 		return nil, err
 	}
-	projected := legacyviews.ProjectPublicPost(*result)
+	projected := publicPostView(*result)
 	return &projected, nil
 }
 
@@ -33,7 +32,7 @@ func (r *PostRepository) FindPublicPostByPublicID(id int64) (*types.PublicPost, 
 	if err != nil {
 		return nil, err
 	}
-	projected := legacyviews.ProjectPublicPost(*result)
+	projected := publicPostView(*result)
 	return &projected, nil
 }
 
@@ -42,7 +41,7 @@ func (r *PostRepository) FetchPublicTimeline(filters types.Filter) (types.Public
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostPage(result), nil
+	return publicPostPage(result), nil
 }
 
 func (r *PostRepository) SearchPublicPosts(filters types.Filter) (types.PublicPostPage, error) {
@@ -50,7 +49,7 @@ func (r *PostRepository) SearchPublicPosts(filters types.Filter) (types.PublicPo
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
+	return publicPostPage(result), nil
 }
 
 func (r *PostRepository) FetchPublicUserPosts(userID uuid.UUID, filters types.Filter) ([]types.PublicPost, error) {
@@ -58,7 +57,7 @@ func (r *PostRepository) FetchPublicUserPosts(userID uuid.UUID, filters types.Fi
 	if err != nil {
 		return nil, err
 	}
-	return legacyviews.ProjectPublicPosts(result), nil
+	return publicPostViews(result), nil
 }
 
 func (r *PostRepository) FetchPublicUserPostReplies(filters types.Filter) ([]types.PublicPost, error) {
@@ -66,7 +65,7 @@ func (r *PostRepository) FetchPublicUserPostReplies(filters types.Filter) ([]typ
 	if err != nil {
 		return nil, err
 	}
-	return legacyviews.ProjectPublicPosts(result), nil
+	return publicPostViews(result), nil
 }
 
 func (r *PostRepository) FetchPublicUserMedia(filters types.Filter) (types.PublicPostMediaPage, error) {
@@ -75,7 +74,7 @@ func (r *PostRepository) FetchPublicUserMedia(filters types.Filter) (types.Publi
 		return types.PublicPostMediaPage{}, err
 	}
 	return types.PublicPostMediaPage{
-		Items:        legacyviews.ProjectPublicMediaItems(result),
+		Items:        publicPostMediaViews(result),
 		NextPublicID: next,
 	}, nil
 }
@@ -85,5 +84,22 @@ func (r *PostRepository) FetchPublicTimelineVibes(filters types.Filter) (types.P
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
-	return legacyviews.ProjectPublicPostPage(result), nil
+	return publicPostPage(result), nil
+}
+
+func (r *PostRepository) FindPublicPostByIDIncludingUnpublished(id uuid.UUID) (*types.PublicPost, error) {
+	item, err := r.GetPostByIDIncludingUnpublished(id)
+	if err != nil {
+		return nil, err
+	}
+	projected := publicPostView(*item)
+	return &projected, nil
+}
+
+func (r *PostRepository) FetchPublicPostsByKind(filters types.Filter) (types.PublicPostPage, error) {
+	result, err := r.GetPostsByKind(filters)
+	if err != nil {
+		return types.PublicPostPage{}, err
+	}
+	return publicPostPage(result), nil
 }

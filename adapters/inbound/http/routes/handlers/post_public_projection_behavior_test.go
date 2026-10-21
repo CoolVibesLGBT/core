@@ -1,43 +1,34 @@
 package handlers
 
 import (
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 	"core/application/usecases"
-	"core/models"
-	"core/models/media"
-	"core/models/post"
-	modelutils "core/models/utils"
 	"encoding/json"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type publicTimelineProjectionRepo struct {
 	ports.PostRepository
-	item post.Post
+	item types.PublicPost
 }
 
-func (r *publicTimelineProjectionRepo) GetTimeline(_ types.Filter) (legacyviews.TimelineResult, error) {
-	return legacyviews.TimelineResult{Posts: []post.Post{r.item}}, nil
+func (r *publicTimelineProjectionRepo) FetchPublicTimeline(_ types.Filter) (types.PublicPostPage, error) {
+	return types.PublicPostPage{Posts: []types.PublicPost{r.item}}, nil
 }
 
 func TestTimelineHandlerNeverSerializesRawPostEntities(t *testing.T) {
 	authorID := uuid.New()
 	postID := uuid.New()
 	storagePath := "/private/uploads/secret.png"
-	repo := &publicTimelineProjectionRepo{item: post.Post{
-		ID: postID, PublicID: 501, AuthorID: authorID, PostKind: post.PostKindPost, Published: true,
-		Author: models.User{ID: authorID, PublicID: 601, UserName: "author", Balance: decimal.NewFromInt(44), PreferencesFlags: "secret-bits"},
-		Attachments: []*media.Media{{
-			ID: uuid.New(), PublicID: 701, OwnerID: postID, UserID: authorID, IsPublic: true,
-			File: modelutils.FileMetadata{ID: uuid.New(), URL: "https://cdn.test/safe.png", StoragePath: storagePath, Name: "secret.png"},
-		}},
+	repo := &publicTimelineProjectionRepo{item: types.PublicPost{
+		ID: 501, PublicID: 501, AuthorID: 601, PostKind: "post", Published: true,
+		Author:      types.PublicPostAuthor{ID: 601, PublicID: 601, UserName: "author"},
+		Attachments: []types.PublicPostMedia{{ID: 701, PublicID: 701, IsPublic: true, File: types.PublicMediaFile{URL: "https://cdn.test/safe.png"}}},
 	}}
 	service := usecases.NewPostService(&handlerUserRepo{}, repo, &handlerMediaRepo{})
 	response := performMultipartHandlerRequest(t, HandleTimeline(service), nil, nil, nil)

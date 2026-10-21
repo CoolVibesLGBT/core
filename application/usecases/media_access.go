@@ -14,6 +14,7 @@ import (
 type MediaAccessDecision struct {
 	Allowed bool
 	Public  bool
+	NoStore bool
 }
 
 type MediaAccessService struct {
@@ -45,7 +46,9 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 		ChatMedia:      mediaAccessIsChat(access),
 	}
 	if policy.PubliclyAccessible() {
-		return MediaAccessDecision{Allowed: true, Public: true}, nil
+		// Profile photos can become private at the same URL. Caches must
+		// contact the authorization endpoint again after that transition.
+		return MediaAccessDecision{Allowed: true, Public: true, NoStore: mediaAccessIsProfilePhoto(access)}, nil
 	}
 	if userPublicID == nil {
 		return MediaAccessDecision{}, nil
@@ -80,6 +83,11 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 	}
 
 	return MediaAccessDecision{Allowed: policy.Accessible()}, nil
+}
+
+func mediaAccessIsProfilePhoto(access ports.MediaFileAccess) bool {
+	return strings.EqualFold(strings.TrimSpace(access.Role), "profile") &&
+		strings.EqualFold(strings.TrimSpace(access.OwnerType), "user")
 }
 
 func privatePhotoProcessedVariant(requestedPath string) bool {

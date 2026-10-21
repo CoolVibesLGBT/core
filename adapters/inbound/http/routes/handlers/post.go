@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"context"
 	"core/adapters/inbound/http/middleware"
+	upload "core/adapters/media"
 	"core/application/ports"
 	"core/application/types"
 	usecases "core/application/usecases"
 	"core/constants"
 	domainpost "core/domain/post"
+	domainuser "core/domain/user"
 	domainwallet "core/domain/wallet"
 	postmodel "core/models/post"
 	postpayloads "core/models/post/payloads"
@@ -94,7 +97,7 @@ func HandleCreate(s *usecases.PostService) fiber.Handler {
 			postKind = postmodel.PostKind(kind)
 		}
 
-		post, err := s.CreatePost(c.Context(), uploadedFormData(formParams, images, videos), user, postKind)
+		post, err := s.CreatePost(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user, postKind)
 		if err != nil {
 			if isPollCreationValidationError(err) {
 				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
@@ -234,7 +237,7 @@ func HandlePostLike(s *usecases.PostService) fiber.Handler {
 		// do like
 		err = s.Like(filters)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
+			return postInteractionError(c, err, constants.ErrInvalidInput)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post liked successfully")
@@ -253,7 +256,7 @@ func HandlePostBanana(s *usecases.PostService) fiber.Handler {
 		}
 		err = s.Banana(filters)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
+			return postInteractionError(c, err, constants.ErrInvalidInput)
 		}
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post banana successfully")
 	}
@@ -271,7 +274,7 @@ func HandlePostDislike(s *usecases.PostService) fiber.Handler {
 		}
 		err = s.Dislike(filters)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToDislikePost)
+			return postInteractionError(c, err, constants.ErrFailedToDislikePost)
 		}
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
 			"success": true,
@@ -293,7 +296,7 @@ func HandlePostBookmark(s *usecases.PostService) fiber.Handler {
 
 		err = s.Bookmark(filters)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToBookmarkPost)
+			return postInteractionError(c, err, constants.ErrFailedToBookmarkPost)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Post bookmarked successfully")
@@ -357,7 +360,7 @@ func HandlePostView(s *usecases.PostService) fiber.Handler {
 
 		counted, err := s.View(filters)
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidInput, err.Error())
+			return postInteractionError(c, err, constants.ErrInvalidInput)
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{"counted": counted}, "Post viewed successfully")
@@ -405,10 +408,19 @@ func HandlePostTip(s *usecases.PostService) fiber.Handler {
 				errors.Is(err, domainwallet.ErrAmountOutOfRange) {
 				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 			}
+			if errors.Is(err, domainwallet.ErrTransferBlocked) || errors.Is(err, domainwallet.ErrTransferUnavailable) {
+				return utils.SendError(c, fiber.StatusForbidden, constants.ErrInvalidAction)
+			}
+			switch err.Error() {
+			case constants.ErrInsufficientBalance.String(), constants.ErrCannotTipOwnPost.String():
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+			case constants.ErrPostNotFound.String(), constants.ErrUserNotFound.String():
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+			}
 			if errors.Is(err, domainwallet.ErrIdempotencyConflict) {
 				return utils.SendErrorWithMessage(c, fiber.StatusConflict, constants.ErrInvalidAction, err.Error())
 			}
-			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidAction, "failed to tip post: "+err.Error())
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInvalidAction, "Failed to tip post.")
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{
@@ -709,5 +721,18 @@ func HandleGetCategories(s *usecases.PostService) fiber.Handler {
 			"categories":  categories,
 			"last_update": time.Now(),
 		}, "Categories fetched successfully")
+	}
+}
+
+func postInteractionError(c fiber.Ctx, err error, fallback constants.ErrorCode) error {
+	switch {
+	case errors.Is(err, domainuser.ErrInteractionBlocked):
+		return utils.SendError(c, fiber.StatusForbidden, constants.ErrPermissionDenied)
+	case errors.Is(err, domainuser.ErrInteractionUnavailable), errors.Is(err, constants.ErrPostPublicIDNotFound), errors.Is(err, constants.ErrPostNotFound):
+		return utils.SendError(c, fiber.StatusNotFound, constants.ErrPostNotFound)
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, context.Canceled):
+		return utils.SendError(c, fiber.StatusGatewayTimeout, constants.ErrRequestTimeout)
+	default:
+		return utils.SendError(c, fiber.StatusInternalServerError, fallback)
 	}
 }

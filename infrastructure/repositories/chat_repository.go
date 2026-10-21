@@ -4,6 +4,7 @@ import (
 	"context"
 	"core/application/ports"
 	"core/constants"
+	domainmedia "core/domain/media"
 	"core/helpers"
 	"core/models"
 	"core/models/chat"
@@ -12,18 +13,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/go-playground/form/v4"
 
 	"core/models/post"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/go-playground/form/v4"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type ChatRepository struct {
@@ -125,28 +125,45 @@ func postPointers(messages []post.Post) []*post.Post {
 	return result
 }
 
-func validateMessageForm(formData ports.FormData) error {
-	if formData.ViewOnce {
-		if formData.ImageCount != 1 || formData.VideoCount != 0 || len(formData.Files) != 1 || !isImageUpload(formData.Files[0]) {
+func validateMessageForm(values map[string][]string, files []*domainmedia.UploadedFile) error {
+	emoticon, err := chat.ParseEmoticonExtras(values["extras"])
+	if err != nil {
+		return err
+	}
+	viewOnce, err := chat.ParseViewOnce(values["view_once"])
+	if err != nil {
+		return err
+	}
+	if _, err := chat.ParseExpiresInSeconds(values["expires_in_seconds"]); err != nil {
+		return err
+	}
+	if viewOnce && emoticon != nil {
+		return chat.ErrInvalidViewOnce
+	}
+	if viewOnce {
+		if len(files) != 1 || !isImageUpload(files[0]) {
 			return chat.ErrInvalidViewOnce
 		}
 	}
-	for _, value := range formData.Values["content"] {
+	for _, value := range values["content"] {
 		if strings.TrimSpace(value) != "" {
 			return nil
 		}
 	}
-	if len(formData.Files) > 0 {
+	if emoticon != nil {
+		return nil
+	}
+	if len(files) > 0 {
 		return nil
 	}
 	return chat.ErrEmptyMessage
 }
 
-func isImageUpload(file ports.UploadedFile) bool {
+func isImageUpload(file *domainmedia.UploadedFile) bool {
 	if file == nil {
 		return false
 	}
-	return isImageFile(file.ContentType(), file.Filename())
+	return isImageFile(file.ContentType, file.Filename)
 }
 
 func isImageFile(contentType, filename string) bool {
@@ -248,38 +265,11 @@ func (r *ChatRepository) chatsByUserIDQuery(ctx context.Context, query ports.Cha
 	db := r.db.WithContext(ctx).
 		Model(&chat.Chat{}).
 		Where("chats.deleted_at IS NULL").
-		Where(`
-			EXISTS (
-				SELECT 1
-				FROM chat_participants cp
-				WHERE cp.chat_id = chats.id
-				AND cp.user_id = ?
-				AND cp.left_at IS NULL
-				AND (
-					cp.cleared_at IS NULL
-					OR chats.last_message_timestamp IS NULL
-					OR chats.last_message_timestamp > cp.cleared_at
-				)
-			)
-		`, query.UserID).
-		Where(`
-			NOT EXISTS (
-				SELECT 1
-				FROM engagements e
-				JOIN engagement_details ed ON ed.engagement_id = e.id
-				WHERE e.contentable_id = chats.id
-				AND e.contentable_type = ?
-				AND (
-					(ed.kind = ? AND ed.engager_id = ?)
-					OR ed.kind = ?
-				)
-			)
-		`,
-			models.EngagementContentableTypeChat,
-			models.EngagementKindChatDeletedForMe,
-			query.UserID,
-			models.EngagementKindChatDeletedForAll,
-		).
+		Where("chats.id IN (?)", repositorySubquery(r.db).Model(&chat.ChatParticipant{}).
+			Select("chat_id").Where("user_id = ? AND left_at IS NULL", query.UserID).
+			Where("cleared_at IS NULL OR chats.last_message_timestamp IS NULL OR chats.last_message_timestamp > cleared_at")).
+		Where("chats.id NOT IN (?)", deletedChatContentIDs(r.db, models.EngagementContentableTypeChat,
+			query.UserID, models.EngagementKindChatDeletedForMe, models.EngagementKindChatDeletedForAll)).
 		Preload("Participants", "left_at IS NULL").
 		Preload("Participants.User", chatUserReadScope).
 		Preload("Participants.User.Avatar", chatMediaReadScope).
@@ -395,8 +385,8 @@ func (r *ChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Ch
 		Title:       &utils.LocalizedString{"en": "Private Chat"},
 		Description: &utils.LocalizedString{"en": "A private chat is a secure, invite-only conversation between selected participants."},
 		Participants: []chat.ChatParticipant{
-			{ID: uuid.New(), UserID: fromUser},
-			{ID: uuid.New(), UserID: toUser},
+			{ID: uuid.New(), UserID: fromUser, JoinedAt: time.Now().UTC()},
+			{ID: uuid.New(), UserID: toUser, JoinedAt: time.Now().UTC()},
 		},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -410,60 +400,6 @@ func (r *ChatRepository) CreatePrivateChat(fromUser, toUser uuid.UUID) (*chat.Ch
 	return newChat, nil
 }
 
-func (r *ChatRepository) AddParticipant(chatID, userID uuid.UUID) error {
-	participant := chat.ChatParticipant{
-		ChatID: chatID,
-		UserID: userID,
-	}
-	return r.db.FirstOrCreate(&participant, "chat_id = ? AND user_id = ?", chatID, userID).Error
-}
-
-func (r *ChatRepository) RemoveParticipant(chatID, userID uuid.UUID) error {
-	return r.db.Where("chat_id = ? AND user_id = ?", chatID, userID).Delete(&chat.ChatParticipant{}).Error
-}
-
-func (r *ChatRepository) GetParticipants(chatID uuid.UUID) ([]chat.ChatParticipant, error) {
-	var participants []chat.ChatParticipant
-	err := r.db.Where("chat_id = ?", chatID).Find(&participants).Error
-	return participants, err
-}
-
-func (r *ChatRepository) CreateGroupChat(creatorID uuid.UUID, participantIDs []uuid.UUID, title *utils.LocalizedString, description *utils.LocalizedString) (*chat.Chat, error) {
-	// Katılımcılar içine creatorID mutlaka eklenmeli, eklenmemişse ekle
-	hasCreator := false
-	for _, id := range participantIDs {
-		if id == creatorID {
-			hasCreator = true
-			break
-		}
-	}
-	if !hasCreator {
-		participantIDs = append(participantIDs, creatorID)
-	}
-
-	participants := make([]chat.ChatParticipant, len(participantIDs))
-	for i, userID := range participantIDs {
-		participants[i] = chat.ChatParticipant{UserID: userID}
-	}
-
-	newChat := &chat.Chat{
-		ID:           uuid.New(),
-		Type:         chat.ChatTypeGroup,
-		CreatorID:    creatorID,
-		Title:        title,
-		Description:  description,
-		Participants: participants,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-
-	err := r.db.Create(newChat).Error
-	if err != nil {
-		return nil, err
-	}
-	return newChat, nil
-}
-
 func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, _ bool) error {
 	if err := r.ensureActiveParticipant(context.Background(), chatID, userID); err != nil {
 		return err
@@ -471,11 +407,15 @@ func (r *ChatRepository) SendTypingEvent(chatID, userID uuid.UUID, _ bool) error
 	return nil
 }
 
-func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.FormData, author *models.User) (createdPost *post.Post, retErr error) {
+func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (createdPost *post.Post, retErr error) {
 	if author == nil {
 		return nil, chat.ErrNotParticipant
 	}
-	if err := validateMessageForm(formData); err != nil {
+	if err := validateMessageForm(values, files); err != nil {
+		return nil, err
+	}
+	replyID, err := chat.ParseReplyID(values["reply_to"])
+	if err != nil {
 		return nil, err
 	}
 
@@ -485,7 +425,7 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.Fo
 	decoder := form.NewDecoder()
 	postForm := PostForm{}
 
-	if err := decoder.Decode(&postForm, formData.Values); err != nil {
+	if err := decoder.Decode(&postForm, values); err != nil {
 		fmt.Println("Form decode error:", err)
 		return nil, err
 	}
@@ -498,7 +438,7 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.Fo
 		ctx = context.Background()
 	}
 
-	createdMediaPaths := make([]string, 0, len(formData.Files))
+	createdMediaPaths := make([]string, 0, len(files))
 	committed := false
 	defer func() {
 		if committed {
@@ -516,14 +456,29 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.Fo
 
 	var creation *contentablePostCreation
 	retErr = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if _, _, err := loadChatMutationScope(tx, author, chatID); err != nil {
+		_, participant, err := loadChatMutationScope(tx, author, chatID)
+		if err != nil {
 			return err
 		}
+		var reply *post.Post
+		if replyID != nil {
+			reply, err = loadChatMutationMessage(tx, chatID, *replyID)
+			if err != nil {
+				return chat.ErrInvalidReply
+			}
+			if reply.ViewOnce || reply.ExpiresInSeconds != nil {
+				return chat.ErrInvalidReply
+			}
+			var visible post.Post
+			if err := visibleChatMessages(tx.Where("posts.id = ?", *replyID), author.ID, participant.ClearedAt).Take(&visible).Error; err != nil {
+				return chat.ErrInvalidReply
+			}
+		}
 
-		var err error
 		creation, err = r.postRepo.transactionScoped(tx).createContentablePostInTransaction(
 			ctx,
-			formData,
+			values,
+			files,
 			author,
 			string(post.PostKindChat),
 			&chatID,
@@ -533,6 +488,13 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.Fo
 			return err
 		}
 		message := creation.post
+		if reply != nil {
+			message.ParentID = &reply.ID
+			message.Parent = reply
+			if err := tx.Model(message).Update("parent_id", reply.ID).Error; err != nil {
+				return err
+			}
+		}
 		if result := tx.Model(&chat.Chat{}).
 			Where("id = ?", chatID).
 			Updates(map[string]interface{}{
@@ -555,16 +517,16 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, formData ports.Fo
 
 	chatPost := creation.post
 	chatPost.Author = *author
-	chatPost.ClientID = formData.ClientID
+	clientID := chatPost.ClientID
 	if hydrated, err := r.postRepo.GetPostByIDIncludingUnpublished(chatPost.ID); err == nil {
 		chatPost = hydrated
-		chatPost.ClientID = formData.ClientID
+		chatPost.ClientID = clientID
 	} else {
 		helpers.Error("hydrate committed chat message %s: %v", chatPost.ID, err)
 	}
 
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
-	err = r.NotifyChatParticipants(chatID, *author, "New Message", newMessageNotification)
+	err = r.NotifyChatParticipants(ctx, chatID, *author, "New Message", newMessageNotification)
 	if err != nil {
 		fmt.Println("Error notifying chat participants:", err)
 	}
@@ -583,8 +545,18 @@ func loadChatMutationScope(tx *gorm.DB, authUser *models.User, chatID uuid.UUID)
 		return nil, nil, chat.ErrNotParticipant
 	}
 
-	var participant chat.ChatParticipant
+	var chatEntity chat.Chat
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", chatID).
+		Take(&chatEntity).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil, chat.ErrChatNotFound
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	var participant chat.ChatParticipant
+	err = tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("chat_id = ? AND user_id = ? AND left_at IS NULL", chatID, authUser.ID).
 		Take(&participant).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -594,16 +566,6 @@ func loadChatMutationScope(tx *gorm.DB, authUser *models.User, chatID uuid.UUID)
 		return nil, nil, err
 	}
 
-	var chatEntity chat.Chat
-	err = tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Where("id = ?", chatID).
-		Take(&chatEntity).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil, chat.ErrChatNotFound
-	}
-	if err != nil {
-		return nil, nil, err
-	}
 	return &chatEntity, &participant, nil
 }
 
@@ -658,7 +620,7 @@ func addChatVisibilityFlag(
 	global bool,
 ) (bool, error) {
 	if tx == nil || actorID == uuid.Nil || ownerID == uuid.Nil || contentableID == uuid.Nil {
-		return false, errors.New("chat visibility identifiers are required")
+		return false, constants.ErrChatVisibilityIdentifiersRequired
 	}
 	if tx.Name() == "postgres" {
 		if err := lockViewAggregate(tx, engagementAggregateLockKey(contentableType, contentableID)).Error; err != nil {
@@ -891,11 +853,11 @@ func (r *ChatRepository) DeleteMessage(ctx context.Context, authUser *models.Use
 	})
 }
 
-func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.User, messageTitle, messageText string) error {
+func (r *ChatRepository) NotifyChatParticipants(ctx context.Context, chatId uuid.UUID, author models.User, messageTitle, messageText string) error {
 
 	// Katılımcıları ve user ilişkisini preload ile çek
 	var participants []chat.ChatParticipant
-	err := r.db.Preload("User").
+	err := r.db.WithContext(ctx).Preload("User").
 		Where("chat_id = ? AND user_id <> ? AND left_at IS NULL", chatId, author.ID).
 		Find(&participants).Error
 	if err != nil {
@@ -916,7 +878,7 @@ func (r *ChatRepository) NotifyChatParticipants(chatId uuid.UUID, author models.
 			// diğer alanlar eklenecekse ekle
 		}
 
-		err := r.notificationRepo.SendNotificationToUser(author, user, notifications.NotificationTypeChatMessage, messageTitle, messageText, payload)
+		err := r.notificationRepo.SendNotificationToUser(ctx, author, user, notifications.NotificationTypeChatMessage, messageTitle, messageText, payload)
 		if err != nil {
 			fmt.Printf("Bildirim gönderilemedi user %s: %v\n", user.ID, err)
 		}
@@ -937,26 +899,15 @@ func (r *ChatRepository) GetMessagesByChatID(userID uuid.UUID, chatID uuid.UUID)
 func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUID, clearedAt *time.Time) *gorm.DB {
 	query := r.db.Model(&post.Post{}).
 		Where("posts.post_kind = ? AND posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindMessage, post.PostKindChat, chatID).
-		Where("(posts.expires_at IS NULL OR posts.expires_at > ?)", time.Now()).
-		Where(`
-			NOT EXISTS (
-				SELECT 1
-				FROM engagements e
-				JOIN engagement_details ed ON ed.engagement_id = e.id
-				WHERE e.contentable_id = posts.id
-				AND e.contentable_type = ?
-				AND (
-					(ed.kind = ? AND ed.engager_id = ?)
-					OR ed.kind = ?
-				)
-			)
-		`,
-			models.EngagementContentableTypeMessage,
-			models.EngagementKindMessageDeletedForMe,
-			userID,
-			models.EngagementKindMessageDeletedForAll,
-		)
+		Where("(posts.expires_at IS NULL OR posts.expires_at > ?)", time.Now())
+	return visibleChatMessages(query, userID, clearedAt)
+}
 
+// Lists, quoted parents and explicit opens must enforce the same deletion and
+// history boundary for the authenticated recipient.
+func visibleChatMessages(query *gorm.DB, userID uuid.UUID, clearedAt *time.Time) *gorm.DB {
+	query = query.Where("posts.id NOT IN (?)", deletedChatContentIDs(query, models.EngagementContentableTypeMessage,
+		userID, models.EngagementKindMessageDeletedForMe, models.EngagementKindMessageDeletedForAll))
 	if clearedAt != nil {
 		query = query.Where("posts.created_at > ?", *clearedAt)
 	}
@@ -964,10 +915,12 @@ func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUI
 	return query
 }
 
-func preloadChatMessageRelations(db *gorm.DB, now time.Time) *gorm.DB {
+func preloadChatMessageRelations(db *gorm.DB, now time.Time, viewer uuid.UUID, clearedAt *time.Time) *gorm.DB {
 	return db.
 		Preload("Author", chatUserReadScope).
-		Preload("Parent", activeMessageScope(now)).
+		Preload("Parent", func(parent *gorm.DB) *gorm.DB {
+			return visibleChatMessages(activeMessageScope(now)(parent), viewer, clearedAt)
+		}).
 		Preload("Location").
 		Preload("Parent.Author", chatUserReadScope).
 		Preload("Parent.Author.Avatar", chatMediaReadScope).
@@ -988,7 +941,7 @@ func (r *ChatRepository) chatMessagesPageQuery(ctx context.Context, query ports.
 	if query.Cursor != nil {
 		db = db.Where("posts.public_id < ?", query.Cursor.PublicID)
 	}
-	return preloadChatMessageRelations(db, time.Now()).
+	return preloadChatMessageRelations(db, time.Now(), query.UserID, clearedAt).
 		Order("posts.public_id DESC")
 }
 
@@ -1079,6 +1032,16 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 		if err != nil {
 			return err
 		}
+		// Check after locking the message: a deletion that committed while we
+		// waited for its lock must be visible before consuming its contents.
+		var visible int64
+		if err := visibleChatMessages(tx.Model(&post.Post{}).Where("posts.id = ?", message.ID), authUser.ID, participant.ClearedAt).
+			Count(&visible).Error; err != nil {
+			return err
+		}
+		if visible == 0 {
+			return chat.ErrMessageNotFound
+		}
 		if message.AuthorID == authUser.ID {
 			return chat.ErrAuthorCannotOpen
 		}
@@ -1112,7 +1075,7 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 			attachment := message.Attachments[0]
 			data, err := os.ReadFile(attachment.File.StoragePath)
 			if err != nil {
-				return fmt.Errorf("read view-once media: %w", err)
+				return constants.ErrViewOnceMediaReadFailed.Format(err)
 			}
 			openedMedia = &chat.OpenedMedia{
 				ID: attachment.ID, Name: attachment.File.Name,
@@ -1171,16 +1134,8 @@ func repairChatLastMessage(tx *gorm.DB, chatID uuid.UUID, now time.Time) error {
 		Select("id", "created_at").
 		Where("post_kind = ? AND contentable_type = ? AND contentable_id = ?", post.PostKindMessage, post.PostKindChat, chatID).
 		Where("(expires_at IS NULL OR expires_at > ?)", now).
-		Where(`
-			NOT EXISTS (
-				SELECT 1
-				FROM engagements e
-				JOIN engagement_details ed ON ed.engagement_id = e.id
-				WHERE e.contentable_id = posts.id
-				AND e.contentable_type = ?
-				AND ed.kind = ?
-			)
-		`, models.EngagementContentableTypeMessage, models.EngagementKindMessageDeletedForAll).
+		Where("posts.id NOT IN (?)", deletedChatContentIDs(tx, models.EngagementContentableTypeMessage,
+			uuid.Nil, models.EngagementKindMessageDeletedForMe, models.EngagementKindMessageDeletedForAll)).
 		Order("created_at DESC, public_id DESC").
 		First(&latest).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -1386,4 +1341,16 @@ func (r *ChatRepository) MarkChatMessageRead(ctx context.Context, authUser *mode
 				"last_read_at": now,
 			}).Error
 	})
+}
+
+// Deleted content is selected through its aggregate so other engagement kinds
+// cannot hide chats or messages accidentally.
+func deletedChatContentIDs(db *gorm.DB, contentType models.EngagementContentableType, viewer uuid.UUID, forMe, forAll models.EngagementKind) *gorm.DB {
+	kinds := repositorySubquery(db).Where("kind = ?", forAll)
+	if viewer != uuid.Nil {
+		kinds = kinds.Or(repositorySubquery(db).Where("kind = ? AND engager_id = ?", forMe, viewer))
+	}
+	details := repositorySubquery(db).Model(&models.EngagementDetail{}).Select("engagement_id").Where(kinds)
+	return repositorySubquery(db).Model(&models.Engagement{}).Select("contentable_id").
+		Where("contentable_type = ?", contentType).Where("id IN (?)", details)
 }

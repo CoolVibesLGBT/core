@@ -7,6 +7,7 @@ import (
 	"core/application/types"
 	"core/application/usecases"
 	"core/constants"
+	domainmedia "core/domain/media"
 	domainpost "core/domain/post"
 	"core/models"
 	postmodel "core/models/post"
@@ -23,7 +24,7 @@ type pollCreationErrorRepository struct {
 	err error
 }
 
-func (r *pollCreationErrorRepository) CreateContentablePost(context.Context, ports.FormData, *models.User, string, *uuid.UUID) (*postmodel.Post, error) {
+func (r *pollCreationErrorRepository) CreateContentablePost(context.Context, map[string][]string, []*domainmedia.UploadedFile, *models.User, string, *uuid.UUID) (*postmodel.Post, error) {
 	return nil, r.err
 }
 

@@ -1,9 +1,9 @@
 package media
 
 import (
-	"bytes"
 	"context"
-	"core/application/ports"
+	upload "core/adapters/media"
+	domainmedia "core/domain/media"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,30 +23,7 @@ func NewRemoteImageFetcher(client *http.Client) *RemoteImageFetcher {
 	return &RemoteImageFetcher{client: client}
 }
 
-type memoryUploadedFile struct {
-	filename    string
-	size        int64
-	contentType string
-	data        []byte
-}
-
-func (f memoryUploadedFile) Filename() string {
-	return f.filename
-}
-
-func (f memoryUploadedFile) Size() int64 {
-	return f.size
-}
-
-func (f memoryUploadedFile) ContentType() string {
-	return f.contentType
-}
-
-func (f memoryUploadedFile) Open() (io.ReadCloser, error) {
-	return io.NopCloser(bytes.NewReader(f.data)), nil
-}
-
-func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (ports.UploadedFile, error) {
+func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (*domainmedia.UploadedFile, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, imageURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create image request: %w", err)
@@ -81,10 +58,5 @@ func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (p
 		mimeType = http.DetectContentType(data)
 	}
 
-	return memoryUploadedFile{
-		filename:    filename,
-		size:        int64(len(data)),
-		contentType: mimeType,
-		data:        data,
-	}, nil
+	return upload.FromBytes(filename, mimeType, data), nil
 }

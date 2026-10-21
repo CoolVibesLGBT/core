@@ -116,7 +116,7 @@ func HandleGetNotifications(s *usecases.NotificationsService) fiber.Handler {
 		// form, err := c.MultipartForm()
 		// if err != nil { ... }
 
-		notifications, err := s.FetchNotifications(authUser.ID, 1)
+		notifications, err := s.FetchNotifications(c.Context(), authUser.ID, 1)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrNotificationsFetchFailed)
 		}

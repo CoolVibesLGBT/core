@@ -3,10 +3,7 @@ package usecases
 import (
 	domainmoderation "core/domain/moderation"
 	"core/models"
-	"errors"
 )
-
-var ErrAuthenticatedUserRequired = errors.New("authenticated user is required")
 
 // validateReportSubmission is the single application entry point for both
 // post and user reports. It keeps transport compatibility concerns out of the

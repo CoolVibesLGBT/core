@@ -413,7 +413,7 @@ func processFeedItem(ctx context.Context, item *gofeed.Item, dependencies Depend
 	}
 
 	if post != nil && dependencies.Notifier != nil {
-		if telegramErr := dependencies.Notifier.SendNews(post); telegramErr != nil {
+		if telegramErr := dependencies.Notifier.SendNews(post, articleContent.LocalImages); telegramErr != nil {
 			helpers.Error("FETCHER:TelegramService.SendNews %s", telegramErr.Error())
 		}
 	}

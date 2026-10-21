@@ -11,6 +11,24 @@ const (
 	MaxExpiresInSeconds int64 = 7 * 24 * 60 * 60
 )
 
+func ParseViewOnce(values []string) (bool, error) {
+	if len(values) == 0 {
+		return false, nil
+	}
+	switch strings.ToLower(strings.TrimSpace(values[0])) {
+	case "", "off", "no":
+		return false, nil
+	case "on", "yes":
+		return true, nil
+	default:
+		value, err := strconv.ParseBool(strings.TrimSpace(values[0]))
+		if err != nil {
+			return false, ErrInvalidViewOnceValue
+		}
+		return value, nil
+	}
+}
+
 // ParseExpiresInSeconds parses the optional expires_in_seconds form value.
 // A missing, blank, or zero value represents a message that does not expire.
 func ParseExpiresInSeconds(values []string) (*int, error) {

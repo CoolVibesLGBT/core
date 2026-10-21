@@ -95,6 +95,7 @@ func InitializeApp() (*App, error) {
 	classifiedService := usecases.NewClassifiedService(userRepository, postRepository, mediaRepository, placeRepository, listingRepository)
 	matchesRepository := repositories.NewMatchesRepository(gormDB, notificationRepository)
 	matchesService := usecases.NewMatchService(userRepository, matchesRepository)
+	friendshipService := usecases.NewFriendshipService(repositories.NewFriendshipRepository(gormDB, node))
 	chatRepository := repositories.NewChatRepository(gormDB, node, postRepository, userRepository, notificationRepository)
 	chatService := usecases.NewChatService(socketService, userRepository, postRepository, mediaRepository, matchesRepository, chatRepository, notificationRepository)
 	notificationsService := usecases.NewNotificationsService(notificationRepository)
@@ -129,25 +130,28 @@ func InitializeApp() (*App, error) {
 		newsWorkerDependencies.Notifier = telegramRuntime
 	}
 	router := routes.NewRouter(routes.Dependencies{
-		MCPServer:           mcpServer,
-		UserService:         userService,
-		PostService:         postService,
-		PlaceService:        placeService,
-		NewsService:         newsService,
-		ClassifiedService:   classifiedService,
-		MatchesService:      matchesService,
-		ChatService:         chatService,
-		NotificationService: notificationsService,
-		PaymentService:      paymentService,
-		SystemService:       systemService,
-		ModerationService:   moderationService,
-		BroadcastService:    broadcastService,
-		PrivatePhotoService: privatePhotoService,
-		SessionService:      sessionService,
-		SitemapService:      sitemapService,
-		MediaAccessService:  mediaAccessService,
-		TokenDecoder:        tokenDecoder,
-		TelegramProcessor:   telegramRuntime,
+		MCPServer:             mcpServer,
+		UserService:           userService,
+		PostService:           postService,
+		PlaceService:          placeService,
+		NewsService:           newsService,
+		ClassifiedService:     classifiedService,
+		MatchesService:        matchesService,
+		FriendshipService:     friendshipService,
+		ChatService:           chatService,
+		NotificationService:   notificationsService,
+		PaymentService:        paymentService,
+		SystemService:         systemService,
+		ModerationService:     moderationService,
+		BroadcastService:      broadcastService,
+		BroadcastGiftService:  usecases.NewBroadcastGiftService(repositories.NewBroadcastGiftRepository(gormDB)),
+		ReferralRewardService: usecases.NewReferralRewardService(repositories.NewReferralRewardRepository(gormDB)),
+		PrivatePhotoService:   privatePhotoService,
+		SessionService:        sessionService,
+		SitemapService:        sitemapService,
+		MediaAccessService:    mediaAccessService,
+		TokenDecoder:          tokenDecoder,
+		TelegramProcessor:     telegramRuntime,
 	})
 
 	application := &App{

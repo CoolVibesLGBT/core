@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -67,20 +68,16 @@ func (r *PlaceRepository) GetPlacesCategories(filters types.Filter) ([]taxonomy.
 }
 
 func (r *PlaceRepository) ExistsBySourceAndPlaceSourceID(source string, placeSourceID string) (bool, error) {
-	var exists bool
-	err := r.db.Raw(`
-        SELECT EXISTS (
-            SELECT 1
-            FROM posts
-            WHERE post_kind = ?
-              AND extras -> 'place' ->> 'source' = ?
-              AND extras -> 'place' ->> 'source_id' = ?
-        )
-    `, post.PostKindPlace, source, placeSourceID).Scan(&exists).Error
-	return exists, err
+	var count int64
+	err := r.db.Model(&post.Post{}).Unscoped().
+		Where("post_kind = ?", post.PostKindPlace).
+		Where(datatypes.JSONQuery("extras").Equals(source, "place", "source")).
+		Where(datatypes.JSONQuery("extras").Equals(placeSourceID, "place", "source_id")).
+		Limit(1).Count(&count).Error
+	return count > 0, err
 }
 
-func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, types.Cursor, error) {
+func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]types.PublicPost, types.Cursor, error) {
 	limit := nearByPlaceLimit(filters.Limit)
 
 	lat := filters.Latitude
@@ -92,7 +89,7 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 
 	if lat != nil && lon != nil {
 		if filters.Cursor != nil && filters.Distance == nil {
-			return nil, types.Cursor{}, fmt.Errorf("distance cursor is required for location-based pagination")
+			return nil, types.Cursor{}, constants.ErrDistanceCursorRequired
 		}
 		ranks, err := r.fetchNearByPlaceRanks(filters, limit)
 		if err != nil {
@@ -128,7 +125,7 @@ func (r *PlaceRepository) GetNearByPlaces(filters types.Filter) ([]*post.Post, t
 		}
 	}
 
-	return places, types.Cursor{
+	return publicPostPointerViews(places), types.Cursor{
 		Prev:     prevCursor,
 		Next:     nextCursor,
 		Distance: nextDistance,

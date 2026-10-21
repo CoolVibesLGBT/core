@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	legacyviews "core/application/legacyviews"
 	"core/application/types"
 	"core/application/usecases"
 	"core/constants"
@@ -70,7 +69,7 @@ func HandleGlobalSearch(userService *usecases.UserService, postService *usecases
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid search scope")
 		}
 
-		result := legacyviews.GlobalSearchResult{
+		result := types.GlobalSearchResult{
 			Query:  query,
 			Users:  []types.PublicUserSummary{},
 			Events: []types.PublicPost{},

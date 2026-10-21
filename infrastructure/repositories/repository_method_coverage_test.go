@@ -8,31 +8,37 @@ import (
 )
 
 var repositoryTypes = map[string]reflect.Type{
-	"ChatRepository":         reflect.TypeOf((*ChatRepository)(nil)),
-	"EngagementRepository":   reflect.TypeOf((*EngagementRepository)(nil)),
-	"ListingRepository":      reflect.TypeOf((*ListingRepository)(nil)),
-	"MatchesRepository":      reflect.TypeOf((*MatchesRepository)(nil)),
-	"MediaRepository":        reflect.TypeOf((*MediaRepository)(nil)),
-	"ModerationRepository":   reflect.TypeOf((*ModerationRepository)(nil)),
-	"NewsRepository":         reflect.TypeOf((*NewsRepository)(nil)),
-	"NotificationRepository": reflect.TypeOf((*NotificationRepository)(nil)),
-	"PaymentRepository":      reflect.TypeOf((*PaymentRepository)(nil)),
-	"PlaceRepository":        reflect.TypeOf((*PlaceRepository)(nil)),
-	"PostRepository":         reflect.TypeOf((*PostRepository)(nil)),
-	"PrivatePhotoRepository": reflect.TypeOf((*PrivatePhotoRepository)(nil)),
-	"SitemapRepository":      reflect.TypeOf((*SitemapRepository)(nil)),
-	"SystemRepository":       reflect.TypeOf((*SystemRepository)(nil)),
-	"UserRepository":         reflect.TypeOf((*UserRepository)(nil)),
+	"BroadcastGiftRepository":  reflect.TypeOf((*BroadcastGiftRepository)(nil)),
+	"ReferralRewardRepository": reflect.TypeOf((*ReferralRewardRepository)(nil)),
+	"ChatRepository":           reflect.TypeOf((*ChatRepository)(nil)),
+	"EngagementRepository":     reflect.TypeOf((*EngagementRepository)(nil)),
+	"FriendshipRepository":     reflect.TypeOf((*FriendshipRepository)(nil)),
+	"ListingRepository":        reflect.TypeOf((*ListingRepository)(nil)),
+	"MatchesRepository":        reflect.TypeOf((*MatchesRepository)(nil)),
+	"MediaRepository":          reflect.TypeOf((*MediaRepository)(nil)),
+	"ModerationRepository":     reflect.TypeOf((*ModerationRepository)(nil)),
+	"NewsRepository":           reflect.TypeOf((*NewsRepository)(nil)),
+	"NotificationRepository":   reflect.TypeOf((*NotificationRepository)(nil)),
+	"PaymentRepository":        reflect.TypeOf((*PaymentRepository)(nil)),
+	"PlaceRepository":          reflect.TypeOf((*PlaceRepository)(nil)),
+	"PostRepository":           reflect.TypeOf((*PostRepository)(nil)),
+	"PrivatePhotoRepository":   reflect.TypeOf((*PrivatePhotoRepository)(nil)),
+	"SitemapRepository":        reflect.TypeOf((*SitemapRepository)(nil)),
+	"SystemRepository":         reflect.TypeOf((*SystemRepository)(nil)),
+	"UserRepository":           reflect.TypeOf((*UserRepository)(nil)),
 }
 
 // This matrix is intentionally exhaustive for exported repository methods.
 // When a repository method is added or removed, this test forces the test
 // coverage plan to be updated in the same change.
 var repositoryMethodCoverage = map[string]string{
+	"BroadcastGiftRepository":  "StartBroadcastSession ChangeBroadcastSession FindBroadcastSession SendBroadcastGift",
+	"ReferralRewardRepository": "ListReferralRewards ReviewReferralReward",
+	"FriendshipRepository":     "RequestFriendship ChangeFriendship ListFriendships",
 	"ChatRepository": strings.Join([]string{
 		"AddMessageToChat", "AddParticipant", "CreateChat", "CreateGroupChat", "CreatePrivateChat", "DB",
 		"DeleteChat", "DeleteChatForAll", "DeleteChatForUser", "DeleteChatHistoryForAll", "DeleteChatHistoryForUser",
-		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "ExpireMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
+		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
 		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListChatMessages",
 		"GetMessagesByChatIDWithCursor", "GetParticipants", "GetPrivateChatBetweenUsers", "GetUserChatIDsByUserPublicID",
 		"MarkChatMessageRead", "Node", "NotifyChatParticipants", "PinMessage", "RemoveParticipant", "SendTypingEvent",
@@ -41,13 +47,13 @@ var repositoryMethodCoverage = map[string]string{
 	"EngagementRepository": strings.Join([]string{
 		"AddEngagement", "AddTip", "ApplyReciprocalUserInteraction", "CreateEngagementDetail", "DB", "GetEngagement", "GetEngagementDetails",
 		"GetEngagementDetailsWithCursor", "GetEngagements", "HasUserEngaged", "ListEngagementDetailsDeprecated",
-		"RecordViewOnce", "RemoveEngagementDetail", "ToggleEngagement",
+		"RecordViewOnce", "RemoveEngagementDetail", "ToggleEngagement", "SocialNotificationsTransactional",
 	}, " "),
 	"ListingRepository": strings.Join([]string{
 		"Create", "GetClassified", "GetJobOffers", "GetJobSearches",
 	}, " "),
 	"MatchesRepository": strings.Join([]string{
-		"GetLikesAfter", "GetMatchesAfter", "GetPassesAfter", "GetUnseenUsers", "RecordView",
+		"GetLikesAfter", "GetMatchesAfter", "GetPassesAfter", "GetUnseenUsers", "RecordView", "RemoveMatch",
 	}, " "),
 	"MediaRepository": strings.Join([]string{
 		"AddMedia", "ClaimNextPendingMedia", "FindMediaAccessPrincipal", "FindMediaFileAccess", "GenerateStoragePath",
@@ -60,7 +66,7 @@ var repositoryMethodCoverage = map[string]string{
 	}, " "),
 	"NotificationRepository": strings.Join([]string{
 		"CreateNotification", "DB", "FetchAndMarkShownNotifications", "GetAllSubscriptions", "MarkNotificationAsRead",
-		"Node", "NotifyPrivatePhotoAccessRequested", "NotifyPrivatePhotoAccessResponded", "SendNotificationToUser",
+		"Node", "NotifyPrivatePhotoAccessRequested", "NotifyPrivatePhotoAccessResponded", "SendNotificationToUser", "ProcessNextNotification",
 	}, " "),
 	"PaymentRepository": strings.Join([]string{
 		"Crypto", "DB", "Deposit", "GooglePay", "IBAN", "Node", "ProcessPayment", "Transactions", "Withdraw",
@@ -73,7 +79,7 @@ var repositoryMethodCoverage = map[string]string{
 		"Banana", "Bookmark", "ClusterExists", "CreateCluster", "CreateContentablePost", "CreateEvent", "CreatePillar",
 		"CreatePoll", "CreatePost", "CreateSynonym", "DB", "Delete", "Dislike", "ExistsBySlug", "FindClusterBySlug",
 		"FetchPublicTimeline", "FetchPublicTimelineVibes", "FetchPublicUserMedia", "FetchPublicUserPostReplies", "FetchPublicUserPosts",
-		"FindPostByPublicID", "FindPostsByKind", "FindPublicPostByID", "FindPublicPostByPublicID", "FindPublicPostBySlug",
+		"FindPublicPostByIDIncludingUnpublished", "FetchPublicPostsByKind", "FindPostByPublicID", "FindPostsByKind", "FindPublicPostByID", "FindPublicPostByPublicID", "FindPublicPostBySlug",
 		"GetCluster", "GetClusters", "GetOrCreateCluster", "GetOrCreatePillar",
 		"GetOrCreateSynonym", "GetPillarBySlug", "GetPillars", "GetPillarsWithClusters", "GetPillarsWithClustersWithSlug",
 		"GetPostByID", "GetPostByIDEx", "GetPostByIDIncludingUnpublished", "GetPostByIDWithoutRelations", "GetPostByPublicID", "GetPostBySlug",
@@ -82,6 +88,7 @@ var repositoryMethodCoverage = map[string]string{
 		"SynonymExists", "Tip", "View", "Vote",
 	}, " "),
 	"PrivatePhotoRepository": strings.Join([]string{
+		"SocialNotificationsTransactional",
 		"AddPrivatePhoto", "ArePrivatePhotoUsersBlocked", "CountPrivatePhotos", "DeletePrivatePhoto", "IsPrivatePhotoOwnerPremium", "ListProfilePhotos", "MoveProfilePhoto",
 		"FindPrivatePhotoAccessByPublicID", "FindPrivatePhotoUserByID", "FindPrivatePhotoUserByPublicID", "GetPrivatePhotoAccess",
 		"HasApprovedPrivatePhotoAccess", "ListPrivatePhotoAccessRequests", "ListPrivatePhotos",
@@ -100,8 +107,8 @@ var repositoryMethodCoverage = map[string]string{
 		"GetEventKinds", "GetPaymentMethod", "GetPreferences", "GetReportKinds", "GetVapidPublicKey", "SaveVapidSubscription",
 	}, " "),
 	"UserRepository": strings.Join([]string{
-		"AddBalance", "AddReferral", "CheckIn", "Create", "DB", "DeleteUser", "ExistsByEmail", "ExistsByNameOrMail", "ExistsByUsername", "FetchLiveUsers",
-		"FetchNearbyUsers", "FetchPublicUserProfile", "FetchUserNotifications", "FindBroadcastUser", "GEOIPDB", "GetByID", "GetByNameOrMailWithoutRelations",
+		"AddBalance", "AddReferral", "CheckIn", "Create", "CreateRegisteredUser", "DB", "DeleteUser", "ExistsByEmail", "ExistsByNameOrMail", "ExistsByUsername", "FetchLiveUsers",
+		"FetchNearbyUsers", "FetchPublicUserProfile", "FetchUserNotifications", "FindBroadcastUser", "GEOIPDB", "GetByID", "GetByNameOrMailWithoutRelations", "CanViewUserProfile", "FetchUserProfileForViewer",
 		"GetBySubscriptionSourceID", "GetByUserNameOrEmailOrUsername", "GetEngagementRepository", "GetLocationFromIP",
 		"GetPreferences", "GetSessionUserByPublicID", "GetUserByNameOrEmailOrNickname",
 		"GetUserByPublicIdWithoutRelations", "GetUserByUUIDdWithoutRelations", "GetUserUUIDByPublicID",

@@ -86,3 +86,12 @@ type PublicUserEngagementCounts struct {
 	MatchCount           int64 `json:"match_count"`
 	ViewReceivedCount    int64 `json:"view_received_count"`
 }
+
+// LiveUser exposes a public publisher, never a wallet or account snapshot.
+type LiveUser struct {
+	PublicUserSummary
+	IsLive          bool                       `json:"is_live"`
+	CanReceiveGifts bool                       `json:"can_receive_gifts"`
+	Provider        string                     `json:"provider,omitempty"`
+	BroadcastInfo   map[string]json.RawMessage `json:"broadcast_info,omitempty"`
+}

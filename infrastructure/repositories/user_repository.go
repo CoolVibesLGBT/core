@@ -6,6 +6,7 @@ import (
 	"core/application/types"
 	"core/constants"
 	domainuser "core/domain/user"
+	domainwallet "core/domain/wallet"
 	"core/extensions"
 	"core/helpers"
 	"core/models"
@@ -15,17 +16,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	maxminddb "github.com/oschwald/maxminddb-golang"
 	"math/big"
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
-	"github.com/oschwald/maxminddb-golang"
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -35,7 +35,7 @@ import (
 type UserRepository struct {
 	db               *gorm.DB
 	engagementRepo   *EngagementRepository
-	notificationRepo referralNotificationSender
+	notificationRepo *NotificationRepository
 	snowFlakeNode    *helpers.Node
 	geoipDB          *maxminddb.Reader
 }
@@ -46,14 +46,6 @@ var (
 	_ ports.PublicUserProfileReader = (*UserRepository)(nil)
 	_ ports.PublicUserSearchReader  = (*UserRepository)(nil)
 )
-
-type referralNotificationSender interface {
-	SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error
-}
-
-var fallbackReferralTransactionLock sync.Mutex
-
-var errReferralUserNotFound = errors.New("referral user not found")
 
 func (r *UserRepository) DB() *gorm.DB {
 	return r.db
@@ -72,11 +64,7 @@ func (r *UserRepository) Node() *helpers.Node {
 }
 
 func NewUserRepository(db *gorm.DB, geoipDB *maxminddb.Reader, snowFlakeNode *helpers.Node, engagementRepo *EngagementRepository, notificationRepo *NotificationRepository) *UserRepository {
-	var notifier referralNotificationSender
-	if notificationRepo != nil {
-		notifier = notificationRepo
-	}
-	return &UserRepository{db: db, geoipDB: geoipDB, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo, notificationRepo: notifier}
+	return &UserRepository{db: db, geoipDB: geoipDB, snowFlakeNode: snowFlakeNode, engagementRepo: engagementRepo, notificationRepo: notificationRepo}
 }
 
 func (r *UserRepository) TestUser() error {
@@ -132,7 +120,7 @@ func (r *UserRepository) FindBroadcastUser(ctx context.Context, externalIDs []st
 
 func (r *UserRepository) UpdateBroadcastState(ctx context.Context, userID uuid.UUID, broadcastInfo []byte) error {
 	if userID == uuid.Nil {
-		return errors.New("broadcast user ID is required")
+		return constants.ErrBroadcastUserIDRequired
 	}
 	return r.db.WithContext(ctx).
 		Model(&models.User{}).
@@ -197,6 +185,10 @@ func (r *UserRepository) FetchPublicUserProfile(ctx context.Context, username st
 }
 
 func (r *UserRepository) publicUserProfileProjectionQuery(ctx context.Context, username string) *gorm.DB {
+	return publicUserVisibilityScope(r.userProfileProjectionQuery(ctx, username))
+}
+
+func (r *UserRepository) userProfileProjectionQuery(ctx context.Context, username string) *gorm.DB {
 	query := r.db.WithContext(queryContext(ctx)).
 		Table("users").
 		Select(`
@@ -257,8 +249,7 @@ func (r *UserRepository) publicUserProfileProjectionQuery(ctx context.Context, u
 			 AND user_engagement.contentable_type = ?
 		`, models.EngagementContentableTypeUser)
 
-	return publicUserVisibilityScope(query).
-		Where("LOWER(users.user_name) = LOWER(?)", strings.TrimSpace(username))
+	return query.Where("LOWER(users.user_name) = LOWER(?)", strings.TrimSpace(username))
 }
 
 func (r *UserRepository) SearchPublicUsers(filters types.Filter) ([]types.PublicUserSummary, error) {
@@ -543,7 +534,20 @@ func (r *UserRepository) Report(ctx context.Context, userPublicID int64, kind st
 }
 
 func (r *UserRepository) UpdateUser(u *models.User) error {
-	return r.db.Save(u).Error
+	if u == nil || u.ID == uuid.Nil {
+		return ports.ErrNotFound
+	}
+	// A profile snapshot may predate a tip or reward. Only the money-moving
+	// transactions may write balance; never save a stale balance with a photo.
+	result := r.db.Model(&models.User{}).Where("id = ?", u.ID).
+		Select("*").Omit("id", "balance", "is_live", "broadcast_info", "user_role", "is_bot", "domain", clause.Associations).Updates(u)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != 1 {
+		return ports.ErrNotFound
+	}
+	return nil
 }
 
 // UpdateUserProfile persists all profile fields and the optional location in
@@ -667,7 +671,7 @@ func deleteUserID(filters types.Filter) (uuid.UUID, error) {
 	if filters.UserUUID != uuid.Nil {
 		return filters.UserUUID, nil
 	}
-	return uuid.Nil, errors.New("missing user uuid for delete")
+	return uuid.Nil, constants.ErrUserUUIDRequiredForDelete
 }
 
 func (r *UserRepository) Login(username string, password string) error {
@@ -700,11 +704,14 @@ func (r *UserRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 	return &u, nil
 }
 
-func (r *UserRepository) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
+func (r *UserRepository) GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error) {
 	var userObj models.User
-	err := r.db.Where("public_id = ?", publicID).First(&userObj).Error
+	err := r.db.WithContext(ctx).Where("public_id = ?", publicID).First(&userObj).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return uuid.Nil, ports.ErrNotFound
+	}
 	if err != nil {
-		return uuid.Nil, err // nil yerine uuid.Nil döneriz
+		return uuid.Nil, err
 	}
 	return userObj.ID, nil
 }
@@ -722,6 +729,8 @@ func (r *UserRepository) GetSessionUserByPublicID(ctx context.Context, publicID 
 }
 
 func (r *UserRepository) sessionUserQuery(publicID int64) *gorm.DB {
+	locationExists := repositorySubquery(r.db).Model(&utils.Location{}).
+		Select("COUNT(*) > 0").Where("contentable_type = ? AND contentable_id = users.id", utils.LocationOwnerUser)
 	return r.db.
 		Table("users").
 		Select(`
@@ -735,14 +744,8 @@ func (r *UserRepository) sessionUserQuery(publicID int64) *gorm.DB {
 			users.user_role AS role,
 			users.is_bot,
 			users.balance,
-			EXISTS (
-				SELECT 1
-				FROM locations
-				WHERE locations.contentable_type = ?
-				  AND locations.contentable_id = users.id
-				  AND locations.deleted_at IS NULL
-			) AS has_location
-		`, utils.LocationOwnerUser).
+			(?) AS has_location
+		`, locationExists).
 		Where("users.public_id = ?", publicID).
 		Where("users.deleted_at IS NULL").
 		Where("users.is_bot = FALSE").
@@ -841,9 +844,11 @@ func (r *UserRepository) GetUserByUUIDdWithoutRelations(filters types.Filter) (*
 
 func (r *UserRepository) GetByNameOrMailWithoutRelations(input string) (*models.User, error) {
 	var userObj models.User
-	err := r.db.
-		Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?) OR LOWER(display_name) = LOWER(?)", input, input, input).
-		First(&userObj).Error
+	// Display names are not unique and cannot identify the reward recipient.
+	err := r.db.Where("LOWER(user_name) = LOWER(?) OR LOWER(email) = LOWER(?)", input, input).First(&userObj).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ports.ErrNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -852,19 +857,18 @@ func (r *UserRepository) GetByNameOrMailWithoutRelations(input string) (*models.
 
 func (r *UserRepository) GetBySubscriptionSourceID(source, externalID string) (*models.User, error) {
 	var userObj models.User
-	err := r.db.
-		Where(`
-			CASE jsonb_typeof(subscriptions)
-				WHEN 'array' THEN EXISTS (
-					SELECT 1
-					FROM jsonb_array_elements(subscriptions) AS elem
-					WHERE elem->>'source' = ? AND elem->>'id' = ?
-				)
-				WHEN 'object' THEN subscriptions->>'source' = ? AND subscriptions->>'id' = ?
-				ELSE false
-			END
-		`, source, externalID, source, externalID).
-		First(&userObj).Error
+	identity := map[string]string{"source": source, "id": externalID}
+	object, err := json.Marshal(identity)
+	if err != nil {
+		return nil, err
+	}
+	array, err := json.Marshal([]map[string]string{identity})
+	if err != nil {
+		return nil, err
+	}
+	err = r.db.Where(repositorySubquery(r.db).
+		Where("subscriptions @> ?", datatypes.JSON(object)).
+		Or("subscriptions @> ?", datatypes.JSON(array))).First(&userObj).Error
 	if err != nil {
 		return nil, err
 	}
@@ -877,7 +881,7 @@ func (r *UserRepository) UpsertLocation(location *utils.Location) error {
 
 func upsertLocation(db *gorm.DB, location *utils.Location) *gorm.DB {
 	if location == nil {
-		_ = db.AddError(errors.New("location is required"))
+		_ = db.AddError(constants.ErrLocationRequired)
 		return db
 	}
 	if location.ID == uuid.Nil {
@@ -925,7 +929,7 @@ func upsertLocation(db *gorm.DB, location *utils.Location) *gorm.DB {
 
 func (r *UserRepository) UpsertUserPreference(ctx context.Context, userID uuid.UUID, preferenceItemID string, enabled bool) error {
 	if userID == uuid.Nil {
-		return errors.New("authenticated user is required")
+		return constants.ErrAuthenticatedUserRequired
 	}
 	var pref models.PreferencesData
 	if err := r.db.WithContext(queryContext(ctx)).Model(&models.Preferences{}).Select("data").First(&pref).Error; err != nil {
@@ -950,10 +954,10 @@ func (r *UserRepository) UpsertUserPreference(ctx context.Context, userID uuid.U
 	}
 
 	if foundItem == nil {
-		return fmt.Errorf("preference item not found")
+		return constants.ErrPreferenceItemNotFound
 	}
 	if foundItem.BitIndex < 0 || foundItem.BitIndex > 1_000_000 {
-		return fmt.Errorf("invalid stored preference bit index")
+		return constants.ErrStoredPreferenceBitIndexInvalid
 	}
 
 	return r.db.WithContext(queryContext(ctx)).Transaction(func(tx *gorm.DB) error {
@@ -990,13 +994,13 @@ func updatePreferenceFlags(encoded string, category models.PreferenceCategory, s
 	if !category.AllowMultiple {
 		for _, item := range category.Items {
 			if item.BitIndex < 0 || item.BitIndex > 1_000_000 {
-				return "", fmt.Errorf("invalid stored preference bit index")
+				return "", constants.ErrStoredPreferenceBitIndexInvalid
 			}
 			flags.SetBit(&flags, int(item.BitIndex), 0)
 		}
 	}
 	if selected.BitIndex < 0 || selected.BitIndex > 1_000_000 {
-		return "", fmt.Errorf("invalid stored preference bit index")
+		return "", constants.ErrStoredPreferenceBitIndexInvalid
 	}
 
 	value := uint(0)
@@ -1065,15 +1069,12 @@ func (r *UserRepository) nearbyUsersBaseQuery(filters types.Filter) *gorm.DB {
 	}
 
 	if filters.AuthUser != nil {
-		query = query.
-			Where("users.id <> ?", filters.AuthUser.ID).
-			Where(`NOT EXISTS (
-				SELECT 1
-				FROM engagement_details AS nearby_blocks
-				WHERE nearby_blocks.kind IN (?, ?)
-				  AND ((nearby_blocks.engager_id = ? AND nearby_blocks.engagee_id = users.id)
-				    OR (nearby_blocks.engager_id = users.id AND nearby_blocks.engagee_id = ?))
-			)`, models.EngagementKindBlocking, models.EngagementKindBlockedBy, filters.AuthUser.ID, filters.AuthUser.ID)
+		blocks := repositorySubquery(query).Model(&models.EngagementDetail{}).Table("engagement_details AS nearby_blocks").
+			Where("nearby_blocks.kind IN ?", []models.EngagementKind{models.EngagementKindBlocking, models.EngagementKindBlockedBy})
+		outgoing := blocks.Session(&gorm.Session{}).Select("nearby_blocks.engagee_id").Where("nearby_blocks.engagee_id IS NOT NULL").Where("nearby_blocks.engager_id = ?", filters.AuthUser.ID)
+		incoming := blocks.Session(&gorm.Session{}).Select("nearby_blocks.engager_id").Where("nearby_blocks.engagee_id = ?", filters.AuthUser.ID)
+		query = query.Where("users.id <> ?", filters.AuthUser.ID).
+			Where("users.id NOT IN (?)", outgoing).Where("users.id NOT IN (?)", incoming)
 	}
 
 	return query
@@ -1110,7 +1111,7 @@ func (r *UserRepository) nearbyUsersLocationQuery(filters types.Filter, lat, lng
 
 	if filters.Cursor != nil {
 		if filters.Distance == nil {
-			return nil, fmt.Errorf("distance cursor is required for location-based pagination")
+			return nil, constants.ErrDistanceCursorRequired
 		}
 		query = query.Where(
 			fmt.Sprintf("(%s > ?) OR (%s = ? AND users.public_id > ?)", nearbyDistanceSQL, nearbyDistanceSQL),
@@ -1265,8 +1266,12 @@ func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, e
 
 		if filters.IsLive != nil {
 			raw = raw.Where("u.is_live = ?", *filters.IsLive)
+			if *filters.IsLive {
+				raw = localLiveSessionScope(raw, "u")
+			}
 		}
 
+		raw = scopeLiveUsers(raw, filters, "u")
 		query := r.db.Table("(?) as sub", raw)
 
 		if filters.Cursor != nil && filters.Distance != nil {
@@ -1304,10 +1309,13 @@ func (r *UserRepository) FetchLiveUsers(filters types.Filter) ([]*models.User, e
 }
 
 func (r *UserRepository) liveUsersWithoutLocationQuery(filters types.Filter) *gorm.DB {
-	q := r.db.Model(&models.User{})
+	q := scopeLiveUsers(r.db.Model(&models.User{}), filters, "users")
 
 	if filters.IsLive != nil {
 		q = q.Where("is_live = ?", *filters.IsLive)
+		if *filters.IsLive {
+			q = localLiveSessionScope(q, "users")
+		}
 	}
 
 	q = q.Order("public_id ASC").Limit(filters.Limit)
@@ -1369,7 +1377,7 @@ func (r *UserRepository) CheckIn(ctx context.Context) error {
 func (r *UserRepository) GetLocationFromIP(ipStr string) (*utils.Location, error) {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
-		return nil, fmt.Errorf("invalid IP")
+		return nil, constants.ErrInvalidIP
 	}
 
 	var record utils.GeoIPCity
@@ -1426,165 +1434,17 @@ func (r *UserRepository) UpdateLocation(ctx context.Context, userID uuid.UUID, i
 	return upsertLocation(r.db.WithContext(ctx), loc).Error
 }
 
-func (r *UserRepository) AddReferral(ctx context.Context, referrerID uuid.UUID, referredUserID uuid.UUID, rewardAmount decimal.Decimal) (*decimal.Decimal, error) {
-	referral, err := domainuser.NewReferral(referrerID, referredUserID, rewardAmount)
-	if err != nil {
-		return nil, err
-	}
-	if r == nil || r.db == nil {
-		return nil, errors.New("referral repository is not configured")
-	}
-
-	isPostgres := r.db.Name() == "postgres"
-	if !isPostgres {
-		fallbackReferralTransactionLock.Lock()
-		defer fallbackReferralTransactionLock.Unlock()
-	}
-
-	var newBalance decimal.Decimal
-	applied := false
-	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if isPostgres {
-			if err := lockViewAggregate(tx, "referral:"+referral.DedupeKey()).Error; err != nil {
-				return err
-			}
-		}
-
-		referrer, err := lockReferralUsers(tx, referral)
-		if err != nil {
-			return err
-		}
-		newBalance = referrer.Balance
-
-		exists, err := referralEngagementExists(tx, referral.DedupeKey())
-		if err != nil {
-			return err
-		}
-		if exists {
-			return nil
-		}
-
-		if err := addTipInTransaction(
-			tx,
-			referral.ReferredID(),
-			referral.ReferrerID(),
-			referral.RewardAmount(),
-			referral.ReferrerID(),
-			models.EngagementContentableTypeUser,
-			models.EngagementKindReferral,
-			withAmountEngagementDedupeKey(referral.DedupeKey()),
-		); err != nil {
-			return err
-		}
-
-		newBalance, err = referral.Credit(referrer.Balance)
-		if err != nil {
-			return err
-		}
-		update := tx.Model(&models.User{}).
-			Where("id = ?", referral.ReferrerID()).
-			Update("balance", newBalance)
-		if update.Error != nil {
-			return update.Error
-		}
-		if update.RowsAffected != 1 {
-			return errReferralUserNotFound
-		}
-		applied = true
-		return nil
-	})
-	if errors.Is(err, errEngagementDetailAlreadyExists) {
-		return r.referralBalance(ctx, referral.ReferrerID())
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if applied {
-		r.sendReferralNotificationBestEffort(ctx, referral)
-	}
-	return &newBalance, nil
-}
-
-func lockReferralUsers(tx *gorm.DB, referral domainuser.Referral) (*models.User, error) {
-	var users []models.User
-	result := referralUsersForBalanceUpdateQuery(tx, referral).
-		Find(&users)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if len(users) != 2 {
-		return nil, errReferralUserNotFound
-	}
-	for i := range users {
-		if users[i].ID == referral.ReferrerID() {
-			return &users[i], nil
-		}
-	}
-	return nil, errReferralUserNotFound
-}
-
-// NO KEY UPDATE protects balance writes while remaining compatible with the
-// KEY SHARE lock PostgreSQL takes when engagement-detail foreign keys are
-// checked. A stronger FOR UPDATE here can deadlock against flows that lock an
-// engagement aggregate before inserting its user-referencing detail.
-func referralUsersForBalanceUpdateQuery(tx *gorm.DB, referral domainuser.Referral) *gorm.DB {
-	return tx.
-		Select("id", "balance").
-		Clauses(clause.Locking{Strength: "NO KEY UPDATE"}).
-		Where("id IN ?", []uuid.UUID{referral.ReferrerID(), referral.ReferredID()}).
-		Order("id ASC")
-}
-
-func referralEngagementExists(tx *gorm.DB, dedupeKey string) (bool, error) {
-	var count int64
-	err := tx.Model(&models.EngagementDetail{}).
-		Where("dedupe_key = ?", dedupeKey).
-		Count(&count).Error
-	return count > 0, err
-}
-
-func (r *UserRepository) referralBalance(ctx context.Context, referrerID uuid.UUID) (*decimal.Decimal, error) {
-	var user models.User
-	if err := r.db.WithContext(ctx).
-		Select("id", "balance").
-		First(&user, "id = ?", referrerID).Error; err != nil {
-		return nil, err
-	}
-	return &user.Balance, nil
-}
-
-func (r *UserRepository) sendReferralNotificationBestEffort(ctx context.Context, referral domainuser.Referral) {
-	if r.notificationRepo == nil {
-		return
-	}
-
-	senderUser, err := r.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: referral.ReferredID()})
-	if err != nil {
-		return
-	}
-	receiverUser, err := r.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: referral.ReferrerID()})
-	if err != nil {
-		return
-	}
-
-	messageTitle := " New Referral Reward"
-	messageText := "You received a new referral reward. Click to read."
-	payload := notifications.NotificationPayload{Title: messageTitle, Body: messageText}
-	if err := r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notifications.NotificationTypeReferral, messageTitle, messageText, payload); err != nil {
-		fmt.Printf("Bildirim gönderilemedi user %s: %v\n", referral.ReferrerID(), err)
-	}
-
-}
-
 func (r *UserRepository) AddBalance(ctx context.Context, userID uuid.UUID, amount decimal.Decimal) (*decimal.Decimal, error) {
 
+	if err := domainwallet.ValidateMoneyRepresentation(amount); err != nil {
+		return nil, err
+	}
 	if amount.IsZero() {
-		return nil, errors.New("amount cannot be zero")
+		return nil, constants.ErrAmountZero
 	}
 
 	if amount.IsNegative() {
-		return nil, errors.New("amount cannot be negative")
+		return nil, constants.ErrAmountNegative
 	}
 
 	var newBalance decimal.Decimal
@@ -1596,7 +1456,13 @@ func (r *UserRepository) AddBalance(ctx context.Context, userID uuid.UUID, amoun
 			return err
 		}
 
+		if err := domainwallet.ValidateMoneyRepresentation(user.Balance); err != nil {
+			return err
+		}
 		user.Balance = user.Balance.Add(amount)
+		if err := domainwallet.ValidateMoneyRepresentation(user.Balance); err != nil {
+			return err
+		}
 		newBalance = user.Balance
 
 		if err := tx.Model(&models.User{}).Where("id = ?", userID).Update("balance", newBalance).Error; err != nil {
@@ -1619,4 +1485,23 @@ func (r *UserRepository) GetPreferences() (*models.PreferencesData, error) {
 		return nil, err
 	}
 	return &preferences, nil
+}
+
+func scopeLiveUsers(query *gorm.DB, filters types.Filter, alias string) *gorm.DB {
+	// alias is an internal SQL constant chosen by the repository, never input.
+	query = query.Where(alias+".deleted_at IS NULL").Where(alias+".user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted, constants.UserRolePending})
+	if filters.AuthUser != nil && filters.AuthUser.ID != uuid.Nil {
+		actor := filters.AuthUser.ID
+		query = query.Where(alias+".domain = (?)", userDomainSubquery(query, actor))
+		query = userAudienceScope(userBlockScope(query, actor, alias), actor, alias)
+	} else {
+		query = query.Where(alias+".privacy_level = ?", constants.PrivacyPublic)
+	}
+	if filters.Domain != nil {
+		domain := strings.TrimSpace(*filters.Domain)
+		if domain != "" && domain != string(models.AllDomains) && domain != string(models.UnknownDomain) {
+			query = query.Where(alias+".domain = ?", domain)
+		}
+	}
+	return query
 }

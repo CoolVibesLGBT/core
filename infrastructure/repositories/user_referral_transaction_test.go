@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -19,40 +18,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type referralNotificationSpy struct {
-	mu                     sync.Mutex
-	db                     *gorm.DB
-	referrerID             uuid.UUID
-	expectedBalance        decimal.Decimal
-	calls                  int
-	committedStateObserved bool
-	err                    error
+	db              *gorm.DB
+	referrerID      uuid.UUID
+	expectedBalance decimal.Decimal
 }
 
-func (s *referralNotificationSpy) SendNotificationToUser(sender models.User, receiver models.User, _ string, _ string, _ string, _ notifications.NotificationPayload) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.calls++
-
-	var referrer models.User
-	var detailCount int64
-	balanceVisible := s.db.Select("id", "balance").First(&referrer, "id = ?", s.referrerID).Error == nil && referrer.Balance.Equal(s.expectedBalance)
-	detailVisible := s.db.Model(&models.EngagementDetail{}).
-		Where("engager_id = ? AND engagee_id = ? AND kind = ?", sender.ID, receiver.ID, models.EngagementKindReferral).
-		Count(&detailCount).Error == nil && detailCount == 1
-	s.committedStateObserved = s.committedStateObserved || (balanceVisible && detailVisible)
-	return s.err
-}
-
+// Observe durable notifications and the committed reward from a separate query.
 func (s *referralNotificationSpy) snapshot() (int, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.calls, s.committedStateObserved
+	var count int64
+	var user models.User
+	err := s.db.Model(&notifications.Notification{}).Where("user_id = ? AND type = ?", s.referrerID, notifications.NotificationTypeReferral).Count(&count).Error
+	visible := s.db.Select("id", "balance").First(&user, "id = ?", s.referrerID).Error == nil && user.Balance.Equal(s.expectedBalance)
+	return int(count), err == nil && visible
 }
 
 func TestAddReferralRejectsInvalidReferralBeforeDatabaseAccess(t *testing.T) {
@@ -110,10 +92,10 @@ func TestReferralBalanceLockUsesNoKeyUpdateInDeterministicOrder(t *testing.T) {
 		t.Fatalf("referral advisory lock query: %v", lock.Error)
 	}
 	lockSQL := strings.ToLower(lock.Statement.SQL.String())
-	if !strings.Contains(lockSQL, "pg_advisory_xact_lock") || !strings.Contains(lockSQL, "hashtextextended") {
+	if !strings.Contains(lockSQL, "transaction_locks") || !strings.Contains(lockSQL, "for update") {
 		t.Fatalf("referral advisory lock SQL is incomplete: %s", lock.Statement.SQL.String())
 	}
-	if len(lock.Statement.Vars) != 1 || lock.Statement.Vars[0] != lockKey {
+	if len(lock.Statement.Vars) < 1 || lock.Statement.Vars[0] != lockKey {
 		t.Fatalf("referral advisory lock vars = %#v, want %q", lock.Statement.Vars, lockKey)
 	}
 
@@ -130,18 +112,17 @@ func TestReferralBalanceLockUsesNoKeyUpdateInDeterministicOrder(t *testing.T) {
 	}
 }
 
-func TestAddReferralIsAtomicIdempotentAndNotifiesAfterCommitIntegration(t *testing.T) {
+func TestReferralApprovalIsAtomicIdempotentAndQueuesNotificationIntegration(t *testing.T) {
 	db, repo, referrer, referred, aggregate, notifier := prepareReferralIntegration(t, datatypes.JSON([]byte("{}")))
 	reward := decimal.RequireFromString("2.25")
 	wantBalance := decimal.RequireFromString("6.25")
 	notifier.expectedBalance = wantBalance
-	notifier.err = errors.New("push unavailable")
 
-	first, err := repo.AddReferral(context.Background(), referrer.ID, referred.ID, reward)
+	first, err := creditReferralForTest(repo, context.Background(), referrer.ID, referred.ID, reward)
 	if err != nil {
 		t.Fatalf("first AddReferral() error = %v", err)
 	}
-	second, err := repo.AddReferral(context.Background(), referrer.ID, referred.ID, reward)
+	second, err := creditReferralForTest(repo, context.Background(), referrer.ID, referred.ID, reward)
 	if err != nil {
 		t.Fatalf("idempotent AddReferral() error = %v", err)
 	}
@@ -156,13 +137,13 @@ func TestAddReferralIsAtomicIdempotentAndNotifiesAfterCommitIntegration(t *testi
 	}
 }
 
-func TestAddReferralRollsBackBalanceWhenEngagementWriteFailsIntegration(t *testing.T) {
+func TestReferralApprovalRollsBackBalanceWhenEngagementWriteFailsIntegration(t *testing.T) {
 	// Keep the fixture valid for PostgreSQL jsonb while making it invalid for
 	// the domain aggregate's map representation. This reaches the actual
 	// transactional engagement write instead of failing during fixture setup.
 	db, repo, referrer, referred, aggregate, notifier := prepareReferralIntegration(t, datatypes.JSON([]byte("[]")))
 
-	_, err := repo.AddReferral(context.Background(), referrer.ID, referred.ID, decimal.NewFromInt(2))
+	_, err := creditReferralForTest(repo, context.Background(), referrer.ID, referred.ID, decimal.NewFromInt(2))
 	var decodeErr *json.UnmarshalTypeError
 	if !errors.As(err, &decodeErr) {
 		t.Fatalf("AddReferral() error = %v, want in-transaction aggregate decode failure", err)
@@ -183,7 +164,7 @@ func TestAddReferralRollsBackBalanceWhenEngagementWriteFailsIntegration(t *testi
 	}
 }
 
-func TestAddReferralRollsBackEngagementWhenBalanceWriteFailsIntegration(t *testing.T) {
+func TestReferralApprovalRollsBackEngagementWhenBalanceWriteFailsIntegration(t *testing.T) {
 	db, repo, referrer, referred, aggregate, notifier := prepareReferralIntegration(t, datatypes.JSON([]byte("{}")))
 	wantErr := errors.New("forced referral balance failure")
 	callbackName := "test:fail_referral_balance:" + uuid.NewString()
@@ -196,7 +177,7 @@ func TestAddReferralRollsBackEngagementWhenBalanceWriteFailsIntegration(t *testi
 	}
 	t.Cleanup(func() { _ = db.Callback().Update().Remove(callbackName) })
 
-	_, err := repo.AddReferral(context.Background(), referrer.ID, referred.ID, decimal.NewFromInt(2))
+	_, err := creditReferralForTest(repo, context.Background(), referrer.ID, referred.ID, decimal.NewFromInt(2))
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("AddReferral() error = %v, want forced balance failure", err)
 	}
@@ -216,7 +197,7 @@ func TestAddReferralRollsBackEngagementWhenBalanceWriteFailsIntegration(t *testi
 	}
 }
 
-func TestAddReferralConcurrentRetriesRewardOnceIntegration(t *testing.T) {
+func TestReferralApprovalConcurrentRetriesRewardOnceIntegration(t *testing.T) {
 	db := referralRaceIntegrationDB(t)
 	referrer, referred, aggregate := createReferralFixture(t, db, datatypes.JSON([]byte("{}")))
 	t.Cleanup(func() { cleanupReferralFixture(db, referrer.ID, referred.ID) })
@@ -224,7 +205,7 @@ func TestAddReferralConcurrentRetriesRewardOnceIntegration(t *testing.T) {
 	reward := decimal.RequireFromString("3.50")
 	wantBalance := decimal.RequireFromString("7.50")
 	notifier := &referralNotificationSpy{db: db, referrerID: referrer.ID, expectedBalance: wantBalance}
-	repo := &UserRepository{db: db, engagementRepo: NewEngagementRepository(db), notificationRepo: notifier}
+	repo := &UserRepository{db: db, engagementRepo: NewEngagementRepository(db)}
 
 	const attempts = 12
 	start := make(chan struct{})
@@ -236,7 +217,7 @@ func TestAddReferralConcurrentRetriesRewardOnceIntegration(t *testing.T) {
 		go func() {
 			defer workers.Done()
 			<-start
-			balance, err := repo.AddReferral(context.Background(), referrer.ID, referred.ID, reward)
+			balance, err := creditReferralForTest(repo, context.Background(), referrer.ID, referred.ID, reward)
 			if err == nil && balance != nil {
 				balances <- *balance
 			}
@@ -266,7 +247,7 @@ func TestAddReferralConcurrentRetriesRewardOnceIntegration(t *testing.T) {
 	}
 }
 
-func TestAddReferralDoesNotDeadlockWithReciprocalInteractionIntegration(t *testing.T) {
+func TestReferralApprovalDoesNotDeadlockWithReciprocalInteractionIntegration(t *testing.T) {
 	db := referralRaceIntegrationDB(t)
 	referrer, referred, aggregate := createReferralFixture(t, db, datatypes.JSON([]byte("{}")))
 	t.Cleanup(func() { cleanupReferralFixture(db, referrer.ID, referred.ID) })
@@ -275,7 +256,7 @@ func TestAddReferralDoesNotDeadlockWithReciprocalInteractionIntegration(t *testi
 	wantBalance := decimal.NewFromInt(5)
 	notifier := &referralNotificationSpy{db: db, referrerID: referrer.ID, expectedBalance: wantBalance}
 	engagementRepo := NewEngagementRepository(db)
-	repo := &UserRepository{db: db, engagementRepo: engagementRepo, notificationRepo: notifier}
+	repo := &UserRepository{db: db, engagementRepo: engagementRepo}
 	intent, err := domainuser.NewSetInteractionState(domainuser.InteractionFollow, true)
 	if err != nil {
 		t.Fatalf("NewSetInteractionState() error = %v", err)
@@ -287,7 +268,7 @@ func TestAddReferralDoesNotDeadlockWithReciprocalInteractionIntegration(t *testi
 	results := make(chan error, 2)
 	go func() {
 		<-start
-		_, err := repo.AddReferral(ctx, referrer.ID, referred.ID, reward)
+		_, err := creditReferralForTest(repo, ctx, referrer.ID, referred.ID, reward)
 		if err != nil {
 			results <- fmt.Errorf("AddReferral: %w", err)
 			return
@@ -327,14 +308,14 @@ func TestAddReferralDoesNotDeadlockWithReciprocalInteractionIntegration(t *testi
 
 func prepareReferralIntegration(t *testing.T, counts datatypes.JSON) (*gorm.DB, *UserRepository, models.User, models.User, models.Engagement, *referralNotificationSpy) {
 	t.Helper()
-	db := engagementViewIntegrationDB(t)
+	db := privatePhotoIntegrationDB(t)
 	referrer, referred, aggregate := createReferralFixture(t, db, counts)
 	notifier := &referralNotificationSpy{
 		db:              db,
 		referrerID:      referrer.ID,
 		expectedBalance: referrer.Balance,
 	}
-	repo := &UserRepository{db: db, engagementRepo: NewEngagementRepository(db), notificationRepo: notifier}
+	repo := &UserRepository{db: db, engagementRepo: NewEngagementRepository(db)}
 	return db, repo, referrer, referred, aggregate, notifier
 }
 
@@ -373,18 +354,7 @@ func createReferralFixture(t *testing.T, db *gorm.DB, counts datatypes.JSON) (mo
 
 func referralRaceIntegrationDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	if dsn == "" && os.Getenv("ENV") == "test" {
-		dsn = os.Getenv("DATABASE_URL")
-	}
-	if dsn == "" {
-		t.Skip("TEST_DATABASE_URL is not configured")
-	}
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("open referral race database: %v", err)
-	}
-	return db
+	return privatePhotoIntegrationDB(t)
 }
 
 func cleanupReferralFixture(db *gorm.DB, referrerID, referredID uuid.UUID) {
@@ -440,4 +410,33 @@ func assertReferralState(t *testing.T, db *gorm.DB, aggregateID, referrerID, ref
 	if expectedDetails > 0 && counts["referral_amount"] != reward.String() {
 		t.Fatalf("referral_amount = %#v, want %q", counts["referral_amount"], reward.String())
 	}
+}
+
+// Monetary tests explicitly pass both stages: record the referral, then review
+// it through an independent trusted administrator. Production registration only
+// performs the first stage.
+func creditReferralForTest(repo *UserRepository, ctx context.Context, referrer, referred uuid.UUID, amount decimal.Decimal) (*decimal.Decimal, error) {
+	if _, err := repo.AddReferral(ctx, referrer, referred, amount); err != nil {
+		return nil, err
+	}
+	admin := models.User{ID: uuid.MustParse("00000000-0000-4000-8000-000000000001"), PublicID: -999, UserName: "financial_test_admin", Domain: models.CoolVibes, UserRole: constants.UserRoleAdmin}
+	if err := repo.db.WithContext(ctx).Omit(clause.Associations).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "id"}}, DoNothing: true}).Create(&admin).Error; err != nil {
+		return nil, err
+	}
+	var reward models.ReferralReward
+	if err := repo.db.WithContext(ctx).Where("referred_id = ?", referred).Take(&reward).Error; err != nil {
+		return nil, err
+	}
+	review, err := domainuser.NewReferralReview("approve", "Verified genuine referral in test", "test-identity:"+referred.String())
+	if err != nil {
+		return nil, err
+	}
+	if _, err := NewReferralRewardRepository(repo.db).ReviewReferralReward(ctx, admin.ID, reward.ID, review); err != nil {
+		return nil, err
+	}
+	var user models.User
+	if err := repo.db.WithContext(ctx).Select("balance").Take(&user, "id = ?", referrer).Error; err != nil {
+		return nil, err
+	}
+	return &user.Balance, nil
 }

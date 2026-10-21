@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func TestModerationWritesUseSharedTargetAdvisoryLock(t *testing.T) {
+func TestModerationWritesUseSharedTargetRowLock(t *testing.T) {
 	db := newDryRunTaxonomyDB(t).Session(&gorm.Session{SkipDefaultTransaction: true})
 	targetID := uuid.New()
 	tx := lockModerationTarget(db, models.EngagementContentableTypePost, targetID)
@@ -29,7 +29,7 @@ func TestModerationWritesUseSharedTargetAdvisoryLock(t *testing.T) {
 		t.Fatalf("moderation target lock error = %v", tx.Error)
 	}
 	lockSQL := strings.ToLower(tx.Statement.SQL.String())
-	if !strings.Contains(lockSQL, "pg_advisory_xact_lock") || !strings.Contains(lockSQL, "hashtextextended") {
+	if !strings.Contains(lockSQL, "transaction_locks") || !strings.Contains(lockSQL, "for update") {
 		t.Fatalf("moderation write is not target-serialized: %s", tx.Statement.SQL.String())
 	}
 	if moderationTargetLockKey(models.EngagementContentableTypePost, targetID) == moderationTargetLockKey(models.EngagementContentableTypeUser, targetID) {
@@ -209,7 +209,7 @@ func TestResolveReportSameStatusStillAppliesVisibilityAndResolutionIntegration(t
 }
 
 func TestConcurrentResolveAndHideShareTargetLockIntegration(t *testing.T) {
-	db := locationRaceIntegrationDB(t)
+	db := eventRSVPIntegrationDB(t)
 	for _, table := range []any{&models.Report{}, &models.ReportKind{}, &post.Post{}, &models.User{}} {
 		if !db.Migrator().HasTable(table) {
 			t.Skip("moderation schema is not migrated in TEST_DATABASE_URL")
@@ -285,7 +285,7 @@ func TestConcurrentResolveAndHideShareTargetLockIntegration(t *testing.T) {
 }
 
 func TestConcurrentCreateReportAndHideCannotLeavePendingReportIntegration(t *testing.T) {
-	db := locationRaceIntegrationDB(t)
+	db := eventRSVPIntegrationDB(t)
 	for _, table := range []any{&models.Report{}, &models.ReportKind{}, &post.Post{}, &models.User{}} {
 		if !db.Migrator().HasTable(table) {
 			t.Skip("moderation schema is not migrated in TEST_DATABASE_URL")

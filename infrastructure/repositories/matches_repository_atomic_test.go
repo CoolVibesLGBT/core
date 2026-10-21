@@ -17,7 +17,7 @@ import (
 )
 
 func TestRecordViewIsIdempotentExclusiveAndMatchAtomicIntegration(t *testing.T) {
-	db := engagementViewIntegrationDB(t)
+	db := socialGraphIntegrationDB(t)
 	if err := db.AutoMigrate(&models.Engagement{}, &models.EngagementDetail{}); err != nil {
 		t.Fatalf("migrate match engagement schema: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestRecordViewIsIdempotentExclusiveAndMatchAtomicIntegration(t *testing.T) 
 }
 
 func TestMatchListsUseExactEngagementCursorAndPublicProjectionIntegration(t *testing.T) {
-	db := engagementViewIntegrationDB(t)
+	db := socialGraphIntegrationDB(t)
 	if err := db.AutoMigrate(&models.Engagement{}, &models.EngagementDetail{}); err != nil {
 		t.Fatalf("migrate match list schema: %v", err)
 	}

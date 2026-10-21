@@ -44,25 +44,28 @@ type Router struct {
 }
 
 type Dependencies struct {
-	MCPServer           *mcp.MCPServer
-	UserService         *usecases.UserService
-	PostService         *usecases.PostService
-	PlaceService        *usecases.PlaceService
-	NewsService         *usecases.NewsService
-	ClassifiedService   *usecases.ClassifiedService
-	MatchesService      *usecases.MatchesService
-	ChatService         *usecases.ChatService
-	NotificationService *usecases.NotificationsService
-	PaymentService      *usecases.PaymentService
-	SystemService       *usecases.SystemService
-	ModerationService   *usecases.ModerationService
-	BroadcastService    *usecases.BroadcastService
-	PrivatePhotoService *usecases.PrivatePhotoService
-	SessionService      *usecases.SessionService
-	SitemapService      *usecases.SitemapService
-	MediaAccessService  *usecases.MediaAccessService
-	TokenDecoder        ports.UserTokenDecoder
-	TelegramProcessor   ports.TelegramUpdateProcessor
+	MCPServer             *mcp.MCPServer
+	UserService           *usecases.UserService
+	PostService           *usecases.PostService
+	PlaceService          *usecases.PlaceService
+	NewsService           *usecases.NewsService
+	ClassifiedService     *usecases.ClassifiedService
+	MatchesService        *usecases.MatchesService
+	FriendshipService     *usecases.FriendshipService
+	ChatService           *usecases.ChatService
+	NotificationService   *usecases.NotificationsService
+	PaymentService        *usecases.PaymentService
+	SystemService         *usecases.SystemService
+	ModerationService     *usecases.ModerationService
+	BroadcastService      *usecases.BroadcastService
+	BroadcastGiftService  *usecases.BroadcastGiftService
+	ReferralRewardService *usecases.ReferralRewardService
+	PrivatePhotoService   *usecases.PrivatePhotoService
+	SessionService        *usecases.SessionService
+	SitemapService        *usecases.SitemapService
+	MediaAccessService    *usecases.MediaAccessService
+	TokenDecoder          ports.UserTokenDecoder
+	TelegramProcessor     ports.TelegramUpdateProcessor
 }
 
 func NewRouter(deps Dependencies) *Router {
@@ -129,7 +132,8 @@ func NewRouter(deps Dependencies) *Router {
 	))
 
 	r.fiber.Use("/static/uploads", handleMediaFile(deps.MediaAccessService, deps.TokenDecoder))
-	r.fiber.Use("/static", static.New("./static"))
+	r.fiber.Use("/static", static.New(".", static.Config{FS: publicStaticFS{FS: os.DirFS("./static")}}))
+	r.fiber.Use("/static", func(c fiber.Ctx) error { return c.SendStatus(fiber.StatusNotFound) })
 
 	r.action.Register(constants.CMD_INITIAL_SYNC, handlers.HandleInitialSync(systemService))
 	r.action.Register(constants.CMD_LINK_METADATA, handlers.HandleLinkPreview())
@@ -179,6 +183,16 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_USER_FOLLOW, handlers.HandleFollow(userService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_UNFOLLOW, handlers.HandleUnfollow(userService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_TOGGLE_FOLLOW, handlers.HandleToggleFollow(userService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_FETCH_FOLLOWERS, handlers.HandleUserRelationshipList(userService, "follower"), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_FETCH_FOLLOWINGS, handlers.HandleUserRelationshipList(userService, "following"), middleware.AuthMiddleware(sessionService))
+	for _, action := range []string{
+		constants.CMD_USER_FRIEND_REQUEST, constants.CMD_USER_FRIEND_RESPOND,
+		constants.CMD_USER_FRIEND_CANCEL, constants.CMD_USER_FRIEND_REMOVE,
+	} {
+		r.action.Register(action, handlers.HandleFriendshipMutation(deps.FriendshipService, action), middleware.AuthMiddleware(sessionService))
+	}
+	r.action.Register(constants.CMD_USER_FRIEND_FETCH, handlers.HandleFriendshipList(deps.FriendshipService, false), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_FRIEND_REQUESTS, handlers.HandleFriendshipList(deps.FriendshipService, true), middleware.AuthMiddleware(sessionService))
 
 	//USER LIKE
 	r.action.Register(constants.CMD_USER_LIKE, handlers.HandleUserLike(userService), middleware.AuthMiddleware(sessionService))
@@ -226,6 +240,9 @@ func NewRouter(deps Dependencies) *Router {
 	//MATCHES EKRANI ICIN
 	r.action.Register(constants.CMD_MATCH_GET_UNSEEN, handlers.HandleGetUnseenUsers(matchesService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_MATCH_CREATE, handlers.HandleRecordView(matchesService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_MATCH_UPDATE, handlers.HandleRecordView(matchesService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_MATCH_FETCH, handlers.HandleGetMatchesAfter(matchesService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_MATCH_DELETE, handlers.HandleRemoveMatch(matchesService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_MATCH_FETCH_MATCHED, handlers.HandleGetMatchesAfter(matchesService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_MATCH_FETCH_LIKED, handlers.HandleGetLikesAfter(matchesService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_MATCH_FETCH_PASSED, handlers.HandleGetPassesAfter(matchesService), middleware.AuthMiddleware(sessionService))
@@ -233,9 +250,13 @@ func NewRouter(deps Dependencies) *Router {
 	//CHAT
 	r.action.Register(constants.CMD_TYPING, handlers.HandleSendTypingEvent(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_CREATE, handlers.HandleCreateChat(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_PARTICIPANT_ADD, handlers.HandleAddChatParticipant(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_PARTICIPANT_REMOVE, handlers.HandleRemoveChatParticipant(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_PARTICIPANTS_FETCH, handlers.HandleGetChatParticipants(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_MESSAGE_READ, handlers.HandleChatMessageRead(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_MESSAGE_OPEN, handlers.HandleChatMessageOpen(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_SEND_MESSAGE, handlers.HandleSendMessage(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_EDIT_MESSAGE, handlers.HandleEditMessage(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FETCH_CHATS, handlers.HandleGetChatsByUserID(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FETCH_MESSAGES, handlers.HandleGetMessagesByChatID(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_DELETE_CHAT, handlers.HandleDeleteChat(chatService), middleware.AuthMiddleware(sessionService))
@@ -265,6 +286,15 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_CLASSIFIEDS_FETCH, handlers.HandleGetClassified(classifiedService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 
 	//BROADCAST
+	r.action.Register(constants.CMD_BROADCAST_GIFT, handlers.HandleBroadcastGift(deps.BroadcastGiftService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_BROADCAST_SESSION_START, handlers.HandleBroadcastSession(deps.BroadcastGiftService, "start"), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_BROADCAST_SESSION_HEARTBEAT, handlers.HandleBroadcastSession(deps.BroadcastGiftService, "heartbeat"), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_BROADCAST_SESSION_END, handlers.HandleBroadcastSession(deps.BroadcastGiftService, "end"), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_BROADCAST_SESSION_FETCH, handlers.HandleBroadcastSession(deps.BroadcastGiftService, "fetch"), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_REFERRAL_FETCH, handlers.HandleReferralRewards(deps.ReferralRewardService, false), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_ADMIN_REFERRAL_FETCH, handlers.HandleReferralRewards(deps.ReferralRewardService, true), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_ADMIN_REFERRAL_REVIEW, handlers.HandleReferralRewardReview(deps.ReferralRewardService), middleware.AuthMiddleware(sessionService))
+
 	r.action.Register(constants.CMD_BROADCASTS_FETCH, handlers.HandleFetchBroadcasts(userService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 	r.action.Register(constants.CMD_BROADCASTS_JOIN, handlers.HandleBroadcastsJoinRequest(broadcastService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_BROADCASTS_VIEW, handlers.HandleViewBroadcast(broadcastService), middleware.AuthMiddleware(sessionService))

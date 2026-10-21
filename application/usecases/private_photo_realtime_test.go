@@ -1,13 +1,12 @@
 package usecases
 
 import (
-	"bytes"
 	"context"
+	upload "core/adapters/media"
 	"core/application/ports"
 	domainmedia "core/domain/media"
 	modelmedia "core/models/media"
 	"encoding/json"
-	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -15,15 +14,6 @@ import (
 
 	"github.com/google/uuid"
 )
-
-type privatePhotoRealtimeTestFile struct{}
-
-func (privatePhotoRealtimeTestFile) Filename() string    { return "private.jpg" }
-func (privatePhotoRealtimeTestFile) Size() int64         { return 1024 }
-func (privatePhotoRealtimeTestFile) ContentType() string { return "image/jpeg" }
-func (privatePhotoRealtimeTestFile) Open() (io.ReadCloser, error) {
-	return io.NopCloser(bytes.NewReader(nil)), nil
-}
 
 type privatePhotoRealtimeRepository struct {
 	ports.PrivatePhotoRepository
@@ -53,7 +43,7 @@ func (*privatePhotoRealtimeRepository) CountPrivatePhotos(context.Context, uuid.
 	return 0, nil
 }
 
-func (*privatePhotoRealtimeRepository) AddPrivatePhoto(_ context.Context, ownerID uuid.UUID, _ ports.UploadedFile, _ int64) (*modelmedia.Media, error) {
+func (*privatePhotoRealtimeRepository) AddPrivatePhoto(_ context.Context, ownerID uuid.UUID, _ *domainmedia.UploadedFile, _ int64) (*modelmedia.Media, error) {
 	return &modelmedia.Media{
 		ID:               uuid.New(),
 		PublicID:         501,
@@ -166,7 +156,7 @@ func TestPrivatePhotoRealtimeEventsAreVersionedSafeAndAudienceScoped(t *testing.
 	viewerPrincipal := ports.PrivatePhotoPrincipal{ID: viewer.ID, PublicID: viewer.PublicID}
 	ctx := context.Background()
 
-	if _, err := service.Upload(ctx, ownerPrincipal, []ports.UploadedFile{privatePhotoRealtimeTestFile{}}); err != nil {
+	if _, err := service.Upload(ctx, ownerPrincipal, []*domainmedia.UploadedFile{upload.FromBytes("private.jpg", "image/jpeg", []byte("image"))}); err != nil {
 		t.Fatalf("Upload() error = %v", err)
 	}
 	assertPrivatePhotoRealtimeEvent(t, publisher.events[0], []int64{10, 20, 30}, ports.PrivatePhotoEventAlbumChanged, "")

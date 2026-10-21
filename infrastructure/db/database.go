@@ -221,14 +221,15 @@ type IndexDefinition struct {
 }
 
 func MigrateIndexes(db *gorm.DB) error {
-	dropQueries := []string{
-		"DROP INDEX IF EXISTS idx_synonyms_slug;",
-		"DROP INDEX IF EXISTS idx_posts_active_chat_message_expiry;",
-		"DROP INDEX IF EXISTS idx_reports_moderation_queue;",
-	}
-
-	for _, query := range dropQueries {
-		if err := db.Exec(query).Error; err != nil {
+	for _, index := range []struct {
+		model any
+		name  string
+	}{
+		{&taxonomy.Synonym{}, "idx_synonyms_slug"},
+		{&post.Post{}, "idx_posts_active_chat_message_expiry"},
+		{&models.Report{}, "idx_reports_moderation_queue"},
+	} {
+		if err := dropIndexIfExists(db, index.model, index.name); err != nil {
 			return err
 		}
 	}
@@ -392,7 +393,7 @@ func MigrateEngagementAggregateUniqueness(db *gorm.DB) error {
 			}
 		}
 
-		if err := tx.Exec("DROP INDEX IF EXISTS uidx_engagements_contentable").Error; err != nil {
+		if err := dropIndexIfExists(tx, &models.Engagement{}, "uidx_engagements_contentable"); err != nil {
 			return fmt.Errorf("drop malformed engagement aggregate index: %w", err)
 		}
 		return createIndexDefinitions(tx, engagementAggregateIndexDefinitions())
@@ -401,13 +402,10 @@ func MigrateEngagementAggregateUniqueness(db *gorm.DB) error {
 
 func hasValidEngagementAggregateIndex(db *gorm.DB) (bool, error) {
 	var definition string
-	result := db.Raw(`
-		SELECT indexdef
-		FROM pg_indexes
-		WHERE schemaname = current_schema()
-		  AND tablename = 'engagements'
-		  AND indexname = 'uidx_engagements_contentable'
-	`).Scan(&definition)
+	result := db.Table("pg_indexes").Select("indexdef").
+		Where("schemaname = current_schema()").
+		Where("tablename = ? AND indexname = ?", "engagements", "uidx_engagements_contentable").
+		Scan(&definition)
 	if result.Error != nil {
 		return false, fmt.Errorf("inspect engagement aggregate index: %w", result.Error)
 	}
@@ -533,25 +531,8 @@ func MigrateLocationOwnerUniqueness(db *gorm.DB) error {
 		if err := tx.Exec("LOCK TABLE locations IN SHARE ROW EXCLUSIVE MODE").Error; err != nil {
 			return fmt.Errorf("lock locations for owner deduplication: %w", err)
 		}
-		if err := tx.Exec(`
-			WITH ranked_locations AS (
-				SELECT id,
-					ROW_NUMBER() OVER (
-						PARTITION BY contentable_type, contentable_id
-						ORDER BY updated_at DESC NULLS LAST,
-							created_at DESC NULLS LAST,
-							id DESC
-					) AS owner_rank
-				FROM locations
-				WHERE deleted_at IS NULL
-			)
-			UPDATE locations AS location
-			SET deleted_at = NOW(), updated_at = NOW()
-			FROM ranked_locations
-			WHERE location.id = ranked_locations.id
-			  AND ranked_locations.owner_rank > 1
-		`).Error; err != nil {
-			return fmt.Errorf("deduplicate active location owners: %w", err)
+		if err := deduplicateLocationOwners(tx); err != nil {
+			return err
 		}
 
 		return createIndexDefinitions(tx, locationOwnerIndexDefinitions())
@@ -690,16 +671,10 @@ func MigrateLegacyChatMediaOwnership(db *gorm.DB) error {
 	// Older chat uploads used owner_type=chat even though owner_id was the
 	// message post UUID. Correct only rows proven to belong to chat-message
 	// posts; file metadata and physical storage are intentionally untouched.
-	return db.Exec(`
-		UPDATE medias AS m
-		SET owner_type = 'post'
-		FROM posts AS p
-		WHERE m.owner_type = 'chat'
-		  AND m.role = 'chat_media'
-		  AND m.owner_id = p.id
-		  AND p.post_kind = 'message'
-		  AND p.contentable_type = 'chat'
-	`).Error
+	messages := db.Session(&gorm.Session{NewDB: true}).Model(&post.Post{}).Unscoped().Select("id").
+		Where("post_kind = ? AND contentable_type = ?", post.PostKindMessage, "chat")
+	return db.Model(&media.Media{}).Where("owner_type = ? AND role = ?", "chat", media.RoleChatMedia).
+		Where("owner_id IN (?)", messages).UpdateColumn("owner_type", media.OwnerPost).Error
 }
 
 // MigrateProtectedMediaVisibility repairs rows created by older media writers
@@ -724,7 +699,7 @@ func MigrateProtectedMediaVisibility(db *gorm.DB) error {
 		if tx.Name() != "postgres" {
 			return nil
 		}
-		if err := tx.Exec("UPDATE medias SET is_public = FALSE WHERE is_public IS NULL").Error; err != nil {
+		if err := tx.Model(&media.Media{}).Where("is_public IS NULL").UpdateColumn("is_public", false).Error; err != nil {
 			return err
 		}
 		if err := tx.Exec("ALTER TABLE medias ALTER COLUMN is_public SET DEFAULT FALSE").Error; err != nil {
@@ -775,6 +750,10 @@ func Migrate(db *gorm.DB) error {
 		}
 	}
 
+	if err := MigrateChatParticipants(db); err != nil {
+		return err
+	}
+
 	err := db.AutoMigrate(
 
 		&taxonomy.Entity{},
@@ -790,17 +769,23 @@ func Migrate(db *gorm.DB) error {
 		&models.ReportKind{},
 		&models.Report{},
 		&notifications.Notification{},
+		&notifications.Delivery{},
 		&utils.FileMetadata{},
 
 		&media.Media{},
 
 		&models.Engagement{},
+		&models.TransactionLock{},
 		&models.EngagementDetail{},
 
 		&models.Preferences{},
 
 		&models.User{},
 		&models.PrivatePhotoAccessRequest{},
+		&models.Friendship{},
+		&models.ReferralReward{},
+		&models.BroadcastSession{},
+		&models.BroadcastGift{},
 		&models.Wallet{},
 
 		&models.Mention{},

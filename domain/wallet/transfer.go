@@ -8,11 +8,13 @@ import (
 )
 
 var (
-	ErrInvalidParty       = errors.New("transfer parties are required")
-	ErrSelfTransfer       = errors.New("cannot transfer to self")
-	ErrInvalidAmount      = errors.New("transfer amount must be positive")
-	ErrAmountBelowMinimum = errors.New("transfer amount is below minimum")
-	ErrInsufficientFunds  = errors.New("insufficient funds")
+	ErrTransferUnavailable = errors.New("transfer participants are unavailable")
+	ErrTransferBlocked     = errors.New("transfer is blocked")
+	ErrInvalidParty        = errors.New("transfer parties are required")
+	ErrSelfTransfer        = errors.New("cannot transfer to self")
+	ErrInvalidAmount       = errors.New("transfer amount must be positive")
+	ErrAmountBelowMinimum  = errors.New("transfer amount is below minimum")
+	ErrInsufficientFunds   = errors.New("insufficient funds")
 )
 
 // Transfer is the validated value object used by money-moving use cases. It

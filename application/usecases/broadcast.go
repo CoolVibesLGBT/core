@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 	"core/application/ports"
-	"fmt"
+	"core/constants"
 	"strings"
 )
 
@@ -33,7 +33,7 @@ func (s *BroadcastService) FetchTrending(ctx context.Context, provider ports.Bro
 		query.PageSize = 100
 	}
 	if query.PageSize > maxBroadcastPageSize {
-		return nil, fmt.Errorf("%w: page size exceeds %d", ports.ErrBroadcastInvalidInput, maxBroadcastPageSize)
+		return nil, constants.ErrBroadcastPageSizeExceeded.Format(ports.ErrBroadcastInvalidInput, maxBroadcastPageSize)
 	}
 	if strings.TrimSpace(query.Gender) == "" {
 		query.Gender = "all"
@@ -53,7 +53,7 @@ func (s *BroadcastService) CreateBroadcast(ctx context.Context, principal ports.
 	}
 	description = strings.TrimSpace(description)
 	if len(description) > maxBroadcastDescriptionLength {
-		return nil, fmt.Errorf("%w: description is too long", ports.ErrBroadcastInvalidInput)
+		return nil, constants.ErrBroadcastDescriptionTooLong.Format(ports.ErrBroadcastInvalidInput)
 	}
 	return s.gateway.CreateBroadcast(ctx, description)
 }
@@ -67,7 +67,7 @@ func (s *BroadcastService) ViewBroadcast(ctx context.Context, principal ports.Br
 	}
 	broadcastID = strings.TrimSpace(broadcastID)
 	if broadcastID == "" || len(broadcastID) > maxBroadcastIdentifierLength {
-		return nil, fmt.Errorf("%w: broadcast ID is required", ports.ErrBroadcastInvalidInput)
+		return nil, constants.ErrBroadcastIDRequired.Format(ports.ErrBroadcastInvalidInput)
 	}
 	return s.gateway.ViewBroadcast(ctx, ports.BroadcastViewInput{BroadcastID: broadcastID, Source: "trending"})
 }
@@ -85,7 +85,7 @@ func (s *BroadcastService) RequestGuestBroadcast(ctx context.Context, principal 
 	}
 	if input.BroadcastID == "" || input.StreamClientID == "" ||
 		len(input.BroadcastID) > maxBroadcastIdentifierLength || len(input.StreamClientID) > maxBroadcastIdentifierLength {
-		return nil, fmt.Errorf("%w: broadcast ID and stream client ID are required", ports.ErrBroadcastInvalidInput)
+		return nil, constants.ErrBroadcastGuestIdentifiersRequired.Format(ports.ErrBroadcastInvalidInput)
 	}
 	return s.gateway.RequestGuestBroadcast(ctx, input)
 }
@@ -104,7 +104,7 @@ func (s *BroadcastService) LikeBroadcast(ctx context.Context, principal ports.Br
 	}
 	if input.BroadcastID == "" || input.ViewerID == "" || input.NumLikes <= 0 || input.NumLikes > maxBroadcastLikes ||
 		len(input.BroadcastID) > maxBroadcastIdentifierLength || len(input.ViewerID) > maxBroadcastIdentifierLength {
-		return nil, fmt.Errorf("%w: broadcast ID, viewer ID and a positive like count are required", ports.ErrBroadcastInvalidInput)
+		return nil, constants.ErrBroadcastLikeInputRequired.Format(ports.ErrBroadcastInvalidInput)
 	}
 	return s.gateway.LikeBroadcast(ctx, input)
 }

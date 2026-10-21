@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"core/application/ports"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/helpers"
@@ -911,7 +910,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 		}
 
 		authUser.DefaultLanguage = constants.CountryToLanguage[strings.ToUpper(p.CountryCode)]
-		place, err := placeService.CreatePlace(context.Background(), ports.FormData{Values: request}, authUser)
+		place, err := placeService.CreatePlace(context.Background(), request, nil, authUser)
 		if err != nil {
 			return err
 		}

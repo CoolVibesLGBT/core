@@ -3,10 +3,10 @@ package handlers
 import (
 	"bytes"
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/application/types"
 	usecases "core/application/usecases"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 	"core/models"
 	"core/models/media"
@@ -22,7 +22,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -46,19 +45,19 @@ type handlerPostRepo struct {
 	reportAuthUser        *models.User
 }
 
-func (r *handlerPostRepo) CreateContentablePost(ctx context.Context, form ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
+func (r *handlerPostRepo) CreateContentablePost(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, contentableType string, contentableID *uuid.UUID) (*post.Post, error) {
 	r.createContentableType = contentableType
-	r.createFileCount = len(form.Files)
+	r.createFileCount = len(files)
 	r.createdID = uuid.New()
 	return &post.Post{ID: r.createdID, PublicID: 1001, PostKind: post.PostKind(contentableType), AuthorID: author.ID}, nil
 }
 
-func (r *handlerPostRepo) GetPostByID(id uuid.UUID) (*post.Post, error) {
-	return &post.Post{ID: id, PublicID: 1001, PostKind: post.PostKind(r.createContentableType)}, nil
+func (r *handlerPostRepo) FindPublicPostByID(id uuid.UUID) (*types.PublicPost, error) {
+	return &types.PublicPost{ID: 1001, PublicID: 1001, PostKind: r.createContentableType}, nil
 }
 
-func (r *handlerPostRepo) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Post, error) {
-	return r.GetPostByID(id)
+func (r *handlerPostRepo) FindPublicPostByIDIncludingUnpublished(id uuid.UUID) (*types.PublicPost, error) {
+	return r.FindPublicPostByID(id)
 }
 
 func (r *handlerPostRepo) Like(filters types.Filter) error {
@@ -76,11 +75,11 @@ func (r *handlerPostRepo) SetEventRSVP(ctx context.Context, postPublicID int64, 
 	}, nil
 }
 
-func (r *handlerPostRepo) GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *handlerPostRepo) FetchPublicPostsByKind(filters types.Filter) (types.PublicPostPage, error) {
 	r.storiesFilter = filters
 	cursor, _ := types.NewPublicIDCursor(1001)
-	return legacyviews.PostsResult{
-		Posts:  []post.Post{{ID: uuid.New(), PublicID: 1001, PostKind: filters.PostKind}},
+	return types.PublicPostPage{
+		Posts:  []types.PublicPost{{ID: 1001, PublicID: 1001, PostKind: string(filters.PostKind)}},
 		Cursor: cursor,
 	}, nil
 }
@@ -103,7 +102,7 @@ type handlerUserRepo struct {
 	reportAuth    *models.User
 }
 
-func (r *handlerUserRepo) GetUserUUIDByPublicID(publicID int64) (uuid.UUID, error) {
+func (r *handlerUserRepo) GetUserUUIDByPublicID(ctx context.Context, publicID int64) (uuid.UUID, error) {
 	return uuid.New(), nil
 }
 
@@ -135,7 +134,7 @@ type handlerMediaRepo struct {
 	ports.MediaRepository
 }
 
-func (r *handlerMediaRepo) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file ports.UploadedFile) (*media.Media, error) {
+func (r *handlerMediaRepo) AddMedia(ownerID uuid.UUID, ownerType media.OwnerType, userID uuid.UUID, role media.MediaRole, file *domainmedia.UploadedFile) (*media.Media, error) {
 	return &media.Media{ID: uuid.New(), OwnerID: ownerID, OwnerType: ownerType, UserID: userID, Role: role}, nil
 }
 
@@ -144,12 +143,16 @@ type handlerEngagementRepo struct {
 	toggles           []models.EngagementKind
 	reciprocalIntents []domainuser.InteractionStateIntent
 	reciprocalState   bool
+	reciprocalErr     error
 	recordedView      []models.EngagementKind
 	getCalls          int
 }
 
 func (r *handlerEngagementRepo) ApplyReciprocalUserInteraction(_ context.Context, _ uuid.UUID, _ uuid.UUID, intent domainuser.InteractionStateIntent) (domainuser.InteractionStateTransition, error) {
 	r.reciprocalIntents = append(r.reciprocalIntents, intent)
+	if r.reciprocalErr != nil {
+		return domainuser.InteractionStateTransition{}, r.reciprocalErr
+	}
 	transition, err := intent.Transition(r.reciprocalState)
 	if err == nil {
 		r.reciprocalState = transition.Enabled
@@ -171,7 +174,7 @@ func (r *handlerEngagementRepo) RecordViewOnce(ctx context.Context, engagerID uu
 	return true, nil
 }
 
-func (r *handlerEngagementRepo) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *time.Time, limit int) ([]models.EngagementDetail, *time.Time, error) {
+func (r *handlerEngagementRepo) GetEngagements(ctx context.Context, contentableType models.EngagementContentableType, contentableID uuid.UUID, engagementKind models.EngagementKind, cursor *types.MatchListCursor, limit int, viewers ...uuid.UUID) ([]models.EngagementDetail, *types.MatchListCursor, error) {
 	r.getCalls++
 	return nil, nil, nil
 }
@@ -180,11 +183,11 @@ type handlerNotificationRepo struct {
 	ports.NotificationRepository
 }
 
-func (r *handlerNotificationRepo) SendNotificationToUser(sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
+func (r *handlerNotificationRepo) SendNotificationToUser(ctx context.Context, sender models.User, receiver models.User, notificationType string, notificationTitle string, notificationMessage string, payload notifications.NotificationPayload) error {
 	return nil
 }
 
-func (r *handlerNotificationRepo) FetchAndMarkShownNotifications(userID uuid.UUID, limit int) ([]notifications.Notification, error) {
+func (r *handlerNotificationRepo) FetchAndMarkShownNotifications(ctx context.Context, userID uuid.UUID, limit int) ([]notifications.Notification, error) {
 	return nil, nil
 }
 

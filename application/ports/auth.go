@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	domainevents "core/domain/events"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 
 	"github.com/google/uuid"
@@ -53,7 +54,7 @@ type PublicIDGenerator interface {
 }
 
 type RemoteImageFetcher interface {
-	FetchImage(ctx context.Context, imageURL string) (UploadedFile, error)
+	FetchImage(ctx context.Context, imageURL string) (*domainmedia.UploadedFile, error)
 }
 
 type EventPublisher interface {

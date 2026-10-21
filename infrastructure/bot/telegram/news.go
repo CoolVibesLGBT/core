@@ -1,9 +1,10 @@
 package telegram
 
 import (
+	"core/application/types"
 	"core/constants"
 	"core/helpers"
-	"core/models/post"
+	modelutils "core/models/utils"
 	"core/utils"
 	"encoding/json"
 	"errors"
@@ -176,7 +177,7 @@ func (s *Service) EnsureTopic(chat *telegramPackage.Chat, topicName string) (*To
 	return &newTopic, nil
 }
 
-func (s *Service) SendNews(post *post.Post) error {
+func (s *Service) SendNews(post *types.PublicPost, localImages []string) error {
 	if post == nil {
 		return errors.New("SendNews:PostNull")
 	}
@@ -191,14 +192,14 @@ func (s *Service) SendNews(post *post.Post) error {
 	var extras PostExtras
 	_ = json.Unmarshal(post.Extras, &extras)
 
-	title := post.Title.DefaultValue()
-	content := post.Summary.DefaultValue()
+	title := modelutils.LocalizedString(post.Title).DefaultValue()
+	content := modelutils.LocalizedString(post.Summary).DefaultValue()
 	if len([]rune(content)) > 512 {
 		content = string([]rune(content)[:512]) + "..."
 	}
 	sourceURL := extras.Source.URL
 
-	hasAttachments := len(post.Attachments) > 0
+	hasAttachments := len(localImages) > 0 || len(post.Attachments) > 0
 	hasHastags := len(post.Hashtags) > 0
 
 	//read more
@@ -232,17 +233,16 @@ func (s *Service) SendNews(post *post.Post) error {
 		}
 	} else {
 
-		randomIndex := rand.Intn(len(post.Attachments)) // 0 ile len-1 arasında sayı
-
-		firstAttachment := post.Attachments[randomIndex]
-		absolutePath, err := filepath.Abs(firstAttachment.File.StoragePath)
+		// Public post views exclude private storage paths. The news worker
+		// supplies its downloaded image paths only to this internal boundary.
+		photoFile, err := newsPhotoFile(post, localImages)
+		if err != nil {
+			return err
+		}
 
 		if !hasHastags {
-			if err != nil {
-				return err
-			}
 			photo := &telegramPackage.Photo{
-				File:    telegramPackage.FromDisk(absolutePath),
+				File:    photoFile,
 				Caption: text,
 			}
 			_, err = s.Bot.Send(chat, photo, &telegramPackage.SendOptions{
@@ -258,7 +258,7 @@ func (s *Service) SendNews(post *post.Post) error {
 			if err == nil {
 
 				photo := &telegramPackage.Photo{
-					File:    telegramPackage.FromDisk(absolutePath),
+					File:    photoFile,
 					Caption: text,
 				}
 
@@ -302,4 +302,16 @@ func (s *Service) Start() {
 
 	s.Bot.Start()
 	helpers.Info("Start:Telegram long polling stopped.")
+}
+
+func newsPhotoFile(post *types.PublicPost, localImages []string) (telegramPackage.File, error) {
+	if len(localImages) > 0 {
+		absolutePath, err := filepath.Abs(localImages[rand.Intn(len(localImages))])
+		if err != nil {
+			return telegramPackage.File{}, err
+		}
+		return telegramPackage.FromDisk(absolutePath), nil
+	}
+	attachment := post.Attachments[rand.Intn(len(post.Attachments))]
+	return telegramPackage.FromURL(attachment.File.URL), nil
 }

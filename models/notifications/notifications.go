@@ -13,10 +13,19 @@ import (
 )
 
 const (
+	NotificationTypeUnlike        = "unlike"
+	NotificationTypeDislike       = "dislike"
+	NotificationTypeUndislike     = "undislike"
+	NotificationTypeBanana        = "banana"
+	NotificationTypeBananaRemoved = "banana_removed"
+	NotificationTypeBookmark      = "bookmark"
+	NotificationTypeUnbookmark    = "unbookmark"
+
 	NotificationTypeChatMessage                = "chat_message"   // Yeni mesaj bildirimi
 	NotificationTypeNewMatch                   = "new_match"      // Yeni eşleşme bildirimi
 	NotificationTypeProfileVisit               = "profile_visit"  // Profil ziyareti bildirimi
 	NotificationTypeFriendRequest              = "friend_request" // Arkadaşlık isteği (isteğe bağlı)
+	NotificationTypeFriendRequestAccepted      = "friend_request_accepted"
 	NotificationTypeEventReminder              = "event_reminder" // Etkinlik hatırlatıcısı
 	NotificationTypeSystemAlert                = "system_alert"   // Sistem uyarısı veya güncelleme
 	NotificationTypeLike                       = "like"           // Profil beğenisi bildirimi
@@ -27,7 +36,8 @@ const (
 	NotificationTypeSuperLike                  = "super_like"     // Özel beğeni bildirimi (örn. Tinder’daki gibi)
 	NotificationTypeMessageRead                = "message_read"   // Mesaj okundu bildirimi
 	NotificationTypeMatchUnmatch               = "match_unmatch"  // Eşleşme iptali bildirimi
-	NotificationTypeReferral                   = "referral"       // Profil beğenisi bildirimi
+	NotificationTypeBroadcastGift              = "broadcast_gift"
+	NotificationTypeReferral                   = "referral" // Profil beğenisi bildirimi
 	NotificationTypePrivatePhotoAccessRequest  = "private_photo_access_request"
 	NotificationTypePrivatePhotoAccessResponse = "private_photo_access_response"
 )

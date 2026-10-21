@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"core/adapters/inbound/http/middleware"
+	upload "core/adapters/media"
 	"core/application/ports"
 	usecases "core/application/usecases"
 	"core/constants"
@@ -49,17 +50,14 @@ func HandleUploadPrivatePhotos(service *usecases.PrivatePhotoService) fiber.Hand
 		}
 
 		var headersFound bool
-		var files []ports.UploadedFile
+		var files []*domainmedia.UploadedFile
 		for _, key := range []string{"photos[]", "images[]", "photos", "images", "photo", "image"} {
 			headers := form.File[key]
 			if len(headers) == 0 {
 				continue
 			}
 			headersFound = true
-			files = make([]ports.UploadedFile, 0, len(headers))
-			for _, header := range headers {
-				files = append(files, uploadedFile(header))
-			}
+			files = upload.FromMultipartFiles(headers)
 			break
 		}
 		if !headersFound {
@@ -200,6 +198,7 @@ func HandleRevokePrivatePhotoAccess(service *usecases.PrivatePhotoService) fiber
 }
 
 func privatePhotoPrincipal(c fiber.Ctx) (ports.PrivatePhotoPrincipal, bool) {
+	c.Set(fiber.HeaderCacheControl, "private, no-store")
 	user, ok := middleware.GetAuthenticatedUser(c)
 	if !ok || user == nil {
 		return ports.PrivatePhotoPrincipal{}, false

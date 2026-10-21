@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"core/adapters/inbound/http/middleware"
-	legacyviews "core/application/legacyviews"
+	upload "core/adapters/media"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/utils"
@@ -37,12 +37,12 @@ func HandleCreatePlace(s *usecases.PlaceService) fiber.Handler {
 			return utils.SendErrorWithMessage(c, fiber.StatusUnauthorized, constants.ErrUnauthorized, "User not authenticated")
 		}
 
-		post, err := s.CreatePlace(c.Context(), uploadedFormData(formParams, images, videos), user)
+		post, err := s.CreatePlace(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user)
 		if err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrPlaceCreateFailed, "Failed to create post: "+err.Error())
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, legacyviews.ProjectPublicPost(*post), "Post created successfully")
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Post created successfully")
 	}
 }
 

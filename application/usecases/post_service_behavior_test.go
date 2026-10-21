@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"core/application/ports"
 	"core/application/types"
 	"core/models"
 	"core/models/post"
@@ -15,14 +14,12 @@ func TestPostServiceCreatePostCreatesAndHydratesPost(t *testing.T) {
 	postID := uuid.New()
 	postRepo := &fakePostRepository{
 		createdPostID: postID,
-		getPostByID:   &post.Post{ID: postID, PostKind: post.PostKindStatus, PublicID: 99},
+		getPostByID:   &types.PublicPost{ID: 99, PostKind: string(post.PostKindStatus), PublicID: 99},
 	}
 	service := NewPostService(&fakeUserRepository{}, postRepo, &fakeMediaRepository{})
 	author := &models.User{ID: uuid.New(), PublicID: 7}
 
-	created, err := service.CreatePost(context.Background(), ports.FormData{
-		Values: map[string][]string{"content": {"hello"}},
-	}, author, post.PostKindStatus)
+	created, err := service.CreatePost(context.Background(), map[string][]string{"content": {"hello"}}, nil, author, post.PostKindStatus)
 	if err != nil {
 		t.Fatalf("CreatePost() error = %v", err)
 	}
@@ -42,8 +39,8 @@ func TestPostServiceUserScopedListsResolvePublicUserID(t *testing.T) {
 	userUUID := uuid.New()
 	userRepo := &fakeUserRepository{userUUIDByPublicID: map[int64]uuid.UUID{42: userUUID}}
 	postRepo := &fakePostRepository{
-		userPosts:   []post.Post{{ID: uuid.New(), PostKind: post.PostKindPost}},
-		userReplies: []post.Post{{ID: uuid.New(), PostKind: post.PostKindPost}},
+		userPosts:   []types.PublicPost{{PostKind: string(post.PostKindPost)}},
+		userReplies: []types.PublicPost{{PostKind: string(post.PostKindPost)}},
 	}
 	service := NewPostService(userRepo, postRepo, &fakeMediaRepository{})
 

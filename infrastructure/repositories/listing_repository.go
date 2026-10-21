@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	legacyviews "core/application/legacyviews"
 	"core/application/types"
 	"core/helpers"
 	"core/models/post"
@@ -26,16 +25,16 @@ func (r *ListingRepository) Create(listing *post.Post) error {
 	return r.postRepo.CreatePost(listing)
 }
 
-func (r *ListingRepository) GetJobOffers(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *ListingRepository) GetJobOffers(filters types.Filter) (types.PublicPostPage, error) {
 	filters.PostKind = post.PostKindJobOffer
-	return r.postRepo.GetPostsByKind(filters)
+	return r.postRepo.FetchPublicPostsByKind(filters)
 }
 
-func (r *ListingRepository) GetJobSearches(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *ListingRepository) GetJobSearches(filters types.Filter) (types.PublicPostPage, error) {
 	filters.PostKind = post.PostKindJobSearch
-	return r.postRepo.GetPostsByKind(filters)
+	return r.postRepo.FetchPublicPostsByKind(filters)
 }
 
-func (r *ListingRepository) GetClassified(filters types.Filter) (*post.Post, error) {
-	return r.postRepo.GetPostByPublicID(filters.PostID)
+func (r *ListingRepository) GetClassified(filters types.Filter) (*types.PublicPost, error) {
+	return r.postRepo.FindPublicPostByPublicID(filters.PostID)
 }

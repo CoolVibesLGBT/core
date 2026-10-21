@@ -5,6 +5,7 @@ import (
 	"core/application/ports"
 	"core/application/types"
 	"core/constants"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 	"core/models"
 	"core/models/chat"
@@ -74,7 +75,7 @@ func (s *ChatService) CreateChat(context context.Context, participantUserId, use
 	participantUser, err := s.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: context, UserUUID: participantUserId})
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			return nil, errors.New(constants.ErrUserNotFound.String())
+			return nil, constants.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -89,9 +90,21 @@ func (s *ChatService) CreateChatFromIdentifier(ctx context.Context, participantI
 	if actor == nil || actor.ID == uuid.Nil {
 		return nil, chat.ErrNotParticipant
 	}
+	participantUser, err := s.resolveChatParticipant(ctx, participantIdentifier)
+	if err != nil {
+		return nil, err
+	}
+	entity, err := s.createChatForResolvedParticipant(participantUser, actor.ID, chatType)
+	if err != nil {
+		return nil, err
+	}
+	return chatProjection(entity, actor.ID, actor, participantUser), nil
+}
+
+func (s *ChatService) resolveChatParticipant(ctx context.Context, participantIdentifier string) (*models.User, error) {
 	participantIdentifier = strings.TrimSpace(participantIdentifier)
 	if participantIdentifier == "" {
-		return nil, errors.New(constants.ErrInvalidParticipantID.String())
+		return nil, constants.ErrInvalidParticipantID
 	}
 
 	var (
@@ -103,33 +116,29 @@ func (s *ChatService) CreateChatFromIdentifier(ctx context.Context, participantI
 	} else {
 		publicID, parseErr := strconv.ParseInt(participantIdentifier, 10, 64)
 		if parseErr != nil || publicID <= 0 {
-			return nil, errors.New(constants.ErrInvalidParticipantID.String())
+			return nil, constants.ErrInvalidParticipantID
 		}
 		participantUser, err = s.userRepo.GetUserByPublicIdWithoutRelations(types.Filter{Context: ctx, UserID: publicID})
 	}
 	if err != nil {
 		if errors.Is(err, ports.ErrNotFound) {
-			return nil, errors.New(constants.ErrUserNotFound.String())
+			return nil, constants.ErrUserNotFound
 		}
 		return nil, err
 	}
 	if participantUser == nil || participantUser.ID == uuid.Nil {
-		return nil, errors.New(constants.ErrUserNotFound.String())
+		return nil, constants.ErrUserNotFound
 	}
-	entity, err := s.createChatForResolvedParticipant(participantUser, actor.ID, chatType)
-	if err != nil {
-		return nil, err
-	}
-	return chatProjection(entity, actor.ID, actor, participantUser), nil
+	return participantUser, nil
 }
 
 func (s *ChatService) createChatForResolvedParticipant(participantUser *models.User, userID uuid.UUID, chatType string) (*chat.Chat, error) {
 	if participantUser == nil || participantUser.ID == uuid.Nil {
-		return nil, errors.New(constants.ErrUserNotFound.String())
+		return nil, constants.ErrUserNotFound
 	}
 
 	if err := domainuser.EnsureDifferentUsers(participantUser.ID.String(), userID.String(), domainuser.InteractionChat); err != nil {
-		return nil, errors.New(constants.ErrSelfChatNotAllowed.String())
+		return nil, constants.ErrSelfChatNotAllowed
 	}
 
 	if chatType == string(chat.ChatTypePrivate) {
@@ -148,7 +157,7 @@ func (s *ChatService) createChatForResolvedParticipant(participantUser *models.U
 	}
 
 	// Diğer chat tipleri için farklı işlemler olabilir (şimdilik hata döndürelim)
-	return nil, errors.New(constants.ErrUnsupportedChatType.String())
+	return nil, constants.ErrUnsupportedChatType
 }
 
 func (s *ChatService) GetChatsByUserID(userID uuid.UUID) ([]types.Chat, error) {
@@ -191,8 +200,8 @@ func (s *ChatService) FetchChats(ctx context.Context, userID uuid.UUID, cursor *
 	return chatListProjection(page.Chats, userID), nextCursor, nil
 }
 
-func (s *ChatService) AddMessageToChat(context context.Context, form ports.FormData, author *models.User) (*types.ChatMessage, error) {
-	_post, err := s.chatRepo.AddMessageToChat(context, form, author)
+func (s *ChatService) AddMessageToChat(context context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*types.ChatMessage, error) {
+	_post, err := s.chatRepo.AddMessageToChat(context, values, files, author)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +344,7 @@ func (s *ChatService) OpenMessage(ctx context.Context, authUser *models.User, ch
 		return nil, err
 	}
 	if result == nil || result.Message == nil {
-		return nil, errors.New("chat repository returned an empty open-message result")
+		return nil, constants.ErrChatOpenMessageResultEmpty
 	}
 
 	safeResult := &types.ChatOpenMessageResult{

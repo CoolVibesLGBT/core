@@ -2,15 +2,16 @@ package repositories
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
 	"core/constants"
+	domainmedia "core/domain/media"
 	domainpost "core/domain/post"
 	domainuser "core/domain/user"
 	domainwallet "core/domain/wallet"
 	"core/extensions"
 	"core/helpers"
 	"core/models"
+	"core/models/chat"
 	"core/models/media"
 	"core/models/notifications"
 	"core/models/post"
@@ -18,6 +19,7 @@ import (
 	"core/models/utils"
 	"encoding/json"
 	"errors"
+	"github.com/go-playground/form/v4"
 	"strconv"
 	"strings"
 
@@ -27,14 +29,12 @@ import (
 	"sync"
 
 	"fmt"
-	"time"
-
-	"github.com/go-playground/form/v4"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"time"
 )
 
 type PostRepository struct {
@@ -144,10 +144,7 @@ func (r *PostRepository) CreateEvent(event *post_payloads.Event) error {
 }
 
 func lockEventRSVP(tx *gorm.DB, postPublicID int64) *gorm.DB {
-	return tx.Exec(
-		"SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
-		fmt.Sprintf("event-rsvp:%d", postPublicID),
-	)
+	return lockTransactionResource(tx, fmt.Sprintf("event-rsvp:%d", postPublicID))
 }
 
 // SetEventRSVP serializes all RSVP writes for an event, repairs historical
@@ -166,7 +163,7 @@ func (r *PostRepository) SetEventRSVP(
 	if desired != nil {
 		status, ok := post_payloads.ParseEventAttendanceStatus(string(*desired))
 		if !ok || status != *desired {
-			return nil, fmt.Errorf("invalid event RSVP status: %s", *desired)
+			return nil, constants.ErrInvalidEventRSVPStatus.Format(*desired)
 		}
 	}
 
@@ -360,7 +357,7 @@ func (r *PostRepository) GetPostByIDEx(id uuid.UUID) (*post.Post, error) {
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("post with id %s not found", id)
+			return nil, constants.ErrPostUUIDNotFound.Format(id)
 		}
 		return nil, err
 	}
@@ -379,31 +376,12 @@ func (r *PostRepository) GetPostByIDIncludingUnpublished(id uuid.UUID) (*post.Po
 }
 
 func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*post.Post, error) {
-	var ids []uuid.UUID
-	publishedCondition := " AND published = TRUE AND deleted_at IS NULL AND post_kind NOT IN ('chat', 'message') AND COALESCE(NULLIF(audience, ''), 'public') = 'public'"
-	childPublishedCondition := " AND p.published = TRUE AND p.post_kind NOT IN ('chat', 'message') AND COALESCE(NULLIF(p.audience, ''), 'public') = 'public'"
-	if includeUnpublished {
-		publishedCondition = " AND deleted_at IS NULL"
-		childPublishedCondition = ""
-	}
-	cte := fmt.Sprintf(`
-		WITH RECURSIVE post_tree AS (
-			SELECT id
-			FROM posts
-			WHERE id = ?%s
-			UNION ALL
-			SELECT p.id
-			FROM posts p
-			INNER JOIN post_tree pt ON pt.id = p.parent_id
-			WHERE p.deleted_at IS NULL%s
-		)
-		SELECT id FROM post_tree;
-	`, publishedCondition, childPublishedCondition)
-	if err := r.db.Raw(cte, id).Scan(&ids).Error; err != nil {
+	ids, err := postTreeIDs(r.db, r.db.Model(&post.Post{}).Where("id = ?", id), includeUnpublished)
+	if err != nil {
 		return nil, err
 	}
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
+		return nil, constants.ErrPostUUIDLookupNotFound.Format(ports.ErrNotFound, id)
 	}
 
 	var posts []post.Post
@@ -439,7 +417,7 @@ func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*po
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
+		return nil, constants.ErrPostUUIDLookupNotFound.Format(ports.ErrNotFound, id)
 	}
 
 	postMap := make(map[uuid.UUID]*post.Post, len(posts))
@@ -448,10 +426,12 @@ func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*po
 		postMap[posts[i].ID] = &posts[i]
 	}
 
+	visited := make(map[uuid.UUID]bool)
 	var buildTree func(parent *post.Post)
 	buildTree = func(parent *post.Post) {
+		visited[parent.ID] = true
 		for _, p := range posts {
-			if p.ParentID != nil && *p.ParentID == parent.ID {
+			if p.ParentID != nil && *p.ParentID == parent.ID && !visited[p.ID] {
 				child := postMap[p.ID]
 				buildTree(child)
 				parent.Children = append(parent.Children, *child)
@@ -461,7 +441,7 @@ func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*po
 
 	root, ok := postMap[id]
 	if !ok {
-		return nil, fmt.Errorf("%w: post with id %s", ports.ErrNotFound, id)
+		return nil, constants.ErrPostUUIDLookupNotFound.Format(ports.ErrNotFound, id)
 	}
 
 	buildTree(root)
@@ -485,35 +465,15 @@ func (r *PostRepository) getPostByID(id uuid.UUID, includeUnpublished bool) (*po
 
 func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error) {
 	if filters.Slug == nil || strings.TrimSpace(*filters.Slug) == "" {
-		return nil, errors.New("post slug is required")
+		return nil, constants.ErrPostSlugRequired
 	}
-	var ids []uuid.UUID
-
-	cte := `
-	WITH RECURSIVE post_tree AS (
-		SELECT id
-		FROM posts
-		WHERE slug = ? AND published = TRUE AND deleted_at IS NULL
-		  AND post_kind NOT IN ('chat', 'message')
-		  AND COALESCE(NULLIF(audience, ''), 'public') = 'public'
-		UNION ALL
-		SELECT p.id
-		FROM posts p
-		INNER JOIN post_tree pt ON pt.id = p.parent_id
-		WHERE p.published = TRUE AND p.deleted_at IS NULL
-		  AND p.post_kind NOT IN ('chat', 'message')
-		  AND COALESCE(NULLIF(p.audience, ''), 'public') = 'public'
-	)
-	SELECT id FROM post_tree;
-	`
-
-	if err := r.db.Raw(cte, *filters.Slug).Scan(&ids).Error; err != nil {
-
+	ids, err := postTreeIDs(r.db, r.db.Model(&post.Post{}).Where("slug = ?", *filters.Slug), false)
+	if err != nil {
 		return nil, err
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
+		return nil, constants.ErrPostSlugLookupNotFound.Format(ports.ErrNotFound, *filters.Slug)
 	}
 
 	var posts []post.Post
@@ -549,7 +509,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if len(posts) == 0 {
-		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
+		return nil, constants.ErrPostSlugLookupNotFound.Format(ports.ErrNotFound, *filters.Slug)
 	}
 
 	// map oluştur
@@ -560,10 +520,12 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	// tree build
+	visited := make(map[uuid.UUID]bool)
 	var buildTree func(parent *post.Post)
 	buildTree = func(parent *post.Post) {
+		visited[parent.ID] = true
 		for _, p := range posts {
-			if p.ParentID != nil && *p.ParentID == parent.ID {
+			if p.ParentID != nil && *p.ParentID == parent.ID && !visited[p.ID] {
 				child := postMap[p.ID]
 				buildTree(child)
 				parent.Children = append(parent.Children, *child)
@@ -582,7 +544,7 @@ func (r *PostRepository) GetPostBySlug(filters types.Filter) (*post.Post, error)
 	}
 
 	if root == nil {
-		return nil, fmt.Errorf("%w: post with slug %s", ports.ErrNotFound, *filters.Slug)
+		return nil, constants.ErrPostSlugLookupNotFound.Format(ports.ErrNotFound, *filters.Slug)
 	}
 
 	buildTree(root)
@@ -614,7 +576,7 @@ func (r *PostRepository) GetPostByPublicID(id int64) (*post.Post, error) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("%w: post with id %d", ports.ErrNotFound, id)
+			return nil, constants.ErrPostPublicIDLookupNotFound.Format(ports.ErrNotFound, id)
 		}
 		return nil, err
 	}
@@ -632,7 +594,7 @@ func (r *PostRepository) GetPostByIDWithoutRelations(id uuid.UUID) (*post.Post, 
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("post with id %s not found", id)
+			return nil, constants.ErrPostUUIDNotFound.Format(id)
 		}
 		return nil, err
 	}
@@ -640,7 +602,7 @@ func (r *PostRepository) GetPostByIDWithoutRelations(id uuid.UUID) (*post.Post, 
 	return &p, nil
 }
 
-func (r *PostRepository) GetTimeline(filters types.Filter) (legacyviews.TimelineResult, error) {
+func (r *PostRepository) GetTimeline(filters types.Filter) (postQueryPage, error) {
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
@@ -683,7 +645,7 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (legacyviews.Timeline
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
-		return legacyviews.TimelineResult{}, err
+		return postQueryPage{}, err
 	}
 
 	var nextCursor *string
@@ -691,17 +653,17 @@ func (r *PostRepository) GetTimeline(filters types.Filter) (legacyviews.Timeline
 		var cursorErr error
 		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
 		if cursorErr != nil {
-			return legacyviews.TimelineResult{}, cursorErr
+			return postQueryPage{}, cursorErr
 		}
 	}
 
-	return legacyviews.TimelineResult{
+	return postQueryPage{
 		Posts:  posts,
 		Cursor: nextCursor,
 	}, nil
 }
 
-func (r *PostRepository) GetTimelineVibes(filters types.Filter) (legacyviews.TimelineResult, error) {
+func (r *PostRepository) GetTimelineVibes(filters types.Filter) (postQueryPage, error) {
 	var posts []post.Post
 
 	query := r.db.Model(&post.Post{}).
@@ -731,7 +693,7 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (legacyviews.Tim
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
-		return legacyviews.TimelineResult{}, err
+		return postQueryPage{}, err
 	}
 
 	var nextCursor *string
@@ -739,23 +701,23 @@ func (r *PostRepository) GetTimelineVibes(filters types.Filter) (legacyviews.Tim
 		var cursorErr error
 		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
 		if cursorErr != nil {
-			return legacyviews.TimelineResult{}, cursorErr
+			return postQueryPage{}, cursorErr
 		}
 	}
 
-	return legacyviews.TimelineResult{
+	return postQueryPage{
 		Posts:  posts,
 		Cursor: nextCursor,
 	}, nil
 }
 
-func (r *PostRepository) GetPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *PostRepository) GetPostsByKind(filters types.Filter) (postQueryPage, error) {
 	var posts []post.Post
 
 	query := r.postsByKindQuery(filters)
 
 	if err := query.Find(&posts).Error; err != nil {
-		return legacyviews.PostsResult{}, err
+		return postQueryPage{}, err
 	}
 
 	var nextCursor *string
@@ -763,11 +725,11 @@ func (r *PostRepository) GetPostsByKind(filters types.Filter) (legacyviews.Posts
 		var cursorErr error
 		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
 		if cursorErr != nil {
-			return legacyviews.PostsResult{}, cursorErr
+			return postQueryPage{}, cursorErr
 		}
 	}
 
-	return legacyviews.PostsResult{
+	return postQueryPage{
 		Posts:  posts,
 		Cursor: nextCursor,
 	}, nil
@@ -820,7 +782,7 @@ func (r *PostRepository) postsByKindQuery(filters types.Filter) *gorm.DB {
 	return query
 }
 
-func (r *PostRepository) FindPostsByKind(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *PostRepository) FindPostsByKind(filters types.Filter) (postQueryPage, error) {
 	var posts []post.Post
 
 	limit := filters.Limit
@@ -875,13 +837,8 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (legacyviews.Post
 			// Older event posts could be created through the generic status form
 			// and therefore have post_kind = 'status' while still owning an event.
 			// Include those records in event search as well.
-			query = query.Where(`
-				(post_kind = ? OR EXISTS (
-					SELECT 1 FROM events event_kind_search
-					WHERE event_kind_search.post_id = posts.id
-					AND event_kind_search.deleted_at IS NULL
-				))
-			`, filters.PostKind)
+			query = query.Where(repositorySubquery(query).Where("post_kind = ?", filters.PostKind).
+				Or("posts.id IN (?)", repositorySubquery(query).Model(&post_payloads.Event{}).Select("post_id").Where("deleted_at IS NULL")))
 		} else {
 			query = query.Where("post_kind = ?", filters.PostKind)
 		}
@@ -894,64 +851,15 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (legacyviews.Post
 			string(post.PostKindVideo),
 			string(post.PostKindNews),
 		})
-		query = query.Where(`NOT EXISTS (
-			SELECT 1 FROM events social_event_search
-			WHERE social_event_search.post_id = posts.id
-			AND social_event_search.deleted_at IS NULL
-		)`)
+		query = query.Where("posts.id NOT IN (?)", repositorySubquery(query).Model(&post_payloads.Event{}).
+			Select("post_id").Where("post_id IS NOT NULL AND deleted_at IS NULL"))
 	}
 
 	if filters.Search != nil {
 		searchText := strings.TrimSpace(*filters.Search)
 		if searchText != "" {
 			search := "%" + escapeSearchPattern(searchText) + "%"
-			query = query.Where(`
-				COALESCE(title::text, '') ILIKE ? ESCAPE '\'
-				OR COALESCE(content::text, '') ILIKE ? ESCAPE '\'
-				OR COALESCE(summary::text, '') ILIKE ? ESCAPE '\'
-				OR COALESCE(metadata::text, '') ILIKE ? ESCAPE '\'
-				OR COALESCE(extras::text, '') ILIKE ? ESCAPE '\'
-				OR COALESCE(slug, '') ILIKE ? ESCAPE '\'
-				OR EXISTS (
-					SELECT 1 FROM events search_events
-					WHERE search_events.post_id = posts.id
-					AND (
-						COALESCE(search_events.title::text, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_events.description::text, '') ILIKE ? ESCAPE '\'
-					)
-				)
-				OR EXISTS (
-					SELECT 1 FROM locations search_locations
-					LEFT JOIN events search_events_location
-						ON search_events_location.id = search_locations.contentable_id
-						AND search_locations.contentable_type = 'event'
-					WHERE (
-						(search_locations.contentable_type = 'post' AND search_locations.contentable_id = posts.id)
-						OR (search_locations.contentable_type = 'event' AND search_events_location.post_id = posts.id)
-					)
-					AND (
-						COALESCE(search_locations.address, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_locations.city, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_locations.town, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_locations.province, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_locations.country, '') ILIKE ? ESCAPE '\'
-					)
-				)
-				OR EXISTS (
-					SELECT 1 FROM hashtags search_hashtags
-					WHERE search_hashtags.taggable_id = posts.id
-					AND search_hashtags.taggable_type = 'post'
-					AND (
-						COALESCE(search_hashtags.tag, '') ILIKE ? ESCAPE '\'
-						OR COALESCE(search_hashtags.slug, '') ILIKE ? ESCAPE '\'
-					)
-				)
-			`,
-				search, search, search, search, search, search,
-				search, search,
-				search, search, search, search, search,
-				search, search,
-			)
+			query = applyPostTextSearch(query, search)
 		}
 	}
 	query = applyTaxonomyCategoryFilter(query, filters.Category)
@@ -961,7 +869,7 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (legacyviews.Post
 	}
 
 	if err := query.Find(&posts).Error; err != nil {
-		return legacyviews.PostsResult{}, err
+		return postQueryPage{}, err
 	}
 
 	var nextCursor *string
@@ -969,11 +877,11 @@ func (r *PostRepository) FindPostsByKind(filters types.Filter) (legacyviews.Post
 		var cursorErr error
 		nextCursor, cursorErr = types.NewPublicIDCursor(posts[len(posts)-1].PublicID)
 		if cursorErr != nil {
-			return legacyviews.PostsResult{}, cursorErr
+			return postQueryPage{}, cursorErr
 		}
 	}
 
-	return legacyviews.PostsResult{
+	return postQueryPage{
 		Posts:  posts,
 		Cursor: nextCursor,
 	}, nil
@@ -1052,7 +960,7 @@ func (r *PostRepository) GetUserPostReplies(filters types.Filter) ([]post.Post, 
 	return posts, nil
 }
 
-func (r *PostRepository) GetUserMedias(filters types.Filter) ([]legacyviews.MediaWithUser, *int64, error) {
+func (r *PostRepository) GetUserMedias(filters types.Filter) ([]postMediaRow, *int64, error) {
 	var medias []media.Media
 
 	query := r.db.Model(&media.Media{}).
@@ -1093,10 +1001,10 @@ func (r *PostRepository) GetUserMedias(filters types.Filter) ([]legacyviews.Medi
 		userMap[u.ID] = u
 	}
 
-	// Sonuçları MediaWithUser tipine dönüştür
-	results := make([]legacyviews.MediaWithUser, 0, len(medias))
+	// Assemble repository-local media rows before public projection.
+	results := make([]postMediaRow, 0, len(medias))
 	for _, m := range medias {
-		results = append(results, legacyviews.MediaWithUser{
+		results = append(results, postMediaRow{
 			Media: m,
 			User:  userMap[m.UserID],
 		})
@@ -1196,7 +1104,7 @@ func commentEngagementDedupeKey(commentID uuid.UUID) string {
 
 func syncPostCommentCountInTransaction(tx *gorm.DB, aggregateID, parentPostID uuid.UUID) error {
 	if tx == nil {
-		return errors.New("transaction is nil")
+		return constants.ErrTransactionRequired
 	}
 
 	var activeComments int64
@@ -1234,17 +1142,17 @@ func syncPostCommentCountInTransaction(tx *gorm.DB, aggregateID, parentPostID uu
 		return result.Error
 	}
 	if result.RowsAffected != 1 {
-		return errors.New("parent post engagement aggregate was not updated")
+		return constants.ErrParentPostEngagementNotUpdated
 	}
 	return nil
 }
 
 func addCommentEngagementInTransaction(tx *gorm.DB, authorID uuid.UUID, parentPost *post.Post, comment *post.Post) error {
 	if tx == nil {
-		return errors.New("transaction is nil")
+		return constants.ErrTransactionRequired
 	}
 	if authorID == uuid.Nil || parentPost == nil || parentPost.ID == uuid.Nil || parentPost.AuthorID == uuid.Nil || comment == nil || comment.ID == uuid.Nil {
-		return errors.New("comment engagement identifiers are required")
+		return constants.ErrCommentEngagementIdentifiersRequired
 	}
 
 	if tx.Name() == "postgres" {
@@ -1296,8 +1204,8 @@ func (r *PostRepository) transactionScoped(db *gorm.DB) *PostRepository {
 	return &scoped
 }
 
-func (r *PostRepository) CreateContentablePost(ctx context.Context, formData ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID) (createdPost *post.Post, retErr error) {
-	createdMediaPaths := make([]string, 0, len(formData.Files))
+func (r *PostRepository) CreateContentablePost(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, contentableType string, contentableID *uuid.UUID) (createdPost *post.Post, retErr error) {
+	createdMediaPaths := make([]string, 0, len(files))
 	committed := false
 	defer func() {
 		if committed {
@@ -1316,7 +1224,7 @@ func (r *PostRepository) CreateContentablePost(ctx context.Context, formData por
 	var creation *contentablePostCreation
 	retErr = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var err error
-		creation, err = r.transactionScoped(tx).createContentablePostInTransaction(ctx, formData, author, contentableType, contentableID, &createdMediaPaths)
+		creation, err = r.transactionScoped(tx).createContentablePostInTransaction(ctx, values, files, author, contentableType, contentableID, &createdMediaPaths)
 		return err
 	})
 	if retErr != nil {
@@ -1349,7 +1257,7 @@ func (r *PostRepository) runPostCommitCommentSideEffects(ctx context.Context, au
 	}
 }
 
-func (r *PostRepository) createContentablePostInTransaction(ctx context.Context, formData ports.FormData, author *models.User, contentableType string, contentableID *uuid.UUID, createdMediaPaths *[]string) (*contentablePostCreation, error) {
+func (r *PostRepository) createContentablePostInTransaction(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, contentableType string, contentableID *uuid.UUID, createdMediaPaths *[]string) (*contentablePostCreation, error) {
 	type PollForm struct {
 		ID            string   `form:"id"`
 		Question      string   `form:"question"`
@@ -1402,7 +1310,7 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 	decoder := form.NewDecoder()
 	postForm := PostForm{}
 
-	if err := decoder.Decode(&postForm, formData.Values); err != nil {
+	if err := decoder.Decode(&postForm, values); err != nil {
 		return nil, err
 	}
 
@@ -1413,9 +1321,9 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 	if len(postForm.ParentId) > 0 {
 		parentIDInt, err := strconv.ParseInt(postForm.ParentId, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid parentId %s: %w", postForm.ParentId, err)
+			return nil, constants.ErrInvalidParentID.Format(postForm.ParentId, err)
 		}
-		parentPost, err = r.FindPostByPublicID(parentIDInt)
+		parentPost, err = r.FindPostByPublicID(ctx, parentIDInt)
 		if err != nil {
 			return nil, err
 		}
@@ -1452,16 +1360,25 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		ContentableID:   contentableID,
 	}
 	if contentableType == string(post.PostKindChat) {
-		newPost.ExpiresInSeconds = formData.ExpiresInSeconds
-		newPost.ViewOnce = formData.ViewOnce
-		newPost.ClientID = formData.ClientID
+		var err error
+		newPost.ExpiresInSeconds, err = chat.ParseExpiresInSeconds(values["expires_in_seconds"])
+		if err != nil {
+			return nil, err
+		}
+		newPost.ViewOnce, err = chat.ParseViewOnce(values["view_once"])
+		if err != nil {
+			return nil, err
+		}
+		if clientIDs := values["client_id"]; len(clientIDs) > 0 {
+			newPost.ClientID = clientIDs[0]
+		}
 	}
 
 	if err := tx.Create(newPost).Error; err != nil {
 		return nil, err
 	}
 
-	for _, f := range formData.Files {
+	for _, f := range files {
 		ownerType, role := mediaOwnerForContentableType(contentableType)
 
 		mediaModel, err := r.mediaRepo.AddMedia(newPost.ID, ownerType, author.ID, role, f)
@@ -1522,12 +1439,12 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 
 	// Location. Zero is a valid latitude/longitude, so presence must be read
 	// from the request rather than inferred from the decoded numeric value.
-	latitudeValues := formData.Values["location[lat]"]
-	longitudeValues := formData.Values["location[lng]"]
+	latitudeValues := values["location[lat]"]
+	longitudeValues := values["location[lng]"]
 	hasLatitude := len(latitudeValues) > 0 && strings.TrimSpace(latitudeValues[0]) != ""
 	hasLongitude := len(longitudeValues) > 0 && strings.TrimSpace(longitudeValues[0]) != ""
 	if hasLatitude != hasLongitude {
-		return nil, errors.New("latitude and longitude must be provided together")
+		return nil, constants.ErrPostLocationCoordinates
 	}
 	var locationPoint *extensions.PostGISPoint
 	var locationLatitude, locationLongitude *float64
@@ -1571,12 +1488,12 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		hasEventDate := strings.TrimSpace(postForm.EventDate) != ""
 		hasEventTime := strings.TrimSpace(postForm.EventTime) != ""
 		if hasEventDate != hasEventTime {
-			return nil, errors.New("event date and time must be provided together")
+			return nil, constants.ErrEventDateTimeRequired
 		}
 		if hasEventDate {
 			parsedTime, err := time.Parse("2006-01-02 15:04", postForm.EventDate+" "+postForm.EventTime)
 			if err != nil {
-				return nil, fmt.Errorf("invalid event date or time: %w", err)
+				return nil, constants.ErrEventDateTimeInvalid.Format(err)
 			}
 			startTime = &parsedTime
 		}
@@ -1585,7 +1502,7 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		if strings.TrimSpace(postForm.EventIsPaid) != "" {
 			parsed, err := strconv.ParseBool(postForm.EventIsPaid)
 			if err != nil {
-				return nil, fmt.Errorf("invalid event paid flag: %w", err)
+				return nil, constants.ErrEventPaidFlagInvalid.Format(err)
 			}
 			isPaid = parsed
 		}
@@ -1593,7 +1510,7 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		if strings.TrimSpace(postForm.EventIsOnline) != "" {
 			parsed, err := strconv.ParseBool(postForm.EventIsOnline)
 			if err != nil {
-				return nil, fmt.Errorf("invalid event online flag: %w", err)
+				return nil, constants.ErrEventOnlineFlagInvalid.Format(err)
 			}
 			isOnline = parsed
 		}
@@ -1602,7 +1519,7 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		if postForm.EventPrice != "" {
 			price, err := strconv.ParseFloat(postForm.EventPrice, 64)
 			if err != nil || price < 0 {
-				return nil, errors.New("invalid event price")
+				return nil, constants.ErrEventPriceInvalid
 			}
 			pricePtr = &price
 		}
@@ -1748,8 +1665,8 @@ func (r *PostRepository) Vote(ctx context.Context, choiceID uuid.UUID, weight in
 				poll_choices.poll_id,
 				polls.kind,
 				polls.max_selectable,
-				(SELECT COUNT(*) FROM poll_choices AS all_choices WHERE all_choices.poll_id = polls.id) AS choice_count
-			`).
+				(?) AS choice_count
+			`, repositorySubquery(tx).Model(&post_payloads.PollChoice{}).Select("COUNT(*)").Where("poll_id = polls.id")).
 			Joins("JOIN polls ON polls.id = poll_choices.poll_id AND polls.contentable_type = ?", models.EngagementContentableTypePost).
 			Joins("JOIN posts ON posts.id = polls.contentable_id").
 			Where("poll_choices.id = ?", choiceID).
@@ -1758,7 +1675,7 @@ func (r *PostRepository) Vote(ctx context.Context, choiceID uuid.UUID, weight in
 			Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
 			Clauses(clause.Locking{Strength: "UPDATE", Table: clause.Table{Name: "polls"}}).
 			Take(&selection).Error; err != nil {
-			return fmt.Errorf("choice not found: %w", err)
+			return constants.ErrPollChoiceNotFound.Format(err)
 		}
 
 		var existing []post_payloads.PollVote
@@ -1826,13 +1743,13 @@ func (r *PostRepository) Vote(ctx context.Context, choiceID uuid.UUID, weight in
 	})
 }
 
-func (r *PostRepository) FindPostByPublicID(id int64) (*post.Post, error) {
-	return r.findPostByPublicID(id, false)
+func (r *PostRepository) FindPostByPublicID(ctx context.Context, id int64) (*post.Post, error) {
+	return r.findPostByPublicID(ctx, id, false)
 }
 
-func (r *PostRepository) findPostByPublicID(id int64, includeUnpublished bool) (*post.Post, error) {
+func (r *PostRepository) findPostByPublicID(ctx context.Context, id int64, includeUnpublished bool) (*post.Post, error) {
 	var p post.Post
-	query := r.db.Where("public_id = ?", id)
+	query := r.db.WithContext(ctx).Where("public_id = ?", id)
 	if !includeUnpublished {
 		query = query.
 			Where("published = TRUE").
@@ -1842,7 +1759,7 @@ func (r *PostRepository) findPostByPublicID(id int64, includeUnpublished bool) (
 	err := query.First(&p).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("post with id %d not found", id)
+			return nil, constants.ErrPostPublicIDNotFound.Format(id)
 		}
 		return nil, err
 	}
@@ -1862,28 +1779,19 @@ func (r *PostRepository) ExistsBySlug(filters types.Filter) (bool, error) {
 }
 
 func (r *PostRepository) SendNotification(ctx context.Context, senderUserUUID uuid.UUID, receiverUserUUID uuid.UUID, notificationPayload notifications.NotificationPayload) error {
-	return r.sendNotificationWithType(ctx, senderUserUUID, receiverUserUUID, notifications.NotificationTypeReferral, notificationPayload)
+	return r.sendNotificationWithType(ctx, senderUserUUID, receiverUserUUID, notifications.NotificationTypeSystemAlert, notificationPayload)
 }
 
 func (r *PostRepository) sendNotificationWithType(ctx context.Context, senderUserUUID uuid.UUID, receiverUserUUID uuid.UUID, notificationType string, notificationPayload notifications.NotificationPayload) error {
-	canSendNotification := true
 	senderUser, err := r.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: senderUserUUID})
 	if err != nil {
-		canSendNotification = false
+		return err
 	}
 	receiverUser, err := r.userRepo.GetUserByUUIDdWithoutRelations(types.Filter{Context: ctx, UserUUID: receiverUserUUID})
 	if err != nil {
-		canSendNotification = false
+		return err
 	}
-
-	if canSendNotification {
-		err = r.notificationRepo.SendNotificationToUser(*senderUser, *receiverUser, notificationType, notificationPayload.Title, notificationPayload.Body, notificationPayload)
-		if err != nil {
-			fmt.Printf("Bildirim gönderilemedi user %s -> %s: %v\n", senderUserUUID, receiverUserUUID, err)
-			return err
-		}
-	}
-	return nil
+	return r.notificationRepo.SendNotificationToUser(ctx, *senderUser, *receiverUser, notificationType, notificationPayload.Title, notificationPayload.Body, notificationPayload)
 }
 
 func commentNotificationPayload(author *models.User, parentPost *post.Post, comment *post.Post) notifications.NotificationPayload {
@@ -1913,202 +1821,15 @@ func commentNotificationPayload(author *models.User, parentPost *post.Post, comm
 }
 
 func (r *PostRepository) Like(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
-	if err != nil {
-		return err
-	}
-	if post != nil {
-		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindLikeReceived, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
-		}
-
-		if isOk {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "New Like",
-					Body:  "Someone liked your post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Liked",
-					Body:  "You liked this post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		} else {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "Like Removed",
-					Body:  "Someone removed their like",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Like Removed",
-					Body:  "You removed your like",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		}
-	}
-	return nil
+	return r.togglePostInteraction(filters, models.EngagementKindLikeReceived)
 }
 
 func (r *PostRepository) Dislike(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
-	if err != nil {
-		return err
-	}
-	if post != nil {
-		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindDisLikeReceived, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
-		}
-
-		if isOk {
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "New Dislike",
-					Body:  "Someone disliked your post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Disliked",
-					Body:  "You disliked this post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		} else {
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "Dislike Removed",
-					Body:  "Someone removed their dislike",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Dislike Removed",
-					Body:  "You removed your dislike",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		}
-	}
-	return nil
+	return r.togglePostInteraction(filters, models.EngagementKindDisLikeReceived)
 }
 
 func (r *PostRepository) Banana(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
-	if err != nil {
-		return err
-	}
-	if post != nil {
-		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBanana, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
-		}
-		if isOk {
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "New Banana 🍌",
-					Body:  "Someone sent you a banana",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Banana Sent 🍌",
-					Body:  "You sent a banana",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		} else {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "Banana Removed",
-					Body:  "Someone removed their banana",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Banana Removed",
-					Body:  "You removed your banana",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-		}
-	}
-	return nil
+	return r.togglePostInteraction(filters, models.EngagementKindBanana)
 }
 
 func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, description string, authUser *models.User) error {
@@ -2133,91 +1854,26 @@ func (r *PostRepository) Report(ctx context.Context, postId int64, kind string, 
 }
 
 func (r *PostRepository) Bookmark(filters types.Filter) error {
-	post, err := r.FindPostByPublicID(filters.PostID)
-	if err != nil {
-		return err
-	}
-	if post != nil {
-		isOk, err := r.userRepo.engagementRepo.ToggleEngagement(filters.Context, filters.AuthUser.ID, post.AuthorID, models.EngagementKindBookmark, post.ID, models.EngagementContentableTypePost)
-		if err != nil {
-			return err
-		}
-
-		if isOk {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "New Bookmark",
-					Body:  "Someone bookmarked your post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Post Bookmarked",
-					Body:  "You bookmarked this post",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		} else {
-
-			if err := r.SendNotification(
-				filters.Context,
-				filters.AuthUser.ID,
-				post.AuthorID,
-				notifications.NotificationPayload{
-					Title: "Bookmark Removed",
-					Body:  "Someone removed their bookmark",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-			if err := r.SendNotification(
-				filters.Context,
-				post.AuthorID,
-				filters.AuthUser.ID,
-				notifications.NotificationPayload{
-					Title: "Bookmark Removed",
-					Body:  "You removed your bookmark",
-				},
-			); err != nil {
-				helpers.Println("notification error:", err)
-			}
-
-		}
-
-	}
-	return nil
+	return r.togglePostInteraction(filters, models.EngagementKindBookmark)
 }
 
 func (r *PostRepository) View(filters types.Filter) (bool, error) {
 	if filters.AuthUser == nil {
-		return false, errors.New(constants.ErrUserUnauthorized.String())
+		return false, constants.ErrUserUnauthorized
 	}
 
-	post, err := r.FindPostByPublicID(filters.PostID)
+	post, err := r.FindPostByPublicID(filters.Context, filters.PostID)
 	if err != nil {
 		return false, err
 	}
 	if post == nil {
-		return false, errors.New(constants.ErrPostNotFound.String())
+		return false, constants.ErrPostNotFound
 	}
 	if post.AuthorID == filters.AuthUser.ID {
 		return false, nil
 	}
 
-	return r.userRepo.engagementRepo.RecordViewOnce(
+	return NewEngagementRepository(r.db).RecordViewOnce(
 		filters.Context,
 		filters.AuthUser.ID,
 		post.AuthorID,
@@ -2229,7 +1885,7 @@ func (r *PostRepository) View(filters types.Filter) (bool, error) {
 
 func (r *PostRepository) Delete(filters types.Filter) error {
 	if r == nil || r.db == nil || filters.AuthUser == nil || filters.AuthUser.ID == uuid.Nil {
-		return errors.New(constants.ErrPostDeleteDenied.String())
+		return constants.ErrPostDeleteDenied
 	}
 
 	ctx := filters.Context
@@ -2237,7 +1893,7 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 		ctx = context.Background()
 	}
 
-	// SQLite and other adapters do not support PostgreSQL advisory locks. Hold
+	// SQLite and other adapters may not support row locking. Hold
 	// the process fallback across commit so comment aggregate writes still have
 	// one owner at a time in those environments.
 	if r.db.Name() != "postgres" {
@@ -2251,7 +1907,7 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 			Where("public_id = ?", filters.PostID).
 			First(&target)
 		if errors.Is(find.Error, gorm.ErrRecordNotFound) {
-			return errors.New(constants.ErrPostNotFound.String())
+			return constants.ErrPostNotFound
 		}
 		if find.Error != nil {
 			return find.Error
@@ -2262,7 +1918,7 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 			filters.AuthUser.Role == string(constants.UserRoleAdmin) ||
 			filters.AuthUser.Role == string(constants.UserRoleSuperAdmin)
 		if !allowed {
-			return errors.New(constants.ErrPostDeleteDenied.String())
+			return constants.ErrPostDeleteDenied
 		}
 
 		var parentAggregate *models.Engagement
@@ -2305,7 +1961,7 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 		if err.Error() == constants.ErrPostNotFound.String() || err.Error() == constants.ErrPostDeleteDenied.String() {
 			return err
 		}
-		return fmt.Errorf("%s: %w", constants.ErrPostDeleteFailed.String(), err)
+		return fmt.Errorf("%w: %w", constants.ErrPostDeleteFailed, err)
 	}
 	return nil
 }
@@ -2316,7 +1972,7 @@ func (r *PostRepository) Delete(filters types.Filter) error {
 // removal of another modern comment by the same author.
 func lockCommentEngagementDetailInTransaction(tx *gorm.DB, aggregateID uuid.UUID, comment *post.Post) (*models.EngagementDetail, error) {
 	if tx == nil || aggregateID == uuid.Nil || comment == nil || comment.ID == uuid.Nil {
-		return nil, errors.New("comment engagement lookup identifiers are required")
+		return nil, constants.ErrCommentEngagementLookupIdentifiersRequired
 	}
 
 	var detail models.EngagementDetail
@@ -2409,10 +2065,10 @@ func loadTipReplay(
 
 func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models.User, amount decimal.Decimal, idempotencyKey domainwallet.IdempotencyKey) (*decimal.Decimal, error) {
 	if authUser == nil || authUser.ID == uuid.Nil {
-		return nil, errors.New(constants.ErrUnauthorized.String())
+		return nil, constants.ErrUnauthorized
 	}
 	if r.userRepo == nil || r.userRepo.engagementRepo == nil {
-		return &authUser.Balance, errors.New("tip repository dependencies are not configured")
+		return &authUser.Balance, constants.ErrTipRepositoryNotConfigured
 	}
 	if err := domainwallet.ValidateTipAmount(amount); err != nil {
 		return &authUser.Balance, err
@@ -2447,12 +2103,16 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			Where("COALESCE(NULLIF(audience, ''), 'public') = 'public'").
 			First(&target).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errors.New(constants.ErrPostNotFound.String())
+				return constants.ErrPostNotFound
 			}
 			return err
 		}
 		if target.AuthorID == authUser.ID {
-			return errors.New(constants.ErrCannotTipOwnPost.String())
+			return constants.ErrCannotTipOwnPost
+		}
+		// Serialize with block/unblock so a block committed first always wins.
+		if err := lockPrivatePhotoAccessPair(tx, authUser.ID, target.AuthorID); err != nil {
+			return err
 		}
 		var lockedUsers []models.User
 		if err := tx.Clauses(clause.Locking{Strength: "NO KEY UPDATE"}).
@@ -2462,7 +2122,7 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			return err
 		}
 		if len(lockedUsers) != 2 {
-			return errors.New(constants.ErrUserNotFound.String())
+			return constants.ErrUserNotFound
 		}
 
 		var payer, payee *models.User
@@ -2475,7 +2135,7 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			}
 		}
 		if payer == nil || payee == nil {
-			return errors.New(constants.ErrUserNotFound.String())
+			return constants.ErrUserNotFound
 		}
 
 		replayedBalance, replayed, err := loadTipReplay(
@@ -2493,6 +2153,24 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			return nil
 		}
 
+		if !domainuser.CanAuthenticate(domainuser.AccountRole(payer.UserRole), payer.IsBot) ||
+			!domainuser.CanAuthenticate(domainuser.AccountRole(payee.UserRole), payee.IsBot) ||
+			payer.Domain != payee.Domain || target.Domain != payer.Domain {
+			return domainwallet.ErrTransferUnavailable
+		}
+		if err := ensureSocialInteractionAllowed(tx, payer.ID, payee.ID, domainuser.InteractionFollow); err != nil {
+			if errors.Is(err, domainuser.ErrInteractionBlocked) {
+				return domainwallet.ErrTransferBlocked
+			}
+			if errors.Is(err, domainuser.ErrInteractionUnavailable) {
+				return domainwallet.ErrTransferUnavailable
+			}
+			return err
+		}
+		if err := domainwallet.ValidateMoneyRepresentation(payee.Balance); err != nil {
+			return err
+		}
+
 		transfer, err := domainwallet.NewTransfer(
 			payer.ID,
 			payee.ID,
@@ -2503,19 +2181,25 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 		if err != nil {
 			switch {
 			case errors.Is(err, domainwallet.ErrSelfTransfer):
-				return errors.New(constants.ErrCannotTipOwnPost.String())
+				return constants.ErrCannotTipOwnPost
 			case errors.Is(err, domainwallet.ErrInsufficientFunds):
-				return errors.New(constants.ErrInsufficientBalance.String())
+				return constants.ErrInsufficientBalance
 			case errors.Is(err, domainwallet.ErrInvalidAmount),
 				errors.Is(err, domainwallet.ErrAmountBelowMinimum),
 				errors.Is(err, domainwallet.ErrAmountOutOfRange):
 				return err
 			default:
-				return errors.New(constants.ErrInvalidAmount.String())
+				return constants.ErrInvalidAmount
 			}
 		}
 
 		newPayerBalance, newPayeeBalance := transfer.Apply(payer.Balance, payee.Balance)
+		if err := domainwallet.ValidateMoneyRepresentation(newPayerBalance); err != nil {
+			return err
+		}
+		if err := domainwallet.ValidateMoneyRepresentation(newPayeeBalance); err != nil {
+			return err
+		}
 		payerUpdate := tx.Model(&models.User{}).
 			Where("id = ?", payer.ID).
 			Update("balance", newPayerBalance)
@@ -2523,7 +2207,7 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			return payerUpdate.Error
 		}
 		if payerUpdate.RowsAffected != 1 {
-			return errors.New(constants.ErrUserNotFound.String())
+			return constants.ErrUserNotFound
 		}
 		payeeUpdate := tx.Model(&models.User{}).
 			Where("id = ?", payee.ID).
@@ -2532,7 +2216,7 @@ func (r *PostRepository) Tip(ctx context.Context, postId int64, authUser *models
 			return payeeUpdate.Error
 		}
 		if payeeUpdate.RowsAffected != 1 {
-			return errors.New(constants.ErrUserNotFound.String())
+			return constants.ErrUserNotFound
 		}
 
 		if err := addTipInTransaction(
@@ -2588,7 +2272,7 @@ func (r *PostRepository) CreatePillar(ctx context.Context, pillar *taxonomy.Pill
 		First(&existing).Error
 
 	if err == nil {
-		return fmt.Errorf("pillar already exists")
+		return constants.ErrPillarAlreadyExists
 	}
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -2664,27 +2348,10 @@ func taxonomyPillarMatchQuery(tx *gorm.DB, slug string) *gorm.DB {
 
 	likePattern := "%" + strictSlug + "%"
 
-	return activeTaxonomyPreload(tx).
-		Where(`
-			pillars.slug = ?
-			OR EXISTS (
-				SELECT 1
-				FROM clusters
-				WHERE clusters.pillar_id = pillars.id
-				  AND clusters.is_active = true
-				  AND clusters.deleted_at IS NULL
-				  AND (
-					clusters.slug = ?
-					OR clusters.search_vector ILIKE ?
-					OR EXISTS (
-						SELECT 1
-						FROM synonyms
-						WHERE synonyms.cluster_id = clusters.id
-						  AND synonyms.slug = ?
-					)
-				  )
-			)
-		`, normalizedSlug, normalizedSlug, likePattern, normalizedSlug)
+	synonyms := repositorySubquery(tx).Model(&taxonomy.Synonym{}).Select("cluster_id").Where("slug = ?", normalizedSlug)
+	clusters := repositorySubquery(tx).Model(&taxonomy.Cluster{}).Select("pillar_id").Where("is_active = ?", true).
+		Where(repositorySubquery(tx).Where("slug = ?", normalizedSlug).Or("search_vector ILIKE ?", likePattern).Or("id IN (?)", synonyms))
+	return activeTaxonomyPreload(tx).Where(repositorySubquery(tx).Where("pillars.slug = ?", normalizedSlug).Or("pillars.id IN (?)", clusters))
 }
 
 func applyTaxonomyCategoryFilter(query *gorm.DB, category *string) *gorm.DB {
@@ -2699,26 +2366,15 @@ func applyTaxonomyCategoryFilter(query *gorm.DB, category *string) *gorm.DB {
 
 	likePattern := "%" + strictSlug + "%"
 
-	return query.Where(`
-		EXISTS (
-			SELECT 1
-			FROM post_clusters
-			JOIN clusters ON clusters.id = post_clusters.cluster_id
-			JOIN pillars ON pillars.id = clusters.pillar_id
-			LEFT JOIN synonyms ON synonyms.cluster_id = clusters.id
-			WHERE post_clusters.post_id = posts.id
-			  AND clusters.is_active = true
-			  AND clusters.deleted_at IS NULL
-			  AND pillars.is_active = true
-			  AND pillars.deleted_at IS NULL
-			  AND (
-				pillars.slug = ?
-				OR clusters.slug = ?
-				OR clusters.search_vector ILIKE ?
-				OR synonyms.slug = ?
-			  )
-		)
-	`, normalizedSlug, normalizedSlug, likePattern, normalizedSlug)
+	matchingPosts := repositorySubquery(query).Table("post_clusters").Select("post_clusters.post_id").
+		Joins("JOIN clusters ON clusters.id = post_clusters.cluster_id").
+		Joins("JOIN pillars ON pillars.id = clusters.pillar_id").
+		Joins("LEFT JOIN synonyms ON synonyms.cluster_id = clusters.id").
+		Where("clusters.is_active = ? AND clusters.deleted_at IS NULL", true).
+		Where("pillars.is_active = ? AND pillars.deleted_at IS NULL", true).
+		Where(repositorySubquery(query).Where("pillars.slug = ?", normalizedSlug).Or("clusters.slug = ?", normalizedSlug).
+			Or("clusters.search_vector ILIKE ?", likePattern).Or("synonyms.slug = ?", normalizedSlug))
+	return query.Where("posts.id IN (?)", matchingPosts)
 }
 
 func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cluster) error {
@@ -2729,7 +2385,7 @@ func (r *PostRepository) CreateCluster(ctx context.Context, cluster *taxonomy.Cl
 	err := exactClusterLookupQuery(r.db.WithContext(ctx), cluster.PillarID, cluster.ParentID, cluster.Slug).
 		First(&existing).Error
 	if err == nil {
-		return fmt.Errorf("cluster already exists")
+		return constants.ErrClusterAlreadyExists
 	}
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -2752,7 +2408,7 @@ func (r *PostRepository) CreateSynonym(ctx context.Context, synonym *taxonomy.Sy
 		First(&existing).Error
 
 	if err == nil {
-		return fmt.Errorf("synonym already exists")
+		return constants.ErrSynonymAlreadyExists
 	}
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -2777,7 +2433,7 @@ func (r *PostRepository) CreateSynonym(ctx context.Context, synonym *taxonomy.Sy
 		}
 
 		if primaryCount > 0 {
-			return fmt.Errorf("primary synonym already exists for this cluster")
+			return constants.ErrPrimarySynonymAlreadyExists
 		}
 	}
 
@@ -2873,7 +2529,7 @@ func (r *PostRepository) FindClusterBySlug(ctx context.Context, pillarID uuid.UU
 		return nil, gorm.ErrRecordNotFound
 	}
 	if len(clusters) > 1 {
-		return nil, fmt.Errorf("cluster slug %q is ambiguous within pillar %s", slug, pillarID)
+		return nil, constants.ErrClusterSlugAmbiguous.Format(slug, pillarID)
 	}
 
 	return &clusters[0], nil

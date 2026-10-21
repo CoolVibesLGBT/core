@@ -4,6 +4,7 @@ import (
 	"core/application/ports"
 	"core/application/usecases"
 	"errors"
+	"io/fs"
 	pathpkg "path"
 	"path/filepath"
 	"regexp"
@@ -15,6 +16,19 @@ import (
 )
 
 var mediaVariantSuffix = regexp.MustCompile(`_(?:(?:square|landscape|portrait)_(?:icon|thumb|sm|md|lg)|(?:poster|low|medium|high|preview))$`)
+
+// Exclude uploads at the filesystem boundary: the static middleware decodes
+// and normalizes paths differently from the router, so a route prefix alone
+// cannot protect uploads from encoded or alternate URLs.
+type publicStaticFS struct{ fs.FS }
+
+func (s publicStaticFS) Open(name string) (fs.File, error) {
+	root, _, _ := strings.Cut(name, "/")
+	if strings.EqualFold(root, "uploads") {
+		return nil, fs.ErrNotExist
+	}
+	return s.FS.Open(name)
+}
 
 func handleMediaFile(service *usecases.MediaAccessService, tokenDecoder ports.UserTokenDecoder) fiber.Handler {
 	return func(c fiber.Ctx) error {
@@ -34,7 +48,7 @@ func handleMediaFile(service *usecases.MediaAccessService, tokenDecoder ports.Us
 			return c.SendStatus(fiber.StatusNotFound)
 		}
 
-		if decision.Public {
+		if decision.Public && !decision.NoStore {
 			c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
 		} else {
 			c.Set(fiber.HeaderCacheControl, "private, no-store")

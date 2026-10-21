@@ -5,17 +5,8 @@ import (
 	"core/application/ports"
 	"core/constants"
 	domainmoderation "core/domain/moderation"
-	"errors"
 
 	"github.com/google/uuid"
-)
-
-var (
-	ErrModerationForbidden = errors.New("moderation access denied")
-	ErrInvalidReportStatus = domainmoderation.ErrInvalidStatus
-	ErrReportIDRequired    = errors.New("report_id is required")
-	ErrPostIDRequired      = errors.New("post_id is required")
-	ErrInvalidReportType   = errors.New("invalid report content type")
 )
 
 type ModerationService struct {

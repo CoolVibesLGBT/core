@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"core/application/ports"
+	"core/constants"
 	domainmedia "core/domain/media"
 	modelmedia "core/models/media"
 	modelutils "core/models/utils"
@@ -17,25 +18,6 @@ import (
 const (
 	FreePrivatePhotosPerOwner = 10
 	MaxPrivatePhotosPerUpload = 10
-)
-
-var (
-	ErrPrivatePhotoPrincipalRequired = errors.New("authenticated user is required")
-	ErrPrivatePhotoOwnerRequired     = errors.New("owner_id is required")
-	ErrPrivatePhotoRequestRequired   = errors.New("request_id is required")
-	ErrPrivatePhotoViewerRequired    = errors.New("viewer_id is required")
-	ErrPrivatePhotoIDRequired        = errors.New("photo_id is required")
-	ErrPrivatePhotoUserNotFound      = errors.New("private photo user not found")
-	ErrPrivatePhotoNotFound          = errors.New("private photo not found")
-	ErrPrivatePhotoRequestNotFound   = errors.New("private photo access request not found")
-	ErrPrivatePhotoForbidden         = errors.New("private photo action is forbidden")
-	ErrPrivatePhotoSelfRequest       = errors.New("cannot request your own private photos")
-	ErrPrivatePhotoFilesRequired     = errors.New("at least one private photo is required")
-	ErrPrivatePhotoUploadLimit       = errors.New("private photo upload limit exceeded")
-	ErrPrivatePhotoOwnerLimit        = errors.New("private photo album limit reached")
-	ErrPrivatePhotoImageRequired     = domainmedia.ErrPrivatePhotoImageRequired
-	ErrPrivatePhotoImageDimensions   = domainmedia.ErrPrivatePhotoImageDimensions
-	ErrPhotoDestinationRequired      = errors.New("destination must be public or private")
 )
 
 type PrivatePhotoAccessSummary struct {
@@ -242,7 +224,7 @@ func (s *PrivatePhotoService) FetchProfilePhotos(ctx context.Context, principal 
 	}
 	repository, ok := s.repository.(ports.ProfilePhotoRepository)
 	if !ok {
-		return ProfilePhotoFetchResult{}, errors.New("profile photo repository is not configured")
+		return ProfilePhotoFetchResult{}, constants.ErrProfilePhotoRepositoryNotConfigured
 	}
 	photos, err := repository.ListProfilePhotos(ctx, owner.ID)
 	if err != nil {
@@ -274,7 +256,7 @@ func (s *PrivatePhotoService) MoveProfilePhoto(ctx context.Context, principal po
 	}
 	repository, ok := s.repository.(ports.ProfilePhotoRepository)
 	if !ok {
-		return MoveProfilePhotoResult{}, errors.New("profile photo repository is not configured")
+		return MoveProfilePhotoResult{}, constants.ErrProfilePhotoRepositoryNotConfigured
 	}
 	privatePhotoLimit := int64(0)
 	if role == modelmedia.RolePrivatePhoto {
@@ -301,7 +283,7 @@ func (s *PrivatePhotoService) MoveProfilePhoto(ctx context.Context, principal po
 	}, nil
 }
 
-func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.PrivatePhotoPrincipal, files []ports.UploadedFile) ([]PrivatePhotoMediaView, error) {
+func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.PrivatePhotoPrincipal, files []*domainmedia.UploadedFile) ([]PrivatePhotoMediaView, error) {
 	if err := validatePrivatePhotoPrincipal(principal); err != nil {
 		return nil, err
 	}
@@ -315,10 +297,10 @@ func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.Privat
 		if file == nil {
 			return nil, ErrPrivatePhotoImageRequired
 		}
-		if file.Size() <= 0 {
+		if file.Size <= 0 {
 			return nil, ErrPrivatePhotoImageRequired
 		}
-		contentType := strings.ToLower(strings.TrimSpace(file.ContentType()))
+		contentType := strings.ToLower(strings.TrimSpace(file.ContentType))
 		if contentType != "" && !strings.HasPrefix(contentType, "image/") {
 			return nil, ErrPrivatePhotoImageRequired
 		}
@@ -421,10 +403,13 @@ func (s *PrivatePhotoService) RequestAccess(ctx context.Context, principal ports
 	}
 
 	request, changed, err := s.repository.RequestPrivatePhotoAccess(ctx, owner.ID, principal.ID, time.Now().UTC())
+	if errors.Is(err, ports.ErrPrivatePhotoAccessBlocked) {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
 	if err != nil {
 		return PrivatePhotoAccessSummary{}, err
 	}
-	if changed && s.notifier != nil {
+	if changed && s.notifier != nil && !s.transactionalNotifications() {
 		_ = s.notifier.NotifyPrivatePhotoAccessRequested(ctx, owner, viewer, *request)
 	}
 	if changed {
@@ -492,13 +477,16 @@ func (s *PrivatePhotoService) RespondAccess(ctx context.Context, principal ports
 	}
 
 	request, changed, err := s.repository.RespondPrivatePhotoAccess(ctx, requestPublicID, principal.ID, decision, time.Now().UTC())
+	if errors.Is(err, ports.ErrPrivatePhotoAccessBlocked) {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
 	if errors.Is(err, ports.ErrNotFound) {
 		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoRequestNotFound
 	}
 	if err != nil {
 		return PrivatePhotoAccessSummary{}, err
 	}
-	if changed && s.notifier != nil {
+	if changed && s.notifier != nil && !s.transactionalNotifications() {
 		owner, ownerErr := s.repository.FindPrivatePhotoUserByPublicID(ctx, principal.PublicID)
 		if ownerErr == nil {
 			_ = s.notifier.NotifyPrivatePhotoAccessResponded(ctx, owner, request.Viewer, *request)
@@ -519,6 +507,11 @@ func (s *PrivatePhotoService) RespondAccess(ctx context.Context, principal ports
 		})
 	}
 	return privatePhotoAccessSummary(request), nil
+}
+
+func (s *PrivatePhotoService) transactionalNotifications() bool {
+	adapter, ok := s.repository.(ports.TransactionalSocialNotifications)
+	return ok && adapter.SocialNotificationsTransactional()
 }
 
 func (s *PrivatePhotoService) RevokeAccess(ctx context.Context, principal ports.PrivatePhotoPrincipal, viewerPublicID int64) (PrivatePhotoAccessSummary, error) {
@@ -710,17 +703,32 @@ func privatePhotoMediaView(photo modelmedia.Media) PrivatePhotoMediaView {
 
 	image := photo.File.Variants.Image
 	view.File.Variants = &PrivatePhotoFileVariantsView{Image: &PrivatePhotoImageVariantsView{
-		Icon:      image.Icon,
-		Thumbnail: image.Thumbnail,
-		Small:     image.Small,
-		Medium:    image.Medium,
-		Large:     image.Large,
+		Icon:      privatePhotoVariantView(image.Icon),
+		Thumbnail: privatePhotoVariantView(image.Thumbnail),
+		Small:     privatePhotoVariantView(image.Small),
+		Medium:    privatePhotoVariantView(image.Medium),
+		Large:     privatePhotoVariantView(image.Large),
 	}}
-	for _, variant := range []*modelutils.VariantInfo{image.Large, image.Medium, image.Small, image.Thumbnail, image.Icon} {
+	processed := view.File.Variants.Image
+	for _, variant := range []*modelutils.VariantInfo{processed.Large, processed.Medium, processed.Small, processed.Thumbnail, processed.Icon} {
 		if variant != nil && strings.TrimSpace(variant.URL) != "" {
 			view.File.URL = variant.URL
 			break
 		}
 	}
 	return view
+}
+
+func privatePhotoVariantView(variant *modelutils.VariantInfo) *modelutils.VariantInfo {
+	if variant == nil {
+		return nil
+	}
+	view := *variant
+	// Older processed variants were stored relative to the current page.
+	// Normalize those persisted URLs as well as newly generated images.
+	url := strings.TrimPrefix(view.URL, "./")
+	if strings.HasPrefix(url, "static/uploads/") {
+		view.URL = "/" + url
+	}
+	return &view
 }

@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"core/application/ports"
 	"core/application/types"
 	"core/constants"
 	"core/helpers"
@@ -216,11 +215,11 @@ func TestCreateCommentPersistsPostAndParentAggregateInOneTransactionIntegration(
 
 	created, err := creationRepo.CreateContentablePost(
 		context.Background(),
-		ports.FormData{Values: map[string][]string{
+		map[string][]string{
 			"parentPostId": {fmt.Sprintf("%d", fixture.parent.PublicID)},
 			"title":        {"atomic comment"},
 			"audience":     {"public"},
-		}},
+		}, nil,
 		&fixture.author,
 		string(post.PostKindPost),
 		nil,
@@ -270,11 +269,11 @@ func TestCreateCommentRollsBackPostWhenAggregateMutationFailsIntegration(t *test
 
 	_, err = creationRepo.CreateContentablePost(
 		context.Background(),
-		ports.FormData{Values: map[string][]string{
+		map[string][]string{
 			"parentPostId": {fmt.Sprintf("%d", fixture.parent.PublicID)},
 			"title":        {"rolled back comment"},
 			"audience":     {"public"},
-		}},
+		}, nil,
 		&fixture.author,
 		string(post.PostKindPost),
 		nil,

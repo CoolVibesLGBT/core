@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"core/application/types"
 	"core/constants"
 	"core/models"
@@ -66,10 +67,10 @@ func TestPublicPostReadsExcludeHiddenPosts(t *testing.T) {
 	if _, err := repo.GetPostByPublicID(chatMessage.PublicID); err == nil {
 		t.Fatal("GetPostByPublicID returned a chat message")
 	}
-	if _, err := repo.FindPostByPublicID(privatePost.PublicID); err == nil {
+	if _, err := repo.FindPostByPublicID(context.Background(), privatePost.PublicID); err == nil {
 		t.Fatal("FindPostByPublicID returned a private-audience post")
 	}
-	if _, err := repo.FindPostByPublicID(chatMessage.PublicID); err == nil {
+	if _, err := repo.FindPostByPublicID(context.Background(), chatMessage.PublicID); err == nil {
 		t.Fatal("FindPostByPublicID returned a chat message")
 	}
 

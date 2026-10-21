@@ -186,7 +186,7 @@ func TestTipRejectsIdempotencyKeyReuseForDifferentAmountIntegration(t *testing.T
 
 func prepareTipIntegration(t *testing.T, counts datatypes.JSON) (*gorm.DB, *PostRepository, models.User, models.User, post.Post, models.Engagement) {
 	t.Helper()
-	db := engagementViewIntegrationDB(t)
+	db := privatePhotoIntegrationDB(t)
 	return prepareTipIntegrationOnDB(t, db, counts)
 }
 
@@ -237,7 +237,7 @@ func prepareTipIntegrationOnDB(t *testing.T, db *gorm.DB, counts datatypes.JSON)
 }
 
 func TestConcurrentTipRetriesWithSameKeyMoveMoneyOnceIntegration(t *testing.T) {
-	db := locationRaceIntegrationDB(t)
+	db := privatePhotoIntegrationDB(t)
 	db, postRepo, payer, payee, target, aggregate := prepareTipIntegrationOnDB(t, db, datatypes.JSON([]byte("{}")))
 	cleanupTipIntegrationFixture(t, db, []models.User{payer, payee}, []post.Post{target})
 	key := mustTipIdempotencyKey(t, "tip-concurrent-retry")
@@ -280,7 +280,7 @@ func TestConcurrentTipRetriesWithSameKeyMoveMoneyOnceIntegration(t *testing.T) {
 }
 
 func TestConcurrentTipKeyReuseAcrossPostsCommitsOnlyOneOperationIntegration(t *testing.T) {
-	db := locationRaceIntegrationDB(t)
+	db := privatePhotoIntegrationDB(t)
 	db, postRepo, payer, firstPayee, firstTarget, _ := prepareTipIntegrationOnDB(t, db, datatypes.JSON([]byte("{}")))
 
 	secondPayee := models.User{

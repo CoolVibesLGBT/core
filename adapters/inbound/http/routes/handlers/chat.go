@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"core/adapters/inbound/http/middleware"
+	upload "core/adapters/media"
 	"core/application/ports"
 	"core/application/types"
 	"core/constants"
@@ -76,38 +77,15 @@ func HandleSendMessage(s ports.ChatUseCase) fiber.Handler {
 		videos := form.File["videos[]"]
 		formParams := form.Value
 
-		expiresIn, err := chatmodel.ParseExpiresInSeconds(formParams["expires_in_seconds"])
-		if err != nil {
+		if _, err := chatmodel.ParseExpiresInSeconds(formParams["expires_in_seconds"]); err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
-
-		viewOnce := false
-		if values := formParams["view_once"]; len(values) > 0 && values[0] != "" {
-			switch strings.ToLower(strings.TrimSpace(values[0])) {
-			case "on", "yes":
-				viewOnce = true
-			case "off", "no":
-				viewOnce = false
-			default:
-				viewOnce, err = strconv.ParseBool(values[0])
-				if err != nil {
-					return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "view_once must be true or false")
-				}
-			}
+		if _, err := chatmodel.ParseViewOnce(formParams["view_once"]); err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
-
-		messageForm := uploadedFormData(formParams, images, videos)
-		messageForm.ExpiresInSeconds = expiresIn
-		messageForm.ViewOnce = viewOnce
-		messageForm.ImageCount = len(images)
-		messageForm.VideoCount = len(videos)
-		if values := formParams["client_id"]; len(values) > 0 {
-			messageForm.ClientID = values[0]
-		}
-
-		_post, err := s.AddMessageToChat(c.Context(), messageForm, user)
+		_post, err := s.AddMessageToChat(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user)
 		if err != nil {
-			if errors.Is(err, chatmodel.ErrEmptyMessage) || errors.Is(err, chatmodel.ErrInvalidViewOnce) {
+			if errors.Is(err, chatmodel.ErrEmptyMessage) || errors.Is(err, chatmodel.ErrInvalidViewOnce) || errors.Is(err, chatmodel.ErrInvalidEmoticon) || errors.Is(err, chatmodel.ErrInvalidReply) {
 				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 			}
 			if errors.Is(err, chatmodel.ErrNotParticipant) {
@@ -136,25 +114,25 @@ func HandleCreateChat(s ports.ChatUseCase) fiber.Handler {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnsupportedChatType)
 		}
 
-		participantID, err := parseSingleChatParticipantIdentifier(c)
+		participantIDs, err := parseChatParticipantIdentifiers(c)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantsLength)
 		}
 
-		chat, err := s.CreateChatFromIdentifier(c.Context(), participantID, authUser, chatType)
-		if err != nil {
-			switch err.Error() {
-			case constants.ErrUserNotFound.String():
-				return utils.SendError(c, fiber.StatusNotFound, constants.ErrUserNotFound)
-			case constants.ErrSelfChatNotAllowed.String():
-				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrSelfChatNotAllowed)
-			case constants.ErrUnsupportedChatType.String():
-				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnsupportedChatType)
-			case constants.ErrInvalidParticipantID.String():
-				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantID)
-			default:
-				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrInternalServer)
+		var chat *types.Chat
+		switch chatmodel.ChatType(chatType) {
+		case chatmodel.ChatTypePrivate:
+			if len(participantIDs) != 1 {
+				return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantsLength)
 			}
+			chat, err = s.CreateChatFromIdentifier(c.Context(), participantIDs[0], authUser, chatType)
+		case chatmodel.ChatTypeGroup:
+			chat, err = s.CreateGroupChat(c.Context(), participantIDs, authUser, c.FormValue("title"), c.FormValue("description"))
+		default:
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnsupportedChatType)
+		}
+		if err != nil {
+			return sendChatParticipantError(c, err)
 		}
 
 		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
@@ -163,51 +141,61 @@ func HandleCreateChat(s ports.ChatUseCase) fiber.Handler {
 	}
 }
 
-func parseSingleChatParticipantIdentifier(c fiber.Ctx) (string, error) {
+func parseChatParticipantIdentifiers(c fiber.Ctx) ([]string, error) {
+	var repeated []string
 	if form, err := c.MultipartForm(); err == nil && form != nil {
-		legacyValues := form.Value["participant_ids[]"]
-		jsonValues := form.Value["participant_ids"]
-		if len(legacyValues) > 0 && len(jsonValues) > 0 {
-			return "", errors.New("participant identifier fields are ambiguous")
+		repeated = form.Value["participant_ids[]"]
+		if len(form.Value["participant_ids"]) > 1 || (len(repeated) > 0 && len(form.Value["participant_ids"]) > 0) {
+			return nil, constants.ErrInvalidParticipantsLength
 		}
-		if len(legacyValues) > 0 {
-			if len(legacyValues) != 1 || strings.TrimSpace(legacyValues[0]) == "" {
-				return "", errors.New("exactly one participant is required")
+	} else {
+		c.Request().PostArgs().VisitAll(func(key, value []byte) {
+			if string(key) == "participant_ids[]" {
+				repeated = append(repeated, string(value))
 			}
-			return strings.TrimSpace(legacyValues[0]), nil
+		})
+		if len(repeated) > 0 && c.FormValue("participant_ids") != "" {
+			return nil, constants.ErrInvalidParticipantsLength
 		}
-		if len(jsonValues) > 1 {
-			return "", errors.New("exactly one participant field is required")
+	}
+	if len(repeated) == 0 {
+		raw := strings.TrimSpace(c.FormValue("participant_ids"))
+		if raw == "" {
+			return nil, constants.ErrInvalidParticipantsLength
+		}
+		if strings.HasPrefix(raw, "[") {
+			var identifiers []json.RawMessage
+			if err := json.Unmarshal([]byte(raw), &identifiers); err != nil {
+				return nil, constants.ErrInvalidParticipantID
+			}
+			for _, encoded := range identifiers {
+				var identifier string
+				if len(encoded) > 0 && encoded[0] == '"' {
+					if err := json.Unmarshal(encoded, &identifier); err != nil {
+						return nil, constants.ErrInvalidParticipantID
+					}
+				} else {
+					identifier = string(encoded)
+					if _, err := strconv.ParseInt(identifier, 10, 64); err != nil {
+						return nil, constants.ErrInvalidParticipantID
+					}
+				}
+				repeated = append(repeated, identifier)
+			}
+		} else {
+			repeated = []string{raw}
 		}
 	}
-
-	raw := strings.TrimSpace(c.FormValue("participant_ids"))
-	if raw == "" {
-		raw = strings.TrimSpace(c.FormValue("participant_ids[]"))
+	if len(repeated) == 0 {
+		return nil, constants.ErrInvalidParticipantsLength
 	}
-	if raw == "" {
-		return "", errors.New("one participant is required")
-	}
-	if !strings.HasPrefix(raw, "[") {
-		return raw, nil
-	}
-
-	var identifiers []json.RawMessage
-	if err := json.Unmarshal([]byte(raw), &identifiers); err != nil || len(identifiers) != 1 {
-		return "", errors.New("exactly one participant is required")
-	}
-	encoded := strings.TrimSpace(string(identifiers[0]))
-	if strings.HasPrefix(encoded, `"`) {
-		var identifier string
-		if err := json.Unmarshal(identifiers[0], &identifier); err != nil || strings.TrimSpace(identifier) == "" {
-			return "", errors.New("participant identifier is invalid")
+	for i := range repeated {
+		repeated[i] = strings.TrimSpace(repeated[i])
+		if repeated[i] == "" {
+			return nil, constants.ErrInvalidParticipantID
 		}
-		return strings.TrimSpace(identifier), nil
 	}
-	if _, err := strconv.ParseInt(encoded, 10, 64); err != nil {
-		return "", errors.New("participant identifier is invalid")
-	}
-	return encoded, nil
+	return repeated, nil
 }
 
 func HandleChatMessageRead(s ports.ChatUseCase) fiber.Handler {

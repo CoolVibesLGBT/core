@@ -40,7 +40,7 @@ type PrivatePhotoRepository interface {
 	FindPrivatePhotoUserByID(ctx context.Context, userID uuid.UUID) (PrivatePhotoUser, error)
 	CountPrivatePhotos(ctx context.Context, ownerID uuid.UUID) (int64, error)
 	ListPrivatePhotos(ctx context.Context, ownerID uuid.UUID) ([]modelmedia.Media, error)
-	AddPrivatePhoto(ctx context.Context, ownerID uuid.UUID, file UploadedFile, maxCount int64) (*modelmedia.Media, error)
+	AddPrivatePhoto(ctx context.Context, ownerID uuid.UUID, file *domainmedia.UploadedFile, maxCount int64) (*modelmedia.Media, error)
 	DeletePrivatePhoto(ctx context.Context, ownerID uuid.UUID, photoPublicID int64) error
 	ArePrivatePhotoUsersBlocked(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 

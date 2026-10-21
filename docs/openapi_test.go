@@ -86,6 +86,20 @@ func TestActionDocumentsAreUnique(t *testing.T) {
 	}
 }
 
+func TestFriendshipAndCompletedSocialActionsAreDocumented(t *testing.T) {
+	wanted := map[string]bool{constants.CMD_USER_FRIEND_REQUEST: false, constants.CMD_USER_FRIEND_RESPOND: false, constants.CMD_USER_FRIEND_CANCEL: false, constants.CMD_USER_FRIEND_REMOVE: false, constants.CMD_USER_FRIEND_FETCH: false, constants.CMD_USER_FRIEND_REQUESTS: false, constants.CMD_MATCH_DELETE: false, constants.CMD_MATCH_UPDATE: false, constants.CMD_MATCH_FETCH: false, constants.CMD_USER_FETCH_FOLLOWERS: false, constants.CMD_USER_FETCH_FOLLOWINGS: false}
+	for _, action := range ActionDocuments() {
+		if _, ok := wanted[action.Action]; ok {
+			wanted[action.Action] = true
+		}
+	}
+	for action, present := range wanted {
+		if !present || !actionSupportsJSON(action) {
+			t.Fatalf("social action missing documentation/JSON support: %s", action)
+		}
+	}
+}
+
 func TestPostTipDocumentsHeaderAndOptionalFormIdempotencyFallback(t *testing.T) {
 	var tip *ActionDoc
 	for _, action := range ActionDocuments() {

@@ -31,10 +31,7 @@ func moderationTargetLockKey(contentableType models.EngagementContentableType, c
 }
 
 func lockModerationTarget(tx *gorm.DB, contentableType models.EngagementContentableType, contentableID uuid.UUID) *gorm.DB {
-	return tx.Exec(
-		"SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
-		moderationTargetLockKey(contentableType, contentableID),
-	)
+	return lockTransactionResource(tx, moderationTargetLockKey(contentableType, contentableID))
 }
 
 func NewModerationRepository(db *gorm.DB) *ModerationRepository {
@@ -207,7 +204,7 @@ func (r *ModerationRepository) ResolveReport(ctx context.Context, input ports.Mo
 			return err
 		}
 		if report.ContentableID != target.ContentableID || report.ContentableType != target.ContentableType {
-			return errors.New("report target changed during moderation")
+			return constants.ErrReportTargetChanged
 		}
 		nextStatus, err := report.Status.TransitionTo(requestedStatus)
 		if err != nil {

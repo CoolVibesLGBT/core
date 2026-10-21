@@ -585,7 +585,8 @@ func ListenServer(db *gorm.DB, notificationManager *managers.NotificationManager
 }
 
 type SocketService struct {
-	db *gorm.DB
+	db              *gorm.DB
+	chatBroadcastMu sync.Mutex
 }
 
 func NewSocketService(db *gorm.DB) *SocketService {
@@ -603,9 +604,46 @@ func (socketService *SocketService) BroadcastToRoom(namespace string, room strin
 	if server == nil {
 		return fmt.Errorf("socket server is not initialized")
 	}
+	if chatID, err := uuid.Parse(room); err == nil && socketService.db != nil {
+		socketService.chatBroadcastMu.Lock()
+		defer socketService.chatBroadcastMu.Unlock()
+		if err := socketService.refreshChatParticipants(chatID); err != nil {
+			return err
+		}
+	}
 	server.BroadcastToRoom(namespace, room, event, msg)
 
 	return nil
+}
+
+// Refresh before every chat broadcast so additions take effect on existing
+// connections and departed members cannot continue receiving room traffic.
+func (s *SocketService) refreshChatParticipants(chatID uuid.UUID) error {
+	var publicIDs []int64
+	err := s.db.Table("chat_participants AS cp").Select("u.public_id").
+		Joins("JOIN users u ON u.id = cp.user_id").Joins("JOIN chats c ON c.id = cp.chat_id").
+		Where("cp.chat_id = ? AND cp.left_at IS NULL AND u.deleted_at IS NULL AND c.deleted_at IS NULL", chatID).Where("u.user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted, constants.UserRolePending}).Pluck("u.public_id", &publicIDs).Error
+	members := make(map[int64]bool, len(publicIDs))
+	if err == nil {
+		for _, id := range publicIDs {
+			members[id] = true
+		}
+	}
+	applyChatParticipantRooms(chatID.String(), members)
+	return err
+}
+
+func applyChatParticipantRooms(room string, members map[int64]bool) {
+	connectionsMu.RLock()
+	defer connectionsMu.RUnlock()
+	for socketID, conn := range userConnections {
+		publicID, authenticated := userPublicIDs[socketID]
+		if authenticated && members[publicID] {
+			conn.Join(room)
+		} else {
+			conn.Leave(room)
+		}
+	}
 }
 
 func encodePrivatePhotoRealtimeEvent(event ports.PrivatePhotoRealtimeEnvelope) (string, error) {

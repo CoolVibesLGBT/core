@@ -76,7 +76,7 @@ func createReport(
 		}
 		lockKey := fmt.Sprintf("report:%s:%s:%s", reporterID, contentableType, contentableID)
 		if isPostgres {
-			if err := tx.Exec("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", lockKey).Error; err != nil {
+			if err := lockTransactionResource(tx, lockKey).Error; err != nil {
 				return err
 			}
 		}

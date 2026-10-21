@@ -42,7 +42,7 @@ func TestNearbyUsersLocationQueryIsNarrowIndexableAndStable(t *testing.T) {
 		"nearby_locations.location_point <->",
 		"st_setsrid(st_makepoint(",
 		"users.id <>",
-		"not exists",
+		"users.id not in",
 		"nearby_blocks.kind in",
 		"users.privacy_level",
 		"users.user_role not in",

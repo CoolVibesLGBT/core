@@ -2,12 +2,11 @@ package repositories
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/types"
+	"core/constants"
 	"core/helpers"
 	"core/models/post"
 	"core/models/taxonomy"
-	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -61,19 +60,24 @@ func (r *NewsRepository) Create(news *post.Post) error {
 	return r.postRepo.CreatePost(news)
 }
 
-func (r *NewsRepository) GetNews(filters types.Filter) (legacyviews.PostsResult, error) {
+func (r *NewsRepository) GetNews(filters types.Filter) (types.PublicPostPage, error) {
 	filters.PostKind = post.PostKindNews
-	return r.postRepo.GetPostsByKind(filters)
+	return r.postRepo.FetchPublicPostsByKind(filters)
 }
 
-func (r *NewsRepository) Get(filters types.Filter) (*post.Post, error) {
+func (r *NewsRepository) Get(filters types.Filter) (*types.PublicPost, error) {
 	postData, err := r.loadPost(filters)
-	return ensureNewsPost(filters, postData, err)
+	item, err := ensureNewsPost(filters, postData, err)
+	if err != nil {
+		return nil, err
+	}
+	projected := publicPostView(*item)
+	return &projected, nil
 }
 
 func (r *NewsRepository) loadPost(filters types.Filter) (*post.Post, error) {
 	if filters.PostID == 0 && filters.PostUUID == uuid.Nil {
-		return nil, fmt.Errorf("post id is required")
+		return nil, constants.ErrNewsPostIDRequired
 	}
 
 	if filters.PostID != 0 {
@@ -85,9 +89,9 @@ func (r *NewsRepository) loadPost(filters types.Filter) (*post.Post, error) {
 
 func newsNotFoundError(filters types.Filter) error {
 	if filters.PostID != 0 {
-		return fmt.Errorf("post with id %d not found", filters.PostID)
+		return constants.ErrPostPublicIDNotFound.Format(filters.PostID)
 	}
-	return fmt.Errorf("post with id %s not found", filters.PostUUID)
+	return constants.ErrPostUUIDNotFound.Format(filters.PostUUID)
 }
 
 func ensureNewsPost(filters types.Filter, postData *post.Post, err error) (*post.Post, error) {

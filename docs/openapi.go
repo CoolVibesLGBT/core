@@ -244,6 +244,12 @@ func packetPathItem(actions []ActionDoc, description string) map[string]any {
 
 func actionSupportsJSON(action string) bool {
 	switch action {
+	case constants.CMD_BROADCAST_GIFT, constants.CMD_BROADCAST_SESSION_START, constants.CMD_BROADCAST_SESSION_HEARTBEAT, constants.CMD_BROADCAST_SESSION_END, constants.CMD_BROADCAST_SESSION_FETCH, constants.CMD_USER_REFERRAL_FETCH, constants.CMD_ADMIN_REFERRAL_FETCH, constants.CMD_ADMIN_REFERRAL_REVIEW:
+		return true
+	case constants.CMD_USER_FRIEND_REQUEST, constants.CMD_USER_FRIEND_RESPOND, constants.CMD_USER_FRIEND_CANCEL, constants.CMD_USER_FRIEND_REMOVE, constants.CMD_USER_FRIEND_FETCH, constants.CMD_USER_FRIEND_REQUESTS,
+		constants.CMD_USER_FETCH_FOLLOWERS, constants.CMD_USER_FETCH_FOLLOWINGS, constants.CMD_USER_FETCH_ENGAGEMENTS,
+		constants.CMD_MATCH_CREATE, constants.CMD_MATCH_UPDATE, constants.CMD_MATCH_DELETE, constants.CMD_MATCH_FETCH, constants.CMD_MATCH_FETCH_MATCHED, constants.CMD_MATCH_FETCH_LIKED, constants.CMD_MATCH_FETCH_PASSED, constants.CMD_MATCH_GET_UNSEEN:
+		return true
 	case constants.CMD_POST_REPORT,
 		constants.CMD_USER_REPORT,
 		constants.CMD_MODERATION_REPORTS_FETCH,

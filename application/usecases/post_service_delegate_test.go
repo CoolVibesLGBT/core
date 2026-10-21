@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/types"
 	domainwallet "core/domain/wallet"
 	"core/models"
@@ -20,11 +19,11 @@ func TestPostServiceReadMethodsDelegateFilters(t *testing.T) {
 	slug := "hello-world"
 	cursor := "cursor-token"
 	postRepo := &fakePostRepository{
-		getPostBySlug:     &post.Post{ID: uuid.New(), PublicID: 10, Slug: &slug},
-		getPostByPublicID: &post.Post{ID: uuid.New(), PublicID: 99},
-		timeline:          legacyviews.TimelineResult{Posts: []post.Post{{PublicID: 1}}, Cursor: &cursor},
-		search:            legacyviews.PostsResult{Posts: []post.Post{{PostKind: post.PostKindVideo}}},
-		timelineVibes:     legacyviews.TimelineResult{Posts: []post.Post{{PostKind: post.PostKindStatus}}},
+		getPostBySlug:     &types.PublicPost{ID: 10, PublicID: 10, Slug: &slug},
+		getPostByPublicID: &types.PublicPost{ID: 99, PublicID: 99},
+		timeline:          types.PublicPostPage{Posts: []types.PublicPost{{ID: 1, PublicID: 1}}, Cursor: &cursor},
+		search:            types.PublicPostPage{Posts: []types.PublicPost{{PostKind: string(post.PostKindVideo)}}},
+		timelineVibes:     types.PublicPostPage{Posts: []types.PublicPost{{PostKind: string(post.PostKindStatus)}}},
 		recentHashtags:    []types.HashtagStats{{Tag: "go", Count: 2}},
 		pillars:           []taxonomy.Pillar{{ID: uuid.New(), Slug: "culture"}},
 	}
@@ -80,7 +79,7 @@ func TestPostServiceUserMediaAndNearbyUsersDelegateFilters(t *testing.T) {
 		fetchNearbyDistance: &distance,
 	}
 	postRepo := &fakePostRepository{
-		userMedias:       []legacyviews.MediaWithUser{{User: models.User{ID: userUUID, PublicID: 42}}},
+		userMedias:       []types.PublicPostMediaWithUser{{User: types.PublicPostAuthor{ID: 42, PublicID: 42}}},
 		userMediasCursor: &cursor,
 	}
 	service := NewPostService(userRepo, postRepo, &fakeMediaRepository{})

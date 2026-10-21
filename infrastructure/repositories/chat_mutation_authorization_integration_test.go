@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"core/application/ports"
 	"core/constants"
 	"core/helpers"
 	"core/models"
@@ -353,10 +352,10 @@ func TestAddMessageRollsBackPostWhenChatMetadataUpdateFailsIntegration(t *testin
 	}
 	t.Cleanup(func() { _ = fixture.db.Callback().Update().Remove(callbackName) })
 
-	_, err = chatRepo.AddMessageToChat(context.Background(), ports.FormData{Values: map[string][]string{
+	_, err = chatRepo.AddMessageToChat(context.Background(), map[string][]string{
 		"chat_id": {fixture.chat.ID.String()},
 		"content": {"must roll back"},
-	}}, &fixture.author)
+	}, nil, &fixture.author)
 	if !errors.Is(err, forcedErr) {
 		t.Fatalf("AddMessageToChat() error = %v, want forced failure", err)
 	}

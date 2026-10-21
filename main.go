@@ -11,6 +11,7 @@ import (
 	"core/models"
 	chatworker "core/workers/chat"
 	mediaworker "core/workers/media"
+	notificationworker "core/workers/notifications"
 	"errors"
 	"flag"
 	"fmt"
@@ -237,6 +238,10 @@ func serve(application *app.App) (retErr error) {
 
 	mediaProcessor := mediaworker.StartProcessorContext(serviceCtx, application.MediaProcessorRepository, application.MediaProcessingObserver)
 	chatProcessor := chatworker.StartProcessorContext(serviceCtx, application.ChatService)
+	var notificationProcessor *notificationworker.Processor
+	if application.NotificationRepository != nil {
+		notificationProcessor = notificationworker.StartProcessorContext(serviceCtx, application.NotificationRepository)
+	}
 
 	fiberApp := application.Router.GetFiber()
 	serverErrors := make(chan error, 1)
@@ -291,6 +296,7 @@ func serve(application *app.App) (retErr error) {
 		socketRuntime,
 		mediaProcessor,
 		chatProcessor,
+		notificationProcessor,
 	)
 	return errors.Join(serveErr, shutdownErr)
 }

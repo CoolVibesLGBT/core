@@ -2,8 +2,9 @@ package usecases
 
 import (
 	"context"
-	legacyviews "core/application/legacyviews"
 	"core/application/ports"
+	"core/constants"
+	domainmedia "core/domain/media"
 	domainmoderation "core/domain/moderation"
 	domainwallet "core/domain/wallet"
 	"core/models"
@@ -13,78 +14,59 @@ import (
 
 	"core/application/types"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
 type PostService struct {
-	mediaRepo        ports.MediaRepository
-	userRepo         ports.UserRepository
-	postRepo         ports.PostRepository
-	publicPostReader ports.PublicPostReader
+	mediaRepo ports.MediaRepository
+	userRepo  ports.UserRepository
+	postRepo  ports.PostRepository
 }
 
-// legacyPublicPostReader keeps test/during-migration PostRepository
-// implementations compatible while the production adapter implements the
-// persistence-free PublicPostReader port directly.
-type legacyPublicPostReader struct{ repo ports.PostRepository }
-
-func NewPostService(
-	userRepo ports.UserRepository,
-	postRepo ports.PostRepository,
-	mediaRepo ports.MediaRepository) *PostService {
-	reader, ok := postRepo.(ports.PublicPostReader)
-	if !ok {
-		reader = legacyPublicPostReader{repo: postRepo}
-	}
-	return &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo, publicPostReader: reader}
+func NewPostService(userRepo ports.UserRepository, postRepo ports.PostRepository, mediaRepo ports.MediaRepository) *PostService {
+	return &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
 }
 
 func (s *PostService) ServiceName() string {
 	return "PostService"
 }
 
-func (s *PostService) CreatePost(context context.Context, form ports.FormData, author *models.User, postKind post.PostKind) (*types.PublicPost, error) {
-	_post, err := s.postRepo.CreateContentablePost(context, form, author, string(postKind), nil)
+func (s *PostService) CreatePost(context context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User, postKind post.PostKind) (*types.PublicPost, error) {
+	_post, err := s.postRepo.CreateContentablePost(context, values, files, author, string(postKind), nil)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.postRepo.GetPostByIDIncludingUnpublished(_post.ID)
-	if err != nil {
-		return nil, err
-	}
-	result := legacyviews.ProjectPublicPost(*created)
-	return &result, nil
+	return s.postRepo.FindPublicPostByIDIncludingUnpublished(_post.ID)
 }
 
 func (s *PostService) GetPostByID(id uuid.UUID) (*types.PublicPost, error) {
-	postData, err := s.publicPostReader.FindPublicPostByID(id)
+	postData, err := s.postRepo.FindPublicPostByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
 	return postData, nil
 }
 
 func (s *PostService) GetPostBySlug(filters types.Filter) (*types.PublicPost, error) {
-	postData, err := s.publicPostReader.FindPublicPostBySlug(filters)
+	postData, err := s.postRepo.FindPublicPostBySlug(filters)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostBySlug error: %w", err)
+		return nil, constants.ErrPostSlugLookupFailed.Format(err)
 	}
 	return postData, nil
 }
 
 func (s *PostService) GetPostByPublicID(id int64) (*types.PublicPost, error) {
-	postData, err := s.publicPostReader.FindPublicPostByPublicID(id)
+	postData, err := s.postRepo.FindPublicPostByPublicID(id)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
 	return postData, nil
 }
 
 func (s *PostService) GetTimeline(filters types.Filter) (types.PublicPostPage, error) {
-	posts, err := s.publicPostReader.FetchPublicTimeline(filters)
+	posts, err := s.postRepo.FetchPublicTimeline(filters)
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
@@ -92,7 +74,7 @@ func (s *PostService) GetTimeline(filters types.Filter) (types.PublicPostPage, e
 }
 
 func (s *PostService) SearchPost(filters types.Filter) (types.PublicPostPage, error) {
-	posts, err := s.publicPostReader.SearchPublicPosts(filters)
+	posts, err := s.postRepo.SearchPublicPosts(filters)
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
@@ -100,39 +82,39 @@ func (s *PostService) SearchPost(filters types.Filter) (types.PublicPostPage, er
 }
 
 func (s *PostService) GetPostsByUserID(filters types.Filter) ([]types.PublicPost, error) {
-	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
+	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.Context, filters.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+		return nil, constants.ErrUserUUIDLookupFailed.Format(err)
 	}
-	posts, err := s.publicPostReader.FetchPublicUserPosts(userId, filters)
+	posts, err := s.postRepo.FetchPublicUserPosts(userId, filters)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
 	return posts, nil
 }
 
 func (s *PostService) GetUserPostReplies(filters types.Filter) ([]types.PublicPost, error) {
-	userUUID, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
+	userUUID, err := s.userRepo.GetUserUUIDByPublicID(filters.Context, filters.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+		return nil, constants.ErrUserUUIDLookupFailed.Format(err)
 	}
 	filters.UserUUID = userUUID
-	posts, err := s.publicPostReader.FetchPublicUserPostReplies(filters)
+	posts, err := s.postRepo.FetchPublicUserPostReplies(filters)
 	if err != nil {
-		return nil, fmt.Errorf("GetPostByID error: %w", err)
+		return nil, constants.ErrPostLookupFailed.Format(err)
 	}
 	return posts, nil
 }
 
 func (s *PostService) GetUserMedias(filters types.Filter) ([]types.PublicPostMediaWithUser, *int64, error) {
-	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.UserID)
+	userId, err := s.userRepo.GetUserUUIDByPublicID(filters.Context, filters.UserID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("GetUserUUIDByPublicID error: %w", err)
+		return nil, nil, constants.ErrUserUUIDLookupFailed.Format(err)
 	}
 	filters.UserUUID = userId
-	page, err := s.publicPostReader.FetchPublicUserMedia(filters)
+	page, err := s.postRepo.FetchPublicUserMedia(filters)
 	if err != nil {
-		return nil, nil, fmt.Errorf("GetUserMedias error: %w", err)
+		return nil, nil, constants.ErrUserMediaLookupFailed.Format(err)
 	}
 	return page.Items, page.NextPublicID, nil
 }
@@ -140,92 +122,17 @@ func (s *PostService) GetUserMedias(filters types.Filter) ([]types.PublicPostMed
 func (s *PostService) GetRecentHashtags(filters types.Filter) ([]types.HashtagStats, error) {
 	hashtags, err := s.postRepo.GetRecentHashtags(filters)
 	if err != nil {
-		return nil, fmt.Errorf("GetRecentHashtags error: %w", err)
+		return nil, constants.ErrRecentHashtagsLookupFailed.Format(err)
 	}
 	return hashtags, nil
 }
 
 func (s *PostService) GetTimelineVibes(filters types.Filter) (types.PublicPostPage, error) {
-	posts, err := s.publicPostReader.FetchPublicTimelineVibes(filters)
+	posts, err := s.postRepo.FetchPublicTimelineVibes(filters)
 	if err != nil {
 		return types.PublicPostPage{}, err
 	}
 	return posts, nil
-}
-
-func (r legacyPublicPostReader) FindPublicPostByID(id uuid.UUID) (*types.PublicPost, error) {
-	item, err := r.repo.GetPostByID(id)
-	if err != nil {
-		return nil, err
-	}
-	result := legacyviews.ProjectPublicPost(*item)
-	return &result, nil
-}
-
-func (r legacyPublicPostReader) FindPublicPostBySlug(filters types.Filter) (*types.PublicPost, error) {
-	item, err := r.repo.GetPostBySlug(filters)
-	if err != nil {
-		return nil, err
-	}
-	result := legacyviews.ProjectPublicPost(*item)
-	return &result, nil
-}
-
-func (r legacyPublicPostReader) FindPublicPostByPublicID(id int64) (*types.PublicPost, error) {
-	item, err := r.repo.GetPostByPublicID(id)
-	if err != nil {
-		return nil, err
-	}
-	result := legacyviews.ProjectPublicPost(*item)
-	return &result, nil
-}
-
-func (r legacyPublicPostReader) FetchPublicTimeline(filters types.Filter) (types.PublicPostPage, error) {
-	result, err := r.repo.GetTimeline(filters)
-	if err != nil {
-		return types.PublicPostPage{}, err
-	}
-	return legacyviews.ProjectPublicPostPage(result), nil
-}
-
-func (r legacyPublicPostReader) SearchPublicPosts(filters types.Filter) (types.PublicPostPage, error) {
-	result, err := r.repo.FindPostsByKind(filters)
-	if err != nil {
-		return types.PublicPostPage{}, err
-	}
-	return legacyviews.ProjectPublicPostsResult(result), nil
-}
-
-func (r legacyPublicPostReader) FetchPublicUserPosts(userID uuid.UUID, filters types.Filter) ([]types.PublicPost, error) {
-	result, err := r.repo.GetUserPosts(userID, filters)
-	if err != nil {
-		return nil, err
-	}
-	return legacyviews.ProjectPublicPosts(result), nil
-}
-
-func (r legacyPublicPostReader) FetchPublicUserPostReplies(filters types.Filter) ([]types.PublicPost, error) {
-	result, err := r.repo.GetUserPostReplies(filters)
-	if err != nil {
-		return nil, err
-	}
-	return legacyviews.ProjectPublicPosts(result), nil
-}
-
-func (r legacyPublicPostReader) FetchPublicUserMedia(filters types.Filter) (types.PublicPostMediaPage, error) {
-	result, next, err := r.repo.GetUserMedias(filters)
-	if err != nil {
-		return types.PublicPostMediaPage{}, err
-	}
-	return types.PublicPostMediaPage{Items: legacyviews.ProjectPublicMediaItems(result), NextPublicID: next}, nil
-}
-
-func (r legacyPublicPostReader) FetchPublicTimelineVibes(filters types.Filter) (types.PublicPostPage, error) {
-	result, err := r.repo.GetTimelineVibes(filters)
-	if err != nil {
-		return types.PublicPostPage{}, err
-	}
-	return legacyviews.ProjectPublicPostPage(result), nil
 }
 
 func (s *PostService) Vote(ctx context.Context, choiceId uuid.UUID, weight int, rank int, userId uuid.UUID) error {
@@ -234,7 +141,7 @@ func (s *PostService) Vote(ctx context.Context, choiceId uuid.UUID, weight int, 
 
 func (s *PostService) SetEventRSVP(ctx context.Context, postPublicID int64, authUser *models.User, status *postpayloads.EventAttendanceStatus) (*postpayloads.EventRSVPResult, error) {
 	if authUser == nil {
-		return nil, errors.New("authenticated user is required")
+		return nil, constants.ErrAuthenticatedUserRequired
 	}
 	return s.postRepo.SetEventRSVP(ctx, postPublicID, authUser.ID, status)
 }

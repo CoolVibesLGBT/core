@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"core/adapters/inbound/http/middleware"
-	legacyviews "core/application/legacyviews"
+	upload "core/adapters/media"
 	usecases "core/application/usecases"
 	"core/constants"
 	"core/models/post"
@@ -39,12 +39,12 @@ func HandleUserCheckIn(s *usecases.UserService) fiber.Handler {
 			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
 		}
 
-		post, err := s.CheckIn(c.Context(), uploadedFormData(formParams, images, videos), user, post.PostKindCheckIn)
+		post, err := s.CheckIn(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user, post.PostKindCheckIn)
 		if err != nil {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedtoCheckIn)
 		}
 
-		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, legacyviews.ProjectPublicPost(*post), "Check in successful")
+		return utils.SendSuccessWithMessage(c, fiber.StatusCreated, post, "Check in successful")
 	}
 }
 

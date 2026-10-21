@@ -1,18 +1,17 @@
 package repositories
 
 import (
-	"bytes"
 	"context"
+	upload "core/adapters/media"
+	domainmedia "core/domain/media"
 	"database/sql"
 	"errors"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"core/application/ports"
 	domainpost "core/domain/post"
 	"core/helpers"
 	"core/models"
@@ -24,19 +23,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-type postCreationUploadedFile struct {
-	name        string
-	contentType string
-	body        []byte
-}
-
-func (f postCreationUploadedFile) Filename() string    { return f.name }
-func (f postCreationUploadedFile) Size() int64         { return int64(len(f.body)) }
-func (f postCreationUploadedFile) ContentType() string { return f.contentType }
-func (f postCreationUploadedFile) Open() (io.ReadCloser, error) {
-	return io.NopCloser(bytes.NewReader(f.body)), nil
-}
 
 type recordingTransactionPool struct {
 	tx         *recordingTransaction
@@ -192,12 +178,8 @@ func postCreationAuthor() *models.User {
 	}
 }
 
-func postCreationFile() ports.UploadedFile {
-	return postCreationUploadedFile{
-		name:        "rollback.txt",
-		contentType: "text/plain",
-		body:        []byte("rollback me"),
-	}
+func postCreationFile() *domainmedia.UploadedFile {
+	return upload.FromBytes("rollback.txt", "text/plain", []byte("rollback me"))
 }
 
 func storedUploadFiles(t *testing.T) []string {
@@ -248,13 +230,10 @@ func TestCreateContentablePostLateFailureRollsBackSharedTransactionAndMedia(t *t
 	pool := &recordingTransactionPool{tx: tx}
 	repo := newPostCreationRepository(t, newRecordingPostCreationDB(t, pool))
 
-	_, err := repo.CreateContentablePost(context.Background(), ports.FormData{
-		Values: map[string][]string{
-			"title":  {"transaction rollback"},
-			"extras": {"{"},
-		},
-		Files: []ports.UploadedFile{postCreationFile()},
-	}, postCreationAuthor(), string(post.PostKindPost), nil)
+	_, err := repo.CreateContentablePost(context.Background(), map[string][]string{
+		"title":  {"transaction rollback"},
+		"extras": {"{"},
+	}, []*domainmedia.UploadedFile{postCreationFile()}, postCreationAuthor(), string(post.PostKindPost), nil)
 	if err == nil {
 		t.Fatal("CreateContentablePost() error = nil, want invalid extras failure")
 	}
@@ -322,7 +301,7 @@ func TestCreateContentablePostRejectsInvalidPollDefinitionAtomically(t *testing.
 				values[key] = value
 			}
 
-			_, err := repository.CreateContentablePost(context.Background(), ports.FormData{Values: values}, postCreationAuthor(), string(post.PostKindPost), nil)
+			_, err := repository.CreateContentablePost(context.Background(), values, nil, postCreationAuthor(), string(post.PostKindPost), nil)
 			if !errors.Is(err, test.wantErr) {
 				t.Fatalf("CreateContentablePost() error = %v; want %v", err, test.wantErr)
 			}
@@ -342,10 +321,7 @@ func TestCreateContentablePostPanicRollsBackAndCompensatesMedia(t *testing.T) {
 	var recovered any
 	func() {
 		defer func() { recovered = recover() }()
-		_, _ = repo.CreateContentablePost(context.Background(), ports.FormData{
-			Values: map[string][]string{"title": {"panic rollback"}},
-			Files:  []ports.UploadedFile{postCreationFile()},
-		}, postCreationAuthor(), string(post.PostKindPost), nil)
+		_, _ = repo.CreateContentablePost(context.Background(), map[string][]string{"title": {"panic rollback"}}, []*domainmedia.UploadedFile{postCreationFile()}, postCreationAuthor(), string(post.PostKindPost), nil)
 	}()
 	if recovered == nil {
 		t.Fatal("CreateContentablePost() did not propagate the forced panic")

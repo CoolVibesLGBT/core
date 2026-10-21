@@ -64,6 +64,6 @@ func TestPostServiceUsesPersistenceFreePublicPostReaderPort(t *testing.T) {
 		t.Fatalf("public reader was not used: called=%v page=%#v", repository.timelineCalled, page)
 	}
 	if repository.timelineFilter.Limit != 0 {
-		t.Fatalf("legacy raw post reader was called: %#v", repository.timelineFilter)
+		t.Fatalf("overridden public reader was bypassed: %#v", repository.timelineFilter)
 	}
 }
