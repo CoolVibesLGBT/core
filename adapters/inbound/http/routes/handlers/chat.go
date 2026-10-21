@@ -116,7 +116,7 @@ func HandleCreateChat(s ports.ChatUseCase) fiber.Handler {
 
 		participantIDs, err := parseChatParticipantIdentifiers(c)
 		if err != nil {
-			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidParticipantsLength)
+			return sendChatParticipantError(c, err)
 		}
 
 		var chat *types.Chat
@@ -154,7 +154,7 @@ func parseChatParticipantIdentifiers(c fiber.Ctx) ([]string, error) {
 				repeated = append(repeated, string(value))
 			}
 		})
-		if len(repeated) > 0 && c.FormValue("participant_ids") != "" {
+		if len(c.Request().PostArgs().PeekMulti("participant_ids")) > 1 || (len(repeated) > 0 && c.FormValue("participant_ids") != "") {
 			return nil, constants.ErrInvalidParticipantsLength
 		}
 	}

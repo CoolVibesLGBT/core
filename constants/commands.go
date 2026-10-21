@@ -47,6 +47,8 @@ const (
 	CMD_TYPING                      = "chat.typing"
 	CMD_SEND_MESSAGE                = "chat.send_message"
 	CMD_EDIT_MESSAGE                = "chat.edit_message"
+	CMD_FORWARD_MESSAGES            = "chat.forward_messages"
+	CMD_CHAT_SET_MUTED              = "chat.set_muted"
 	CMD_DELETE_CHAT                 = "chat.delete_chat"
 	CMD_FETCH_CHATS                 = "chat.fetch_chats"
 	CMD_DELETE_MESSAGE              = "chat.delete_message"

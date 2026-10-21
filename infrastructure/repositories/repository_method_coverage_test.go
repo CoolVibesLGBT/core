@@ -38,10 +38,10 @@ var repositoryMethodCoverage = map[string]string{
 	"ChatRepository": strings.Join([]string{
 		"AddMessageToChat", "AddParticipant", "CreateChat", "CreateGroupChat", "CreatePrivateChat", "DB",
 		"DeleteChat", "DeleteChatForAll", "DeleteChatForUser", "DeleteChatHistoryForAll", "DeleteChatHistoryForUser",
-		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
+		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "ForwardMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
 		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListChatMessages",
 		"GetMessagesByChatIDWithCursor", "GetParticipants", "GetPrivateChatBetweenUsers", "GetUserChatIDsByUserPublicID",
-		"MarkChatMessageRead", "Node", "NotifyChatParticipants", "PinMessage", "RemoveParticipant", "SendTypingEvent",
+		"MarkChatMessageRead", "Node", "NotifyChatParticipants", "PinMessage", "RemoveParticipant", "SendTypingEvent", "SetChatMuted",
 		"UnpinMessage",
 	}, " "),
 	"EngagementRepository": strings.Join([]string{

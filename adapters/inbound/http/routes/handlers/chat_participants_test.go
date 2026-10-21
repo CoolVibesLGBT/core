@@ -42,7 +42,8 @@ func (r *groupHandlerRepo) GetParticipants(_ context.Context, actor *models.User
 	if r.mutationErr != nil {
 		return nil, r.mutationErr
 	}
-	return []chat.ChatParticipant{{UserID: actor.ID, User: *actor}, {UserID: uuid.New(), User: models.User{PublicID: 55, UserName: "member"}}}, nil
+	member := models.User{ID: uuid.New(), PublicID: 55, UserName: "member"}
+	return []chat.ChatParticipant{{UserID: actor.ID, User: *actor}, {UserID: member.ID, User: member}}, nil
 }
 
 func TestCreateGroupChatResolvesAndDeduplicatesParticipantsThroughHTTP(t *testing.T) {

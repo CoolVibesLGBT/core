@@ -11,6 +11,7 @@ import (
 	"core/models/notifications"
 	"core/models/utils"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-playground/form/v4"
@@ -411,6 +412,20 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string
 	if author == nil {
 		return nil, chat.ErrNotParticipant
 	}
+	// Clone form values before removing server-owned attribution.
+	sanitized := make(map[string][]string, len(values))
+	for key, value := range values {
+		sanitized[key] = value
+	}
+	if raw := values["extras"]; len(raw) > 0 {
+		var extras map[string]json.RawMessage
+		if json.Unmarshal([]byte(raw[0]), &extras) == nil && extras != nil {
+			delete(extras, "forwarded_from")
+			encoded, _ := json.Marshal(extras)
+			sanitized["extras"] = []string{string(encoded)}
+		}
+	}
+	values = sanitized
 	if err := validateMessageForm(values, files); err != nil {
 		return nil, err
 	}
@@ -858,7 +873,7 @@ func (r *ChatRepository) NotifyChatParticipants(ctx context.Context, chatId uuid
 	// Katılımcıları ve user ilişkisini preload ile çek
 	var participants []chat.ChatParticipant
 	err := r.db.WithContext(ctx).Preload("User").
-		Where("chat_id = ? AND user_id <> ? AND left_at IS NULL", chatId, author.ID).
+		Where("chat_id = ? AND user_id <> ? AND left_at IS NULL AND COALESCE(is_muted, false) = false", chatId, author.ID).
 		Find(&participants).Error
 	if err != nil {
 		return err

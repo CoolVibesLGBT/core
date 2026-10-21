@@ -161,8 +161,13 @@ func chatMessageProjection(message *post.Post, users map[uuid.UUID]*models.User,
 		UpdatedAt:        message.UpdatedAt,
 	}
 	if !message.ContentHidden {
+		if origin := chatmodel.ForwardOriginFromExtras(message.Extras); origin != nil {
+			result.ForwardedFrom = &types.ChatForwardOrigin{Name: origin.Name, Date: origin.Date}
+		}
 		if emoticon, err := chatmodel.ParseEmoticonExtras([]string{string(message.Extras)}); err == nil {
-			result.Emoticon = emoticon
+			if emoticon != nil {
+				result.Emoticon = &types.ChatEmoticon{Kind: emoticon.Kind, ID: emoticon.ID, URL: emoticon.URL, Emoji: emoticon.Emoji, Width: emoticon.Width, Height: emoticon.Height}
+			}
 		}
 	}
 	if parentDepth > 0 {

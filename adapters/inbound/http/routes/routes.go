@@ -257,6 +257,8 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_CHAT_MESSAGE_OPEN, handlers.HandleChatMessageOpen(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_SEND_MESSAGE, handlers.HandleSendMessage(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_EDIT_MESSAGE, handlers.HandleEditMessage(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_FORWARD_MESSAGES, handlers.HandleForwardMessages(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_SET_MUTED, handlers.HandleSetChatMuted(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FETCH_CHATS, handlers.HandleGetChatsByUserID(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FETCH_MESSAGES, handlers.HandleGetMessagesByChatID(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_DELETE_CHAT, handlers.HandleDeleteChat(chatService), middleware.AuthMiddleware(sessionService))

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/application/ports"
 	"core/constants"
 	domainuser "core/domain/user"
 	"core/models"
@@ -116,6 +117,15 @@ func TestCreateGroupChatParticipantLifecycleIntegration(t *testing.T) {
 	}
 	if err := repo.SendTypingEvent(entity.ID, outsider.ID, true); err != nil {
 		t.Fatal(err)
+	}
+	page, err := repo.ListChats(ctx, ports.ChatListQuery{UserID: outsider.ID, Limit: 20})
+	if err != nil || len(page.Chats) != 1 || page.Chats[0].ID != entity.ID || len(page.Chats[0].Participants) != 3 {
+		t.Fatalf("rejoined group missing from chat list: %+v, %v", page, err)
+	}
+	for _, member := range page.Chats[0].Participants {
+		if member.User.PublicID <= 0 {
+			t.Fatal("participant identity was not loaded")
+		}
 	}
 	if err := repo.RemoveParticipant(ctx, &owner, entity.ID, outsider.ID); err != nil {
 		t.Fatal(err)

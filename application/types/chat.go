@@ -1,7 +1,6 @@
 package types
 
 import (
-	chatmodel "core/models/chat"
 	"encoding/json"
 	"time"
 
@@ -61,11 +60,26 @@ type Chat struct {
 	IsMuted     bool `json:"is_muted"`
 }
 
+type ChatEmoticon struct {
+	Kind   string `json:"kind"`
+	ID     string `json:"id"`
+	URL    string `json:"url"`
+	Emoji  string `json:"emoji,omitempty"`
+	Width  int    `json:"width,omitempty"`
+	Height int    `json:"height,omitempty"`
+}
+
+type ChatForwardOrigin struct {
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
+}
+
 type ChatMessage struct {
-	Emoticon *chatmodel.Emoticon `json:"emoticon,omitempty"`
-	ID       uuid.UUID           `json:"id"`
-	ParentID *uuid.UUID          `json:"parent_id,omitempty"`
-	Parent   *ChatMessage        `json:"parent,omitempty"`
+	ForwardedFrom *ChatForwardOrigin `json:"forwarded_from,omitempty"`
+	Emoticon      *ChatEmoticon      `json:"emoticon,omitempty"`
+	ID            uuid.UUID          `json:"id"`
+	ParentID      *uuid.UUID         `json:"parent_id,omitempty"`
+	Parent        *ChatMessage       `json:"parent,omitempty"`
 
 	PublicID SnowflakeID `json:"public_id"`
 	PostKind string      `json:"post_kind"`
