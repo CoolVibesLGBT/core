@@ -66,14 +66,22 @@ func TestCreateGroupChatResolvesAndDeduplicatesParticipantsThroughHTTP(t *testin
 				if err != nil {
 					t.Fatal(err)
 				}
-				defer response.Body.Close()
+				defer func() {
+					if err := response.Body.Close(); err != nil {
+						t.Errorf("close response body: %v", err)
+					}
+				}()
 				if response.StatusCode != 200 {
 					t.Fatalf("status=%d", response.StatusCode)
 				}
 				body, _ = io.ReadAll(response.Body)
 			} else {
 				response := performMultipartHandlerRequest(t, handler, actor, map[string]string{"type": "group", "title": "Arkadaşlar", "participant_ids": `["20","` + first.ID.String() + `",30,"10"]`}, nil)
-				defer response.Body.Close()
+				defer func() {
+					if err := response.Body.Close(); err != nil {
+						t.Errorf("close response body: %v", err)
+					}
+				}()
 				if response.StatusCode != 200 {
 					t.Fatalf("status=%d", response.StatusCode)
 				}
@@ -105,24 +113,32 @@ func TestChatParticipantCommandsResolveIdentityAndMapAuthorization(t *testing.T)
 	service := usecases.NewChatService(nil, &chatHandlerUserRepo{byPublicID: map[int64]*models.User{20: target}}, nil, nil, nil, repo, nil)
 	chatID := uuid.New()
 	response := performMultipartHandlerRequest(t, HandleAddChatParticipant(service), actor, map[string]string{"chat_id": chatID.String(), "participant_id": "20"}, nil)
-	response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		t.Errorf("close response body: %v", err)
+	}
 	if response.StatusCode != 200 || repo.mutationUserID != target.ID || repo.mutationAuth != actor {
 		t.Fatal("add did not resolve identity")
 	}
 	response = performMultipartHandlerRequest(t, HandleRemoveChatParticipant(service), actor, map[string]string{"chat_id": chatID.String()}, nil)
-	response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		t.Errorf("close response body: %v", err)
+	}
 	if response.StatusCode != 200 || repo.mutationUserID != actor.ID {
 		t.Fatal("leave did not use authenticated participant")
 	}
 	response = performMultipartHandlerRequest(t, HandleGetChatParticipants(service), actor, map[string]string{"chat_id": chatID.String()}, nil)
 	body, _ := io.ReadAll(response.Body)
-	response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		t.Errorf("close response body: %v", err)
+	}
 	if response.StatusCode != 200 || !strings.Contains(string(body), `"user_id":"55"`) || strings.Contains(string(body), actor.ID.String()) {
 		t.Fatalf("invalid participant projection: %s", body)
 	}
 	repo.mutationErr = chat.ErrNotParticipant
 	response = performMultipartHandlerRequest(t, HandleAddChatParticipant(service), actor, map[string]string{"chat_id": chatID.String(), "participant_id": "20"}, nil)
-	response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		t.Errorf("close response body: %v", err)
+	}
 	if response.StatusCode != 403 {
 		t.Fatalf("authorization status=%d", response.StatusCode)
 	}

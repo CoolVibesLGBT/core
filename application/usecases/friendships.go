@@ -24,6 +24,25 @@ func NewFriendshipService(repository ports.FriendshipRepository) *FriendshipServ
 	return &FriendshipService{repository: repository}
 }
 
+func (s *FriendshipService) Status(ctx context.Context, principal ports.PrivatePhotoPrincipal, target int64) (*FriendshipView, error) {
+	if err := validatePrivatePhotoPrincipal(principal); err != nil {
+		return nil, err
+	}
+	if target <= 0 {
+		return nil, ErrUserIDRequired
+	}
+	reader, ok := s.repository.(ports.FriendshipStatusReader)
+	if !ok {
+		return nil, ports.ErrNotFound
+	}
+	record, err := reader.FindFriendship(ctx, principal.ID, target)
+	if err != nil || record == nil {
+		return nil, err
+	}
+	view := friendshipView(*record)
+	return &view, nil
+}
+
 func (s *FriendshipService) Request(ctx context.Context, principal ports.PrivatePhotoPrincipal, target int64) (FriendshipView, error) {
 	ctx, cancel := matchesContext(ctx)
 	defer cancel()

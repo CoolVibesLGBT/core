@@ -34,9 +34,9 @@ var repositoryTypes = map[string]reflect.Type{
 var repositoryMethodCoverage = map[string]string{
 	"BroadcastGiftRepository":  "StartBroadcastSession ChangeBroadcastSession FindBroadcastSession SendBroadcastGift",
 	"ReferralRewardRepository": "ListReferralRewards ReviewReferralReward",
-	"FriendshipRepository":     "RequestFriendship ChangeFriendship ListFriendships",
+	"FriendshipRepository":     "RequestFriendship ChangeFriendship ListFriendships FindFriendship",
 	"ChatRepository": strings.Join([]string{
-		"AddMessageToChat", "AddParticipant", "CreateChat", "CreateGroupChat", "CreatePrivateChat", "DB",
+		"AddMessageToChat", "AddParticipant", "CreateChat", "CreateGroupChat", "CreateGroupChatWithAvatar", "UpdateGroup", "ExportGroupInvite", "PreviewGroup", "JoinGroup", "CreatePrivateChat", "DB",
 		"DeleteChat", "DeleteChatForAll", "DeleteChatForUser", "DeleteChatHistoryForAll", "DeleteChatHistoryForUser",
 		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "ForwardMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
 		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListChatMessages",
@@ -57,7 +57,7 @@ var repositoryMethodCoverage = map[string]string{
 	}, " "),
 	"MediaRepository": strings.Join([]string{
 		"AddMedia", "ClaimNextPendingMedia", "FindMediaAccessPrincipal", "FindMediaFileAccess", "GenerateStoragePath",
-		"IsActiveChatParticipant", "MakeSureDirectoryPathExists", "MakeVideoVariant", "Node", "ProcessClaimedMedia",
+		"IsActiveChatParticipant", "HasVisibleChatFileAccess", "IsPublicGroupAvatar", "MakeSureDirectoryPathExists", "MakeVideoVariant", "Node", "ProcessClaimedMedia",
 		"RequeueStaleProcessing", "SaveUploadedFile",
 	}, " "),
 	"NewsRepository": strings.Join([]string{
@@ -92,7 +92,7 @@ var repositoryMethodCoverage = map[string]string{
 		"AddPrivatePhoto", "ArePrivatePhotoUsersBlocked", "CountPrivatePhotos", "DeletePrivatePhoto", "IsPrivatePhotoOwnerPremium", "ListProfilePhotos", "MoveProfilePhoto",
 		"FindPrivatePhotoAccessByPublicID", "FindPrivatePhotoUserByID", "FindPrivatePhotoUserByPublicID", "GetPrivatePhotoAccess",
 		"HasApprovedPrivatePhotoAccess", "ListPrivatePhotoAccessRequests", "ListPrivatePhotos",
-		"RequestPrivatePhotoAccess", "RespondPrivatePhotoAccess", "RevokePrivatePhotoAccess",
+		"RequestPrivatePhotoAccess", "RespondPrivatePhotoAccess", "RevokePrivatePhotoAccess", "GrantPrivatePhotoAccess",
 		"RevokePrivatePhotoAccessBetween",
 	}, " "),
 	"ModerationRepository": strings.Join([]string{

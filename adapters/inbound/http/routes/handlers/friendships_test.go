@@ -51,7 +51,11 @@ func TestFriendshipJSONUsesSessionActorAndStringPublicIDs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	if response.StatusCode != http.StatusOK || repo.actor != actor.ID || repo.target != 20 {
 		t.Fatalf("actor spoof/input parse: %d %s %d", response.StatusCode, repo.actor, repo.target)
 	}
@@ -77,7 +81,11 @@ func TestFriendshipRespondRejectsNonDecisionActions(t *testing.T) {
 	repo := &friendshipHandlerRepository{}
 	service := usecases.NewFriendshipService(repo)
 	response := performMultipartHandlerRequest(t, HandleFriendshipMutation(service, constants.CMD_USER_FRIEND_RESPOND), actor, map[string]string{"request_id": "100", "decision": "remove"}, nil)
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	if response.StatusCode != http.StatusBadRequest || repo.changeCalls != 0 {
 		t.Fatalf("invalid decision reached repository: %d calls=%d", response.StatusCode, repo.changeCalls)
 	}
@@ -103,7 +111,11 @@ func TestFriendshipMutationUsesTypedTargetStatus(t *testing.T) {
 			repo := &friendshipHandlerRepository{}
 			response := performMultipartHandlerRequest(t, HandleFriendshipMutation(usecases.NewFriendshipService(repo), test.action), actor,
 				map[string]string{"request_id": "100", "decision": test.decision}, nil)
-			defer response.Body.Close()
+			defer func() {
+				if err := response.Body.Close(); err != nil {
+					t.Errorf("close response body: %v", err)
+				}
+			}()
 			if !test.valid {
 				if response.StatusCode != http.StatusBadRequest || repo.changeCalls != 0 {
 					t.Fatalf("invalid transition reached repository: status=%d calls=%d", response.StatusCode, repo.changeCalls)

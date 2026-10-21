@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"core/constants"
+	domainmedia "core/domain/media"
 	domainuser "core/domain/user"
 	"core/models"
 	"core/models/chat"
@@ -15,7 +16,34 @@ import (
 )
 
 func (r *ChatRepository) CreateGroupChat(ctx context.Context, creatorID uuid.UUID, participantIDs []uuid.UUID, title, description *utils.LocalizedString) (*chat.Chat, error) {
-	entity := &chat.Chat{ID: uuid.New(), Type: chat.ChatTypeGroup, CreatorID: creatorID, Title: title, Description: description}
+	return r.createGroupWithAvatar(ctx, creatorID, participantIDs, title, description, nil)
+}
+func (r *ChatRepository) CreateGroupChatWithAvatar(ctx context.Context, creatorID uuid.UUID, participantIDs []uuid.UUID, title, description *utils.LocalizedString, avatar *domainmedia.UploadedFile, options ...chat.GroupOptions) (*chat.Chat, error) {
+	return r.createGroupWithAvatar(ctx, creatorID, participantIDs, title, description, avatar, options...)
+}
+func (r *ChatRepository) createGroupWithAvatar(ctx context.Context, creatorID uuid.UUID, participantIDs []uuid.UUID, title, description *utils.LocalizedString, avatar *domainmedia.UploadedFile, options ...chat.GroupOptions) (*chat.Chat, error) {
+	if avatar != nil {
+		if err := validateGroupAvatar(avatar); err != nil {
+			return nil, err
+		}
+	}
+	storedPath := ""
+	committed := false
+	defer func() {
+		if !committed && storedPath != "" {
+			_ = removeStoredUpload(storedPath)
+		}
+	}()
+
+	config := chat.GroupOptions{Visibility: "private"}
+	if len(options) > 0 {
+		config = options[0]
+	}
+	visibility, username, validationErr := config.Normalize()
+	if validationErr != nil {
+		return nil, validationErr
+	}
+	entity := &chat.Chat{ID: uuid.New(), Type: chat.ChatTypeGroup, CreatorID: creatorID, Title: title, Description: description, Visibility: visibility, PublicUsername: username}
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := time.Now().UTC()
 		seen := map[uuid.UUID]bool{creatorID: true}
@@ -33,11 +61,26 @@ func (r *ChatRepository) CreateGroupChat(ctx context.Context, creatorID uuid.UUI
 		if len(entity.Participants) < 2 {
 			return constants.ErrInvalidParticipantsLength
 		}
-		return tx.Create(entity).Error
+		if err := tx.Create(entity).Error; err != nil {
+			return err
+		}
+		if avatar != nil {
+			item, err := r.saveGroupAvatar(tx, entity.ID, creatorID, avatar)
+			if err != nil {
+				return err
+			}
+			storedPath = item.File.StoragePath
+			entity.Avatar, entity.AvatarID = item, &item.ID
+			if err := tx.Model(entity).Update("avatar_id", item.ID).Error; err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+	committed = true
 	return entity, nil
 }
 

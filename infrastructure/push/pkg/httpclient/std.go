@@ -3,6 +3,7 @@ package httpclient
 import (
 	"bytes"
 	"context"
+	"core/constants"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,7 +35,7 @@ func (f *StdHttpClient) RequestDelivery(ctx context.Context, endpoint string, he
 		return 0, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", constants.MIMEOctetStream)
 	req.Header.Set("Content-Encoding", "aes128gcm")
 	req.Header.Set("Content-Length", strconv.Itoa(body.Len()))
 	req.Header.Set("Authorization", headers.Authorization)

@@ -66,6 +66,7 @@ type Dependencies struct {
 	MediaAccessService    *usecases.MediaAccessService
 	TokenDecoder          ports.UserTokenDecoder
 	TelegramProcessor     ports.TelegramUpdateProcessor
+	ChatGIFs              ports.ChatGIFProvider
 }
 
 func NewRouter(deps Dependencies) *Router {
@@ -132,6 +133,7 @@ func NewRouter(deps Dependencies) *Router {
 	))
 
 	r.fiber.Use("/static/uploads", handleMediaFile(deps.MediaAccessService, deps.TokenDecoder))
+	r.fiber.Get("/static/telegram/gifs/:file", handlers.HandleTelegramGIFMedia(deps.ChatGIFs))
 	r.fiber.Use("/static", static.New(".", static.Config{FS: publicStaticFS{FS: os.DirFS("./static")}}))
 	r.fiber.Use("/static", func(c fiber.Ctx) error { return c.SendStatus(fiber.StatusNotFound) })
 
@@ -173,6 +175,9 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REQUESTS, handlers.HandleFetchPrivatePhotoAccessRequests(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_RESPOND, handlers.HandleRespondPrivatePhotoAccess(privatePhotoService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_REVOKE, handlers.HandleRevokePrivatePhotoAccess(privatePhotoService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_GRANT, handlers.HandleOwnerPrivatePhotoAccess(privatePhotoService, true), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_PRIVATE_PHOTOS_ACCESS_STATUS, handlers.HandleOwnerPrivatePhotoAccess(privatePhotoService, false), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_FRIEND_STATUS, handlers.HandleFriendshipStatus(deps.FriendshipService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_USER_POSTS, handlers.HandleGetPostsByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 	r.action.Register(constants.CMD_USER_POST_REPLIES, handlers.HandleGetRepliesByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 	r.action.Register(constants.CMD_USER_POST_MEDIA, handlers.HandleGetAllMediasByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
@@ -257,6 +262,11 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_CHAT_MESSAGE_OPEN, handlers.HandleChatMessageOpen(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_SEND_MESSAGE, handlers.HandleSendMessage(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_EDIT_MESSAGE, handlers.HandleEditMessage(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_GROUP_INVITE, handlers.HandleExportGroupInvite(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_GIFS_SEARCH, handlers.HandleSearchChatGIFs(deps.ChatGIFs), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_GROUP_PREVIEW, handlers.HandlePreviewGroup(chatService))
+	r.action.Register(constants.CMD_CHAT_GROUP_JOIN, handlers.HandleJoinGroup(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_GROUP_UPDATE, handlers.HandleUpdateChatGroup(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FORWARD_MESSAGES, handlers.HandleForwardMessages(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_SET_MUTED, handlers.HandleSetChatMuted(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_FETCH_CHATS, handlers.HandleGetChatsByUserID(chatService), middleware.AuthMiddleware(sessionService))

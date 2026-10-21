@@ -157,7 +157,11 @@ func TestSendNewsUsesPublicPostAndInternalImageSource(t *testing.T) {
 					if err := r.ParseMultipartForm(1 << 20); err != nil {
 						t.Error(err)
 					} else {
-						defer r.MultipartForm.RemoveAll()
+						defer func() {
+							if err := r.MultipartForm.RemoveAll(); err != nil {
+								t.Errorf("remove multipart files: %v", err)
+							}
+						}()
 						captured.caption = r.FormValue("caption")
 						for _, files := range r.MultipartForm.File {
 							for _, header := range files {

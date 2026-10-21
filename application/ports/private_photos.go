@@ -72,6 +72,10 @@ type PrivatePhotoAccessAuthorizer interface {
 	HasApprovedPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID) (bool, error)
 }
 
+type PrivatePhotoOwnerGrantRepository interface {
+	GrantPrivatePhotoAccess(context.Context, uuid.UUID, uuid.UUID, time.Time) (*PrivatePhotoAccessRecord, bool, error)
+}
+
 // PrivatePhotoBlockRevoker permanently removes grants in both directions when
 // either user blocks the other. This prevents an old approval from silently
 // becoming valid again after a later unblock.

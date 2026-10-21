@@ -128,9 +128,10 @@ func TestSocialFollowRejectsUnavailableOrForeignDomainUsersIntegration(t *testin
 			db := socialGraphIntegrationDB(t)
 			actor, target := privatePhotoTestUsers(t, db)
 			changes := map[string]any{"user_role": state}
-			if state == "bot" {
+			switch state {
+			case "bot":
 				changes = map[string]any{"is_bot": true}
-			} else if state == "different domain" {
+			case "different domain":
 				changes = map[string]any{"domain": "another-domain"}
 			}
 			if err := db.Model(&target).Updates(changes).Error; err != nil {

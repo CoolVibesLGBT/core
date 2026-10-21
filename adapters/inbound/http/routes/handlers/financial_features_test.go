@@ -74,7 +74,11 @@ func TestGiftHTTPUsesSessionActorAndPreservesPublicIDPrecision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	if response.StatusCode != http.StatusOK || repo.actor != actor.ID || repo.id != id || repo.key != "gift-json-key" || !repo.amount.Equal(decimal.RequireFromString("2.25")) {
 		t.Fatalf("gift status %d, capture %+v", response.StatusCode, repo)
 	}
@@ -196,7 +200,11 @@ func TestLiveListDoesNotExposePublisherBalancesOrCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatal(err)

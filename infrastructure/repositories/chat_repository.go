@@ -169,10 +169,10 @@ func isImageUpload(file *domainmedia.UploadedFile) bool {
 
 func isImageFile(contentType, filename string) bool {
 	mimeType := strings.ToLower(strings.TrimSpace(contentType))
-	if strings.HasPrefix(mimeType, "image/") {
+	if strings.HasPrefix(mimeType, constants.MIMEImagePrefix) {
 		return true
 	}
-	if mimeType != "" && mimeType != "application/octet-stream" {
+	if mimeType != "" && mimeType != constants.MIMEOctetStream {
 		return false
 	}
 	switch strings.ToLower(filepath.Ext(filename)) {
@@ -271,6 +271,7 @@ func (r *ChatRepository) chatsByUserIDQuery(ctx context.Context, query ports.Cha
 			Where("cleared_at IS NULL OR chats.last_message_timestamp IS NULL OR chats.last_message_timestamp > cleared_at")).
 		Where("chats.id NOT IN (?)", deletedChatContentIDs(r.db, models.EngagementContentableTypeChat,
 			query.UserID, models.EngagementKindChatDeletedForMe, models.EngagementKindChatDeletedForAll)).
+		Preload("Avatar", chatMediaReadScope).Preload("Avatar.File", chatAvatarFileReadScope).
 		Preload("Participants", "left_at IS NULL").
 		Preload("Participants.User", chatUserReadScope).
 		Preload("Participants.User.Avatar", chatMediaReadScope).
@@ -366,6 +367,7 @@ func (r *ChatRepository) privateChatBetweenUsersQuery(fromUser, toUser uuid.UUID
 		Where("cp1.user_id = ?", fromUser).
 		Where("cp2.user_id = ?", toUser).
 		Where("chats.deleted_at IS NULL").
+		Preload("Avatar", chatMediaReadScope).Preload("Avatar.File", chatAvatarFileReadScope).
 		Preload("Participants", "left_at IS NULL").
 		Preload("Participants.User", chatUserReadScope).
 		Preload("Participants.User.Avatar", chatMediaReadScope).

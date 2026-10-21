@@ -50,6 +50,17 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 		// contact the authorization endpoint again after that transition.
 		return MediaAccessDecision{Allowed: true, Public: true, NoStore: mediaAccessIsProfilePhoto(access)}, nil
 	}
+	if access.OwnerType == "chat" {
+		if repository, ok := s.repository.(ports.PublicGroupAvatarAccess); ok {
+			public, err := repository.IsPublicGroupAvatar(ctx, storagePrefix)
+			if err != nil {
+				return MediaAccessDecision{}, err
+			}
+			if public {
+				return MediaAccessDecision{Allowed: true, Public: true, NoStore: true}, nil
+			}
+		}
+	}
 	if userPublicID == nil {
 		return MediaAccessDecision{}, nil
 	}
@@ -76,7 +87,13 @@ func (s *MediaAccessService) Authorize(ctx context.Context, storagePrefix string
 		}
 	}
 	if policy.ChatMedia && access.ChatID != nil {
-		policy.ChatParticipant, err = s.repository.IsActiveChatParticipant(ctx, *access.ChatID, principal.ID)
+		if repository, ok := s.repository.(ports.SharedChatMediaAccess); ok && access.OwnerType == "post" {
+			// A file can be attached to several chats. Authorize a visible message
+			// association, independent of whichever attachment the lookup returned.
+			policy.ChatParticipant, err = repository.HasVisibleChatFileAccess(ctx, storagePrefix, principal.ID)
+		} else {
+			policy.ChatParticipant, err = s.repository.IsActiveChatParticipant(ctx, *access.ChatID, principal.ID)
+		}
 		if err != nil {
 			return MediaAccessDecision{}, err
 		}

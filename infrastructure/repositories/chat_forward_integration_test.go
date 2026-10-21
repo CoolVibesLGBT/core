@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"core/application/ports"
+	"core/application/usecases"
 	"core/helpers"
 	"core/models"
 	"core/models/chat"
@@ -81,6 +82,23 @@ func TestChatForwardIntegration(t *testing.T) {
 	if len(forwarded[2].Attachments) != 1 || forwarded[2].Attachments[0].ID == attachment.ID || forwarded[2].Attachments[0].OwnerID != forwarded[2].ID || forwarded[2].Attachments[0].FileID != file.ID || forwarded[2].Attachments[0].IsPublic {
 		t.Fatal("forwarded media ownership/file reference incorrect")
 	}
+	// The recipient has no membership in the original chat. The visible forwarded
+	// attachment grants access independently and stops doing so when hidden.
+	access := usecases.NewMediaAccessService(mediaRepo)
+	decision, err := access.Authorize(ctx, file.StoragePath, &recipient.PublicID)
+	if err != nil || !decision.Allowed || decision.Public {
+		t.Fatalf("forwarded recipient file access: %+v %v", decision, err)
+	}
+	if err := db.Model(&chat.ChatParticipant{}).Where("chat_id = ? AND user_id = ?", target.ID, recipient.ID).Update("cleared_at", time.Now().UTC().Add(time.Second)).Error; err != nil {
+		t.Fatal(err)
+	}
+	decision, err = access.Authorize(ctx, file.StoragePath, &recipient.PublicID)
+	if err != nil || decision.Allowed {
+		t.Fatalf("cleared forwarded attachment still accessible: %+v %v", decision, err)
+	}
+	if err := db.Model(&chat.ChatParticipant{}).Where("chat_id = ? AND user_id = ?", target.ID, recipient.ID).Update("cleared_at", nil).Error; err != nil {
+		t.Fatal(err)
+	}
 	for i, item := range forwarded {
 		origin := chat.ForwardOriginFromExtras(item.Extras)
 		if item.ID == originals[i].ID || item.AuthorID != author.ID || item.ContentableID == nil || *item.ContentableID != target.ID || origin == nil || origin.Name != author.UserName || !origin.Date.Equal(originals[i].CreatedAt) {
@@ -151,10 +169,41 @@ func TestChatForwardIntegration(t *testing.T) {
 	if err != nil || chat.ForwardOriginFromExtras(forged.Extras) != nil {
 		t.Fatalf("forged origin accepted: %v", err)
 	}
+	// Removing the original attachment changes which association is returned by
+	// the file lookup; access must still follow visibility in the target chat.
+	if err := db.Delete(&attachment).Error; err != nil {
+		t.Fatal(err)
+	}
+	decision, err = access.Authorize(ctx, file.StoragePath, &recipient.PublicID)
+	if err != nil || !decision.Allowed {
+		t.Fatalf("forwarded file without original attachment: %+v %v", decision, err)
+	}
+	if err := db.Model(&chat.ChatParticipant{}).Where("chat_id = ? AND user_id = ?", target.ID, recipient.ID).Update("cleared_at", time.Now().UTC().Add(time.Second)).Error; err != nil {
+		t.Fatal(err)
+	}
+	decision, err = access.Authorize(ctx, file.StoragePath, &recipient.PublicID)
+	if err != nil || decision.Allowed {
+		t.Fatalf("cleared target association grants file access: %+v %v", decision, err)
+	}
 	if err := repo.SetChatMuted(ctx, &author, target.ID, true); err != nil {
 		t.Fatal(err)
 	}
 	if err := repo.SetChatMuted(ctx, &recipient, source.ID, true); !errors.Is(err, chat.ErrNotParticipant) {
 		t.Fatalf("outsider mute: %v", err)
+	}
+	for _, format := range []string{"tgs", "webp", "webm"} {
+		raw := `{"emoticon":{"kind":"sticker","id":"8cc5a62e6fc333e1","url":"/animations/telegram/packs/8cc5a62e6fc333e1.` + format + `","emoji":"😂","width":512,"height":512}}`
+		message, err := repo.AddMessageToChat(ctx, map[string][]string{"chat_id": {source.ID.String()}, "content": {""}, "extras": {raw}, "client_id": {"sticker-" + format}}, nil, &author)
+		if err != nil {
+			t.Fatalf("standalone %s sticker send: %v", format, err)
+		}
+		var stored post.Post
+		if err := db.First(&stored, "id = ?", message.ID).Error; err != nil {
+			t.Fatal(err)
+		}
+		emoticon, err := chat.ParseEmoticonExtras([]string{string(stored.Extras)})
+		if err != nil || emoticon == nil || emoticon.URL != "/animations/telegram/packs/8cc5a62e6fc333e1."+format {
+			t.Fatalf("%s sticker did not persist: %+v %v", format, emoticon, err)
+		}
 	}
 }

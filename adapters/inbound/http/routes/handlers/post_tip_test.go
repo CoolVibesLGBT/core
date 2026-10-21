@@ -152,7 +152,11 @@ func TestHandlePostTipMapsExpectedFinancialErrors(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer response.Body.Close()
+			defer func() {
+				if err := response.Body.Close(); err != nil {
+					t.Errorf("close response body: %v", err)
+				}
+			}()
 			if response.StatusCode != test.status {
 				t.Fatalf("status %d, want %d", response.StatusCode, test.status)
 			}

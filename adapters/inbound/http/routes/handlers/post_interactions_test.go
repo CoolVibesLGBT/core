@@ -49,7 +49,11 @@ func TestPostInteractionsReportBlocksMissingPostsAndTimeouts(t *testing.T) {
 			} {
 				t.Run(route.name, func(t *testing.T) {
 					response := performMultipartHandlerRequest(t, route.handler, actor, map[string]string{"post_id": "42"}, nil)
-					defer response.Body.Close()
+					defer func() {
+						if err := response.Body.Close(); err != nil {
+							t.Errorf("close response body: %v", err)
+						}
+					}()
 					if response.StatusCode != test.status {
 						t.Fatalf("status=%d want %d", response.StatusCode, test.status)
 					}

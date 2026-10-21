@@ -34,8 +34,9 @@ func chatProjection(entity *chatmodel.Chat, viewerID uuid.UUID, knownUsers ...*m
 	}
 
 	result := &types.Chat{
-		ID:                   entity.ID,
-		Type:                 string(entity.Type),
+		ID:         entity.ID,
+		Type:       string(entity.Type),
+		Visibility: entity.Visibility, PublicUsername: entity.PublicUsername,
 		Title:                cloneLocalizedString(entity.Title),
 		Description:          cloneLocalizedString(entity.Description),
 		Avatar:               chatMediaProjection(entity.Avatar),

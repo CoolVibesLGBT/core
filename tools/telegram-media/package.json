@@ -1,0 +1,13 @@
+{
+  "name": "coolvibes-telegram-media",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "connect": "node bridge.mjs --login",
+    "start": "node bridge.mjs",
+    "verify": "node --check bridge.mjs"
+  },
+  "dependencies": {
+    "teleproto": "^1.230.1"
+  }
+}

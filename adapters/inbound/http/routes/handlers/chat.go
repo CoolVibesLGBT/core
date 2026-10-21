@@ -127,9 +127,21 @@ func HandleCreateChat(s ports.ChatUseCase) fiber.Handler {
 			}
 			chat, err = s.CreateChatFromIdentifier(c.Context(), participantIDs[0], authUser, chatType)
 		case chatmodel.ChatTypeGroup:
-			chat, err = s.CreateGroupChat(c.Context(), participantIDs, authUser, c.FormValue("title"), c.FormValue("description"))
+			header, _ := c.FormFile("avatar")
+			if header != nil || c.FormValue("visibility") != "" {
+				mediaService, ok := s.(ports.ChatGroupMediaUseCase)
+				if !ok {
+					return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+				}
+				chat, err = mediaService.CreateGroupChatWithAvatar(c.Context(), participantIDs, authUser, c.FormValue("title"), c.FormValue("description"), upload.FromMultipart(header), chatmodel.GroupOptions{Visibility: c.FormValue("visibility"), PublicUsername: c.FormValue("public_username")})
+			} else {
+				chat, err = s.CreateGroupChat(c.Context(), participantIDs, authUser, c.FormValue("title"), c.FormValue("description"))
+			}
 		default:
 			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrUnsupportedChatType)
+		}
+		if errors.Is(err, chatmodel.ErrInvalidGroupAvatar) || errors.Is(err, chatmodel.ErrInvalidGroupSettings) {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
 		}
 		if err != nil {
 			return sendChatParticipantError(c, err)
@@ -149,11 +161,11 @@ func parseChatParticipantIdentifiers(c fiber.Ctx) ([]string, error) {
 			return nil, constants.ErrInvalidParticipantsLength
 		}
 	} else {
-		c.Request().PostArgs().VisitAll(func(key, value []byte) {
+		for key, value := range c.Request().PostArgs().All() {
 			if string(key) == "participant_ids[]" {
 				repeated = append(repeated, string(value))
 			}
-		})
+		}
 		if len(c.Request().PostArgs().PeekMulti("participant_ids")) > 1 || (len(repeated) > 0 && c.FormValue("participant_ids") != "") {
 			return nil, constants.ErrInvalidParticipantsLength
 		}

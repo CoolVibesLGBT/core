@@ -44,7 +44,11 @@ func TestForwardMessagesHTTP(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			service := &forwardHandlerService{err: test.err}
 			response := performMultipartHandlerRequest(t, HandleForwardMessages(service), test.actor, test.fields, nil)
-			defer response.Body.Close()
+			defer func() {
+				if err := response.Body.Close(); err != nil {
+					t.Errorf("close response body: %v", err)
+				}
+			}()
 			if response.StatusCode != test.status {
 				t.Fatalf("status=%d want=%d", response.StatusCode, test.status)
 			}

@@ -136,7 +136,11 @@ func TestStaticUploadsCannotBypassAuthorization(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer response.Body.Close()
+			defer func() {
+				if err := response.Body.Close(); err != nil {
+					t.Errorf("close response body: %v", err)
+				}
+			}()
 			if response.StatusCode != http.StatusNotFound {
 				t.Fatalf("unauthorized file status = %d, want 404", response.StatusCode)
 			}
@@ -152,7 +156,11 @@ func TestStaticUploadsCannotBypassAuthorization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	body, err := io.ReadAll(response.Body)
 	if err != nil || response.StatusCode != http.StatusOK || string(body) != "public asset" {
 		t.Fatalf("public static asset = %d %q, %v", response.StatusCode, body, err)

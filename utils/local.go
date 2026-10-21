@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"core/constants"
 	"fmt"
 	"io"
 	"mime"
@@ -18,7 +19,7 @@ func DetectContentType(filename string) string {
 	mimeType := mime.TypeByExtension(ext)
 	if mimeType == "" {
 		// Fallback
-		return "application/octet-stream"
+		return constants.MIMEOctetStream
 	}
 	return mimeType
 }
@@ -45,10 +46,10 @@ func DetectContentTypeFromFile(path string) (string, error) {
 }
 
 func DetectFormField(contentType string) string {
-	if strings.HasPrefix(contentType, "image/") {
+	if strings.HasPrefix(contentType, constants.MIMEImagePrefix) {
 		return "images[]"
 	}
-	if strings.HasPrefix(contentType, "video/") {
+	if strings.HasPrefix(contentType, constants.MIMEVideoPrefix) {
 		return "videos[]"
 	}
 	return "files[]"
@@ -165,7 +166,7 @@ func FilesFromDisk(paths []string) ([]*multipart.FileHeader, error) {
 
 		contentType, err := DetectContentTypeFromFile(path)
 		if err != nil {
-			contentType = "application/octet-stream"
+			contentType = constants.MIMEOctetStream
 		}
 		h := make(textproto.MIMEHeader)
 		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, filename))

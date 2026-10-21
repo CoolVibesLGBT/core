@@ -33,11 +33,13 @@ type ChatParticipant struct {
 // identifiers because existing clients use them for room and mutation
 // commands; user UUIDs and persistence-only fields are deliberately absent.
 type Chat struct {
-	ID          uuid.UUID         `json:"id"`
-	Type        string            `json:"type"`
-	Title       map[string]string `json:"title,omitempty"`
-	Description map[string]string `json:"description,omitempty"`
-	Avatar      *ChatMedia        `json:"avatar,omitempty"`
+	ID             uuid.UUID         `json:"id"`
+	Visibility     string            `json:"visibility"`
+	PublicUsername *string           `json:"public_username,omitempty"`
+	Type           string            `json:"type"`
+	Title          map[string]string `json:"title,omitempty"`
+	Description    map[string]string `json:"description,omitempty"`
+	Avatar         *ChatMedia        `json:"avatar,omitempty"`
 
 	CreatorID   *SnowflakeID `json:"creator_id,omitempty"`
 	PinnedMsgID *uuid.UUID   `json:"pinned_msg_id,omitempty"`
@@ -176,4 +178,18 @@ type ChatMessageExpiredEvent struct {
 	ChatID    uuid.UUID `json:"chat_id"`
 	MessageID uuid.UUID `json:"message_id"`
 	ExpiredAt time.Time `json:"expired_at"`
+}
+
+type ChatGroupInvite struct {
+	Token string `json:"token"`
+	Uses  int64  `json:"uses"`
+}
+type ChatGroupPreview struct {
+	ID             uuid.UUID         `json:"id"`
+	Title          map[string]string `json:"title"`
+	Description    map[string]string `json:"description,omitempty"`
+	Visibility     string            `json:"visibility"`
+	PublicUsername *string           `json:"public_username,omitempty"`
+	Avatar         *ChatMedia        `json:"avatar,omitempty"`
+	MemberCount    int64             `json:"member_count"`
 }

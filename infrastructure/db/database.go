@@ -803,6 +803,7 @@ func Migrate(db *gorm.DB) error {
 
 		// önce Chat tablosu, sonra Message
 		&chat.Chat{},
+		&chat.GroupInvite{},
 
 		&chat.ChatParticipant{},
 		&chat.MessageView{},

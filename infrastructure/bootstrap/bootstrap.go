@@ -15,6 +15,7 @@ import (
 	infraMedia "core/infrastructure/media"
 	"core/infrastructure/repositories"
 	"core/infrastructure/socket"
+	"core/infrastructure/telegrammedia"
 	"core/mcp"
 	broadcastworker "core/workers/broadcast"
 	newsworker "core/workers/news"
@@ -152,6 +153,7 @@ func InitializeApp() (*App, error) {
 		MediaAccessService:    mediaAccessService,
 		TokenDecoder:          tokenDecoder,
 		TelegramProcessor:     telegramRuntime,
+		ChatGIFs:              telegrammedia.NewClient(),
 	})
 
 	application := &App{

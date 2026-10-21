@@ -31,6 +31,7 @@ const (
 	ErrReportKindsFetchFailed ErrorCode = "REPORT_KINDS_FETCH_FAILED"
 
 	// Media
+	ErrChatGIFUnavailable   ErrorCode = "CHAT_GIF_UNAVAILABLE"
 	ErrMediaUploadFailed    ErrorCode = "MEDIA_UPLOAD_FAILED"
 	ErrMediaInvalidFile     ErrorCode = "MEDIA_INVALID_FILE"
 	ErrMediaUnsupportedType ErrorCode = "MEDIA_UNSUPPORTED_TYPE"
@@ -487,6 +488,7 @@ var ErrorMessages = map[ErrorCode]string{
 	ErrReportKindsFetchFailed: "Failed to fetch report kinds.",
 
 	// Media
+	ErrChatGIFUnavailable:   "Telegram GIF media session unavailable",
 	ErrMediaUploadFailed:    "Failed to upload media.",
 	ErrMediaInvalidFile:     "Invalid media file.",
 	ErrMediaUnsupportedType: "Unsupported media type.",

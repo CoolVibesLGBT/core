@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"core/constants"
 	"core/models/post"
 	"core/models/sitemap"
 	"core/models/taxonomy"
@@ -308,7 +309,7 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, frontendUR
 		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
 		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
 		Where("medias.is_public = TRUE").
-		Where("file_metadata.mime_type LIKE ?", "image/%").
+		Where("file_metadata.mime_type LIKE ?", constants.MIMEImagePrefix+"%").
 		Preload("Author").
 		Preload("Attachments").
 		Preload("Attachments.File").
@@ -330,7 +331,7 @@ func (r *SitemapRepository) GenerateImageSitemap(ctx context.Context, frontendUR
 				continue
 			}
 
-			if strings.HasPrefix(attachment.File.MimeType, "image/") && attachment.File.StoragePath != "" {
+			if strings.HasPrefix(attachment.File.MimeType, constants.MIMEImagePrefix) && attachment.File.StoragePath != "" {
 				urlSet.URLs = append(urlSet.URLs, sitemap.ImageURLItem{
 					Loc: fmt.Sprintf("%s/%s/%s/%d", frontendURL, p.Author.UserName, p.PostKind, p.PublicID),
 					Images: []sitemap.ImageEntry{
@@ -365,7 +366,7 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, frontendUR
 		Where("posts.post_kind NOT IN ?", []string{"chat", "message"}).
 		Where("COALESCE(NULLIF(posts.audience, ''), 'public') = 'public'").
 		Where("medias.is_public = TRUE").
-		Where("file_metadata.mime_type LIKE ?", "video/%").
+		Where("file_metadata.mime_type LIKE ?", constants.MIMEVideoPrefix+"%").
 		Preload("Attachments.File").
 		Preload("Author").
 		Group("posts.id").
@@ -391,7 +392,7 @@ func (r *SitemapRepository) GenerateVideoSitemap(ctx context.Context, frontendUR
 				continue
 			}
 
-			if strings.HasPrefix(attachment.File.MimeType, "video/") && attachment.File.URL != "" {
+			if strings.HasPrefix(attachment.File.MimeType, constants.MIMEVideoPrefix) && attachment.File.URL != "" {
 
 				videoMeta := sitemap.VideoMeta{
 					Title:       p.Title.DefaultValue(),

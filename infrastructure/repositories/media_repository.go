@@ -11,6 +11,7 @@ import (
 	"core/models/utils"
 	"errors"
 	"fmt"
+	"image"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -44,7 +45,7 @@ func (r *MediaRepository) FindMediaFileAccess(ctx context.Context, storagePrefix
 			p.author_id AS post_author_id,
 			COALESCE(p.post_kind, '') AS post_kind,
 			COALESCE(p.contentable_type, '') AS contentable_type,
-			p.contentable_id AS chat_id,
+			CASE WHEN m.owner_type = 'chat' THEN m.owner_id ELSE p.contentable_id END AS chat_id,
 			COALESCE(p.published, FALSE) AS published,
 			p.audience
 		`).
@@ -242,11 +243,11 @@ func publicFileURL(path string) string {
 }
 
 func shouldProcessAsync(mimeType string) bool {
-	return strings.HasPrefix(mimeType, "image/") || strings.HasPrefix(mimeType, "video/")
+	return strings.HasPrefix(mimeType, constants.MIMEImagePrefix) || strings.HasPrefix(mimeType, constants.MIMEVideoPrefix)
 }
 
 func initialFileVariants(mimeType, storagePath, ext string, size int64) *utils.FileVariants {
-	if !strings.HasPrefix(mimeType, "image/") {
+	if !strings.HasPrefix(mimeType, constants.MIMEImagePrefix) {
 		return nil
 	}
 
@@ -375,11 +376,11 @@ func (r *MediaRepository) generateImageVariants(originalPath string, ext string,
 
 	return &utils.ImageVariants{
 		Original:  original,
-		Icon:      makeVariant(iconPath, "webp"),
-		Thumbnail: makeVariant(thumbPath, "webp"),
-		Small:     makeVariant(smallPath, "webp"),
-		Medium:    makeVariant(mediumPath, "webp"),
-		Large:     makeVariant(largePath, "webp"),
+		Icon:      makeVariant(iconPath, constants.ImageFormatWebP),
+		Thumbnail: makeVariant(thumbPath, constants.ImageFormatWebP),
+		Small:     makeVariant(smallPath, constants.ImageFormatWebP),
+		Medium:    makeVariant(mediumPath, constants.ImageFormatWebP),
+		Large:     makeVariant(largePath, constants.ImageFormatWebP),
 	}, &w, &h, nil
 }
 
@@ -670,7 +671,7 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 	ext := strings.ToLower(filepath.Ext(item.File.StoragePath))
 
 	switch {
-	case strings.HasPrefix(item.File.MimeType, "image/"):
+	case strings.HasPrefix(item.File.MimeType, constants.MIMEImagePrefix):
 		imageVariants, width, height, err := r.generateImageVariants(item.File.StoragePath, ext, item.Role)
 		if err != nil {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
@@ -684,7 +685,7 @@ func (r *MediaRepository) ProcessClaimedMedia(item *media.Media) error {
 		}
 		item.ProcessingStatus = media.ProcessingStatusReady
 		return nil
-	case strings.HasPrefix(item.File.MimeType, "video/"):
+	case strings.HasPrefix(item.File.MimeType, constants.MIMEVideoPrefix):
 		videoVariants, width, height, err := r.generateVideoVariants(item.File.StoragePath, ext, item.Role)
 		if err != nil {
 			if markErr := r.markMediaFailed(item.ID, err); markErr != nil {
@@ -845,4 +846,34 @@ func isPublicMediaRole(role media.MediaRole) bool {
 		role != media.RoleChatMedia &&
 		role != media.RoleChatVideo &&
 		role != media.RolePrivatePhoto
+}
+
+// DecodeConfig dimensions are checked before allocating the image pixels.
+func validImageDimensions(config image.Config, maxDimension int, maxPixels int64) bool {
+	if config.Width < constants.ImageMinDimension || config.Height < constants.ImageMinDimension {
+		return false
+	}
+	if config.Width > maxDimension || config.Height > maxDimension {
+		return false
+	}
+	return int64(config.Width)*int64(config.Height) <= maxPixels
+}
+
+func imageFormatMetadata(format string) (mimeType, extension string, ok bool) {
+	switch strings.ToLower(strings.TrimSpace(format)) {
+	case constants.ImageFormatJPEG:
+		return constants.MIMEImageJPEG, constants.ImageExtensionJPEG, true
+	case constants.ImageFormatPNG:
+		return constants.MIMEImagePNG, constants.ImageExtensionPNG, true
+	case constants.ImageFormatGIF:
+		return constants.MIMEImageGIF, constants.ImageExtensionGIF, true
+	case constants.ImageFormatWebP:
+		return constants.MIMEImageWebP, constants.ImageExtensionWebP, true
+	case constants.ImageFormatBMP:
+		return constants.MIMEImageBMP, constants.ImageExtensionBMP, true
+	case constants.ImageFormatTIFF:
+		return constants.MIMEImageTIFF, constants.ImageExtensionTIFF, true
+	default:
+		return "", "", false
+	}
 }

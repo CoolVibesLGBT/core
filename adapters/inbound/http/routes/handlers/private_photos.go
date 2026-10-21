@@ -197,6 +197,29 @@ func HandleRevokePrivatePhotoAccess(service *usecases.PrivatePhotoService) fiber
 	}
 }
 
+func HandleOwnerPrivatePhotoAccess(service *usecases.PrivatePhotoService, grant bool) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		principal, ok := privatePhotoPrincipal(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		viewer, err := privatePhotoPublicIDField(c, "viewer_id")
+		if err != nil {
+			return privatePhotoError(c, err)
+		}
+		var access usecases.PrivatePhotoAccessSummary
+		if grant {
+			access, err = service.GrantAccess(c.Context(), principal, viewer)
+		} else {
+			access, err = service.AccessForViewer(c.Context(), principal, viewer)
+		}
+		if err != nil {
+			return privatePhotoError(c, err)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{"access": access})
+	}
+}
+
 func privatePhotoPrincipal(c fiber.Ctx) (ports.PrivatePhotoPrincipal, bool) {
 	c.Set(fiber.HeaderCacheControl, "private, no-store")
 	user, ok := middleware.GetAuthenticatedUser(c)

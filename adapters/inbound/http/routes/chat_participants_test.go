@@ -15,7 +15,9 @@ func TestChatParticipantActionsRequireAuthentication(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		response.Body.Close()
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
 		if response.StatusCode != 401 {
 			t.Fatalf("%s unregistered or unprotected: %d", action, response.StatusCode)
 		}

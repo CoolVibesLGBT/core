@@ -11,6 +11,24 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+func HandleFriendshipStatus(service *usecases.FriendshipService) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		principal, ok := privatePhotoPrincipal(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUnauthorized)
+		}
+		id, err := strconv.ParseInt(requestField(c, "user_id"), 10, 64)
+		if err != nil || id <= 0 {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidInput)
+		}
+		view, err := service.Status(c.Context(), principal, id)
+		if err != nil {
+			return friendshipError(c, err)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{"friendship": view})
+	}
+}
+
 func HandleFriendshipMutation(service *usecases.FriendshipService, action string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		principal, ok := privatePhotoPrincipal(c)

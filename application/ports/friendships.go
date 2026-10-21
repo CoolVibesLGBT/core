@@ -25,6 +25,9 @@ type FriendshipRepository interface {
 	ChangeFriendship(context.Context, uuid.UUID, int64, domainuser.FriendshipStatus) (FriendshipRecord, error)
 	ListFriendships(context.Context, uuid.UUID, domainuser.FriendshipScope, *types.MatchListCursor, int) ([]FriendshipRecord, *types.MatchListCursor, error)
 }
+type FriendshipStatusReader interface {
+	FindFriendship(context.Context, uuid.UUID, int64) (*FriendshipRecord, error)
+}
 
 type UserProfileAccess interface {
 	CanViewUserProfile(context.Context, uuid.UUID, uuid.UUID) (bool, error)

@@ -3,6 +3,7 @@ package media
 import (
 	"context"
 	upload "core/adapters/media"
+	"core/constants"
 	domainmedia "core/domain/media"
 	"fmt"
 	"io"
@@ -54,7 +55,7 @@ func (f *RemoteImageFetcher) FetchImage(ctx context.Context, imageURL string) (*
 
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 	mimeType := resp.Header.Get("Content-Type")
-	if mimeType == "" || mimeType == "application/octet-stream" {
+	if mimeType == "" || mimeType == constants.MIMEOctetStream {
 		mimeType = http.DetectContentType(data)
 	}
 

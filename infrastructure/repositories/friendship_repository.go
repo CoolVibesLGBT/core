@@ -35,6 +35,31 @@ func friendshipPair(first, second uuid.UUID) (uuid.UUID, uuid.UUID) {
 	return first, second
 }
 
+func (r *FriendshipRepository) FindFriendship(ctx context.Context, actor uuid.UUID, targetPublicID int64) (*ports.FriendshipRecord, error) {
+	var target models.User
+	query := r.db.WithContext(ctx).Model(&models.User{}).Table("users").Select("users.id").Where("users.public_id = ? AND users.deleted_at IS NULL", targetPublicID).
+		Where("users.domain = (?)", userDomainSubquery(r.db, actor)).Where("users.user_role NOT IN ?", []string{"banned", "deleted", "pending"})
+	if err := userBlockScope(query, actor, "users").Take(&target).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ports.ErrNotFound
+		}
+		return nil, err
+	}
+	first, second := friendshipPair(actor, target.ID)
+	var record models.Friendship
+	if err := r.db.WithContext(ctx).Where("first_user_id = ? AND second_user_id = ?", first, second).Take(&record).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	rows, err := r.friendshipRecords(ctx, []models.Friendship{record}, actor)
+	if err != nil {
+		return nil, err
+	}
+	return &rows[0], nil
+}
+
 func (r *FriendshipRepository) RequestFriendship(ctx context.Context, actor uuid.UUID, targetPublicID int64) (ports.FriendshipRecord, error) {
 	var target models.User
 	if err := r.db.WithContext(ctx).Select("id").Where("public_id = ?", targetPublicID).Take(&target).Error; err != nil {

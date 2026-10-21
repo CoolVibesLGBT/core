@@ -7,6 +7,8 @@ import (
 
 var ErrRegistrationPersistence error = constants.ErrRegistrationPersistence
 
+var ErrChatGIFUnavailable error = constants.ErrChatGIFUnavailable
+
 var ErrNotFound error = constants.ErrNotFound
 var ErrPrivatePhotoLimitReached error = constants.ErrPrivatePhotoLimitReached
 var ErrPrivatePhotoAccessBlocked error = constants.ErrPrivatePhotoAccessBlocked

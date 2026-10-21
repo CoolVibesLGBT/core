@@ -2,8 +2,10 @@ package usecases
 
 import (
 	"context"
+	"core/application/ports"
 	"core/application/types"
 	"core/constants"
+	domainmedia "core/domain/media"
 	"core/models"
 	"core/models/chat"
 	modelutils "core/models/utils"
@@ -16,6 +18,12 @@ import (
 )
 
 func (s *ChatService) CreateGroupChat(ctx context.Context, identifiers []string, actor *models.User, title, description string) (*types.Chat, error) {
+	return s.createGroupWithAvatar(ctx, identifiers, actor, title, description, nil)
+}
+func (s *ChatService) CreateGroupChatWithAvatar(ctx context.Context, identifiers []string, actor *models.User, title, description string, avatar *domainmedia.UploadedFile, options ...chat.GroupOptions) (*types.Chat, error) {
+	return s.createGroupWithAvatar(ctx, identifiers, actor, title, description, avatar, options...)
+}
+func (s *ChatService) createGroupWithAvatar(ctx context.Context, identifiers []string, actor *models.User, title, description string, avatar *domainmedia.UploadedFile, options ...chat.GroupOptions) (*types.Chat, error) {
 	if actor == nil || actor.ID == uuid.Nil {
 		return nil, chat.ErrNotParticipant
 	}
@@ -44,7 +52,17 @@ func (s *ChatService) CreateGroupChat(ctx context.Context, identifiers []string,
 	if language == "" {
 		language = "en"
 	}
-	entity, err := s.chatRepo.CreateGroupChat(ctx, actor.ID, ids, modelutils.MakeLocalizedString(language, strings.TrimSpace(title)), modelutils.MakeLocalizedString(language, strings.TrimSpace(description)))
+	var entity *chat.Chat
+	var err error
+	if avatar != nil || len(options) > 0 {
+		repository, ok := s.chatRepo.(ports.ChatGroupMediaRepository)
+		if !ok {
+			return nil, chat.ErrPermissionDenied
+		}
+		entity, err = repository.CreateGroupChatWithAvatar(ctx, actor.ID, ids, modelutils.MakeLocalizedString(language, strings.TrimSpace(title)), modelutils.MakeLocalizedString(language, strings.TrimSpace(description)), avatar, options...)
+	} else {
+		entity, err = s.chatRepo.CreateGroupChat(ctx, actor.ID, ids, modelutils.MakeLocalizedString(language, strings.TrimSpace(title)), modelutils.MakeLocalizedString(language, strings.TrimSpace(description)))
+	}
 	if err != nil {
 		return nil, err
 	}

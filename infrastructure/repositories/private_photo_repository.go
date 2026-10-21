@@ -37,11 +37,6 @@ type PrivatePhotoRepository struct {
 	mediaRepo     *MediaRepository
 }
 
-const (
-	maxPrivatePhotoDimension = 12000
-	maxPrivatePhotoPixels    = 50_000_000
-)
-
 func NewPrivatePhotoRepository(db *gorm.DB, snowFlakeNode *helpers.Node, mediaRepo *MediaRepository) *PrivatePhotoRepository {
 	return &PrivatePhotoRepository{db: db, snowFlakeNode: snowFlakeNode, mediaRepo: mediaRepo}
 }
@@ -217,13 +212,11 @@ func (r *PrivatePhotoRepository) AddPrivatePhoto(ctx context.Context, ownerID uu
 	if closeErr != nil {
 		return nil, closeErr
 	}
-	if config.Width <= 0 || config.Height <= 0 ||
-		config.Width > maxPrivatePhotoDimension || config.Height > maxPrivatePhotoDimension ||
-		int64(config.Width)*int64(config.Height) > maxPrivatePhotoPixels {
+	if !validImageDimensions(config, constants.PrivatePhotoMaxDimension, constants.PrivatePhotoMaxPixels) {
 		return nil, domainmedia.ErrPrivatePhotoImageDimensions
 	}
 
-	canonicalMIME, canonicalExtension, ok := privatePhotoFormat(format)
+	canonicalMIME, canonicalExtension, ok := imageFormatMetadata(format)
 	if !ok {
 		return nil, domainmedia.ErrPrivatePhotoImageRequired
 	}
@@ -232,8 +225,8 @@ func (r *PrivatePhotoRepository) AddPrivatePhoto(ctx context.Context, ownerID uu
 		if parseErr != nil {
 			return nil, domainmedia.ErrPrivatePhotoImageRequired
 		}
-		if strings.EqualFold(declaredMIME, "image/jpg") {
-			declaredMIME = "image/jpeg"
+		if strings.EqualFold(declaredMIME, constants.MIMEImageJPG) {
+			declaredMIME = constants.MIMEImageJPEG
 		}
 		if !strings.EqualFold(declaredMIME, canonicalMIME) {
 			return nil, domainmedia.ErrPrivatePhotoImageRequired
@@ -282,25 +275,6 @@ func (r *PrivatePhotoRepository) AddPrivatePhoto(ctx context.Context, ownerID uu
 		return nil, retErr
 	}
 	return created, nil
-}
-
-func privatePhotoFormat(format string) (mimeType, extension string, ok bool) {
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "jpeg":
-		return "image/jpeg", ".jpg", true
-	case "png":
-		return "image/png", ".png", true
-	case "gif":
-		return "image/gif", ".gif", true
-	case "webp":
-		return "image/webp", ".webp", true
-	case "bmp":
-		return "image/bmp", ".bmp", true
-	case "tiff":
-		return "image/tiff", ".tiff", true
-	default:
-		return "", "", false
-	}
 }
 
 func (r *PrivatePhotoRepository) DeletePrivatePhoto(ctx context.Context, ownerID uuid.UUID, photoPublicID int64) error {
@@ -359,6 +333,46 @@ func (r *PrivatePhotoRepository) GetPrivatePhotoAccess(ctx context.Context, owne
 		return nil, result.Error
 	}
 	return r.privatePhotoAccessRecord(ctx, request)
+}
+
+func (r *PrivatePhotoRepository) GrantPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID, now time.Time) (*ports.PrivatePhotoAccessRecord, bool, error) {
+	if r.snowFlakeNode == nil {
+		return nil, false, constants.ErrPrivatePhotoPublicIDNotConfigured
+	}
+	if ownerID == viewerID {
+		return nil, false, ports.ErrPrivatePhotoAccessBlocked
+	}
+	var request models.PrivatePhotoAccessRequest
+	changed := false
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := lockPrivatePhotoAccessPair(tx, ownerID, viewerID); err != nil {
+			return err
+		}
+		if err := ensurePrivatePhotoUsersNotBlocked(tx, ownerID, viewerID); err != nil {
+			return err
+		}
+		err := privatePhotoLockingQuery(tx).Where("owner_id = ? AND viewer_id = ?", ownerID, viewerID).Take(&request).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if err == nil && request.Status == domainmedia.PrivatePhotoAccessApproved {
+			return nil
+		}
+		if request.ID == uuid.Nil {
+			request = models.PrivatePhotoAccessRequest{ID: uuid.New(), PublicID: r.snowFlakeNode.Generate().Int64(), OwnerID: ownerID, ViewerID: viewerID, RequestedAt: now, CreatedAt: now}
+		}
+		request.Status, request.RespondedAt, request.UpdatedAt = domainmedia.PrivatePhotoAccessApproved, &now, now
+		if err := tx.Save(&request).Error; err != nil {
+			return err
+		}
+		changed = true
+		return enqueuePrivatePhotoNotification(tx, request, true)
+	})
+	if err != nil {
+		return nil, false, err
+	}
+	record, err := r.privatePhotoAccessRecord(ctx, request)
+	return record, changed, err
 }
 
 func (r *PrivatePhotoRepository) RequestPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID, now time.Time) (*ports.PrivatePhotoAccessRecord, bool, error) {

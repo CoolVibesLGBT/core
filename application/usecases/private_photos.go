@@ -99,6 +99,74 @@ type PrivatePhotoService struct {
 
 type PrivatePhotoServiceOption func(*PrivatePhotoService)
 
+// AccessForViewer is owner-scoped: it reveals only the owner's own album grants.
+func (s *PrivatePhotoService) AccessForViewer(ctx context.Context, principal ports.PrivatePhotoPrincipal, viewerPublicID int64) (PrivatePhotoAccessSummary, error) {
+	if err := validatePrivatePhotoPrincipal(principal); err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	viewer, err := s.repository.FindPrivatePhotoUserByPublicID(ctx, viewerPublicID)
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	blocked, err := s.repository.ArePrivatePhotoUsersBlocked(ctx, principal.ID, viewer.ID)
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	if blocked {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
+	record, err := s.repository.GetPrivatePhotoAccess(ctx, principal.ID, viewer.ID)
+	if errors.Is(err, ports.ErrNotFound) {
+		return PrivatePhotoAccessSummary{Status: "none"}, nil
+	}
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	return privatePhotoAccessSummary(record), nil
+}
+
+// GrantAccess lets an album owner explicitly share with a person before a request arrives.
+func (s *PrivatePhotoService) GrantAccess(ctx context.Context, principal ports.PrivatePhotoPrincipal, viewerPublicID int64) (PrivatePhotoAccessSummary, error) {
+	if err := validatePrivatePhotoPrincipal(principal); err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	viewer, err := s.repository.FindPrivatePhotoUserByPublicID(ctx, viewerPublicID)
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	if viewer.ID == principal.ID {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
+	blocked, err := s.repository.ArePrivatePhotoUsersBlocked(ctx, principal.ID, viewer.ID)
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	if blocked {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
+	repository, ok := s.repository.(ports.PrivatePhotoOwnerGrantRepository)
+	if !ok {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
+	record, changed, err := repository.GrantPrivatePhotoAccess(ctx, principal.ID, viewer.ID, time.Now().UTC())
+	if errors.Is(err, ports.ErrPrivatePhotoAccessBlocked) {
+		return PrivatePhotoAccessSummary{}, ErrPrivatePhotoForbidden
+	}
+	if err != nil {
+		return PrivatePhotoAccessSummary{}, err
+	}
+	if changed && s.notifier != nil && !s.transactionalNotifications() {
+		owner, ownerErr := s.repository.FindPrivatePhotoUserByID(ctx, principal.ID)
+		if ownerErr == nil {
+			_ = s.notifier.NotifyPrivatePhotoAccessResponded(ctx, owner, viewer, *record)
+		}
+	}
+	if changed {
+		s.publishPrivatePhotoEvent(ctx, []int64{principal.PublicID, viewer.PublicID}, ports.PrivatePhotoRealtimeEnvelope{Version: ports.PrivatePhotoRealtimeVersion, EventID: uuid.NewString(), Type: ports.PrivatePhotoEventAccessUpdated, OccurredAt: time.Now().UTC(), Data: ports.PrivatePhotoRealtimeEventData{RequestID: publicIDString(record.PublicID), OwnerID: publicIDString(principal.PublicID), ViewerID: publicIDString(viewer.PublicID), Status: string(record.Status)}})
+	}
+	return privatePhotoAccessSummary(record), nil
+}
+
 func WithPremiumUnlimitedPrivatePhotos(enabled bool) PrivatePhotoServiceOption {
 	return func(service *PrivatePhotoService) {
 		service.premiumUnlimitedPhotosEnabled = enabled
@@ -301,7 +369,7 @@ func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.Privat
 			return nil, ErrPrivatePhotoImageRequired
 		}
 		contentType := strings.ToLower(strings.TrimSpace(file.ContentType))
-		if contentType != "" && !strings.HasPrefix(contentType, "image/") {
+		if contentType != "" && !strings.HasPrefix(contentType, constants.MIMEImagePrefix) {
 			return nil, ErrPrivatePhotoImageRequired
 		}
 	}

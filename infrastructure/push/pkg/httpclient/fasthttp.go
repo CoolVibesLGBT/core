@@ -3,6 +3,7 @@ package httpclient
 import (
 	"bytes"
 	"context"
+	"core/constants"
 	"fmt"
 	"strconv"
 	"time"
@@ -42,7 +43,7 @@ func (f *FastHttpClient) RequestDelivery(ctx context.Context, endpoint string, h
 	req.SetRequestURI(endpoint)
 
 	req.Header.SetMethod(fasthttp.MethodPost)
-	req.Header.SetContentType("application/octet-stream")
+	req.Header.SetContentType(constants.MIMEOctetStream)
 	req.Header.SetContentEncoding("aes128gcm")
 	req.Header.SetContentLength(body.Len())
 	req.Header.Set("Authorization", headers.Authorization)

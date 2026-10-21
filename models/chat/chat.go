@@ -15,6 +15,9 @@ type Chat struct {
 	ID   uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	Type ChatType  `gorm:"index;not null" json:"type"`
 
+	Visibility     string  `gorm:"size:16;not null;default:private;index" json:"visibility"`
+	PublicUsername *string `gorm:"size:32;uniqueIndex" json:"public_username,omitempty"`
+
 	ParentID *uuid.UUID `gorm:"type:uuid;index" json:"parent_id,omitempty"`
 	Parent   *Chat      `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
 

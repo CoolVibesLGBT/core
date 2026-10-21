@@ -3,6 +3,7 @@ package chat
 import "errors"
 
 var (
+	ErrInvalidGroupAvatar   = errors.New("invalid group avatar")
 	ErrEmptyMessage         = errors.New("message must contain text or an attachment")
 	ErrNotParticipant       = errors.New("user is not an active chat participant")
 	ErrPermissionDenied     = errors.New("chat mutation is not permitted")
