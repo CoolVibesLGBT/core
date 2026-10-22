@@ -161,6 +161,9 @@ func chatMessageProjection(message *post.Post, users map[uuid.UUID]*models.User,
 		CreatedAt:        message.CreatedAt,
 		UpdatedAt:        message.UpdatedAt,
 	}
+	if message.ViewOnce && !message.ViewedOnce {
+		result.ViewOncePreview = chatmodel.ViewOncePreviewFromExtras(message.Extras)
+	}
 	if !message.ContentHidden {
 		if origin := chatmodel.ForwardOriginFromExtras(message.Extras); origin != nil {
 			result.ForwardedFrom = &types.ChatForwardOrigin{Name: origin.Name, Date: origin.Date}

@@ -295,3 +295,18 @@ func TestChatServiceExpireMessagesBroadcastsExpiredAction(t *testing.T) {
 		}
 	}
 }
+
+func TestChatServiceAuthorPreviewDoesNotBroadcastConsumption(t *testing.T) {
+	author := &models.User{ID: uuid.New(), PublicID: 778899}
+	message := &post.Post{ID: uuid.New(), AuthorID: author.ID, ViewOnce: true}
+	repo := &fakeChatRepository{openResult: &chat.OpenMessageResult{Message: message, Media: &chat.OpenedMedia{DataBase64: "cGhvdG8="}}}
+	notifier := &fakeRealtimeNotifier{}
+	service := NewChatService(notifier, &fakeUserRepository{}, &fakePostRepository{}, &fakeMediaRepository{}, &fakeMatchesRepository{}, repo, &fakeNotificationRepository{})
+	result, err := service.OpenMessage(context.Background(), author, uuid.New(), message.ID, time.Now())
+	if err != nil || result.Media == nil {
+		t.Fatalf("preview result=%#v err=%v", result, err)
+	}
+	if notifier.msg != "" {
+		t.Fatal("author preview broadcast a consumed receipt")
+	}
+}

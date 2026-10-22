@@ -1059,7 +1059,7 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 		if visible == 0 {
 			return chat.ErrMessageNotFound
 		}
-		if message.AuthorID == authUser.ID {
+		if message.AuthorID == authUser.ID && !message.ViewOnce {
 			return chat.ErrAuthorCannotOpen
 		}
 		if message.ExpiresAt != nil && !message.ExpiresAt.After(now) {
@@ -1099,6 +1099,13 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 				MimeType:   attachment.File.MimeType,
 				DataBase64: base64.StdEncoding.EncodeToString(data),
 			}
+		}
+
+		// An author preview is read-only: no recipient receipt or expiry countdown.
+		if message.AuthorID == authUser.ID {
+			message.Attachments = nil
+			result = &chat.OpenMessageResult{Message: &message, Media: openedMedia}
+			return nil
 		}
 
 		if disappearing && !alreadyViewed {

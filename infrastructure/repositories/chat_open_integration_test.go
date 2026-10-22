@@ -113,6 +113,16 @@ func TestOpenMessageStartsOnOpenAndAuthorizesEachRecipient(t *testing.T) {
 		t.Fatalf("fetch before open: %v", err)
 	}
 	beforeTimed := findMessage(before, timed.ID)
+	for attempt := 0; attempt < 2; attempt++ {
+		preview, err := repo.OpenMessage(context.Background(), &author, chatID, viewOnce.ID, now)
+		if err != nil || preview.Media == nil || preview.Message.OpenedAt != nil || preview.Message.ViewedOnce {
+			t.Fatalf("author preview attempt %d result=%#v err=%v", attempt, preview, err)
+		}
+	}
+	var authorViews int64
+	if err := db.Model(&chat.MessageView{}).Where("message_id = ? AND user_id = ?", viewOnce.ID, author.ID).Count(&authorViews).Error; err != nil || authorViews != 0 {
+		t.Fatalf("author preview recorded consumption: count=%d err=%v", authorViews, err)
+	}
 	beforeOnce := findMessage(before, viewOnce.ID)
 	if beforeTimed == nil || !beforeTimed.ContentHidden || beforeTimed.Content != nil || len(beforeTimed.Attachments) != 0 {
 		t.Fatalf("timed message leaked before open: %#v", beforeTimed)

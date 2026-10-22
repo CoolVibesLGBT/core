@@ -358,6 +358,10 @@ func (s *ChatService) OpenMessage(ctx context.Context, authUser *models.User, ch
 		}
 	}
 
+	if result.Message.ViewOnce && result.Message.AuthorID == authUser.ID {
+		return safeResult, nil
+	}
+
 	event := types.ChatMessageOpenedEvent{
 		Action:    constants.CMD_CHAT_MESSAGE_OPENED,
 		ChatID:    chatID,

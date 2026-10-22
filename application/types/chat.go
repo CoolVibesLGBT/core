@@ -105,6 +105,7 @@ type ChatMessage struct {
 	OpenedAt         *time.Time `json:"opened_at,omitempty"`
 	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
 	ViewOnce         bool       `json:"view_once"`
+	ViewOncePreview  string     `json:"view_once_preview,omitempty"`
 	IsDisappearing   bool       `json:"is_disappearing"`
 	ContentHidden    bool       `json:"content_hidden"`
 	ViewedOnce       bool       `json:"viewed_once"`
