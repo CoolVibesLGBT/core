@@ -10,7 +10,6 @@ import (
 
 var ErrInvalidEmoticon = errors.New("invalid chat sticker or GIF")
 var stickerAsset = regexp.MustCompile(`^/animations/telegram/((assets/[A-Za-z0-9_-]+|stickers/[a-f0-9]{16})\.(json|tgs)|packs/[a-f0-9]{16}\.(tgs|webp|webm))$`)
-var gifAsset = regexp.MustCompile(`^/static/telegram/gifs/[a-f0-9]{64}\.(mp4|gif)$`)
 
 type Emoticon struct {
 	Kind   string `json:"kind"`
@@ -48,9 +47,6 @@ func ParseEmoticonExtras(values []string) (*Emoticon, error) {
 			return nil, ErrInvalidEmoticon
 		}
 	case "gif":
-		if gifAsset.MatchString(e.URL) {
-			break
-		}
 		u, err := url.Parse(e.URL)
 		if err != nil || u.Scheme != "https" || u.User != nil || u.Port() != "" || (u.Hostname() != "media.tenor.com" && !strings.HasSuffix(u.Hostname(), ".tenor.com")) {
 			return nil, ErrInvalidEmoticon

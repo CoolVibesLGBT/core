@@ -22,7 +22,6 @@ workers/temp
 build
 ./.gocache
 .gocache
-/static/telegram/gifs/
 /core
 
 ./seeders/taxonomy

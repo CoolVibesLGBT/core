@@ -10,6 +10,21 @@ var ErrNegativePreferenceBit = errors.New("bitIndex must be non-negative")
 
 type PreferenceFlags string
 
+// SelectedBits describes the owner's choices without exposing the stored bitset.
+func (f PreferenceFlags) SelectedBits() ([]int, error) {
+	flags, err := f.bigInt()
+	if err != nil {
+		return nil, err
+	}
+	selected := make([]int, 0)
+	for index := 0; index < flags.BitLen(); index++ {
+		if flags.Bit(index) == 1 {
+			selected = append(selected, index)
+		}
+	}
+	return selected, nil
+}
+
 func (f PreferenceFlags) Set(bitIndex int) (PreferenceFlags, error) {
 	flags, err := f.bigInt()
 	if err != nil {

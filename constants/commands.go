@@ -48,7 +48,6 @@ const (
 	CMD_SEND_MESSAGE                = "chat.send_message"
 	CMD_EDIT_MESSAGE                = "chat.edit_message"
 	CMD_CHAT_GROUP_INVITE           = "chat.group.invite"
-	CMD_CHAT_GIFS_SEARCH            = "chat.media.gifs"
 	CMD_CHAT_GROUP_PREVIEW          = "chat.group.preview"
 	CMD_CHAT_GROUP_JOIN             = "chat.group.join"
 	CMD_CHAT_GROUP_UPDATE           = "chat.group.update"

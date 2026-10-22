@@ -716,9 +716,14 @@ func AuthUserResponse(user *models.User) *types.AuthUser {
 	if profile == nil {
 		return nil
 	}
+	selected, err := domainuser.PreferenceFlags(user.PreferencesFlags).SelectedBits()
+	if err != nil {
+		selected = []int{}
+	}
 	return &types.AuthUser{
-		PublicUserProfile: *profile,
-		UserRole:          string(user.UserRole),
+		PublicUserProfile:      *profile,
+		UserRole:               string(user.UserRole),
+		SelectedPreferenceBits: selected,
 	}
 }
 
