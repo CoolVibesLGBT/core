@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,6 +36,26 @@ func persistQueuedNotification(tx *gorm.DB, sender, receiver uuid.UUID, kind, ti
 		return nil, err
 	}
 	return item, nil
+}
+
+func enqueueProfileVisitNotification(tx *gorm.DB, viewerID, targetID uuid.UUID) error {
+	var viewer, target models.User
+	if err := tx.Select("id", "public_id", "user_name").First(&viewer, "id = ?", viewerID).Error; err != nil {
+		return err
+	}
+	if err := tx.Select("id", "default_language").First(&target, "id = ?", targetID).Error; err != nil {
+		return err
+	}
+	title, body := "Profile visit", "@"+viewer.UserName+" viewed your profile."
+	if strings.EqualFold(strings.Split(strings.ReplaceAll(target.DefaultLanguage, "_", "-"), "-")[0], "tr") {
+		title, body = "Profil ziyareti", "@"+viewer.UserName+" profilinize baktı."
+	}
+	payload := notifications.NotificationPayload{
+		URL:  "/" + viewer.UserName,
+		Data: map[string]string{"user_id": strconv.FormatInt(viewer.PublicID, 10)},
+	}
+	_, err := persistQueuedNotification(tx, viewerID, targetID, notifications.NotificationTypeProfileVisit, title, body, payload)
+	return err
 }
 
 func enqueueMatchNotifications(tx *gorm.DB, first, second uuid.UUID) error {

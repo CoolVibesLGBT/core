@@ -237,7 +237,8 @@ func (r *ChatRepository) GetChatsByUserID(userID uuid.UUID) ([]chat.Chat, error)
 const chatListActivityExpression = "COALESCE(chats.last_message_timestamp, chats.created_at)"
 
 func chatUserReadScope(db *gorm.DB) *gorm.DB {
-	return db.Select("id", "public_id", "user_name", "display_name", "avatar_id")
+	// Presence columns feed the participant header ("online" / "last seen"); socket_id stays unread.
+	return db.Select("id", "public_id", "user_name", "display_name", "avatar_id", "is_online", "last_online")
 }
 
 func chatMediaReadScope(db *gorm.DB) *gorm.DB {

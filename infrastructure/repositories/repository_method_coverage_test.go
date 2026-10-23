@@ -78,7 +78,7 @@ var repositoryMethodCoverage = map[string]string{
 	"PostRepository": strings.Join([]string{
 		"Banana", "Bookmark", "ClusterExists", "CreateCluster", "CreateContentablePost", "CreateEvent", "CreatePillar",
 		"CreatePoll", "CreatePost", "CreateSynonym", "DB", "Delete", "Dislike", "ExistsBySlug", "FindClusterBySlug",
-		"FetchPublicTimeline", "FetchPublicTimelineVibes", "FetchPublicUserMedia", "FetchPublicUserPostReplies", "FetchPublicUserPosts",
+		"FetchPublicTimeline", "FetchPublicTimelineVibes", "FetchPublicUserMedia", "FetchPublicUserPostCollection", "FetchPublicUserPostReplies", "FetchPublicUserPosts",
 		"FindPublicPostByIDIncludingUnpublished", "FetchPublicPostsByKind", "FindPostByPublicID", "FindPostsByKind", "FindPublicPostByID", "FindPublicPostByPublicID", "FindPublicPostBySlug",
 		"GetCluster", "GetClusters", "GetOrCreateCluster", "GetOrCreatePillar",
 		"GetOrCreateSynonym", "GetPillarBySlug", "GetPillars", "GetPillarsWithClusters", "GetPillarsWithClustersWithSlug",

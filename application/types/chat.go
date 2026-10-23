@@ -16,6 +16,10 @@ type ChatUser struct {
 	UserName    string           `json:"username"`
 	DisplayName string           `json:"displayname"`
 	Avatar      *PublicUserMedia `json:"avatar,omitempty"`
+	// Presence is set only on chat participants (not message authors) for the
+	// conversation header: online now, otherwise the last socket disconnect.
+	IsOnline   *bool      `json:"is_online,omitempty"`
+	LastOnline *time.Time `json:"last_online,omitempty"`
 }
 
 // ChatParticipant exposes the public participant identity. Viewer-specific

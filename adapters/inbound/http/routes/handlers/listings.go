@@ -23,7 +23,7 @@ func HandleCreateClassified(s *usecases.ClassifiedService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Could not parse multipart form: "+err.Error())
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		formParams := form.Value

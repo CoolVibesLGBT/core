@@ -103,7 +103,10 @@ func (r *EngagementRepository) recordProfileViewOnce(ctx context.Context, viewer
 			return err
 		}
 		counted, err = recordCanonicalUserView(tx, viewer, target, false)
-		return err
+		if err != nil || !counted {
+			return err
+		}
+		return enqueueProfileVisitNotification(tx, viewerID, targetID)
 	})
 	return counted, err
 }

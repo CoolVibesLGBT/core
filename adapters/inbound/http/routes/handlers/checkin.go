@@ -25,9 +25,7 @@ func HandleUserCheckIn(s *usecases.UserService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Could not parse multipart form: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		formParams := form.Value

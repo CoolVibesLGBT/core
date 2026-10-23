@@ -93,6 +93,31 @@ func (s *PostService) GetPostsByUserID(filters types.Filter) ([]types.PublicPost
 	return posts, nil
 }
 
+func (s *PostService) GetUserPostCollection(filters types.Filter, bookmarks bool) ([]types.PublicPost, error) {
+	if filters.AuthUser == nil || filters.AuthUser.ID == uuid.Nil {
+		return nil, constants.ErrUserUnauthorized
+	}
+	if filters.UserUUID == uuid.Nil {
+		if filters.UserID == 0 {
+			filters.UserUUID = filters.AuthUser.ID
+		} else {
+			id, err := s.userRepo.GetUserUUIDByPublicID(filters.Context, filters.UserID)
+			if err != nil {
+				return nil, err
+			}
+			filters.UserUUID = id
+		}
+	}
+	if bookmarks && filters.UserUUID != filters.AuthUser.ID {
+		return nil, constants.ErrUserUnauthorized
+	}
+	reader, ok := s.postRepo.(ports.PublicPostCollectionReader)
+	if !ok {
+		return nil, constants.ErrMethodNotImplemented
+	}
+	return reader.FetchPublicUserPostCollection(filters, bookmarks)
+}
+
 func (s *PostService) GetUserPostReplies(filters types.Filter) ([]types.PublicPost, error) {
 	userUUID, err := s.userRepo.GetUserUUIDByPublicID(filters.Context, filters.UserID)
 	if err != nil {

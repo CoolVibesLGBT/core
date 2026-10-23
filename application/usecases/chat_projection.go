@@ -66,6 +66,14 @@ func chatProjection(entity *chatmodel.Chat, viewerID uuid.UUID, knownUsers ...*m
 			user = &participant.User
 		}
 		userView := chatUserProjection(user)
+		if user != nil && participant.UserID != viewerID {
+			online := user.IsOnline
+			userView.IsOnline = &online
+			if !online && user.LastOnline != nil && !user.LastOnline.IsZero() {
+				lastOnline := *user.LastOnline
+				userView.LastOnline = &lastOnline
+			}
+		}
 		participantView := types.ChatParticipant{
 			UserID: types.SnowflakeID(userView.PublicID),
 			User:   userView,

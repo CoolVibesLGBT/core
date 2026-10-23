@@ -179,8 +179,8 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_USER_POSTS, handlers.HandleGetPostsByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 	r.action.Register(constants.CMD_USER_POST_REPLIES, handlers.HandleGetRepliesByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
 	r.action.Register(constants.CMD_USER_POST_MEDIA, handlers.HandleGetAllMediasByUser(postService), middleware.AuthMiddlewareWithoutCheck(sessionService))
-	r.action.Register(constants.CMD_USER_POST_LIKES, handlers.HandlePostCollectionNotImplemented(), middleware.AuthMiddlewareWithoutCheck(sessionService))
-	r.action.Register(constants.CMD_USER_POST_BOOKMARKS, handlers.HandlePostCollectionNotImplemented(), middleware.AuthMiddlewareWithoutCheck(sessionService))
+	r.action.Register(constants.CMD_USER_POST_LIKES, handlers.HandleGetUserPostCollection(postService, false), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_USER_POST_BOOKMARKS, handlers.HandleGetUserPostCollection(postService, true), middleware.AuthMiddleware(sessionService))
 
 	//USER FOLLOW
 	r.action.Register(constants.CMD_USER_FOLLOW, handlers.HandleFollow(userService), middleware.AuthMiddleware(sessionService))

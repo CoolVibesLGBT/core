@@ -6,6 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// PublicPostCollectionReader reads a user's liked or saved public posts.
+type PublicPostCollectionReader interface {
+	FetchPublicUserPostCollection(filters types.Filter, bookmarks bool) ([]types.PublicPost, error)
+}
+
 // PublicPostReader is the query-side port used by public post HTTP actions.
 // Its result contract is persistence-free: adapters cannot return models.Post,
 // models.User or models.Media across this boundary.

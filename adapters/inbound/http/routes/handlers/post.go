@@ -77,9 +77,7 @@ func HandleCreate(s *usecases.PostService) fiber.Handler {
 
 		form, err := c.MultipartForm()
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Could not parse multipart form: " + err.Error(),
-			})
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidForm)
 		}
 
 		formParams := form.Value
@@ -675,13 +673,31 @@ func HandleGetAllLikesByUser(s *usecases.PostService) fiber.Handler {
 	}
 }
 
-// HandlePostCollectionNotImplemented fails explicitly until likes/bookmarks
-// have a privacy-safe read model. Returning the media collection for these
-// commands was a silent route-wiring bug and made clients render wrong data as
-// a successful response.
-func HandlePostCollectionNotImplemented() fiber.Handler {
+func HandleGetUserPostCollection(s *usecases.PostService, bookmarks bool) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		return utils.SendError(c, fiber.StatusNotImplemented, constants.ErrMethodNotImplemented)
+		user, ok := middleware.GetAuthenticatedUser(c)
+		if !ok {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+		filters, err := ParseFilters(c, user)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
+		posts, err := s.GetUserPostCollection(filters, bookmarks)
+		if errors.Is(err, constants.ErrUserUnauthorized) {
+			return utils.SendError(c, fiber.StatusForbidden, constants.ErrUserUnauthorized)
+		}
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostLookupFailed)
+		}
+		var next *string
+		if len(posts) == filters.Limit && len(posts) > 0 {
+			next, err = types.NewPublicIDCursor(int64(posts[len(posts)-1].PublicID))
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrPostLookupFailed)
+			}
+		}
+		return utils.SendSuccessWithMessage(c, fiber.StatusOK, fiber.Map{"posts": posts, "cursor": next, "has_more": next != nil}, "Posts fetched successfully")
 	}
 }
 

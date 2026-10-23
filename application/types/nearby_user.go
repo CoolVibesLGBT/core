@@ -15,6 +15,21 @@ func (id SnowflakeID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(strconv.FormatInt(int64(id), 10))
 }
 
+func (id *SnowflakeID) UnmarshalJSON(data []byte) error {
+	value := string(data)
+	if len(data) > 0 && data[0] == '"' {
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return err
+	}
+	*id = SnowflakeID(parsed)
+	return nil
+}
+
 // NearbyUser is the intentionally narrow read model for nearby discovery.
 // Sensitive persistence fields (balance, role, preferences, storage path,
 // internal user UUID and account timestamps) never cross the application port.
