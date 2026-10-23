@@ -7,6 +7,7 @@ import (
 	domainuser "core/domain/user"
 	"core/models"
 	"core/models/chat"
+	"core/models/notifications"
 	"errors"
 	"sync"
 	"testing"
@@ -68,6 +69,7 @@ func TestCreateGroupChatParticipantLifecycleIntegration(t *testing.T) {
 	if err := repo.AddParticipant(ctx, &owner, entity.ID, outsider.ID); err != nil {
 		t.Fatal(err)
 	}
+	assertGroupAddedNotifications(t, repo, owner.ID, outsider.ID, entity.ID, 1)
 	var original chat.ChatParticipant
 	if err := repo.db.Where("chat_id = ? AND user_id = ?", entity.ID, outsider.ID).Take(&original).Error; err != nil {
 		t.Fatal(err)
@@ -90,6 +92,7 @@ func TestCreateGroupChatParticipantLifecycleIntegration(t *testing.T) {
 	if count != 1 {
 		t.Fatalf("duplicate memberships: %d", count)
 	}
+	assertGroupAddedNotifications(t, repo, owner.ID, outsider.ID, entity.ID, 1)
 	duplicate := original
 	duplicate.ID = uuid.New()
 	if err := repo.db.Omit(clause.Associations).Create(&duplicate).Error; err == nil {
@@ -115,6 +118,7 @@ func TestCreateGroupChatParticipantLifecycleIntegration(t *testing.T) {
 	if rejoined.ID != original.ID || rejoined.LeftAt != nil || rejoined.JoinedAt.Before(original.JoinedAt) {
 		t.Fatalf("bad rejoin: %+v", rejoined)
 	}
+	assertGroupAddedNotifications(t, repo, owner.ID, outsider.ID, entity.ID, 2)
 	if err := repo.SendTypingEvent(entity.ID, outsider.ID, true); err != nil {
 		t.Fatal(err)
 	}
@@ -138,6 +142,44 @@ func TestCreateGroupChatParticipantLifecycleIntegration(t *testing.T) {
 	}
 	if err := repo.db.First(&chat.Chat{}, "id = ?", entity.ID).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Fatalf("empty group not closed: %v", err)
+	}
+}
+
+func assertGroupAddedNotifications(t *testing.T, repo *ChatRepository, sender, receiver, chatID uuid.UUID, want int) {
+	t.Helper()
+	var items []notifications.Notification
+	if err := repo.db.Where("type = ?", notifications.NotificationTypeChatGroupAdded).Find(&items).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != want {
+		t.Fatalf("group notifications = %d, want %d", len(items), want)
+	}
+	for _, item := range items {
+		data, ok := item.Payload.Data.(map[string]any)
+		if item.SenderID == nil || *item.SenderID != sender || item.UserID != receiver || !ok || data["chat_id"] != chatID.String() {
+			t.Fatalf("invalid group notification: %+v", item)
+		}
+		var jobs int64
+		if err := repo.db.Model(&notifications.Delivery{}).Where("id = ?", item.ID).Count(&jobs).Error; err != nil || jobs != 1 {
+			t.Fatalf("delivery jobs = %d, error = %v", jobs, err)
+		}
+	}
+}
+
+func TestAddParticipantRollsBackWhenNotificationCannotBeQueuedIntegration(t *testing.T) {
+	repo, owner, _, outsider, entity := groupParticipantFixture(t)
+	if err := repo.db.Exec("DROP TABLE notification_deliveries").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.AddParticipant(context.Background(), &owner, entity.ID, outsider.ID); err == nil {
+		t.Fatal("expected queue persistence failure")
+	}
+	var count int64
+	if err := repo.db.Model(&chat.ChatParticipant{}).Where("chat_id = ? AND user_id = ?", entity.ID, outsider.ID).Count(&count).Error; err != nil || count != 0 {
+		t.Fatalf("membership was not rolled back: count=%d, error=%v", count, err)
+	}
+	if err := repo.db.Model(&notifications.Notification{}).Count(&count).Error; err != nil || count != 0 {
+		t.Fatalf("notification was not rolled back: count=%d, error=%v", count, err)
 	}
 }
 

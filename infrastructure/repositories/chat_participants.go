@@ -7,6 +7,7 @@ import (
 	domainuser "core/domain/user"
 	"core/models"
 	"core/models/chat"
+	"core/models/notifications"
 	"core/models/utils"
 	"time"
 
@@ -124,11 +125,20 @@ func (r *ChatRepository) AddParticipant(ctx context.Context, actor *models.User,
 		member := chat.ChatParticipant{ID: uuid.New(), ChatID: chatID, UserID: userID, Role: chat.ParticipantRoleMember, JoinedAt: now}
 		// A departed member reuses the same identity. Active membership is an
 		// idempotent no-op, preserving roles, read state, and the original join time.
-		if err := tx.Clauses(clause.OnConflict{
+		result := tx.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "chat_id"}, {Name: "user_id"}},
 			DoUpdates: clause.Assignments(map[string]any{"left_at": nil, "joined_at": now, "role": chat.ParticipantRoleMember, "unread_count": 0, "updated_at": now}),
 			Where:     clause.Where{Exprs: []clause.Expression{clause.Expr{SQL: "chat_participants.left_at IS NOT NULL"}}},
-		}).Omit(clause.Associations).Create(&member).Error; err != nil {
+		}).Omit(clause.Associations).Create(&member)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+		payload := notifications.NotificationPayload{Data: map[string]string{"chat_id": chatID.String()}}
+		if _, err := persistQueuedNotification(tx, actor.ID, userID, notifications.NotificationTypeChatGroupAdded,
+			"Added to group", "You have been added to a group chat.", payload); err != nil {
 			return err
 		}
 		return tx.Model(entity).Update("updated_at", now).Error

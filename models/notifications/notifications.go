@@ -13,13 +13,14 @@ import (
 )
 
 const (
-	NotificationTypeUnlike        = "unlike"
-	NotificationTypeDislike       = "dislike"
-	NotificationTypeUndislike     = "undislike"
-	NotificationTypeBanana        = "banana"
-	NotificationTypeBananaRemoved = "banana_removed"
-	NotificationTypeBookmark      = "bookmark"
-	NotificationTypeUnbookmark    = "unbookmark"
+	NotificationTypeChatGroupAdded = "chat_group_added"
+	NotificationTypeUnlike         = "unlike"
+	NotificationTypeDislike        = "dislike"
+	NotificationTypeUndislike      = "undislike"
+	NotificationTypeBanana         = "banana"
+	NotificationTypeBananaRemoved  = "banana_removed"
+	NotificationTypeBookmark       = "bookmark"
+	NotificationTypeUnbookmark     = "unbookmark"
 
 	NotificationTypeChatMessage                = "chat_message"   // Yeni mesaj bildirimi
 	NotificationTypeNewMatch                   = "new_match"      // Yeni eşleşme bildirimi
