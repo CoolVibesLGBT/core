@@ -30,7 +30,11 @@ func TestPostCollectionsReturnPostsAndCursor(t *testing.T) {
 		service := usecases.NewPostService(nil, repo, nil)
 		actor := &models.User{ID: uuid.New(), PublicID: 10}
 		response := performMultipartHandlerRequest(t, HandleGetUserPostCollection(service, bookmarks), actor, map[string]string{"limit": "1"}, nil)
-		defer response.Body.Close()
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				t.Errorf("close response body: %v", err)
+			}
+		}()
 		var body struct {
 			Data struct {
 				Posts  []types.PublicPost `json:"posts"`
@@ -51,7 +55,11 @@ func TestBookmarksRejectAnotherUsersCollection(t *testing.T) {
 	service := usecases.NewPostService(nil, repo, nil)
 	actor := &models.User{ID: uuid.New(), PublicID: 10}
 	response := performMultipartHandlerRequest(t, HandleGetUserPostCollection(service, true), actor, map[string]string{"user_id": uuid.NewString()}, nil)
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	if response.StatusCode != 403 || repo.called {
 		t.Fatalf("status=%d called=%v", response.StatusCode, repo.called)
 	}
@@ -64,7 +72,11 @@ func TestCreatePostMalformedFormUsesStandardError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			t.Errorf("close response body: %v", err)
+		}
+	}()
 	var body struct {
 		Code    string `json:"code"`
 		Success bool   `json:"success"`

@@ -42,7 +42,11 @@ func TestPublicGroupListAndGlobalSearch(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					t.Errorf("close response body: %v", err)
+				}
+			}()
 			if resp.StatusCode != tc.status || stub.calls != tc.calls {
 				t.Fatalf("status=%d calls=%d", resp.StatusCode, stub.calls)
 			}
