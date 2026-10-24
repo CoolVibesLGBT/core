@@ -148,7 +148,7 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_USER_VIEW_PROFILE, handlers.HandleUserViewProfile(userService), middleware.AuthMiddleware(sessionService))
 
 	r.action.Register(constants.CMD_SEARCH_LOOKUP_USER, handlers.HandleGetUsersStartingWith(userService))
-	r.action.Register(constants.CMD_SEARCH_GLOBAL, handlers.HandleGlobalSearch(userService, postService))
+	r.action.Register(constants.CMD_SEARCH_GLOBAL, handlers.HandleGlobalSearch(userService, postService, chatService))
 	r.action.Register(constants.CMD_SEARCH_TRENDS, handlers.HandleGetTrends(postService))
 
 	r.action.Register(constants.CMD_AUTH_USER_INFO, handlers.HandleUserInfo(userService), middleware.AuthMiddleware(sessionService))
@@ -261,6 +261,7 @@ func NewRouter(deps Dependencies) *Router {
 	r.action.Register(constants.CMD_SEND_MESSAGE, handlers.HandleSendMessage(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_EDIT_MESSAGE, handlers.HandleEditMessage(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_GROUP_INVITE, handlers.HandleExportGroupInvite(chatService), middleware.AuthMiddleware(sessionService))
+	r.action.Register(constants.CMD_CHAT_GROUP_LIST, handlers.HandleListPublicGroups(chatService))
 	r.action.Register(constants.CMD_CHAT_GROUP_PREVIEW, handlers.HandlePreviewGroup(chatService))
 	r.action.Register(constants.CMD_CHAT_GROUP_JOIN, handlers.HandleJoinGroup(chatService), middleware.AuthMiddleware(sessionService))
 	r.action.Register(constants.CMD_CHAT_GROUP_UPDATE, handlers.HandleUpdateChatGroup(chatService), middleware.AuthMiddleware(sessionService))

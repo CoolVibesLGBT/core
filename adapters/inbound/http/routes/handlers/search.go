@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"core/application/ports"
 	"core/application/types"
 	"core/application/usecases"
 	"core/constants"
@@ -23,7 +24,7 @@ const (
 // HandleGlobalSearch serves the web search screen with one stable response.
 // The underlying repositories remain responsible for their own result shape,
 // while this handler keeps the public API grouped by the UI filters.
-func HandleGlobalSearch(userService *usecases.UserService, postService *usecases.PostService) fiber.Handler {
+func HandleGlobalSearch(userService *usecases.UserService, postService *usecases.PostService, groupServices ...ports.ChatGroupList) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		query := strings.TrimSpace(getParam(c, "query"))
 		if query == "" {
@@ -65,16 +66,25 @@ func HandleGlobalSearch(userService *usecases.UserService, postService *usecases
 		if scope == searchScopeLocation {
 			scope = searchScopePlaces
 		}
-		if scope != searchScopeAll && scope != searchScopePeople && scope != searchScopeEvents && scope != searchScopePosts && scope != searchScopePlaces {
+		if scope != searchScopeAll && scope != searchScopePeople && scope != searchScopeEvents && scope != searchScopePosts && scope != searchScopePlaces && scope != "groups" {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "invalid search scope")
 		}
 
 		result := types.GlobalSearchResult{
 			Query:  query,
+			Groups: []types.ChatGroupPreview{},
 			Users:  []types.PublicUserSummary{},
 			Events: []types.PublicPost{},
 			Posts:  []types.PublicPost{},
 			Places: []types.PublicPost{},
+		}
+
+		if (scope == searchScopeAll || scope == "groups") && len(groupServices) > 0 && groupServices[0] != nil {
+			groups, _, searchErr := groupServices[0].ListPublicGroups(c.Context(), ports.PublicGroupQuery{Search: query, Limit: filters.Limit})
+			if searchErr != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrDatabaseError)
+			}
+			result.Groups = groups
 		}
 
 		if scope == searchScopeAll || scope == searchScopePeople {

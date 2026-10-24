@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	FreePrivatePhotosPerOwner = 10
 	MaxPrivatePhotosPerUpload = 10
 )
 
@@ -404,19 +403,10 @@ func (s *PrivatePhotoService) Upload(ctx context.Context, principal ports.Privat
 	return views, nil
 }
 
-func (s *PrivatePhotoService) privatePhotoLimit(ctx context.Context, ownerID uuid.UUID) (int64, error) {
-	if s.premiumUnlimitedPhotosEnabled {
-		if repository, ok := s.repository.(ports.PrivatePhotoPremiumRepository); ok {
-			isPremium, err := repository.IsPrivatePhotoOwnerPremium(ctx, ownerID)
-			if err != nil {
-				return 0, err
-			}
-			if isPremium {
-				return 0, nil
-			}
-		}
-	}
-	return FreePrivatePhotosPerOwner, nil
+// privatePhotoLimit returns the album cap for an owner; 0 means no cap. Private albums are unlimited for
+// every account (product decision 2026-10-24). Only the per-request batch (MaxPrivatePhotosPerUpload) remains.
+func (s *PrivatePhotoService) privatePhotoLimit(_ context.Context, _ uuid.UUID) (int64, error) {
+	return 0, nil
 }
 
 func (s *PrivatePhotoService) Delete(ctx context.Context, principal ports.PrivatePhotoPrincipal, photoPublicID int64) error {

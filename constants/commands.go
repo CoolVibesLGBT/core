@@ -47,6 +47,7 @@ const (
 	CMD_TYPING                      = "chat.typing"
 	CMD_SEND_MESSAGE                = "chat.send_message"
 	CMD_EDIT_MESSAGE                = "chat.edit_message"
+	CMD_CHAT_GROUP_LIST             = "chat.group.list"
 	CMD_CHAT_GROUP_INVITE           = "chat.group.invite"
 	CMD_CHAT_GROUP_PREVIEW          = "chat.group.preview"
 	CMD_CHAT_GROUP_JOIN             = "chat.group.join"

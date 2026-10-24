@@ -39,7 +39,7 @@ var repositoryMethodCoverage = map[string]string{
 		"AddMessageToChat", "AddParticipant", "CreateChat", "CreateGroupChat", "CreateGroupChatWithAvatar", "UpdateGroup", "ExportGroupInvite", "PreviewGroup", "JoinGroup", "CreatePrivateChat", "DB",
 		"DeleteChat", "DeleteChatForAll", "DeleteChatForUser", "DeleteChatHistoryForAll", "DeleteChatHistoryForUser",
 		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "ForwardMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
-		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListChatMessages",
+		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListPublicGroups", "ListChatMessages",
 		"GetMessagesByChatIDWithCursor", "GetParticipants", "GetPrivateChatBetweenUsers", "GetUserChatIDsByUserPublicID",
 		"MarkChatMessageRead", "Node", "NotifyChatParticipants", "PinMessage", "RemoveParticipant", "SendTypingEvent", "SetChatMuted",
 		"UnpinMessage",

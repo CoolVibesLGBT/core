@@ -396,34 +396,17 @@ func TestPrivatePhotoUploadHasNoApplicationByteSizeLimit(t *testing.T) {
 	}
 }
 
-func TestPrivatePhotoUploadLimitIsPremiumAndFeatureFlagAware(t *testing.T) {
+func TestPrivatePhotoAlbumHasNoOwnerLimit(t *testing.T) {
 	principal := ports.PrivatePhotoPrincipal{ID: uuid.New(), PublicID: 10}
 	file := upload.FromBytes("photo.jpg", "image/jpeg", []byte("image"))
 
-	freeRepository := &premiumPrivatePhotoRepositoryFake{
-		privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: FreePrivatePhotosPerOwner},
-	}
-	freeService := NewPrivatePhotoService(freeRepository, nil, nil)
-	if _, err := freeService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
-		t.Fatalf("free Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
-	}
-
-	premiumRepository := &premiumPrivatePhotoRepositoryFake{
-		privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: FreePrivatePhotosPerOwner},
-		isPremium:                  true,
-	}
-	premiumService := NewPrivatePhotoService(premiumRepository, nil, nil)
-	if photos, err := premiumService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); err != nil || len(photos) != 1 {
-		t.Fatalf("premium Upload() photos=%d error=%v", len(photos), err)
-	}
-
-	disabledService := NewPrivatePhotoService(
-		premiumRepository,
-		nil,
-		nil,
-		WithPremiumUnlimitedPrivatePhotos(false),
-	)
-	if _, err := disabledService.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); !errors.Is(err, ErrPrivatePhotoOwnerLimit) {
-		t.Fatalf("feature-disabled premium Upload() error = %v; want ErrPrivatePhotoOwnerLimit", err)
+	for name, repository := range map[string]*premiumPrivatePhotoRepositoryFake{
+		"free":    {privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: 250}},
+		"premium": {privatePhotoRepositoryFake: &privatePhotoRepositoryFake{count: 250}, isPremium: true},
+	} {
+		service := NewPrivatePhotoService(repository, nil, nil, WithPremiumUnlimitedPrivatePhotos(false))
+		if photos, err := service.Upload(context.Background(), principal, []*domainmedia.UploadedFile{file}); err != nil || len(photos) != 1 {
+			t.Fatalf("%s Upload() with 250 existing photos: photos=%d error=%v", name, len(photos), err)
+		}
 	}
 }
