@@ -814,6 +814,14 @@ func Migrate(db *gorm.DB) error {
 	if err := MigrateLegacyChatMediaOwnership(db); err != nil {
 		return err
 	}
+	// Single pinned messages become the first entry of the pinned list.
+	if err := db.Exec(`UPDATE chats SET pinned_messages = jsonb_build_array(jsonb_build_object(
+		'message_id', pinned_msg_id,
+		'pinned_by_id', COALESCE(pinned_by_id, creator_id),
+		'pinned_at', to_jsonb(updated_at)))
+		WHERE pinned_msg_id IS NOT NULL AND (pinned_messages IS NULL OR pinned_messages = '[]'::jsonb)`).Error; err != nil {
+		return err
+	}
 	if err := MigrateProtectedMediaVisibility(db); err != nil {
 		return err
 	}

@@ -83,6 +83,9 @@ func HandleSendMessage(s ports.ChatUseCase) fiber.Handler {
 		if _, err := chatmodel.ParseViewOnce(formParams["view_once"]); err != nil {
 			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
 		}
+		if _, err := chatmodel.ParseScheduledAt(formParams["scheduled_at"], time.Now()); err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, err.Error())
+		}
 		_post, err := s.AddMessageToChat(c.Context(), formParams, upload.FromMultipartFiles(images, videos), user)
 		if err != nil {
 			if errors.Is(err, chatmodel.ErrEmptyMessage) || errors.Is(err, chatmodel.ErrInvalidViewOnce) || errors.Is(err, chatmodel.ErrInvalidEmoticon) || errors.Is(err, chatmodel.ErrInvalidReply) {
@@ -370,10 +373,20 @@ func HandleGetMessagesByChatID(s ports.ChatUseCase) fiber.Handler {
 			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
 		}
 
-		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+		response := fiber.Map{
 			"messages": messages,
 			"cursor":   nextCursor,
-		})
+		}
+		// The first page also carries every pinned message (Telegram pinned
+		// bar), so older pins resolve without paging back to them.
+		if fetcher, ok := s.(ports.ChatPinnedMessagesFetcher); ok && cursor == nil {
+			pinned, err := fetcher.FetchPinnedMessages(c.Context(), authUser.ID, chatID)
+			if err != nil {
+				return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
+			}
+			response["pinned_messages"] = pinned
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, response)
 	}
 }
 
@@ -761,5 +774,52 @@ func HandleClearChatHistoryForAll(s ports.ChatUseCase) fiber.Handler {
 		}
 
 		return utils.SendSuccessWithMessage(c, fiber.StatusOK, nil, "Chat history cleared successfully")
+	}
+}
+
+// HandleFetchScheduledMessages lists the caller's scheduled messages in a chat.
+func HandleFetchScheduledMessages(service ports.ChatScheduledMessages) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+		chatID, err := uuid.Parse(requestField(c, "chat_id"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+		messages, err := service.FetchScheduledMessages(c.Context(), authUser.ID, chatID)
+		if errors.Is(err, chatmodel.ErrNotParticipant) {
+			return utils.SendError(c, fiber.StatusForbidden, constants.ErrPermissionDenied)
+		}
+		if err != nil {
+			return utils.SendError(c, fiber.StatusInternalServerError, constants.ErrFailedToLoadMessages)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{"messages": messages})
+	}
+}
+
+// HandleSendScheduledNow publishes one of the caller's scheduled messages.
+func HandleSendScheduledNow(service ports.ChatScheduledMessages) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+		chatID, err := uuid.Parse(requestField(c, "chat_id"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+		messageID, err := uuid.Parse(requestField(c, "message_id"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+		}
+		if err := service.SendScheduledNow(c.Context(), authUser, chatID, messageID); err != nil {
+			if errors.Is(err, chatmodel.ErrMessageNotFound) {
+				return utils.SendError(c, fiber.StatusNotFound, constants.ErrInvalidMessageID)
+			}
+			return sendChatMutationError(c, err, constants.ErrInternalServer)
+		}
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{"success": true})
 	}
 }

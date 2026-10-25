@@ -50,6 +50,8 @@ type Chat struct {
 	PinnedMsg   *ChatMessage `json:"pinned_msg,omitempty"`
 	PinnedByID  *SnowflakeID `json:"pinned_by_id,omitempty"`
 	PinnedBy    *ChatUser    `json:"pinned_by,omitempty"`
+	// Pinned message identifiers, oldest first (Telegram multi-pin).
+	PinnedMessageIDs []uuid.UUID `json:"pinned_message_ids"`
 
 	LastMessageID        *uuid.UUID   `json:"last_message_id,omitempty"`
 	LastMessage          *ChatMessage `json:"last_message,omitempty"`
@@ -110,6 +112,7 @@ type ChatMessage struct {
 	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
 	ViewOnce         bool       `json:"view_once"`
 	ViewOncePreview  string     `json:"view_once_preview,omitempty"`
+	ScheduledAt      *time.Time `json:"scheduled_at,omitempty"`
 	IsDisappearing   bool       `json:"is_disappearing"`
 	ContentHidden    bool       `json:"content_hidden"`
 	ViewedOnce       bool       `json:"viewed_once"`

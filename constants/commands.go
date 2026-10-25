@@ -58,6 +58,8 @@ const (
 	CMD_FETCH_CHATS                 = "chat.fetch_chats"
 	CMD_DELETE_MESSAGE              = "chat.delete_message"
 	CMD_FETCH_MESSAGES              = "chat.fetch_messages"
+	CMD_FETCH_SCHEDULED_MESSAGES    = "chat.fetch_scheduled_messages"
+	CMD_SEND_SCHEDULED_NOW          = "chat.send_scheduled_now"
 	CMD_DELETE_MESSAGE_FOR_USER     = "chat.delete_message_for_user"
 	CMD_DELETE_MESSAGE_FOR_ALL      = "chat.delete_message_for_all"
 	CMD_DELETE_CHAT_FOR_USER        = "chat.delete_chat_for_user"

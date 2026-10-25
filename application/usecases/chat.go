@@ -205,6 +205,10 @@ func (s *ChatService) AddMessageToChat(context context.Context, values map[strin
 	if err != nil {
 		return nil, err
 	}
+	if _post.ScheduledAt != nil {
+		// Only the author knows about it until PublishScheduledMessages.
+		return chatMessageProjection(_post, map[uuid.UUID]*models.User{author.ID: author}, 1), nil
+	}
 
 	// Room broadcasts cannot be personalized. Unopened disappearing content is
 	// therefore always a placeholder; the authenticated open action is the
@@ -292,11 +296,48 @@ func boundedChatPageLimit(limit int) int {
 }
 
 func (s *ChatService) PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.PinMessage(ctx, authUser, chatID, userID, messageID)
+	if err := s.chatRepo.PinMessage(ctx, authUser, chatID, userID, messageID); err != nil {
+		return err
+	}
+	s.broadcastPinChange(constants.CMD_PIN_MESSAGE, chatID, messageID)
+	return nil
 }
 
 func (s *ChatService) UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
-	return s.chatRepo.UnpinMessage(ctx, authUser, chatID, userID, messageID)
+	if err := s.chatRepo.UnpinMessage(ctx, authUser, chatID, userID, messageID); err != nil {
+		return err
+	}
+	s.broadcastPinChange(constants.CMD_UNPIN_MESSAGE, chatID, messageID)
+	return nil
+}
+
+// broadcastPinChange lets every open client refresh its pinned list.
+func (s *ChatService) broadcastPinChange(action string, chatID, messageID uuid.UUID) {
+	if s.socketService == nil {
+		return
+	}
+	payload, err := json.Marshal(map[string]string{
+		"action":     action,
+		"chat_id":    chatID.String(),
+		"message_id": messageID.String(),
+	})
+	if err == nil {
+		_ = s.socketService.BroadcastToRoom("/", chatID.String(), "chat", string(payload))
+	}
+}
+
+// FetchPinnedMessages returns the viewer-visible pinned messages, oldest pin
+// first, for the Telegram pinned-message bar.
+func (s *ChatService) FetchPinnedMessages(ctx context.Context, userID, chatID uuid.UUID) ([]types.ChatMessage, error) {
+	repository, ok := s.chatRepo.(ports.ChatPinnedMessagesRepository)
+	if !ok {
+		return []types.ChatMessage{}, nil
+	}
+	messages, err := repository.ListPinnedMessages(ctx, userID, chatID)
+	if err != nil {
+		return nil, err
+	}
+	return chatMessagesProjection(messages), nil
 }
 
 func (s *ChatService) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
@@ -385,6 +426,10 @@ func (s *ChatService) OpenMessage(ctx context.Context, authUser *models.User, ch
 }
 
 func (s *ChatService) ExpireMessages(ctx context.Context, now time.Time, limit int) (int, error) {
+	// The one-second chat sweep also delivers due scheduled messages.
+	if err := s.PublishScheduledMessages(ctx, now, limit); err != nil {
+		log.Printf("Failed to publish scheduled messages: %v", err)
+	}
 	expired, err := s.chatRepo.ExpireMessages(ctx, now, limit)
 	if err != nil {
 		return 0, err
@@ -410,4 +455,60 @@ func (s *ChatService) ExpireMessages(ctx context.Context, now time.Time, limit i
 	}
 
 	return len(expired), nil
+}
+
+func (s *ChatService) FetchScheduledMessages(ctx context.Context, userID, chatID uuid.UUID) ([]types.ChatMessage, error) {
+	repository, ok := s.chatRepo.(ports.ChatScheduledMessagesRepository)
+	if !ok {
+		return []types.ChatMessage{}, nil
+	}
+	messages, err := repository.ListScheduledMessages(ctx, userID, chatID)
+	if err != nil {
+		return nil, err
+	}
+	return chatMessagesProjection(messages), nil
+}
+
+func (s *ChatService) SendScheduledNow(ctx context.Context, author *models.User, chatID, messageID uuid.UUID) error {
+	repository, ok := s.chatRepo.(ports.ChatScheduledMessagesRepository)
+	if !ok {
+		return chat.ErrPermissionDenied
+	}
+	return repository.SendScheduledNow(ctx, author, chatID, messageID)
+}
+
+// PublishScheduledMessages delivers due scheduled messages exactly like a
+// fresh send: the repository notifies participants, this broadcasts to the room.
+func (s *ChatService) PublishScheduledMessages(ctx context.Context, now time.Time, limit int) error {
+	repository, ok := s.chatRepo.(ports.ChatScheduledMessagesRepository)
+	if !ok {
+		return nil
+	}
+	published, err := repository.PublishScheduledMessages(ctx, now, limit)
+	if err != nil {
+		return err
+	}
+	for i := range published {
+		message := &published[i]
+		if message.ContentableID == nil {
+			continue
+		}
+		author := message.Author
+		broadcast := *message
+		if broadcast.ViewOnce || broadcast.ExpiresInSeconds != nil {
+			broadcast.Content = nil
+			broadcast.Title = nil
+			broadcast.Summary = nil
+			broadcast.Attachments = nil
+			broadcast.ContentHidden = true
+		}
+		view := chatMessageProjection(&broadcast, map[uuid.UUID]*models.User{author.ID: &author}, 1)
+		payload, _ := json.Marshal(types.ChatMessageEvent{Action: constants.CMD_SEND_MESSAGE, Message: view})
+		if s.socketService != nil {
+			if err := s.socketService.BroadcastToRoom("/", message.ContentableID.String(), "chat", string(payload)); err != nil {
+				log.Printf("Failed to broadcast scheduled message %s: %v", message.ID, err)
+			}
+		}
+	}
+	return nil
 }

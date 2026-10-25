@@ -20,13 +20,27 @@ import (
 )
 
 type PostService struct {
+	realtime  ports.RealtimeNotifier
 	mediaRepo ports.MediaRepository
 	userRepo  ports.UserRepository
 	postRepo  ports.PostRepository
 }
 
-func NewPostService(userRepo ports.UserRepository, postRepo ports.PostRepository, mediaRepo ports.MediaRepository) *PostService {
-	return &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
+func NewPostService(userRepo ports.UserRepository, postRepo ports.PostRepository, mediaRepo ports.MediaRepository, realtime ...ports.RealtimeNotifier) *PostService {
+	s := &PostService{postRepo: postRepo, mediaRepo: mediaRepo, userRepo: userRepo}
+	if len(realtime) > 0 {
+		s.realtime = realtime[0]
+	}
+	return s
+}
+
+// Invalidate after a committed mutation. No post/user IDs, content, audience or
+// private engagement data is broadcast. Each client refetches authorized views.
+func (s *PostService) notifyChanged(err error) error {
+	if err == nil && s.realtime != nil {
+		_ = s.realtime.BroadcastToRoom("/", "broadcast", "post", `{"action":"post.changed"}`)
+	}
+	return err
 }
 
 func (s *PostService) ServiceName() string {
@@ -38,6 +52,7 @@ func (s *PostService) CreatePost(context context.Context, values map[string][]st
 	if err != nil {
 		return nil, err
 	}
+	_ = s.notifyChanged(nil)
 	return s.postRepo.FindPublicPostByIDIncludingUnpublished(_post.ID)
 }
 
@@ -161,30 +176,31 @@ func (s *PostService) GetTimelineVibes(filters types.Filter) (types.PublicPostPa
 }
 
 func (s *PostService) Vote(ctx context.Context, choiceId uuid.UUID, weight int, rank int, userId uuid.UUID) error {
-	return s.postRepo.Vote(ctx, choiceId, weight, rank, userId)
+	return s.notifyChanged(s.postRepo.Vote(ctx, choiceId, weight, rank, userId))
 }
 
 func (s *PostService) SetEventRSVP(ctx context.Context, postPublicID int64, authUser *models.User, status *postpayloads.EventAttendanceStatus) (*postpayloads.EventRSVPResult, error) {
 	if authUser == nil {
 		return nil, constants.ErrAuthenticatedUserRequired
 	}
-	return s.postRepo.SetEventRSVP(ctx, postPublicID, authUser.ID, status)
+	result, err := s.postRepo.SetEventRSVP(ctx, postPublicID, authUser.ID, status)
+	return result, s.notifyChanged(err)
 }
 
 func (s *PostService) Like(filters types.Filter) error {
-	return s.postRepo.Like(filters)
+	return s.notifyChanged(s.postRepo.Like(filters))
 }
 
 func (s *PostService) Dislike(filters types.Filter) error {
-	return s.postRepo.Dislike(filters)
+	return s.notifyChanged(s.postRepo.Dislike(filters))
 }
 
 func (s *PostService) Banana(filters types.Filter) error {
-	return s.postRepo.Banana(filters)
+	return s.notifyChanged(s.postRepo.Banana(filters))
 }
 
 func (s *PostService) Delete(filters types.Filter) error {
-	return s.postRepo.Delete(filters)
+	return s.notifyChanged(s.postRepo.Delete(filters))
 }
 
 func (s *PostService) Report(ctx context.Context, postID int64, kind string, description string, authUser *models.User) error {
@@ -205,7 +221,7 @@ func (s *PostService) Report(ctx context.Context, postID int64, kind string, des
 }
 
 func (s *PostService) Bookmark(filters types.Filter) error {
-	return s.postRepo.Bookmark(filters)
+	return s.notifyChanged(s.postRepo.Bookmark(filters))
 }
 
 func (s *PostService) View(filters types.Filter) (bool, error) {

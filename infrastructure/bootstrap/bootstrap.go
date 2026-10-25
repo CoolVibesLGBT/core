@@ -90,7 +90,7 @@ func InitializeApp() (*App, error) {
 		usecases.WithPrivatePhotoBlockRevoker(privatePhotoRepository),
 		usecases.WithPrivatePhotoRealtimePublisher(socketService),
 	)
-	postService := usecases.NewPostService(userRepository, postRepository, mediaRepository)
+	postService := usecases.NewPostService(userRepository, postRepository, mediaRepository, socketService)
 	listingRepository := repositories.NewListingRepository(gormDB, node, mediaRepository, userRepository, notificationRepository, postRepository)
 	classifiedService := usecases.NewClassifiedService(userRepository, postRepository, mediaRepository, placeRepository, listingRepository)
 	matchesRepository := repositories.NewMatchesRepository(gormDB, notificationRepository)

@@ -109,6 +109,9 @@ type Post struct {
 	OpenedAt         *time.Time `gorm:"index" json:"opened_at,omitempty"`
 	ExpiresAt        *time.Time `gorm:"index" json:"expires_at,omitempty"`
 	ViewOnce         bool       `gorm:"default:false;index" json:"view_once"`
+	// A scheduled chat message stays hidden from the chat until it is
+	// published at ScheduledAt (then cleared).
+	ScheduledAt *time.Time `gorm:"index" json:"scheduled_at,omitempty"`
 
 	// Viewer-specific/transport-only fields. They are never persisted.
 	ContentHidden bool   `gorm:"-" json:"content_hidden"`

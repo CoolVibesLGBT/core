@@ -513,6 +513,11 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string
 				return err
 			}
 		}
+		if message.ScheduledAt != nil {
+			// Published later by PublishScheduledMessages, which then updates
+			// the chat preview and unread counts.
+			return nil
+		}
 		if result := tx.Model(&chat.Chat{}).
 			Where("id = ?", chatID).
 			Updates(map[string]interface{}{
@@ -543,6 +548,9 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string
 		helpers.Error("hydrate committed chat message %s: %v", chatPost.ID, err)
 	}
 
+	if chatPost.ScheduledAt != nil {
+		return chatPost, nil
+	}
 	newMessageNotification := fmt.Sprintf("You received a new message from %s. Click to read.", author.UserName)
 	err = r.NotifyChatParticipants(ctx, chatID, *author, "New Message", newMessageNotification)
 	if err != nil {
@@ -679,13 +687,37 @@ func addChatVisibilityFlag(
 	return true, nil
 }
 
+// clearPinnedMessage drops a deleted or expired message from the chat's
+// pinned list and mirrors the newest remaining pin into pinned_msg_id.
 func clearPinnedMessage(tx *gorm.DB, chatID, messageID uuid.UUID) error {
-	return tx.Model(&chat.Chat{}).
-		Where("id = ? AND pinned_msg_id = ?", chatID, messageID).
-		Updates(map[string]interface{}{
-			"pinned_msg_id": nil,
-			"pinned_by_id":  nil,
-		}).Error
+	var entity chat.Chat
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Select("id", "pinned_messages", "pinned_msg_id").
+		Where("id = ?", chatID).
+		Take(&entity).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if !entity.PinnedMessages.Contains(messageID) && (entity.PinnedMsgID == nil || *entity.PinnedMsgID != messageID) {
+		return nil
+	}
+	return savePinnedMessages(tx, chatID, entity.PinnedMessages.Without(messageID))
+}
+
+func savePinnedMessages(tx *gorm.DB, chatID uuid.UUID, list chat.PinnedMessageList) error {
+	updates := map[string]interface{}{
+		"pinned_messages": list,
+		"pinned_msg_id":   nil,
+		"pinned_by_id":    nil,
+	}
+	if latest := list.Latest(); latest != nil {
+		updates["pinned_msg_id"] = latest.MessageID
+		updates["pinned_by_id"] = latest.PinnedByID
+	}
+	return tx.Model(&chat.Chat{}).Where("id = ?", chatID).Updates(updates).Error
 }
 
 func hasGlobalMessageDeletionFlag(tx *gorm.DB, messageID uuid.UUID) (bool, error) {
@@ -707,18 +739,14 @@ func (r *ChatRepository) PinMessage(ctx context.Context, authUser *models.User, 
 		return chat.ErrNotParticipant
 	}
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
+		entity, _, err := loadChatMutationScope(tx, authUser, chatID)
+		if err != nil {
 			return err
 		}
 		if _, err := loadChatMutationMessage(tx, chatID, messageID); err != nil {
 			return err
 		}
-		return tx.Model(&chat.Chat{}).
-			Where("id = ?", chatID).
-			Updates(map[string]interface{}{
-				"pinned_msg_id": messageID,
-				"pinned_by_id":  authUser.ID,
-			}).Error
+		return savePinnedMessages(tx, chatID, entity.PinnedMessages.With(messageID, authUser.ID, time.Now()))
 	})
 }
 
@@ -727,21 +755,60 @@ func (r *ChatRepository) UnpinMessage(ctx context.Context, authUser *models.User
 		return chat.ErrNotParticipant
 	}
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if _, _, err := loadChatMutationScope(tx, authUser, chatID); err != nil {
+		entity, _, err := loadChatMutationScope(tx, authUser, chatID)
+		if err != nil {
 			return err
 		}
 		if _, err := loadChatMutationMessage(tx, chatID, messageID); err != nil {
 			return err
 		}
-		// The message ID is part of the command contract. It must never clear a
-		// newer/different pin if an old unpin request arrives late.
-		return tx.Model(&chat.Chat{}).
-			Where("id = ? AND pinned_msg_id = ?", chatID, messageID).
-			Updates(map[string]interface{}{
-				"pinned_msg_id": nil,
-				"pinned_by_id":  nil,
-			}).Error
+		return savePinnedMessages(tx, chatID, entity.PinnedMessages.Without(messageID))
 	})
+}
+
+// ListPinnedMessages returns the chat's pinned messages the viewer may still
+// see (deletions, cleared history and expiry apply), oldest pin first.
+func (r *ChatRepository) ListPinnedMessages(ctx context.Context, userID, chatID uuid.UUID) ([]post.Post, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	var participant chat.ChatParticipant
+	if err := r.activeParticipantQuery(ctx, chatID, userID).Take(&participant).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, chat.ErrNotParticipant
+		}
+		return nil, err
+	}
+	var entity chat.Chat
+	if err := r.db.WithContext(ctx).Select("id", "pinned_messages").Where("id = ?", chatID).Take(&entity).Error; err != nil {
+		return nil, err
+	}
+	ids := entity.PinnedMessages.IDs()
+	if len(ids) == 0 {
+		return []post.Post{}, nil
+	}
+	var found []post.Post
+	err := preloadChatMessageRelations(
+		r.messagesByChatIDQuery(userID, chatID, participant.ClearedAt).WithContext(ctx).Where("posts.id IN ?", ids),
+		time.Now(), userID, participant.ClearedAt,
+	).Find(&found).Error
+	if err != nil {
+		return nil, err
+	}
+	byID := make(map[uuid.UUID]post.Post, len(found))
+	for _, message := range found {
+		byID[message.ID] = message
+	}
+	ordered := make([]post.Post, 0, len(found))
+	for _, id := range ids {
+		if message, ok := byID[id]; ok {
+			ordered = append(ordered, message)
+		}
+	}
+	if err := r.sanitizeMessagesForViewer(postPointers(ordered), userID); err != nil {
+		return nil, err
+	}
+	return ordered, nil
 }
 
 func (r *ChatRepository) DeleteMessageForUser(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error {
@@ -924,6 +991,8 @@ func (r *ChatRepository) messagesByChatIDQuery(userID uuid.UUID, chatID uuid.UUI
 // Lists, quoted parents and explicit opens must enforce the same deletion and
 // history boundary for the authenticated recipient.
 func visibleChatMessages(query *gorm.DB, userID uuid.UUID, clearedAt *time.Time) *gorm.DB {
+	// Scheduled messages join the chat only once they are published.
+	query = query.Where("posts.scheduled_at IS NULL")
 	query = query.Where("posts.id NOT IN (?)", deletedChatContentIDs(query, models.EngagementContentableTypeMessage,
 		userID, models.EngagementKindMessageDeletedForMe, models.EngagementKindMessageDeletedForAll))
 	if clearedAt != nil {
@@ -1235,12 +1304,7 @@ func (r *ChatRepository) ExpireMessages(ctx context.Context, now time.Time, limi
 				ExpiredAt: *message.ExpiresAt,
 			})
 
-			if err := tx.Model(&chat.Chat{}).
-				Where("id = ? AND pinned_msg_id = ?", chatID, message.ID).
-				Updates(map[string]interface{}{
-					"pinned_msg_id": nil,
-					"pinned_by_id":  nil,
-				}).Error; err != nil {
+			if err := clearPinnedMessage(tx, chatID, message.ID); err != nil {
 				return err
 			}
 			if !alreadyHiddenForAll {
@@ -1378,4 +1442,115 @@ func deletedChatContentIDs(db *gorm.DB, contentType models.EngagementContentable
 	details := repositorySubquery(db).Model(&models.EngagementDetail{}).Select("engagement_id").Where(kinds)
 	return repositorySubquery(db).Model(&models.Engagement{}).Select("contentable_id").
 		Where("contentable_type = ?", contentType).Where("id IN (?)", details)
+}
+
+// ListScheduledMessages returns the author's not yet published messages in a
+// chat, soonest first (Telegram "Scheduled Messages").
+func (r *ChatRepository) ListScheduledMessages(ctx context.Context, userID, chatID uuid.UUID) ([]post.Post, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := r.ensureActiveParticipant(ctx, chatID, userID); err != nil {
+		return nil, err
+	}
+	query := r.db.WithContext(ctx).Model(&post.Post{}).
+		Where("posts.post_kind = ? AND posts.contentable_type = ? AND posts.contentable_id = ?", post.PostKindMessage, post.PostKindChat, chatID).
+		Where("posts.author_id = ? AND posts.scheduled_at IS NOT NULL", userID).
+		Where("posts.id NOT IN (?)", deletedChatContentIDs(r.db, models.EngagementContentableTypeMessage,
+			userID, models.EngagementKindMessageDeletedForMe, models.EngagementKindMessageDeletedForAll))
+	var messages []post.Post
+	if err := preloadChatMessageRelations(query, time.Now(), userID, nil).
+		Order("posts.scheduled_at ASC").
+		Find(&messages).Error; err != nil {
+		return nil, err
+	}
+	if err := r.sanitizeMessagesForViewer(postPointers(messages), userID); err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
+
+// SendScheduledNow moves the author's scheduled message to now; the next
+// publish sweep delivers it.
+func (r *ChatRepository) SendScheduledNow(ctx context.Context, author *models.User, chatID, messageID uuid.UUID) error {
+	if author == nil {
+		return chat.ErrNotParticipant
+	}
+	result := r.db.WithContext(ctx).Model(&post.Post{}).
+		Where("id = ? AND contentable_id = ? AND author_id = ? AND scheduled_at IS NOT NULL", messageID, chatID, author.ID).
+		Update("scheduled_at", time.Now().UTC())
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return chat.ErrMessageNotFound
+	}
+	return nil
+}
+
+// PublishScheduledMessages delivers due scheduled messages: each gets a new
+// public id and timestamp so it lands at the end of the history, and the chat
+// preview and recipients' unread counts follow as for a normal send.
+func (r *ChatRepository) PublishScheduledMessages(ctx context.Context, now time.Time, limit int) ([]post.Post, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	var published []uuid.UUID
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var due []post.Post
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Where("post_kind = ? AND contentable_type = ? AND scheduled_at IS NOT NULL AND scheduled_at <= ?", post.PostKindMessage, post.PostKindChat, now).
+			Order("scheduled_at ASC").
+			Limit(limit).
+			Find(&due).Error; err != nil {
+			return err
+		}
+		for _, message := range due {
+			if message.ContentableID == nil {
+				continue
+			}
+			at := now.UTC()
+			if err := tx.Model(&post.Post{}).Where("id = ?", message.ID).Updates(map[string]interface{}{
+				"scheduled_at": nil,
+				"public_id":    r.Node().Generate().Int64(),
+				"created_at":   at,
+				"updated_at":   at,
+			}).Error; err != nil {
+				return err
+			}
+			chatID := *message.ContentableID
+			if err := tx.Model(&chat.Chat{}).Where("id = ?", chatID).Updates(map[string]interface{}{
+				"last_message_id":        message.ID,
+				"last_message_timestamp": at,
+			}).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(&chat.ChatParticipant{}).
+				Where("chat_id = ? AND user_id <> ? AND left_at IS NULL", chatID, message.AuthorID).
+				Update("unread_count", gorm.Expr("unread_count + ?", 1)).Error; err != nil {
+				return err
+			}
+			published = append(published, message.ID)
+		}
+		return nil
+	})
+	if err != nil || len(published) == 0 {
+		return nil, err
+	}
+	result := make([]post.Post, 0, len(published))
+	for _, id := range published {
+		hydrated, err := r.postRepo.GetPostByIDIncludingUnpublished(id)
+		if err != nil {
+			helpers.Error("hydrate published scheduled message %s: %v", id, err)
+			continue
+		}
+		result = append(result, *hydrated)
+		if hydrated.ContentableID != nil {
+			text := fmt.Sprintf("You received a new message from %s. Click to read.", hydrated.Author.UserName)
+			if err := r.NotifyChatParticipants(ctx, *hydrated.ContentableID, hydrated.Author, "New Message", text); err != nil {
+				helpers.Error("notify scheduled message %s: %v", id, err)
+			}
+		}
+	}
+	return result, nil
 }

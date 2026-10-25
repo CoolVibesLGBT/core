@@ -34,6 +34,9 @@ type Chat struct {
 	PinnedByID *uuid.UUID   `gorm:"type:uuid;index" json:"pinned_by_id,omitempty"`
 	PinnedBy   *models.User `gorm:"foreignKey:PinnedByID;references:ID" json:"pinned_by,omitempty"`
 
+	// Every pinned message, oldest first; pinned_msg_id mirrors the newest.
+	PinnedMessages PinnedMessageList `gorm:"type:jsonb;not null;default:'[]'" json:"pinned_messages"`
+
 	LastMessageID        *uuid.UUID `gorm:"type:uuid;index" json:"last_message_id,omitempty"`
 	LastMessage          *post.Post `gorm:"foreignKey:LastMessageID;references:ID" json:"last_message,omitempty"`
 	LastMessageTimestamp *time.Time `gorm:"last_message_timestamp" json:"last_message_timestamp,omitempty"`

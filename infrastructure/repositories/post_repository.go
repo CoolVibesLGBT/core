@@ -1369,6 +1369,10 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
+		newPost.ScheduledAt, err = chat.ParseScheduledAt(values["scheduled_at"], time.Now())
+		if err != nil {
+			return nil, err
+		}
 		if clientIDs := values["client_id"]; len(clientIDs) > 0 {
 			newPost.ClientID = clientIDs[0]
 		}
