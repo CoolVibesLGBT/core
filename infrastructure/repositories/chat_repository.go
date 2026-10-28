@@ -518,6 +518,9 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string
 			// the chat preview and unread counts.
 			return nil
 		}
+		if err := restoreChatVisibilityForParticipants(tx, chatID); err != nil {
+			return err
+		}
 		if result := tx.Model(&chat.Chat{}).
 			Where("id = ?", chatID).
 			Updates(map[string]interface{}{
@@ -560,6 +563,22 @@ func (r *ChatRepository) AddMessageToChat(ctx context.Context, values map[string
 	// an external best-effort side effect and must not make the client retry a
 	// successful send (which would duplicate the message).
 	return chatPost, nil
+}
+
+// restoreChatVisibilityForParticipants makes a private chat visible again
+// after a new message. A per-user delete hides the conversation only until
+// its next activity; a delete-for-all flag is intentionally left untouched.
+func restoreChatVisibilityForParticipants(tx *gorm.DB, chatID uuid.UUID) error {
+	if tx == nil || chatID == uuid.Nil {
+		return nil
+	}
+	chatEngagementIDs := repositorySubquery(tx).Model(&models.Engagement{}).
+		Select("id").Where("contentable_id = ? AND contentable_type = ?", chatID, models.EngagementContentableTypeChat)
+	participantIDs := repositorySubquery(tx).Model(&chat.ChatParticipant{}).
+		Select("user_id").Where("chat_id = ?", chatID)
+	return tx.Where("engagement_id IN (?) AND kind = ? AND engager_id IN (?)",
+		chatEngagementIDs, models.EngagementKindChatDeletedForMe, participantIDs).
+		Delete(&models.EngagementDetail{}).Error
 }
 
 func authenticatedChatUser(authUser *models.User, userID uuid.UUID) bool {
