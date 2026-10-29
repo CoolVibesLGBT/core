@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Monaco montage with palace, cathedral, oceanographic museum, casino and harbor. Natural gull fully visible. Buildings illustrated proportions; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Monaco panorama with palace, museum, casino, cathedral and harbor. Gull fully visible, olive foreground. Buildings illustrative and montage placement, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Monaco palace and gull with olive framing. Gull tail touches left image edge; circular crop trims tail further. Stylized palace proportions; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
