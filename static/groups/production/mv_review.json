@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Maldives montage with secular coral-stone village, dhoni, atolls and reef marine life. Ray, whale shark and turtle fully inside. Bridge arches are stylized approximation. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Maldives panorama with secular coral houses, dhoni boats, Male civilian skyline and bridge. Manta, whale shark and turtle in reef water. Architecture and bridge illustrative. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Maldives secular coral houses and manta ray in split water scene. Full ray wings and tail visible; houses stylized. Approximate hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

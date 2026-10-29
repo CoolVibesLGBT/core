@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Mauritius Le Morne, colored earths, heritage waterfront, Hindu temple and botanical garden visible. Natural pink pigeon and kestrel, giant water lilies. No lettering or excluded structures. Approximate montage and hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Mauritius panorama with waterfront heritage, Le Morne, colored earths, Hindu temple and botanical garden. Natural pink pigeon and kestrel wholly inside frame, lilies foreground. No lettering or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Aapravasi Ghat stone heritage interpretation, natural pink pigeon and giant water lilies with island mountain backdrop. No lettering or excluded architecture. Bird near left margin; primary entrance inside frame. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
