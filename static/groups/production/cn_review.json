@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Great Wall Forbidden City Terracotta statues, Leshan Buddha, Potala, karst mountains. Mogao corrected with red wooden facade and small cave entries. Natural panda monkey crane. No restricted Islamic motifs observed. Peach pink lilac layered montage.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Great Wall, Forbidden City, Mogao wooden-fronted cliff, Leshan Buddha, Potala Palace and karst mountains. Terracotta figures archaeological statues; natural panda monkey cranes. No restricted Islamic forms observed. Peach pink lilac outlined layers.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Recognizable Great Wall winding watchtowers, natural giant panda and bamboo/peony foreground. No restricted religious architecture observed. Peach pink lilac sculpted outlined layers, national montage not literal panda habitat beside wall.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
