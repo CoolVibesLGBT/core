@@ -1,0 +1,14 @@
+{
+  "visualReview": "Inspected generated source views and contact sheet. No excluded religious buildings or emblems observed at review resolution. This is a representative artistic montage, not a verified exhaustive site inventory. Architecture is stylized.",
+  "depth": "Hand-authored approximate subject regions; boundaries simplified, potential local stretching at stronger parallax.",
+  "kinds": [
+    "hero",
+    "cover",
+    "avatar"
+  ],
+  "wildlifeContext": "African penguins can occur as non-breeding visitors on Angola coast; do not describe this vignette as a breeding colony.",
+  "wildlifeSources": [
+    "https://www.cms.int/species/spheniscus-demersus",
+    "https://doi.org/10.2305/IUCN.UK.2024-2.RLTS.T22697810A256021744.en"
+  ]
+}
