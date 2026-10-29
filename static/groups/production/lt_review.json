@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Lithuanian castle, Vilnius tower and old town churches, Hill of Crosses, Curonian dunes and modernist building interpretation. Natural bison and white stork, oak framing. No lettering or excluded structures. Stork near right margin; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Lithuanian castle, tower, churches, Hill of Crosses, modernist architecture and Curonian dunes. Natural bison and stork, oak and amber framing. No lettering or excluded architecture. Broad regional montage; hand-authored approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Trakai castle and natural stork, oak and lake landscape visible. No lettering or excluded architecture. Stork face outside central circle but silhouette inside square. Simplified castle details; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

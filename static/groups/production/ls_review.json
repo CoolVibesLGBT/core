@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Lesotho montage of mesa fortress, Maletsunyane-like waterfall, Katse-like dam, cave dwellings and rock-art shelter with natural pony/bearded vulture and aloes. Fortress height and terrain relationships are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Lesotho montage of mesa fortress, Maletsunyane-like waterfall, Katse-like dam, cave dwellings and rock-art shelter with natural pony/bearded vulture and aloes. Fortress height and terrain relationships are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Thaba Bosiu-like table mountain and stone fortification with natural Basotho pony and aloes. Mesa height and stone enclosure shapes are artistic approximations; no lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
