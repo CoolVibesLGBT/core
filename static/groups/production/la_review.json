@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Laos montage with Buddhist temple, Plain of Jars, Wat Phou, cave and waterfall regions. Regenerated for full elephant silhouette; gibbon fully visible. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Laos panorama with temple, jars, Khmer ruins, cave and river. Small elephant fully visible and gibbon in tree. Approximate landmark and depth illustration.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Wat Xieng Thong interpretation and fully visible elephant, bamboo and frangipani. Temple side reaches right edge; circular crop trims animal rear. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
