@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Liechtenstein castle montage, modern museum interpretation, covered Rhine bridge and alpine hamlets. Natural deer and ibex, edelweiss and gentian framing. No lettering or excluded structures. Museum fa\u00e7ade and castle details simplified. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Liechtenstein castles, modern museum, covered bridge, alpine hamlets with deer and ibex. Edelweiss and gentian frame foreground. No visible lettering or excluded structures. Architecture simplified, museum interpretation approximate. Hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Vaduz castle interpretation, natural ibex and alpine valley. Edelweiss framing. No lettering or excluded architecture. Animal body close to left edge, face central. Architecture and hand drawn depth approximate.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

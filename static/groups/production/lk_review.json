@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Sri Lanka national montage with Sigiriya, Buddhist caves/stupas/statues, Galle and Kandy. Full elephant and leopard silhouettes visible; sculptural figures only. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Sri Lanka panorama with Sigiriya, Buddhist monuments, Kandy, Galle and tea fields; full elephant and leopard visible. Sculptural figures only. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Sigiriya and fully visible Asian elephant framed by tea plants. Circular crop trims peripheral plants. Stylized rock stairs, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
