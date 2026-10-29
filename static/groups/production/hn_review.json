@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Honduras montage: Copan ruins, fort, cathedral, lake and tropical coast visible. Natural jaguar partly cropped at right, macaw inside upper right. Orchid framing. No visible lettering or excluded architecture. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Copan, cathedral, fort, lake and tropical coast visible; natural macaw and jaguar inside frame. Orchid foreground. No visible lettering or prohibited architecture. Approximate regional montage and subject depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Copan stela and stepped ruins, scarlet macaw, orchids and pine visible. Natural animal inside frame but above circular crop center. Carved Maya relief allowed; no lettering or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
