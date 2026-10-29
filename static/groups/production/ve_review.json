@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Venezuelan montage with Angel Falls/tepuis, Coro-like colonial church and houses, Caracas modern civic campus and cable car, Los Roques-like coast. Natural jaguar/capybara/scarlet ibis and moriche palms. Campus mural, architecture and geography are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Venezuelan montage with Angel Falls/tepuis, Coro-like colonial church and houses, Caracas modern civic campus and cable car, Los Roques-like coast. Natural jaguar/capybara/scarlet ibis and moriche palms. Campus mural, architecture and geography are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Angel Falls-like tepui waterfall with natural jaguar, moriche palms and tropical foliage. Waterfall/tepui shape and scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
