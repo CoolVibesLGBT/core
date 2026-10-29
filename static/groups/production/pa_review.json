@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Panama Canal lock, old Panama ruins, coastal fort, colonial houses and island/rainforest montage visible. Natural harpy eagle and sloth, orchids. No lettering or excluded architecture. Eagle and sloth near right margins. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Panama Canal, old ruins, Casco houses, coastal fort and islands visible. Natural harpy eagle upper right and sloth lower right, orchids foreground. No lettering or excluded structures. Eagle crest near top margin. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Panama Canal locks with cargo vessel and natural harpy eagle, orchids and rainforest. No lettering or excluded structures. Eagle tail near left edge, face inside central circular crop. Engineering geometry illustrative. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
