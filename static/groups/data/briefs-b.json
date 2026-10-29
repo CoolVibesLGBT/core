@@ -1,0 +1,7054 @@
+[
+  {
+    "code": "lc",
+    "name": "St Lucia",
+    "landmarks": [
+      {
+        "name": "Pitons",
+        "region": "Soufriere"
+      },
+      {
+        "name": "Pigeon Island fortifications",
+        "region": "Gros Islet"
+      },
+      {
+        "name": "Diamond Falls",
+        "region": "Soufriere"
+      },
+      {
+        "name": "Morne Fortune",
+        "region": "Castries"
+      },
+      {
+        "name": "Sulphur Springs",
+        "region": "Soufriere"
+      }
+    ],
+    "animals": [
+      "Saint Lucia parrot",
+      "green turtle"
+    ],
+    "plants": [
+      "breadfruit"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Pitons",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lc",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "li",
+    "name": "Liechtenstein",
+    "landmarks": [
+      {
+        "name": "Vaduz Castle",
+        "region": "Vaduz"
+      },
+      {
+        "name": "Gutenberg Castle",
+        "region": "Balzers"
+      },
+      {
+        "name": "Kunstmuseum",
+        "region": "Vaduz"
+      },
+      {
+        "name": "Malbun alpine village",
+        "region": "Triesenberg"
+      },
+      {
+        "name": "Old Rhine Bridge",
+        "region": "Vaduz"
+      }
+    ],
+    "animals": [
+      "alpine ibex",
+      "red deer"
+    ],
+    "plants": [
+      "alpine flowers"
+    ],
+    "foodOrCraft": [
+      "ceramics"
+    ],
+    "avatarFocus": "Vaduz Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/li",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "lk",
+    "name": "Sri Lanka",
+    "landmarks": [
+      {
+        "name": "Sigiriya",
+        "region": "Central Province"
+      },
+      {
+        "name": "Dambulla cave temples",
+        "region": "Central Province"
+      },
+      {
+        "name": "Sacred City of Kandy",
+        "region": "Central Province"
+      },
+      {
+        "name": "Anuradhapura stupas",
+        "region": "North Central Province"
+      },
+      {
+        "name": "Galle Dutch fort",
+        "region": "Southern Province"
+      },
+      {
+        "name": "Polonnaruwa Gal Vihara",
+        "region": "North Central Province"
+      }
+    ],
+    "animals": [
+      "Asian elephant",
+      "Sri Lankan leopard"
+    ],
+    "plants": [
+      "tea"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Sigiriya",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lk",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "lr",
+    "name": "Liberia",
+    "landmarks": [
+      {
+        "name": "Providence Island",
+        "region": "Monrovia"
+      },
+      {
+        "name": "Ducor Hotel exterior",
+        "region": "Monrovia"
+      },
+      {
+        "name": "Kpatawee Falls",
+        "region": "Bong"
+      },
+      {
+        "name": "Sapo forest",
+        "region": "Sinoe"
+      },
+      {
+        "name": "Cape Mount coast",
+        "region": "Grand Cape Mount"
+      }
+    ],
+    "animals": [
+      "pygmy hippopotamus",
+      "chimpanzee"
+    ],
+    "plants": [
+      "oil palm"
+    ],
+    "foodOrCraft": [
+      "woven country cloth"
+    ],
+    "avatarFocus": "Providence Island",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lr",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ls",
+    "name": "Lesotho",
+    "landmarks": [
+      {
+        "name": "Thaba Bosiu",
+        "region": "Maseru"
+      },
+      {
+        "name": "Maletsunyane Falls",
+        "region": "Semonkong"
+      },
+      {
+        "name": "Katse Dam",
+        "region": "Bokong"
+      },
+      {
+        "name": "Liphofung rock shelter",
+        "region": "Butha-Buthe"
+      },
+      {
+        "name": "Kome cave dwellings",
+        "region": "Berea"
+      }
+    ],
+    "animals": [
+      "Basotho pony",
+      "bearded vulture"
+    ],
+    "plants": [
+      "spiral aloe"
+    ],
+    "foodOrCraft": [
+      "Basotho blankets"
+    ],
+    "avatarFocus": "Thaba Bosiu",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ls",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "lt",
+    "name": "Lithuania",
+    "landmarks": [
+      {
+        "name": "Trakai Island Castle",
+        "region": "Trakai"
+      },
+      {
+        "name": "Gediminas Tower",
+        "region": "Vilnius"
+      },
+      {
+        "name": "Hill of Crosses",
+        "region": "Siauliai"
+      },
+      {
+        "name": "Curonian Spit",
+        "region": "Klaipeda"
+      },
+      {
+        "name": "Kaunas interwar architecture",
+        "region": "Kaunas"
+      }
+    ],
+    "animals": [
+      "white stork",
+      "European bison"
+    ],
+    "plants": [
+      "oak"
+    ],
+    "foodOrCraft": [
+      "amber craft"
+    ],
+    "avatarFocus": "Trakai Island Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lt",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "lu",
+    "name": "Luxembourg",
+    "landmarks": [
+      {
+        "name": "Vianden Castle",
+        "region": "Vianden"
+      },
+      {
+        "name": "Bock Casemates",
+        "region": "Luxembourg City"
+      },
+      {
+        "name": "Adolphe Bridge",
+        "region": "Luxembourg City"
+      },
+      {
+        "name": "Echternach Abbey",
+        "region": "Echternach"
+      },
+      {
+        "name": "Clervaux Castle",
+        "region": "Clervaux"
+      }
+    ],
+    "animals": [
+      "red fox",
+      "roe deer"
+    ],
+    "plants": [
+      "grapevine"
+    ],
+    "foodOrCraft": [
+      "pottery"
+    ],
+    "avatarFocus": "Vianden Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lu",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "lv",
+    "name": "Latvia",
+    "landmarks": [
+      {
+        "name": "House of the Black Heads",
+        "region": "Riga"
+      },
+      {
+        "name": "Rundale Palace",
+        "region": "Zemgale"
+      },
+      {
+        "name": "Turaida Castle",
+        "region": "Sigulda"
+      },
+      {
+        "name": "Kuldiga brick bridge",
+        "region": "Kurzeme"
+      },
+      {
+        "name": "Aglona Basilica",
+        "region": "Latgale"
+      }
+    ],
+    "animals": [
+      "white stork",
+      "red deer"
+    ],
+    "plants": [
+      "pine"
+    ],
+    "foodOrCraft": [
+      "woven mittens"
+    ],
+    "avatarFocus": "House of the Black Heads",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lv",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ly",
+    "name": "Libya",
+    "landmarks": [
+      {
+        "name": "Leptis Magna Roman theatre",
+        "region": "Khoms"
+      },
+      {
+        "name": "Sabratha Roman theatre",
+        "region": "Tripolitania"
+      },
+      {
+        "name": "Cyrene Greek ruins",
+        "region": "Cyrenaica"
+      },
+      {
+        "name": "Acacus rock art",
+        "region": "Fezzan"
+      },
+      {
+        "name": "Ghadames vernacular houses only",
+        "region": "Ghadames"
+      }
+    ],
+    "animals": [
+      "dromedary",
+      "fennec fox"
+    ],
+    "plants": [
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Leptis Magna Roman theatre",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ly",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ma",
+    "name": "Morocco",
+    "landmarks": [
+      {
+        "name": "Volubilis Roman ruins",
+        "region": "Meknes region"
+      },
+      {
+        "name": "Ait Ben Haddou earthen houses only",
+        "region": "Ouarzazate"
+      },
+      {
+        "name": "Ouzoud Falls",
+        "region": "Azilal"
+      },
+      {
+        "name": "Essaouira sea ramparts",
+        "region": "Atlantic coast"
+      },
+      {
+        "name": "Hassan II bridge",
+        "region": "Rabat-Sale"
+      },
+      {
+        "name": "Todra Gorge",
+        "region": "Tinghir"
+      }
+    ],
+    "animals": [
+      "Barbary macaque",
+      "dromedary"
+    ],
+    "plants": [
+      "argan"
+    ],
+    "foodOrCraft": [
+      "woven rugs"
+    ],
+    "avatarFocus": "Volubilis Roman ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ma",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mc",
+    "name": "Monaco",
+    "landmarks": [
+      {
+        "name": "Prince's Palace",
+        "region": "Monaco-Ville"
+      },
+      {
+        "name": "Oceanographic Museum",
+        "region": "Monaco-Ville"
+      },
+      {
+        "name": "Monte Carlo Casino",
+        "region": "Monte Carlo"
+      },
+      {
+        "name": "Port Hercule",
+        "region": "La Condamine"
+      },
+      {
+        "name": "Saint Nicholas Cathedral",
+        "region": "Monaco-Ville"
+      }
+    ],
+    "animals": [
+      "Mediterranean gull"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "ceramics"
+    ],
+    "avatarFocus": "Prince's Palace",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mc",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "md",
+    "name": "Moldova",
+    "landmarks": [
+      {
+        "name": "Soroca Fortress",
+        "region": "Soroca"
+      },
+      {
+        "name": "Orheiul Vechi cave monastery",
+        "region": "Orhei"
+      },
+      {
+        "name": "Cricova wine cellars",
+        "region": "Cricova"
+      },
+      {
+        "name": "Capriana Monastery",
+        "region": "Straseni"
+      },
+      {
+        "name": "Stephen the Great monument",
+        "region": "Chisinau"
+      }
+    ],
+    "animals": [
+      "white stork",
+      "roe deer"
+    ],
+    "plants": [
+      "grapevine"
+    ],
+    "foodOrCraft": [
+      "woven carpets"
+    ],
+    "avatarFocus": "Soroca Fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/md",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "me",
+    "name": "Montenegro",
+    "landmarks": [
+      {
+        "name": "Kotor city walls",
+        "region": "Kotor"
+      },
+      {
+        "name": "Ostrog Monastery",
+        "region": "Danilovgrad"
+      },
+      {
+        "name": "Durmitor mountain landscape",
+        "region": "Zabljak"
+      },
+      {
+        "name": "Tara Canyon bridge",
+        "region": "Durmitor"
+      },
+      {
+        "name": "Cetinjе Monastery",
+        "region": "Cetinje"
+      },
+      {
+        "name": "Sveti Stefan",
+        "region": "Budva"
+      }
+    ],
+    "animals": [
+      "Dalmatian pelican",
+      "chamois"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "embroidered textiles"
+    ],
+    "avatarFocus": "Kotor city walls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/me",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mg",
+    "name": "Madagascar",
+    "landmarks": [
+      {
+        "name": "Avenue of the Baobabs",
+        "region": "Menabe"
+      },
+      {
+        "name": "Royal Hill of Ambohimanga",
+        "region": "Analamanga"
+      },
+      {
+        "name": "Tsingy de Bemaraha",
+        "region": "Melaky"
+      },
+      {
+        "name": "Ranomafana rainforest",
+        "region": "Vatovavy"
+      },
+      {
+        "name": "Isalo sandstone formations",
+        "region": "Ihorombe"
+      }
+    ],
+    "animals": [
+      "ring-tailed lemur",
+      "sifaka",
+      "chameleon"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "raffia baskets"
+    ],
+    "avatarFocus": "Avenue of the Baobabs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mg",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mh",
+    "name": "Marshall Islands",
+    "landmarks": [
+      {
+        "name": "Alele Museum",
+        "region": "Majuro"
+      },
+      {
+        "name": "Laura village lagoon",
+        "region": "Majuro"
+      },
+      {
+        "name": "traditional canoe house",
+        "region": "Majuro"
+      },
+      {
+        "name": "Arno lagoon",
+        "region": "Arno"
+      },
+      {
+        "name": "Bikini Atoll landscape",
+        "region": "Bikini"
+      }
+    ],
+    "animals": [
+      "frigatebird",
+      "green turtle"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "navigation stick charts"
+    ],
+    "avatarFocus": "Alele Museum",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mh",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mk",
+    "name": "North Macedonia",
+    "landmarks": [
+      {
+        "name": "Church of Saint John at Kaneo",
+        "region": "Ohrid"
+      },
+      {
+        "name": "Stone Bridge",
+        "region": "Skopje"
+      },
+      {
+        "name": "Heraclea Lyncestis",
+        "region": "Bitola"
+      },
+      {
+        "name": "Kokino observatory",
+        "region": "Staro Nagoricane"
+      },
+      {
+        "name": "Saint Naum Monastery",
+        "region": "Ohrid"
+      },
+      {
+        "name": "Kratovo stone towers",
+        "region": "Kratovo"
+      }
+    ],
+    "animals": [
+      "Balkan lynx",
+      "Dalmatian pelican"
+    ],
+    "plants": [
+      "oak"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Church of Saint John at Kaneo",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mk",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ml",
+    "name": "Mali",
+    "landmarks": [
+      {
+        "name": "Cliff of Bandiagara vernacular dwellings",
+        "region": "Dogon Country"
+      },
+      {
+        "name": "Tellem cliff dwellings",
+        "region": "Bandiagara"
+      },
+      {
+        "name": "Niger river pinasse boats",
+        "region": "Mopti"
+      },
+      {
+        "name": "Gouina Falls",
+        "region": "Kayes"
+      },
+      {
+        "name": "Boucle du Baoule savanna",
+        "region": "Kayes"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "dromedary"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "bogolan mudcloth"
+    ],
+    "avatarFocus": "Cliff of Bandiagara vernacular dwellings",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ml",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mm",
+    "name": "Myanmar",
+    "landmarks": [
+      {
+        "name": "Bagan Buddhist temples",
+        "region": "Mandalay Region"
+      },
+      {
+        "name": "Shwedagon Pagoda",
+        "region": "Yangon"
+      },
+      {
+        "name": "Inle Lake stilt houses",
+        "region": "Shan"
+      },
+      {
+        "name": "Golden Rock Buddhist shrine",
+        "region": "Mon"
+      },
+      {
+        "name": "Mandalay royal palace",
+        "region": "Mandalay"
+      },
+      {
+        "name": "Mrauk U Buddhist temples",
+        "region": "Rakhine"
+      }
+    ],
+    "animals": [
+      "Asian elephant",
+      "Burmese star tortoise"
+    ],
+    "plants": [
+      "teak"
+    ],
+    "foodOrCraft": [
+      "lacquerware"
+    ],
+    "avatarFocus": "Bagan Buddhist temples",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mm",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mn",
+    "name": "Mongolia",
+    "landmarks": [
+      {
+        "name": "Erdene Zuu Buddhist monastery",
+        "region": "Kharkhorin"
+      },
+      {
+        "name": "Orkhon Valley",
+        "region": "Ovorkhangai"
+      },
+      {
+        "name": "Gobi Flaming Cliffs",
+        "region": "Omnogovi"
+      },
+      {
+        "name": "Deer Stone monuments",
+        "region": "Khovsgol"
+      },
+      {
+        "name": "Amarbayasgalant Monastery",
+        "region": "Selenge"
+      },
+      {
+        "name": "Altai petroglyphs",
+        "region": "Bayan-Olgii"
+      }
+    ],
+    "animals": [
+      "Przewalski horse",
+      "Bactrian camel",
+      "snow leopard"
+    ],
+    "plants": [
+      "steppe grass"
+    ],
+    "foodOrCraft": [
+      "felt ger"
+    ],
+    "avatarFocus": "Erdene Zuu Buddhist monastery",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mn",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mr",
+    "name": "Mauritania",
+    "landmarks": [
+      {
+        "name": "Banc d'Arguin coast",
+        "region": "Atlantic coast"
+      },
+      {
+        "name": "Richat Structure",
+        "region": "Adrar"
+      },
+      {
+        "name": "Terjit oasis",
+        "region": "Adrar"
+      },
+      {
+        "name": "Azougui archaeological remains",
+        "region": "Atar"
+      },
+      {
+        "name": "Archaeological site of Koumbi Saleh nonreligious remains",
+        "region": "Hodh Ech Chargui"
+      }
+    ],
+    "animals": [
+      "dromedary",
+      "monk seal"
+    ],
+    "plants": [
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Banc d'Arguin coast",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mr",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim; Azougui and Kumbi Saleh: use domestic settlement remains only, exclude all religious structures"
+  },
+  {
+    "code": "mt",
+    "name": "Malta",
+    "landmarks": [
+      {
+        "name": "Hagar Qim temples",
+        "region": "Qrendi"
+      },
+      {
+        "name": "Mnajdra temples",
+        "region": "Qrendi"
+      },
+      {
+        "name": "Saint John's Co-Cathedral",
+        "region": "Valletta"
+      },
+      {
+        "name": "Mdina ramparts",
+        "region": "Mdina"
+      },
+      {
+        "name": "Ggantija temples",
+        "region": "Gozo"
+      },
+      {
+        "name": "Fort Saint Angelo",
+        "region": "Birgu"
+      }
+    ],
+    "animals": [
+      "Maltese wall lizard",
+      "blue rock thrush"
+    ],
+    "plants": [
+      "prickly pear"
+    ],
+    "foodOrCraft": [
+      "lace"
+    ],
+    "avatarFocus": "Hagar Qim temples",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mt",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mu",
+    "name": "Mauritius",
+    "landmarks": [
+      {
+        "name": "Aapravasi Ghat",
+        "region": "Port Louis"
+      },
+      {
+        "name": "Le Morne Brabant",
+        "region": "Black River"
+      },
+      {
+        "name": "Ganga Talao Hindu temples",
+        "region": "Savanne"
+      },
+      {
+        "name": "Chamarel coloured earths",
+        "region": "Riviere Noire"
+      },
+      {
+        "name": "Pamplemousses botanical garden",
+        "region": "Pamplemousses"
+      }
+    ],
+    "animals": [
+      "pink pigeon",
+      "Mauritius kestrel"
+    ],
+    "plants": [
+      "giant water lily"
+    ],
+    "foodOrCraft": [
+      "model ships"
+    ],
+    "avatarFocus": "Aapravasi Ghat",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mu",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mv",
+    "name": "Maldives",
+    "landmarks": [
+      {
+        "name": "Coral-stone secular houses",
+        "region": "island villages"
+      },
+      {
+        "name": "traditional dhoni boats",
+        "region": "Male Atoll"
+      },
+      {
+        "name": "Hanifaru Bay",
+        "region": "Baa Atoll"
+      },
+      {
+        "name": "Addu causeway",
+        "region": "Addu"
+      },
+      {
+        "name": "coral reef gardens",
+        "region": "Ari Atoll"
+      }
+    ],
+    "animals": [
+      "manta ray",
+      "whale shark",
+      "green turtle"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "coir rope"
+    ],
+    "avatarFocus": "Coral-stone secular houses",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mv",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mw",
+    "name": "Malawi",
+    "landmarks": [
+      {
+        "name": "Chongoni rock art",
+        "region": "Dedza"
+      },
+      {
+        "name": "Lake Malawi",
+        "region": "Southern Region"
+      },
+      {
+        "name": "Livingstonia mission church",
+        "region": "Rumphi"
+      },
+      {
+        "name": "Zomba Plateau",
+        "region": "Zomba"
+      },
+      {
+        "name": "Liwonde floodplain",
+        "region": "Machinga"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "Lake Malawi cichlids"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Chongoni rock art",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mw",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mx",
+    "name": "Mexico",
+    "landmarks": [
+      {
+        "name": "Chichen Itza",
+        "region": "Yucatan"
+      },
+      {
+        "name": "Teotihuacan",
+        "region": "State of Mexico"
+      },
+      {
+        "name": "Palenque",
+        "region": "Chiapas"
+      },
+      {
+        "name": "Monte Alban",
+        "region": "Oaxaca"
+      },
+      {
+        "name": "Mexico City Cathedral",
+        "region": "Mexico City"
+      },
+      {
+        "name": "Guanajuato historic streets",
+        "region": "Guanajuato"
+      },
+      {
+        "name": "Paquime",
+        "region": "Chihuahua"
+      }
+    ],
+    "animals": [
+      "axolotl",
+      "jaguar",
+      "golden eagle"
+    ],
+    "plants": [
+      "agave"
+    ],
+    "foodOrCraft": [
+      "alebrije carving"
+    ],
+    "avatarFocus": "Chichen Itza",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mx",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "my",
+    "name": "Malaysia",
+    "landmarks": [
+      {
+        "name": "Petronas Towers",
+        "region": "Kuala Lumpur"
+      },
+      {
+        "name": "Kek Lok Si Buddhist temple",
+        "region": "Penang"
+      },
+      {
+        "name": "Batu Caves Hindu shrine",
+        "region": "Selangor"
+      },
+      {
+        "name": "A Famosa gate",
+        "region": "Melaka"
+      },
+      {
+        "name": "Mount Kinabalu",
+        "region": "Sabah"
+      },
+      {
+        "name": "Mulu limestone pinnacles",
+        "region": "Sarawak"
+      }
+    ],
+    "animals": [
+      "orangutan",
+      "Malayan tapir",
+      "hornbill"
+    ],
+    "plants": [
+      "rafflesia"
+    ],
+    "foodOrCraft": [
+      "batik"
+    ],
+    "avatarFocus": "Petronas Towers",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/my",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "mz",
+    "name": "Mozambique",
+    "landmarks": [
+      {
+        "name": "Fort Sao Sebastiao",
+        "region": "Island of Mozambique"
+      },
+      {
+        "name": "Chapel of Nossa Senhora de Baluarte",
+        "region": "Island of Mozambique"
+      },
+      {
+        "name": "Maputo railway station",
+        "region": "Maputo"
+      },
+      {
+        "name": "Bazaruto dunes",
+        "region": "Inhambane"
+      },
+      {
+        "name": "Gorongosa floodplain",
+        "region": "Sofala"
+      }
+    ],
+    "animals": [
+      "dugong",
+      "African elephant"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "Makonde carving"
+    ],
+    "avatarFocus": "Fort Sao Sebastiao",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/mz",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "na",
+    "name": "Namibia",
+    "landmarks": [
+      {
+        "name": "Twyfelfontein rock engravings",
+        "region": "Kunene"
+      },
+      {
+        "name": "Sossusvlei dunes",
+        "region": "Hardap"
+      },
+      {
+        "name": "Etosha salt pan",
+        "region": "Oshikoto"
+      },
+      {
+        "name": "Kolmanskop houses",
+        "region": "Luderitz"
+      },
+      {
+        "name": "Spitzkoppe",
+        "region": "Erongo"
+      }
+    ],
+    "animals": [
+      "oryx",
+      "desert-adapted elephant"
+    ],
+    "plants": [
+      "welwitschia"
+    ],
+    "foodOrCraft": [
+      "basket weaving"
+    ],
+    "avatarFocus": "Twyfelfontein rock engravings",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/na",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ne",
+    "name": "Niger",
+    "landmarks": [
+      {
+        "name": "Agadez secular earthen houses only",
+        "region": "Agadez"
+      },
+      {
+        "name": "Air mountains",
+        "region": "Agadez"
+      },
+      {
+        "name": "Tenere desert",
+        "region": "Agadez"
+      },
+      {
+        "name": "Djado abandoned earthen settlement nonreligious walls",
+        "region": "Djado"
+      },
+      {
+        "name": "W National Park",
+        "region": "Tillaberi"
+      }
+    ],
+    "animals": [
+      "dromedary",
+      "giraffe"
+    ],
+    "plants": [
+      "acacia"
+    ],
+    "foodOrCraft": [
+      "Tuareg silverwork"
+    ],
+    "avatarFocus": "Agadez secular earthen houses only",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ne",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ng",
+    "name": "Nigeria",
+    "landmarks": [
+      {
+        "name": "Sukur cultural landscape",
+        "region": "Adamawa"
+      },
+      {
+        "name": "Osun-Osogbo sacred grove",
+        "region": "Osun"
+      },
+      {
+        "name": "Benin City palace art",
+        "region": "Edo"
+      },
+      {
+        "name": "Olumo Rock",
+        "region": "Ogun"
+      },
+      {
+        "name": "National Theatre",
+        "region": "Lagos"
+      },
+      {
+        "name": "Ogbunike caves",
+        "region": "Anambra"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "drill monkey"
+    ],
+    "plants": [
+      "oil palm"
+    ],
+    "foodOrCraft": [
+      "Benin bronze casting"
+    ],
+    "avatarFocus": "Sukur cultural landscape",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ng",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ni",
+    "name": "Nicaragua",
+    "landmarks": [
+      {
+        "name": "Leon Cathedral",
+        "region": "Leon"
+      },
+      {
+        "name": "Leon Viejo ruins",
+        "region": "Leon"
+      },
+      {
+        "name": "Granada colonial houses",
+        "region": "Granada"
+      },
+      {
+        "name": "Ometepe volcanoes",
+        "region": "Rivas"
+      },
+      {
+        "name": "El Castillo fortress",
+        "region": "Rio San Juan"
+      },
+      {
+        "name": "Masaya volcano",
+        "region": "Masaya"
+      }
+    ],
+    "animals": [
+      "guardabarranco",
+      "howler monkey"
+    ],
+    "plants": [
+      "sacuanjoche"
+    ],
+    "foodOrCraft": [
+      "pottery"
+    ],
+    "avatarFocus": "Leon Cathedral",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ni",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "nl",
+    "name": "Netherlands",
+    "landmarks": [
+      {
+        "name": "Kinderdijk windmills",
+        "region": "South Holland"
+      },
+      {
+        "name": "Amsterdam canal houses",
+        "region": "North Holland"
+      },
+      {
+        "name": "Rietveld Schroder House",
+        "region": "Utrecht"
+      },
+      {
+        "name": "Maastricht Saint Servatius Bridge",
+        "region": "Limburg"
+      },
+      {
+        "name": "Wadden Sea",
+        "region": "Friesland"
+      },
+      {
+        "name": "Delta Works",
+        "region": "Zeeland"
+      }
+    ],
+    "animals": [
+      "spoonbill",
+      "harbour seal"
+    ],
+    "plants": [
+      "tulip"
+    ],
+    "foodOrCraft": [
+      "Delftware"
+    ],
+    "avatarFocus": "Kinderdijk windmills",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/nl",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "no",
+    "name": "Norway",
+    "landmarks": [
+      {
+        "name": "Bryggen wooden wharf",
+        "region": "Bergen"
+      },
+      {
+        "name": "Urnes stave church",
+        "region": "Vestland"
+      },
+      {
+        "name": "Nidaros Cathedral",
+        "region": "Trondheim"
+      },
+      {
+        "name": "Vega fishing landscape",
+        "region": "Nordland"
+      },
+      {
+        "name": "Geirangerfjord",
+        "region": "More og Romsdal"
+      },
+      {
+        "name": "Alta rock art",
+        "region": "Finnmark"
+      }
+    ],
+    "animals": [
+      "reindeer",
+      "puffin"
+    ],
+    "plants": [
+      "Norway spruce"
+    ],
+    "foodOrCraft": [
+      "rosemaling"
+    ],
+    "avatarFocus": "Bryggen wooden wharf",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/no",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "np",
+    "name": "Nepal",
+    "landmarks": [
+      {
+        "name": "Swayambhunath",
+        "region": "Kathmandu"
+      },
+      {
+        "name": "Boudhanath",
+        "region": "Kathmandu"
+      },
+      {
+        "name": "Patan Durbar Square",
+        "region": "Lalitpur"
+      },
+      {
+        "name": "Lumbini Maya Devi Temple",
+        "region": "Rupandehi"
+      },
+      {
+        "name": "Sagarmatha mountain landscape",
+        "region": "Solukhumbu"
+      },
+      {
+        "name": "Bhaktapur Nyatapola Temple",
+        "region": "Bhaktapur"
+      }
+    ],
+    "animals": [
+      "red panda",
+      "greater one-horned rhinoceros",
+      "yak"
+    ],
+    "plants": [
+      "rhododendron"
+    ],
+    "foodOrCraft": [
+      "thangka painting"
+    ],
+    "avatarFocus": "Swayambhunath",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/np",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "nr",
+    "name": "Nauru",
+    "landmarks": [
+      {
+        "name": "Buada Lagoon",
+        "region": "Buada"
+      },
+      {
+        "name": "Command Ridge",
+        "region": "Aiwo"
+      },
+      {
+        "name": "Anibare Bay",
+        "region": "Anibare"
+      },
+      {
+        "name": "Moqua Caves",
+        "region": "Yaren"
+      },
+      {
+        "name": "phosphate limestone pinnacles",
+        "region": "central plateau"
+      }
+    ],
+    "animals": [
+      "frigatebird",
+      "noddy"
+    ],
+    "plants": [
+      "pandanus"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Buada Lagoon",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/nr",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      },
+      {
+        "url": "https://nauru-data.sprep.org/dataset/nauru-island-hydrology",
+        "title": "Nauru Department of Commerce: island hydrology"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "nz",
+    "name": "New Zealand",
+    "landmarks": [
+      {
+        "name": "Waitangi Treaty House",
+        "region": "Northland"
+      },
+      {
+        "name": "Hobbiton film set",
+        "region": "Waikato"
+      },
+      {
+        "name": "Tongariro volcanic landscape",
+        "region": "central North Island"
+      },
+      {
+        "name": "Milford Sound",
+        "region": "Fiordland"
+      },
+      {
+        "name": "Aoraki Mount Cook",
+        "region": "Canterbury"
+      },
+      {
+        "name": "Dunedin railway station",
+        "region": "Otago"
+      }
+    ],
+    "animals": [
+      "kiwi",
+      "kea",
+      "tuatara"
+    ],
+    "plants": [
+      "silver fern"
+    ],
+    "foodOrCraft": [
+      "Maori wood carving"
+    ],
+    "avatarFocus": "Waitangi Treaty House",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/nz",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "om",
+    "name": "Oman",
+    "landmarks": [
+      {
+        "name": "Bahla Fort secular ramparts only",
+        "region": "Ad Dakhiliyah"
+      },
+      {
+        "name": "Bat beehive tombs",
+        "region": "Ad Dhahirah"
+      },
+      {
+        "name": "Al Ayn tombs",
+        "region": "Ad Dhahirah"
+      },
+      {
+        "name": "Khor Rori ancient port",
+        "region": "Dhofar"
+      },
+      {
+        "name": "Wadi Shab",
+        "region": "Ash Sharqiyah"
+      },
+      {
+        "name": "Jebel Akhdar terraces",
+        "region": "Ad Dakhiliyah"
+      }
+    ],
+    "animals": [
+      "Arabian oryx",
+      "green turtle"
+    ],
+    "plants": [
+      "frankincense"
+    ],
+    "foodOrCraft": [
+      "pottery"
+    ],
+    "avatarFocus": "Bahla Fort secular ramparts only",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/om",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pa",
+    "name": "Panama",
+    "landmarks": [
+      {
+        "name": "Panama Canal locks",
+        "region": "Panama Province"
+      },
+      {
+        "name": "Panama Viejo cathedral ruins",
+        "region": "Panama City"
+      },
+      {
+        "name": "Portobelo fortifications",
+        "region": "Colon"
+      },
+      {
+        "name": "Coiba island",
+        "region": "Veraguas"
+      },
+      {
+        "name": "Darien rainforest",
+        "region": "Darien"
+      },
+      {
+        "name": "Casco Viejo colonial houses",
+        "region": "Panama City"
+      }
+    ],
+    "animals": [
+      "harpy eagle",
+      "sloth"
+    ],
+    "plants": [
+      "orchid"
+    ],
+    "foodOrCraft": [
+      "mola textiles"
+    ],
+    "avatarFocus": "Panama Canal locks",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pa",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pe",
+    "name": "Peru",
+    "landmarks": [
+      {
+        "name": "Machu Picchu",
+        "region": "Cusco"
+      },
+      {
+        "name": "Chan Chan",
+        "region": "La Libertad"
+      },
+      {
+        "name": "Nazca geoglyphs",
+        "region": "Ica"
+      },
+      {
+        "name": "Caral",
+        "region": "Lima Region"
+      },
+      {
+        "name": "Arequipa cathedral",
+        "region": "Arequipa"
+      },
+      {
+        "name": "Lake Titicaca reed islands",
+        "region": "Puno"
+      },
+      {
+        "name": "Kuelap",
+        "region": "Amazonas"
+      }
+    ],
+    "animals": [
+      "llama",
+      "Andean condor",
+      "spectacled bear"
+    ],
+    "plants": [
+      "potato"
+    ],
+    "foodOrCraft": [
+      "Andean weaving"
+    ],
+    "avatarFocus": "Machu Picchu",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pe",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pg",
+    "name": "Papua New Guinea",
+    "landmarks": [
+      {
+        "name": "Kuk early agricultural site",
+        "region": "Western Highlands"
+      },
+      {
+        "name": "traditional Sepik spirit house",
+        "region": "East Sepik"
+      },
+      {
+        "name": "Mount Hagen highlands",
+        "region": "Western Highlands"
+      },
+      {
+        "name": "Kokoda Track",
+        "region": "Oro"
+      },
+      {
+        "name": "Port Moresby stilt houses",
+        "region": "National Capital District"
+      }
+    ],
+    "animals": [
+      "bird-of-paradise",
+      "tree kangaroo"
+    ],
+    "plants": [
+      "sago palm"
+    ],
+    "foodOrCraft": [
+      "bilum bags"
+    ],
+    "avatarFocus": "Kuk early agricultural site",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pg",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ph",
+    "name": "Philippines",
+    "landmarks": [
+      {
+        "name": "Banaue rice terraces",
+        "region": "Ifugao"
+      },
+      {
+        "name": "San Agustin Church",
+        "region": "Manila"
+      },
+      {
+        "name": "Vigan ancestral houses",
+        "region": "Ilocos Sur"
+      },
+      {
+        "name": "Chocolate Hills",
+        "region": "Bohol"
+      },
+      {
+        "name": "Mayon volcano",
+        "region": "Albay"
+      },
+      {
+        "name": "Tubbataha reefs",
+        "region": "Palawan"
+      }
+    ],
+    "animals": [
+      "Philippine eagle",
+      "tarsier"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "woven banig mats"
+    ],
+    "avatarFocus": "Banaue rice terraces",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ph",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pk",
+    "name": "Pakistan",
+    "landmarks": [
+      {
+        "name": "Mohenjo-daro",
+        "region": "Sindh"
+      },
+      {
+        "name": "Taxila Buddhist ruins",
+        "region": "Punjab"
+      },
+      {
+        "name": "Takht-i-Bahi Buddhist monastery",
+        "region": "Khyber Pakhtunkhwa"
+      },
+      {
+        "name": "Rohtas Fort secular gate",
+        "region": "Punjab"
+      },
+      {
+        "name": "Baltit Fort",
+        "region": "Hunza"
+      },
+      {
+        "name": "Derawar Fort secular walls",
+        "region": "Punjab"
+      },
+      {
+        "name": "K2 mountain",
+        "region": "Gilgit-Baltistan"
+      }
+    ],
+    "animals": [
+      "markhor",
+      "Indus river dolphin",
+      "snow leopard"
+    ],
+    "plants": [
+      "deodar"
+    ],
+    "foodOrCraft": [
+      "truck art without inscriptions"
+    ],
+    "avatarFocus": "Mohenjo-daro",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pk",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pl",
+    "name": "Poland",
+    "landmarks": [
+      {
+        "name": "Wawel Castle",
+        "region": "Krakow"
+      },
+      {
+        "name": "Malbork Castle",
+        "region": "Pomerania"
+      },
+      {
+        "name": "Warsaw old town houses",
+        "region": "Masovia"
+      },
+      {
+        "name": "Centennial Hall",
+        "region": "Wroclaw"
+      },
+      {
+        "name": "Wieliczka salt mine",
+        "region": "Lesser Poland"
+      },
+      {
+        "name": "Torun gothic town hall",
+        "region": "Kuyavia-Pomerania"
+      }
+    ],
+    "animals": [
+      "European bison",
+      "white stork"
+    ],
+    "plants": [
+      "oak"
+    ],
+    "foodOrCraft": [
+      "paper cutouts"
+    ],
+    "avatarFocus": "Wawel Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pl",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ps",
+    "name": "Palestine",
+    "landmarks": [
+      {
+        "name": "Church of the Nativity",
+        "region": "Bethlehem"
+      },
+      {
+        "name": "Tell es-Sultan",
+        "region": "Jericho"
+      },
+      {
+        "name": "Battir agricultural terraces",
+        "region": "Bethlehem Governorate"
+      },
+      {
+        "name": "Saint Hilarion Monastery ruins",
+        "region": "Gaza"
+      },
+      {
+        "name": "Hisham's Palace secular mosaic courtyard only",
+        "region": "Jericho"
+      }
+    ],
+    "animals": [
+      "Palestine sunbird",
+      "gazelle"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "tatreez embroidery"
+    ],
+    "avatarFocus": "Church of the Nativity",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ps",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pt",
+    "name": "Portugal",
+    "landmarks": [
+      {
+        "name": "Belem Tower",
+        "region": "Lisbon"
+      },
+      {
+        "name": "Jeronimos Monastery",
+        "region": "Lisbon"
+      },
+      {
+        "name": "Pena Palace",
+        "region": "Sintra"
+      },
+      {
+        "name": "Clerigos Tower",
+        "region": "Porto"
+      },
+      {
+        "name": "Evora Roman temple",
+        "region": "Alentejo"
+      },
+      {
+        "name": "Pico vineyard walls",
+        "region": "Azores"
+      }
+    ],
+    "animals": [
+      "Iberian lynx",
+      "white stork"
+    ],
+    "plants": [
+      "cork oak"
+    ],
+    "foodOrCraft": [
+      "azulejo tiles"
+    ],
+    "avatarFocus": "Belem Tower",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pt",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "pw",
+    "name": "Palau",
+    "landmarks": [
+      {
+        "name": "Rock Islands",
+        "region": "Koror"
+      },
+      {
+        "name": "Badrulchau stone monoliths",
+        "region": "Ngarchelong"
+      },
+      {
+        "name": "Bai ra Irrai meeting house",
+        "region": "Airai"
+      },
+      {
+        "name": "Ngardmau waterfall",
+        "region": "Babeldaob"
+      },
+      {
+        "name": "Jellyfish Lake",
+        "region": "Eil Malk"
+      }
+    ],
+    "animals": [
+      "dugong",
+      "fruit dove"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "storyboards"
+    ],
+    "avatarFocus": "Rock Islands",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/pw",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "py",
+    "name": "Paraguay",
+    "landmarks": [
+      {
+        "name": "La Santisima Trinidad Jesuit ruins",
+        "region": "Itapua"
+      },
+      {
+        "name": "Jesus de Tavarangue Jesuit ruins",
+        "region": "Itapua"
+      },
+      {
+        "name": "Palacio de los Lopez",
+        "region": "Asuncion"
+      },
+      {
+        "name": "Ybycui historic ironworks",
+        "region": "Paraguari"
+      },
+      {
+        "name": "Itaipu dam",
+        "region": "Alto Parana"
+      }
+    ],
+    "animals": [
+      "jaguar",
+      "capybara"
+    ],
+    "plants": [
+      "lapacho"
+    ],
+    "foodOrCraft": [
+      "nanduti lace"
+    ],
+    "avatarFocus": "La Santisima Trinidad Jesuit ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/py",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "qa",
+    "name": "Qatar",
+    "landmarks": [
+      {
+        "name": "Al Zubarah Fort",
+        "region": "northwest coast"
+      },
+      {
+        "name": "National Museum desert-rose building",
+        "region": "Doha"
+      },
+      {
+        "name": "Aspire Tower",
+        "region": "Doha"
+      },
+      {
+        "name": "Khor Al Adaid dunes",
+        "region": "southeast"
+      },
+      {
+        "name": "traditional dhow harbour",
+        "region": "Doha"
+      }
+    ],
+    "animals": [
+      "Arabian oryx",
+      "dugong"
+    ],
+    "plants": [
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "sadu weaving"
+    ],
+    "avatarFocus": "Al Zubarah Fort",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/qa",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ro",
+    "name": "Romania",
+    "landmarks": [
+      {
+        "name": "Bran Castle",
+        "region": "Brasov"
+      },
+      {
+        "name": "Peles Castle",
+        "region": "Sinaia"
+      },
+      {
+        "name": "Sucevita Monastery",
+        "region": "Suceava"
+      },
+      {
+        "name": "Sarmizegetusa Regia",
+        "region": "Hunedoara"
+      },
+      {
+        "name": "wooden church of Barsana",
+        "region": "Maramures"
+      },
+      {
+        "name": "Danube Delta",
+        "region": "Tulcea"
+      }
+    ],
+    "animals": [
+      "brown bear",
+      "Dalmatian pelican"
+    ],
+    "plants": [
+      "beech"
+    ],
+    "foodOrCraft": [
+      "painted eggs"
+    ],
+    "avatarFocus": "Bran Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ro",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "rs",
+    "name": "Serbia",
+    "landmarks": [
+      {
+        "name": "Studenica Monastery",
+        "region": "Raska"
+      },
+      {
+        "name": "Gamzigrad Roman palace",
+        "region": "Zajecar"
+      },
+      {
+        "name": "Petrovaradin Fortress",
+        "region": "Novi Sad"
+      },
+      {
+        "name": "Belgrade Fortress",
+        "region": "Belgrade"
+      },
+      {
+        "name": "Sopocani Monastery",
+        "region": "Novi Pazar"
+      },
+      {
+        "name": "Uvac meanders",
+        "region": "Sjenica"
+      }
+    ],
+    "animals": [
+      "griffon vulture",
+      "brown bear"
+    ],
+    "plants": [
+      "plum"
+    ],
+    "foodOrCraft": [
+      "Pirot carpet"
+    ],
+    "avatarFocus": "Studenica Monastery",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/rs",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ru",
+    "name": "Russia",
+    "landmarks": [
+      {
+        "name": "Saint Basil's Cathedral",
+        "region": "Moscow"
+      },
+      {
+        "name": "Winter Palace",
+        "region": "Saint Petersburg"
+      },
+      {
+        "name": "Kizhi wooden churches",
+        "region": "Karelia"
+      },
+      {
+        "name": "Lake Baikal",
+        "region": "Siberia"
+      },
+      {
+        "name": "Vladivostok Golden Bridge",
+        "region": "Primorye"
+      },
+      {
+        "name": "Kamchatka volcanoes",
+        "region": "Far East"
+      }
+    ],
+    "animals": [
+      "Amur tiger",
+      "brown bear",
+      "reindeer"
+    ],
+    "plants": [
+      "birch"
+    ],
+    "foodOrCraft": [
+      "matryoshka"
+    ],
+    "avatarFocus": "Saint Basil's Cathedral",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ru",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "rw",
+    "name": "Rwanda",
+    "landmarks": [
+      {
+        "name": "King's Palace traditional thatched enclosure",
+        "region": "Nyanza"
+      },
+      {
+        "name": "Ethnographic Museum",
+        "region": "Huye"
+      },
+      {
+        "name": "Nyungwe forest canopy",
+        "region": "Southwest"
+      },
+      {
+        "name": "Volcanoes National Park",
+        "region": "Northwest"
+      },
+      {
+        "name": "Lake Kivu",
+        "region": "West"
+      }
+    ],
+    "animals": [
+      "mountain gorilla",
+      "golden monkey"
+    ],
+    "plants": [
+      "tea"
+    ],
+    "foodOrCraft": [
+      "agaseke baskets"
+    ],
+    "avatarFocus": "King's Palace traditional thatched enclosure",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/rw",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sa",
+    "name": "Saudi Arabia",
+    "landmarks": [
+      {
+        "name": "Hegra Nabataean tombs",
+        "region": "AlUla"
+      },
+      {
+        "name": "Dadan archaeological remains",
+        "region": "AlUla"
+      },
+      {
+        "name": "Jubbah rock art",
+        "region": "Hail"
+      },
+      {
+        "name": "Al Ahsa oasis palms only",
+        "region": "Eastern Province"
+      },
+      {
+        "name": "Tuwaiq escarpment",
+        "region": "Riyadh"
+      },
+      {
+        "name": "Farasan coral islands",
+        "region": "Jizan"
+      }
+    ],
+    "animals": [
+      "Arabian oryx",
+      "dromedary"
+    ],
+    "plants": [
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "sadu weaving"
+    ],
+    "avatarFocus": "Hegra Nabataean tombs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sa",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sb",
+    "name": "Solomon Islands",
+    "landmarks": [
+      {
+        "name": "East Rennell lake landscape",
+        "region": "Rennell"
+      },
+      {
+        "name": "Marovo Lagoon",
+        "region": "Western Province"
+      },
+      {
+        "name": "Vilu war museum",
+        "region": "Guadalcanal"
+      },
+      {
+        "name": "traditional leaf houses",
+        "region": "Malaita"
+      },
+      {
+        "name": "Langa Langa artificial islands",
+        "region": "Malaita"
+      }
+    ],
+    "animals": [
+      "Solomon eclectus parrot",
+      "hawksbill turtle"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "shell money"
+    ],
+    "avatarFocus": "East Rennell lake landscape",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sb",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sc",
+    "name": "Seychelles",
+    "landmarks": [
+      {
+        "name": "Vallee de Mai",
+        "region": "Praslin"
+      },
+      {
+        "name": "Aldabra Atoll",
+        "region": "Outer Islands"
+      },
+      {
+        "name": "Clock Tower",
+        "region": "Victoria"
+      },
+      {
+        "name": "Anse Source d'Argent granite boulders",
+        "region": "La Digue"
+      },
+      {
+        "name": "Mission Lodge ruins",
+        "region": "Mahe"
+      }
+    ],
+    "animals": [
+      "Aldabra giant tortoise",
+      "Seychelles black parrot"
+    ],
+    "plants": [
+      "coco de mer"
+    ],
+    "foodOrCraft": [
+      "coconut craft"
+    ],
+    "avatarFocus": "Vallee de Mai",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sc",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sd",
+    "name": "Sudan",
+    "landmarks": [
+      {
+        "name": "Meroe pyramids",
+        "region": "River Nile State"
+      },
+      {
+        "name": "Jebel Barkal ancient temple ruins",
+        "region": "Northern State"
+      },
+      {
+        "name": "Musawwarat es-Sufra",
+        "region": "River Nile State"
+      },
+      {
+        "name": "Naqa ancient temples",
+        "region": "River Nile State"
+      },
+      {
+        "name": "Kerma deffufa",
+        "region": "Northern State"
+      }
+    ],
+    "animals": [
+      "dromedary",
+      "Nile crocodile"
+    ],
+    "plants": [
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Meroe pyramids",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sd",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "se",
+    "name": "Sweden",
+    "landmarks": [
+      {
+        "name": "Drottningholm Palace",
+        "region": "Stockholm County"
+      },
+      {
+        "name": "Visby city walls",
+        "region": "Gotland"
+      },
+      {
+        "name": "Falun copper mine",
+        "region": "Dalarna"
+      },
+      {
+        "name": "Gammelstad church town",
+        "region": "Norrbotten"
+      },
+      {
+        "name": "Oresund Bridge",
+        "region": "Skane"
+      },
+      {
+        "name": "Tanum rock carvings",
+        "region": "Bohuslan"
+      }
+    ],
+    "animals": [
+      "moose",
+      "reindeer"
+    ],
+    "plants": [
+      "birch"
+    ],
+    "foodOrCraft": [
+      "Dala horse carving"
+    ],
+    "avatarFocus": "Drottningholm Palace",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/se",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sg",
+    "name": "Singapore",
+    "landmarks": [
+      {
+        "name": "Marina Bay Sands",
+        "region": "Marina Bay"
+      },
+      {
+        "name": "Supertree Grove",
+        "region": "Gardens by the Bay"
+      },
+      {
+        "name": "Sri Mariamman Hindu temple",
+        "region": "Chinatown"
+      },
+      {
+        "name": "Buddha Tooth Relic Temple",
+        "region": "Chinatown"
+      },
+      {
+        "name": "Botanic Gardens",
+        "region": "Tanglin"
+      },
+      {
+        "name": "Merlion statue",
+        "region": "Marina Bay"
+      }
+    ],
+    "animals": [
+      "smooth-coated otter",
+      "oriental pied hornbill"
+    ],
+    "plants": [
+      "orchid"
+    ],
+    "foodOrCraft": [
+      "Peranakan beadwork"
+    ],
+    "avatarFocus": "Marina Bay Sands",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sg",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim; Merlion is a civic sculptural landmark, not a fantasy animal character"
+  },
+  {
+    "code": "si",
+    "name": "Slovenia",
+    "landmarks": [
+      {
+        "name": "Bled island church",
+        "region": "Upper Carniola"
+      },
+      {
+        "name": "Predjama Castle",
+        "region": "Inner Carniola"
+      },
+      {
+        "name": "Ljubljana Triple Bridge",
+        "region": "Ljubljana"
+      },
+      {
+        "name": "Skocjan Caves",
+        "region": "Karst"
+      },
+      {
+        "name": "Ptuj Castle",
+        "region": "Styria"
+      },
+      {
+        "name": "Triglav mountain",
+        "region": "Julian Alps"
+      }
+    ],
+    "animals": [
+      "alpine ibex",
+      "brown bear"
+    ],
+    "plants": [
+      "linden"
+    ],
+    "foodOrCraft": [
+      "Idrija lace"
+    ],
+    "avatarFocus": "Bled island church",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/si",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sk",
+    "name": "Slovakia",
+    "landmarks": [
+      {
+        "name": "Spis Castle",
+        "region": "Spis"
+      },
+      {
+        "name": "Bojnice Castle",
+        "region": "Trencin Region"
+      },
+      {
+        "name": "Vlkolinec wooden houses",
+        "region": "Liptov"
+      },
+      {
+        "name": "Bardejov town hall",
+        "region": "Saris"
+      },
+      {
+        "name": "Bratislava Castle",
+        "region": "Bratislava"
+      },
+      {
+        "name": "Dobsina ice cave",
+        "region": "Slovak Paradise"
+      }
+    ],
+    "animals": [
+      "chamois",
+      "brown bear"
+    ],
+    "plants": [
+      "spruce"
+    ],
+    "foodOrCraft": [
+      "wirework"
+    ],
+    "avatarFocus": "Spis Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sk",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sl",
+    "name": "Sierra Leone",
+    "landmarks": [
+      {
+        "name": "Bunce Island fort ruins",
+        "region": "Sierra Leone River"
+      },
+      {
+        "name": "Old Fourah Bay College",
+        "region": "Freetown"
+      },
+      {
+        "name": "Cotton Tree historic stump site (tree fell in 2023; do not show as intact current tree)",
+        "region": "Freetown"
+      },
+      {
+        "name": "Tiwai Island forest",
+        "region": "Southern Province"
+      },
+      {
+        "name": "Banana Islands coast",
+        "region": "Western Area"
+      }
+    ],
+    "animals": [
+      "pygmy hippopotamus",
+      "chimpanzee"
+    ],
+    "plants": [
+      "oil palm"
+    ],
+    "foodOrCraft": [
+      "country cloth"
+    ],
+    "avatarFocus": "Bunce Island fort ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sl",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      },
+      {
+        "url": "https://tourismsierraleone.com/attractions/bunce-island/",
+        "title": "Sierra Leone tourism: Bunce Island"
+      },
+      {
+        "url": "https://sierraleoneheritage.org/sites/monuments/oldfourahbay",
+        "title": "Sierra Leone Heritage: Old Fourah Bay College"
+      },
+      {
+        "url": "https://ntb.gov.sl/beaches-and-coastal/",
+        "title": "Sierra Leone National Tourist Board: coastal sites"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sm",
+    "name": "San Marino",
+    "landmarks": [
+      {
+        "name": "Guaita tower",
+        "region": "Monte Titano"
+      },
+      {
+        "name": "Cesta tower",
+        "region": "Monte Titano"
+      },
+      {
+        "name": "Montale tower",
+        "region": "Monte Titano"
+      },
+      {
+        "name": "Palazzo Pubblico",
+        "region": "San Marino City"
+      },
+      {
+        "name": "Basilica of San Marino",
+        "region": "San Marino City"
+      }
+    ],
+    "animals": [
+      "peregrine falcon"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "ceramics"
+    ],
+    "avatarFocus": "Guaita tower",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sm",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sn",
+    "name": "Senegal",
+    "landmarks": [
+      {
+        "name": "Goree Island houses",
+        "region": "Dakar"
+      },
+      {
+        "name": "Saint-Louis Faidherbe Bridge",
+        "region": "Saint-Louis"
+      },
+      {
+        "name": "Djoudj wetlands",
+        "region": "Saint-Louis"
+      },
+      {
+        "name": "Saloum Delta shell islands",
+        "region": "Fatick"
+      },
+      {
+        "name": "Sine Ngayene stone circles",
+        "region": "Kaolack"
+      }
+    ],
+    "animals": [
+      "pelican",
+      "warthog"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Goree Island houses",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sn",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      },
+      {
+        "url": "https://whc.unesco.org/en/list/1226/",
+        "title": "UNESCO: Sine Ngayene is in Senegal; Wassu is in Gambia"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "so",
+    "name": "Somalia",
+    "landmarks": [
+      {
+        "name": "Laas Geel rock art",
+        "region": "near Hargeisa"
+      },
+      {
+        "name": "Taleh secular fort ruins only",
+        "region": "Sool"
+      },
+      {
+        "name": "Mogadishu colonial civic facades only",
+        "region": "Banaadir"
+      },
+      {
+        "name": "Cal Madow mountains",
+        "region": "Sanaag"
+      },
+      {
+        "name": "Lido Beach coast",
+        "region": "Mogadishu"
+      }
+    ],
+    "animals": [
+      "Somali wild ass",
+      "dromedary"
+    ],
+    "plants": [
+      "frankincense"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Laas Geel rock art",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/so",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sr",
+    "name": "Suriname",
+    "landmarks": [
+      {
+        "name": "Paramaribo wooden houses",
+        "region": "Paramaribo"
+      },
+      {
+        "name": "Saint Peter and Paul Cathedral",
+        "region": "Paramaribo"
+      },
+      {
+        "name": "Fort Zeelandia",
+        "region": "Paramaribo"
+      },
+      {
+        "name": "Jodensavanne synagogue ruins",
+        "region": "Para"
+      },
+      {
+        "name": "Central Suriname rainforest",
+        "region": "Sipaliwini"
+      }
+    ],
+    "animals": [
+      "jaguar",
+      "scarlet ibis"
+    ],
+    "plants": [
+      "kapok"
+    ],
+    "foodOrCraft": [
+      "Maroon wood carving"
+    ],
+    "avatarFocus": "Paramaribo wooden houses",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sr",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ss",
+    "name": "South Sudan",
+    "landmarks": [
+      {
+        "name": "Sudd wetlands",
+        "region": "Jonglei and Unity"
+      },
+      {
+        "name": "Boma savanna",
+        "region": "Greater Pibor"
+      },
+      {
+        "name": "Nimule Nile rapids",
+        "region": "Eastern Equatoria"
+      },
+      {
+        "name": "Imatong mountains",
+        "region": "Eastern Equatoria"
+      },
+      {
+        "name": "traditional Dinka cattle camps",
+        "region": "Upper Nile basin"
+      }
+    ],
+    "animals": [
+      "white-eared kob",
+      "shoebill",
+      "Nile crocodile"
+    ],
+    "plants": [
+      "papyrus"
+    ],
+    "foodOrCraft": [
+      "basket weaving"
+    ],
+    "avatarFocus": "Sudd wetlands",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ss",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "st",
+    "name": "Sao Tome & Principe",
+    "landmarks": [
+      {
+        "name": "Sao Sebastiao Fort",
+        "region": "Sao Tome"
+      },
+      {
+        "name": "Sao Tome Cathedral",
+        "region": "Sao Tome"
+      },
+      {
+        "name": "Pico Cao Grande",
+        "region": "Sao Tome"
+      },
+      {
+        "name": "Roca Agua Ize estate",
+        "region": "Sao Tome"
+      },
+      {
+        "name": "Santo Antonio waterfront",
+        "region": "Principe"
+      }
+    ],
+    "animals": [
+      "Sao Tome ibis",
+      "Principe kingfisher"
+    ],
+    "plants": [
+      "cacao"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Sao Sebastiao Fort",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/st",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sv",
+    "name": "El Salvador",
+    "landmarks": [
+      {
+        "name": "Joya de Ceren",
+        "region": "La Libertad"
+      },
+      {
+        "name": "Tazumal",
+        "region": "Santa Ana"
+      },
+      {
+        "name": "San Andres archaeological site",
+        "region": "La Libertad"
+      },
+      {
+        "name": "Suchitoto colonial streets",
+        "region": "Cuscatlan"
+      },
+      {
+        "name": "Santa Ana volcano",
+        "region": "Santa Ana"
+      },
+      {
+        "name": "El Rosario Church",
+        "region": "San Salvador"
+      }
+    ],
+    "animals": [
+      "torogoz",
+      "iguana"
+    ],
+    "plants": [
+      "izote"
+    ],
+    "foodOrCraft": [
+      "indigo textiles"
+    ],
+    "avatarFocus": "Joya de Ceren",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sv",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sy",
+    "name": "Syria",
+    "landmarks": [
+      {
+        "name": "Palmyra Roman colonnade",
+        "region": "Homs"
+      },
+      {
+        "name": "Bosra Roman theatre",
+        "region": "Daraa"
+      },
+      {
+        "name": "Krak des Chevaliers secular fortifications",
+        "region": "Homs"
+      },
+      {
+        "name": "Saint Simeon church ruins",
+        "region": "Aleppo countryside"
+      },
+      {
+        "name": "Ugarit archaeological remains",
+        "region": "Latakia"
+      },
+      {
+        "name": "Apamea colonnade",
+        "region": "Hama"
+      }
+    ],
+    "animals": [
+      "dromedary",
+      "griffon vulture"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "Damascus marquetry"
+    ],
+    "avatarFocus": "Palmyra Roman colonnade",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sy",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "sz",
+    "name": "Eswatini",
+    "landmarks": [
+      {
+        "name": "Ngwenya ancient iron mine",
+        "region": "Hhohho"
+      },
+      {
+        "name": "Mantenga cultural village",
+        "region": "Hhohho"
+      },
+      {
+        "name": "Sibebe Rock",
+        "region": "Mbabane"
+      },
+      {
+        "name": "Malolotja mountains",
+        "region": "Hhohho"
+      },
+      {
+        "name": "Hlane savanna",
+        "region": "Lubombo"
+      }
+    ],
+    "animals": [
+      "white rhinoceros",
+      "African elephant"
+    ],
+    "plants": [
+      "aloe"
+    ],
+    "foodOrCraft": [
+      "sisal baskets"
+    ],
+    "avatarFocus": "Ngwenya ancient iron mine",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/sz",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "td",
+    "name": "Chad",
+    "landmarks": [
+      {
+        "name": "Lakes of Ounianga",
+        "region": "Ennedi-Ouest"
+      },
+      {
+        "name": "Ennedi rock arch",
+        "region": "Ennedi"
+      },
+      {
+        "name": "Ennedi rock art",
+        "region": "Ennedi"
+      },
+      {
+        "name": "Tibesti mountains",
+        "region": "Tibesti"
+      },
+      {
+        "name": "Zakouma savanna",
+        "region": "Salamat"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "dromedary"
+    ],
+    "plants": [
+      "acacia"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Lakes of Ounianga",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/td",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tg",
+    "name": "Togo",
+    "landmarks": [
+      {
+        "name": "Koutammakou takienta houses",
+        "region": "Kara"
+      },
+      {
+        "name": "Kpalime cathedral",
+        "region": "Plateaux"
+      },
+      {
+        "name": "Togoville church",
+        "region": "Maritime"
+      },
+      {
+        "name": "Cascade de Kpime",
+        "region": "Plateaux"
+      },
+      {
+        "name": "Lome Independence Monument",
+        "region": "Maritime"
+      }
+    ],
+    "animals": [
+      "hippopotamus",
+      "green monkey"
+    ],
+    "plants": [
+      "oil palm"
+    ],
+    "foodOrCraft": [
+      "kente weaving"
+    ],
+    "avatarFocus": "Koutammakou takienta houses",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tg",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "th",
+    "name": "Thailand",
+    "landmarks": [
+      {
+        "name": "Wat Arun",
+        "region": "Bangkok"
+      },
+      {
+        "name": "Sukhothai Buddhist ruins",
+        "region": "Sukhothai"
+      },
+      {
+        "name": "Ayutthaya temples",
+        "region": "Ayutthaya"
+      },
+      {
+        "name": "Doi Suthep Buddhist temple",
+        "region": "Chiang Mai"
+      },
+      {
+        "name": "Phanom Rung Hindu temple",
+        "region": "Buriram"
+      },
+      {
+        "name": "Phang Nga limestone islands",
+        "region": "South"
+      }
+    ],
+    "animals": [
+      "Asian elephant",
+      "gibbon"
+    ],
+    "plants": [
+      "lotus"
+    ],
+    "foodOrCraft": [
+      "silk weaving"
+    ],
+    "avatarFocus": "Wat Arun",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/th",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tj",
+    "name": "Tajikistan",
+    "landmarks": [
+      {
+        "name": "Sarazm archaeological remains",
+        "region": "Panjakent"
+      },
+      {
+        "name": "Ancient Panjakent pre-Islamic ruins",
+        "region": "Sughd"
+      },
+      {
+        "name": "Hulbuk secular palace remains",
+        "region": "Khatlon"
+      },
+      {
+        "name": "Hissar fortress secular gate",
+        "region": "near Dushanbe"
+      },
+      {
+        "name": "Pamir mountains",
+        "region": "Gorno-Badakhshan"
+      }
+    ],
+    "animals": [
+      "Marco Polo sheep",
+      "snow leopard"
+    ],
+    "plants": [
+      "apricot"
+    ],
+    "foodOrCraft": [
+      "suzani embroidery"
+    ],
+    "avatarFocus": "Sarazm archaeological remains",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tj",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tl",
+    "name": "Timor-Leste",
+    "landmarks": [
+      {
+        "name": "Cristo Rei statue",
+        "region": "Dili"
+      },
+      {
+        "name": "Balibo fort",
+        "region": "Bobonaro"
+      },
+      {
+        "name": "Uma Lulik traditional sacred house",
+        "region": "Timor-Leste highlands"
+      },
+      {
+        "name": "Mount Ramelau",
+        "region": "Ainaro"
+      },
+      {
+        "name": "Jaco Island",
+        "region": "Lautem"
+      }
+    ],
+    "animals": [
+      "saltwater crocodile",
+      "Timor green pigeon"
+    ],
+    "plants": [
+      "coffee"
+    ],
+    "foodOrCraft": [
+      "tais weaving"
+    ],
+    "avatarFocus": "Cristo Rei statue",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tl",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      },
+      {
+        "url": "https://timorleste.tl/destinations/balibo",
+        "title": "Official Timor-Leste tourism: Balibo"
+      },
+      {
+        "url": "https://timorleste.tl/destinations/jaco-island",
+        "title": "Official Timor-Leste tourism: Jaco Island"
+      },
+      {
+        "url": "https://snap.mappf.gov.tl/main/detail_sub_menu/32",
+        "title": "Timor-Leste protected areas: Uma Lulik and regional itineraries"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tm",
+    "name": "Turkmenistan",
+    "landmarks": [
+      {
+        "name": "Nisa Parthian fortress",
+        "region": "Ahal"
+      },
+      {
+        "name": "Gonur Depe Bronze Age ruins",
+        "region": "Mary"
+      },
+      {
+        "name": "Merv ancient Erk Kala citadel earthworks",
+        "region": "Mary"
+      },
+      {
+        "name": "Yangykala Canyon",
+        "region": "Balkan"
+      },
+      {
+        "name": "Dinosaur Plateau",
+        "region": "Koytendag"
+      }
+    ],
+    "animals": [
+      "Akhal-Teke horse",
+      "goitered gazelle"
+    ],
+    "plants": [
+      "saxaul"
+    ],
+    "foodOrCraft": [
+      "carpet weaving"
+    ],
+    "avatarFocus": "Nisa Parthian fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tm",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tn",
+    "name": "Tunisia",
+    "landmarks": [
+      {
+        "name": "Carthage Roman ruins",
+        "region": "Tunis"
+      },
+      {
+        "name": "El Jem amphitheatre",
+        "region": "Mahdia"
+      },
+      {
+        "name": "Dougga Roman theatre",
+        "region": "Beja"
+      },
+      {
+        "name": "Bulla Regia Roman houses",
+        "region": "Jendouba"
+      },
+      {
+        "name": "Kerkuane Punic ruins",
+        "region": "Nabeul"
+      },
+      {
+        "name": "Chott el Jerid",
+        "region": "Tozeur"
+      }
+    ],
+    "animals": [
+      "fennec fox",
+      "dromedary"
+    ],
+    "plants": [
+      "olive"
+    ],
+    "foodOrCraft": [
+      "woven rugs"
+    ],
+    "avatarFocus": "Carthage Roman ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tn",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "to",
+    "name": "Tonga",
+    "landmarks": [
+      {
+        "name": "Haamonga a Maui trilithon",
+        "region": "Tongatapu"
+      },
+      {
+        "name": "Langi royal tombs",
+        "region": "Mu'a"
+      },
+      {
+        "name": "Royal Palace exterior",
+        "region": "Nuku'alofa"
+      },
+      {
+        "name": "Mapu a Vaea blowholes",
+        "region": "Tongatapu"
+      },
+      {
+        "name": "Anahulu cave",
+        "region": "Tongatapu"
+      }
+    ],
+    "animals": [
+      "humpback whale",
+      "flying fox"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "ngatu barkcloth"
+    ],
+    "avatarFocus": "Haamonga a Maui trilithon",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/to",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      },
+      {
+        "url": "https://www.doc.govt.nz/documents/about-doc/role/international/taonga-pasifika.pdf",
+        "title": "New Zealand Department of Conservation: Pacific heritage, Tonga trilithon and tombs"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tr",
+    "name": "Türkiye",
+    "landmarks": [
+      {
+        "name": "Trojan Horse modern commemorative wooden replica",
+        "region": "Canakkale"
+      },
+      {
+        "name": "Troy ancient walls",
+        "region": "Canakkale"
+      },
+      {
+        "name": "Library of Celsus at Ephesus",
+        "region": "Izmir"
+      },
+      {
+        "name": "Gobekli Tepe",
+        "region": "Sanliurfa"
+      },
+      {
+        "name": "Nemrut colossal heads",
+        "region": "Adiyaman"
+      },
+      {
+        "name": "Hattusa Lion Gate",
+        "region": "Corum"
+      },
+      {
+        "name": "Sumela Monastery",
+        "region": "Trabzon"
+      },
+      {
+        "name": "Ani Cathedral",
+        "region": "Kars"
+      },
+      {
+        "name": "Galata Tower",
+        "region": "Istanbul"
+      },
+      {
+        "name": "Pamukkale and Hierapolis",
+        "region": "Denizli"
+      },
+      {
+        "name": "Cappadocia rock formations",
+        "region": "Nevsehir"
+      },
+      {
+        "name": "Aspendos theatre",
+        "region": "Antalya"
+      },
+      {
+        "name": "Van Castle",
+        "region": "Van"
+      },
+      {
+        "name": "Safranbolu secular houses",
+        "region": "Karabuk"
+      }
+    ],
+    "animals": [
+      "Van cat",
+      "Ankara cat",
+      "Anatolian wild sheep"
+    ],
+    "plants": [
+      "tulip",
+      "olive",
+      "tea"
+    ],
+    "foodOrCraft": [
+      "Iznik tiles without calligraphy",
+      "carpets"
+    ],
+    "avatarFocus": "Trojan Horse modern commemorative wooden replica",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tr",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim; Trojan Horse is a modern commemorative replica, not a surviving ancient artefact; motifs span selected regions, not all 81 provinces"
+  },
+  {
+    "code": "tt",
+    "name": "Trinidad & Tobago",
+    "landmarks": [
+      {
+        "name": "Queen's Royal College",
+        "region": "Port of Spain"
+      },
+      {
+        "name": "Temple in the Sea Hindu temple",
+        "region": "Waterloo"
+      },
+      {
+        "name": "Fort King George",
+        "region": "Tobago"
+      },
+      {
+        "name": "Pitch Lake",
+        "region": "La Brea"
+      },
+      {
+        "name": "Caroni Swamp",
+        "region": "Caroni"
+      },
+      {
+        "name": "Argyle Falls",
+        "region": "Tobago"
+      }
+    ],
+    "animals": [
+      "scarlet ibis",
+      "leatherback turtle"
+    ],
+    "plants": [
+      "chaconia"
+    ],
+    "foodOrCraft": [
+      "steelpan"
+    ],
+    "avatarFocus": "Queen's Royal College",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tt",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tv",
+    "name": "Tuvalu",
+    "landmarks": [
+      {
+        "name": "Funafuti lagoon",
+        "region": "Funafuti"
+      },
+      {
+        "name": "Fetu Ao Lima Church",
+        "region": "Funafuti"
+      },
+      {
+        "name": "traditional maneapa meeting house",
+        "region": "islands"
+      },
+      {
+        "name": "Nanumea atoll shoreline",
+        "region": "Nanumea"
+      },
+      {
+        "name": "Funafuti conservation reefs",
+        "region": "Funafuti"
+      }
+    ],
+    "animals": [
+      "green turtle",
+      "black noddy"
+    ],
+    "plants": [
+      "pandanus"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Funafuti lagoon",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tv",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tz",
+    "name": "Tanzania",
+    "landmarks": [
+      {
+        "name": "Kilimanjaro",
+        "region": "Kilimanjaro"
+      },
+      {
+        "name": "Ngorongoro crater",
+        "region": "Arusha"
+      },
+      {
+        "name": "Serengeti savanna",
+        "region": "Mara"
+      },
+      {
+        "name": "Kondoa rock art",
+        "region": "Dodoma"
+      },
+      {
+        "name": "Stone Town secular carved doors only",
+        "region": "Zanzibar"
+      },
+      {
+        "name": "Olduvai Gorge",
+        "region": "Arusha"
+      }
+    ],
+    "animals": [
+      "lion",
+      "African elephant",
+      "giraffe"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "Makonde carving"
+    ],
+    "avatarFocus": "Kilimanjaro",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/tz",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ua",
+    "name": "Ukraine",
+    "landmarks": [
+      {
+        "name": "Saint Sophia Cathedral",
+        "region": "Kyiv"
+      },
+      {
+        "name": "Lviv Rynok Square",
+        "region": "Lviv"
+      },
+      {
+        "name": "Kamianets-Podilskyi Castle",
+        "region": "Khmelnytskyi"
+      },
+      {
+        "name": "Chernivtsi university former residence",
+        "region": "Chernivtsi"
+      },
+      {
+        "name": "wooden churches of Carpathians",
+        "region": "Zakarpattia"
+      },
+      {
+        "name": "Odesa opera house",
+        "region": "Odesa"
+      }
+    ],
+    "animals": [
+      "white stork",
+      "European bison"
+    ],
+    "plants": [
+      "sunflower"
+    ],
+    "foodOrCraft": [
+      "pysanka eggs"
+    ],
+    "avatarFocus": "Saint Sophia Cathedral",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ua",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ug",
+    "name": "Uganda",
+    "landmarks": [
+      {
+        "name": "Kasubi royal tombs",
+        "region": "Kampala"
+      },
+      {
+        "name": "Bwindi forest",
+        "region": "Southwest"
+      },
+      {
+        "name": "Murchison Falls",
+        "region": "Northwest"
+      },
+      {
+        "name": "Rwenzori mountains",
+        "region": "West"
+      },
+      {
+        "name": "Nyero rock paintings",
+        "region": "Kumi"
+      },
+      {
+        "name": "Source of Nile",
+        "region": "Jinja"
+      }
+    ],
+    "animals": [
+      "mountain gorilla",
+      "shoebill",
+      "Uganda kob"
+    ],
+    "plants": [
+      "banana"
+    ],
+    "foodOrCraft": [
+      "barkcloth"
+    ],
+    "avatarFocus": "Kasubi royal tombs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ug",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "us",
+    "name": "United States",
+    "landmarks": [
+      {
+        "name": "Statue of Liberty",
+        "region": "New York"
+      },
+      {
+        "name": "Grand Canyon",
+        "region": "Arizona"
+      },
+      {
+        "name": "Golden Gate Bridge",
+        "region": "California"
+      },
+      {
+        "name": "Mesa Verde cliff dwellings",
+        "region": "Colorado"
+      },
+      {
+        "name": "Independence Hall",
+        "region": "Pennsylvania"
+      },
+      {
+        "name": "Mount Rushmore",
+        "region": "South Dakota"
+      },
+      {
+        "name": "Hawaii volcanoes",
+        "region": "Hawaii"
+      },
+      {
+        "name": "Denali",
+        "region": "Alaska"
+      }
+    ],
+    "animals": [
+      "American bison",
+      "bald eagle",
+      "grizzly bear"
+    ],
+    "plants": [
+      "giant sequoia"
+    ],
+    "foodOrCraft": [
+      "Navajo weaving"
+    ],
+    "avatarFocus": "Statue of Liberty",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/us",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "uy",
+    "name": "Uruguay",
+    "landmarks": [
+      {
+        "name": "Fray Bentos industrial landscape",
+        "region": "Rio Negro"
+      },
+      {
+        "name": "Colonia del Sacramento lighthouse",
+        "region": "Colonia"
+      },
+      {
+        "name": "Palacio Salvo",
+        "region": "Montevideo"
+      },
+      {
+        "name": "Casapueblo",
+        "region": "Maldonado"
+      },
+      {
+        "name": "Santa Teresa fortress",
+        "region": "Rocha"
+      }
+    ],
+    "animals": [
+      "southern lapwing",
+      "capybara"
+    ],
+    "plants": [
+      "ombu"
+    ],
+    "foodOrCraft": [
+      "leatherwork"
+    ],
+    "avatarFocus": "Fray Bentos industrial landscape",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/uy",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "uz",
+    "name": "Uzbekistan",
+    "landmarks": [
+      {
+        "name": "Ayaz Kala pre-Islamic fortress",
+        "region": "Karakalpakstan"
+      },
+      {
+        "name": "Toprak Kala palace ruins",
+        "region": "Karakalpakstan"
+      },
+      {
+        "name": "Afrasiab pre-Islamic mural fragment",
+        "region": "Samarkand"
+      },
+      {
+        "name": "Savitsky Museum exterior",
+        "region": "Nukus"
+      },
+      {
+        "name": "Chimgan mountains",
+        "region": "Tashkent Region"
+      },
+      {
+        "name": "Termez Buddhist Fayaz Tepe ruins",
+        "region": "Surxondaryo"
+      }
+    ],
+    "animals": [
+      "Bactrian camel",
+      "goitered gazelle"
+    ],
+    "plants": [
+      "mulberry"
+    ],
+    "foodOrCraft": [
+      "ikat weaving"
+    ],
+    "avatarFocus": "Ayaz Kala pre-Islamic fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/uz",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "va",
+    "name": "Vatican City",
+    "landmarks": [
+      {
+        "name": "Saint Peter's Basilica",
+        "region": "Vatican City"
+      },
+      {
+        "name": "Saint Peter's colonnade",
+        "region": "Vatican City"
+      },
+      {
+        "name": "Sistine Chapel",
+        "region": "Vatican City"
+      },
+      {
+        "name": "Vatican Museums courtyard",
+        "region": "Vatican City"
+      },
+      {
+        "name": "Vatican Gardens",
+        "region": "Vatican City"
+      }
+    ],
+    "animals": [
+      "rock dove"
+    ],
+    "plants": [
+      "stone pine"
+    ],
+    "foodOrCraft": [
+      "mosaic"
+    ],
+    "avatarFocus": "Saint Peter's Basilica",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/va",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "vc",
+    "name": "Saint Vincent and the Grenadines",
+    "landmarks": [
+      {
+        "name": "Fort Charlotte",
+        "region": "Saint Vincent"
+      },
+      {
+        "name": "Botanic Gardens",
+        "region": "Kingstown"
+      },
+      {
+        "name": "Saint George's Cathedral",
+        "region": "Kingstown"
+      },
+      {
+        "name": "La Soufriere volcano",
+        "region": "Saint Vincent"
+      },
+      {
+        "name": "Tobago Cays",
+        "region": "Grenadines"
+      }
+    ],
+    "animals": [
+      "Saint Vincent parrot",
+      "green turtle"
+    ],
+    "plants": [
+      "breadfruit"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Fort Charlotte",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/vc",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ve",
+    "name": "Venezuela",
+    "landmarks": [
+      {
+        "name": "Angel Falls",
+        "region": "Bolivar"
+      },
+      {
+        "name": "Ciudad Universitaria modern architecture",
+        "region": "Caracas"
+      },
+      {
+        "name": "Coro colonial houses",
+        "region": "Falcon"
+      },
+      {
+        "name": "Los Roques coral islands",
+        "region": "Federal Dependencies"
+      },
+      {
+        "name": "Mount Roraima",
+        "region": "Bolivar"
+      },
+      {
+        "name": "Merida cable car",
+        "region": "Merida"
+      }
+    ],
+    "animals": [
+      "jaguar",
+      "scarlet ibis",
+      "capybara"
+    ],
+    "plants": [
+      "moriche palm"
+    ],
+    "foodOrCraft": [
+      "woven hammocks"
+    ],
+    "avatarFocus": "Angel Falls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ve",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "vn",
+    "name": "Vietnam",
+    "landmarks": [
+      {
+        "name": "Hoi An Japanese Covered Bridge",
+        "region": "Quang Nam"
+      },
+      {
+        "name": "My Son Hindu temples",
+        "region": "Quang Nam"
+      },
+      {
+        "name": "Hue imperial citadel",
+        "region": "Thua Thien Hue"
+      },
+      {
+        "name": "Temple of Literature",
+        "region": "Hanoi"
+      },
+      {
+        "name": "Ha Long limestone islands",
+        "region": "Quang Ninh"
+      },
+      {
+        "name": "Phong Nha caves",
+        "region": "Quang Binh"
+      }
+    ],
+    "animals": [
+      "red-shanked douc",
+      "saola"
+    ],
+    "plants": [
+      "lotus"
+    ],
+    "foodOrCraft": [
+      "lacquerware"
+    ],
+    "avatarFocus": "Hoi An Japanese Covered Bridge",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/vn",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "vu",
+    "name": "Vanuatu",
+    "landmarks": [
+      {
+        "name": "Chief Roi Mata's Domain",
+        "region": "Efate and nearby islands"
+      },
+      {
+        "name": "Yasur volcano",
+        "region": "Tanna"
+      },
+      {
+        "name": "land-diving tower",
+        "region": "Pentecost"
+      },
+      {
+        "name": "Port Vila market",
+        "region": "Efate"
+      },
+      {
+        "name": "Millennium Cave",
+        "region": "Espiritu Santo"
+      }
+    ],
+    "animals": [
+      "Vanuatu flying fox",
+      "dugong"
+    ],
+    "plants": [
+      "banyan"
+    ],
+    "foodOrCraft": [
+      "sand drawing"
+    ],
+    "avatarFocus": "Chief Roi Mata's Domain",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/vu",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ws",
+    "name": "Samoa",
+    "landmarks": [
+      {
+        "name": "Robert Louis Stevenson Museum",
+        "region": "Upolu"
+      },
+      {
+        "name": "To Sua ocean trench",
+        "region": "Upolu"
+      },
+      {
+        "name": "Pulemelei mound",
+        "region": "Savaii"
+      },
+      {
+        "name": "Alofaaga blowholes",
+        "region": "Savaii"
+      },
+      {
+        "name": "traditional fale houses",
+        "region": "Upolu"
+      }
+    ],
+    "animals": [
+      "Samoan flying fox",
+      "manumea"
+    ],
+    "plants": [
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "siapo barkcloth"
+    ],
+    "avatarFocus": "Robert Louis Stevenson Museum",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ws",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "ye",
+    "name": "Yemen",
+    "landmarks": [
+      {
+        "name": "Shibam secular mudbrick tower houses only",
+        "region": "Hadramawt"
+      },
+      {
+        "name": "Old Marib dam",
+        "region": "Marib"
+      },
+      {
+        "name": "Baran ancient temple columns",
+        "region": "Marib"
+      },
+      {
+        "name": "Socotra dragon-blood landscape",
+        "region": "Socotra"
+      },
+      {
+        "name": "Dar al-Hajar secular rock palace only",
+        "region": "Wadi Dhahr"
+      }
+    ],
+    "animals": [
+      "Socotra cormorant",
+      "dromedary"
+    ],
+    "plants": [
+      "dragon blood tree"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Shibam secular mudbrick tower houses only",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ye",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "za",
+    "name": "South Africa",
+    "landmarks": [
+      {
+        "name": "Table Mountain",
+        "region": "Western Cape"
+      },
+      {
+        "name": "Robben Island prison buildings",
+        "region": "Western Cape"
+      },
+      {
+        "name": "Mapungubwe archaeological landscape",
+        "region": "Limpopo"
+      },
+      {
+        "name": "Drakensberg San rock art",
+        "region": "KwaZulu-Natal"
+      },
+      {
+        "name": "Cape Agulhas lighthouse",
+        "region": "Western Cape"
+      },
+      {
+        "name": "Union Buildings",
+        "region": "Gauteng"
+      }
+    ],
+    "animals": [
+      "African penguin",
+      "springbok",
+      "African elephant"
+    ],
+    "plants": [
+      "king protea"
+    ],
+    "foodOrCraft": [
+      "Zulu beadwork"
+    ],
+    "avatarFocus": "Table Mountain",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/za",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "zm",
+    "name": "Zambia",
+    "landmarks": [
+      {
+        "name": "Victoria Falls",
+        "region": "Livingstone"
+      },
+      {
+        "name": "Kalambo Falls",
+        "region": "Northern Province"
+      },
+      {
+        "name": "Mwela rock paintings",
+        "region": "Kasama"
+      },
+      {
+        "name": "Ingombe Ilede archaeological site",
+        "region": "Southern Province"
+      },
+      {
+        "name": "South Luangwa floodplain",
+        "region": "Eastern Province"
+      },
+      {
+        "name": "Kuomboka royal barge",
+        "region": "Western Province"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "Thornicroft giraffe",
+      "shoebill"
+    ],
+    "plants": [
+      "miombo"
+    ],
+    "foodOrCraft": [
+      "basket weaving"
+    ],
+    "avatarFocus": "Victoria Falls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/zm",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "zw",
+    "name": "Zimbabwe",
+    "landmarks": [
+      {
+        "name": "Great Zimbabwe dry-stone walls",
+        "region": "Masvingo"
+      },
+      {
+        "name": "Khami ruins",
+        "region": "Bulawayo region"
+      },
+      {
+        "name": "Matobo rock art",
+        "region": "Matabeleland South"
+      },
+      {
+        "name": "Victoria Falls",
+        "region": "Matabeleland North"
+      },
+      {
+        "name": "Mana Pools",
+        "region": "Mashonaland West"
+      },
+      {
+        "name": "Chimanimani peaks",
+        "region": "Manicaland"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "sable antelope",
+      "rhinoceros"
+    ],
+    "plants": [
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "soapstone carving"
+    ],
+    "avatarFocus": "Great Zimbabwe dry-stone walls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/zw",
+        "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+      }
+    ],
+    "notes": "representative regional selection; not exhaustive; verify individual candidates before production; animals are regional motifs, no endemicity claim"
+  },
+  {
+    "code": "tw",
+    "name": "Taiwan",
+    "landmarks": [
+      {
+        "name": "Taipei 101",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Sun Moon Lake",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Alishan forest railway",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Taroko marble gorge",
+        "region": "Taiwan regional selection"
+      }
+    ],
+    "animals": [
+      "Formosan sika deer",
+      "Taiwan blue magpie"
+    ],
+    "plants": [
+      "banyan",
+      "tea shrubs"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Taipei 101",
+    "sources": [
+      {
+        "url": "https://eng.taiwan.net.tw/",
+        "title": "Taiwan geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xk",
+    "name": "Kosovo",
+    "landmarks": [
+      {
+        "name": "Prizren stone bridge",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Gracanica Orthodox monastery",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Rugova canyon",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Gjakova old bazaar civilian houses only",
+        "region": "Kosovo regional selection"
+      }
+    ],
+    "animals": [
+      "Balkan chamois",
+      "golden eagle"
+    ],
+    "plants": [
+      "beech",
+      "wildflowers"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Prizren stone bridge",
+    "sources": [
+      {
+        "url": "https://www.kosovo-tourism.ch/",
+        "title": "Kosovo geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ck",
+    "name": "Cook Islands",
+    "landmarks": [
+      {
+        "name": "Aitutaki lagoon",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Te Rua Manga peak",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Avarua coral-stone church",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Ara Metua stone road",
+        "region": "Cook Islands regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "Rarotonga monarch"
+    ],
+    "plants": [
+      "coconut",
+      "hibiscus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Aitutaki lagoon",
+    "sources": [
+      {
+        "url": "https://cookislands.travel/islands/aitutaki",
+        "title": "Cook Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nu",
+    "name": "Niue",
+    "landmarks": [
+      {
+        "name": "Talava Arches",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Matapa Chasm",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Togo Chasm",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Limu Pools",
+        "region": "Niue regional selection"
+      }
+    ],
+    "animals": [
+      "coconut crab",
+      "white-tailed tropicbird"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Talava Arches",
+    "sources": [
+      {
+        "url": "https://www.niueisland.com/see-and-do/tracks-walks-and-caves",
+        "title": "Niue geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xn",
+    "name": "Northern Cyprus",
+    "landmarks": [
+      {
+        "name": "Kyrenia Castle",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Bellapais Abbey",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Salamis ancient theatre",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Saint Hilarion Castle",
+        "region": "Northern Cyprus regional selection"
+      }
+    ],
+    "animals": [
+      "Cyprus mouflon",
+      "loggerhead sea turtle"
+    ],
+    "plants": [
+      "olive",
+      "carob"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kyrenia Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/tentativelists/state=cy",
+        "title": "Northern Cyprus geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xs",
+    "name": "Somaliland",
+    "landmarks": [
+      {
+        "name": "Laas Geel rock paintings",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Berbera secular Ottoman coral-stone civilian houses",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Daallo escarpment",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Zeila coastal coral ruins without religious structures",
+        "region": "Somaliland regional selection"
+      }
+    ],
+    "animals": [
+      "Beira antelope",
+      "hamadryas baboon"
+    ],
+    "plants": [
+      "frankincense tree",
+      "acacia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Laas Geel rock paintings",
+    "sources": [
+      {
+        "url": "https://somalilandtravel.com/",
+        "title": "Somaliland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xa",
+    "name": "Abkhazia",
+    "landmarks": [
+      {
+        "name": "New Athos Orthodox monastery",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Lake Ritsa",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Anakopia fortress",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Gagra colonnade",
+        "region": "Abkhazia regional selection"
+      }
+    ],
+    "animals": [
+      "Caucasian chamois",
+      "red deer"
+    ],
+    "plants": [
+      "boxwood",
+      "magnolia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "New Athos Orthodox monastery",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/Abkhazia",
+        "title": "Abkhazia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xo",
+    "name": "South Ossetia",
+    "landmarks": [
+      {
+        "name": "Tir Monastery",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Ksani medieval defensive towers",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Liakhvi valley",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Greater Caucasus mountain ridge",
+        "region": "South Ossetia regional selection"
+      }
+    ],
+    "animals": [
+      "Caucasian tur",
+      "golden eagle"
+    ],
+    "plants": [
+      "beech",
+      "alpine wildflowers"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tir Monastery",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/South-Ossetia",
+        "title": "South Ossetia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xt",
+    "name": "Transnistria",
+    "landmarks": [
+      {
+        "name": "Bender Fortress",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Tiraspol secular neoclassical theatre",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Dniester river bend",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Stroentsy wind tower",
+        "region": "Transnistria regional selection"
+      }
+    ],
+    "animals": [
+      "roe deer",
+      "white stork"
+    ],
+    "plants": [
+      "grape vines",
+      "sunflower"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bender Fortress",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/Transdniestria",
+        "title": "Transnistria geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ai",
+    "name": "Anguilla",
+    "landmarks": [
+      {
+        "name": "Shoal Bay East",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Wallblake House",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Heritage Collection Museum",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Sandy Island",
+        "region": "Anguilla regional selection"
+      }
+    ],
+    "animals": [
+      "Anguilla anole",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Shoal Bay East",
+    "sources": [
+      {
+        "url": "https://ivisitanguilla.com/",
+        "title": "Anguilla geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "aq",
+    "name": "Antarctica",
+    "landmarks": [
+      {
+        "name": "Antarctic Peninsula iceberg channel",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "Mount Erebus",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "historic Cape Royds Shackleton hut",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "Transantarctic Mountains",
+        "region": "Antarctica regional selection"
+      }
+    ],
+    "animals": [
+      "emperor penguin",
+      "Weddell seal"
+    ],
+    "plants": [],
+    "foodOrCraft": [],
+    "avatarFocus": "Antarctic Peninsula iceberg channel",
+    "sources": [
+      {
+        "url": "https://www.antarctica.gov.au/about-antarctica/",
+        "title": "Antarctica geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "as",
+    "name": "Samoa (American)",
+    "landmarks": [
+      {
+        "name": "Ofu Beach",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Pago Pago harbor",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Mount Alava",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Ta'u coastal rainforest",
+        "region": "Samoa (American) regional selection"
+      }
+    ],
+    "animals": [
+      "Samoan flying fox",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ofu Beach",
+    "sources": [
+      {
+        "url": "https://www.nps.gov/npsa/index.htm",
+        "title": "Samoa (American) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "aw",
+    "name": "Aruba",
+    "landmarks": [
+      {
+        "name": "California Lighthouse",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Alto Vista Chapel",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Arikok rock formations",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Oranjestad Dutch colonial civilian facades",
+        "region": "Aruba regional selection"
+      }
+    ],
+    "animals": [
+      "Aruban burrowing owl",
+      "Aruban whiptail lizard"
+    ],
+    "plants": [
+      "divi-divi",
+      "cactus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "California Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.aruba.com/",
+        "title": "Aruba geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ax",
+    "name": "Åland Islands",
+    "landmarks": [
+      {
+        "name": "Kastelholm Castle",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Bomarsund fortress ruins",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Mariehamn wooden waterfront",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Kobba Klintar pilot station",
+        "region": "Åland Islands regional selection"
+      }
+    ],
+    "animals": [
+      "white-tailed eagle",
+      "grey seal"
+    ],
+    "plants": [
+      "Scots pine",
+      "sea buckthorn"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kastelholm Castle",
+    "sources": [
+      {
+        "url": "https://visitaland.com/en/",
+        "title": "Åland Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bl",
+    "name": "St Barthelemy",
+    "landmarks": [
+      {
+        "name": "Gustavia harbor",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Fort Karl stone ruins",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Colombier Beach",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Saline salt pond",
+        "region": "St Barthelemy regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Gustavia harbor",
+    "sources": [
+      {
+        "url": "https://www.saintbarth-tourisme.com/en/",
+        "title": "St Barthelemy geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bm",
+    "name": "Bermuda",
+    "landmarks": [
+      {
+        "name": "Gibbs Hill Lighthouse",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Saint George stone houses",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Horseshoe Bay",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Crystal Caves",
+        "region": "Bermuda regional selection"
+      }
+    ],
+    "animals": [
+      "Bermuda skink",
+      "white-tailed tropicbird"
+    ],
+    "plants": [
+      "Bermuda cedar",
+      "oleander"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Gibbs Hill Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.gotobermuda.com/",
+        "title": "Bermuda geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bq",
+    "name": "Caribbean NL",
+    "landmarks": [
+      {
+        "name": "Bonaire pink salt pans",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Saba Mount Scenery",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Sint Eustatius Fort Oranje",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Kralendijk civilian waterfront",
+        "region": "Caribbean NL regional selection"
+      }
+    ],
+    "animals": [
+      "American flamingo",
+      "Saba anole"
+    ],
+    "plants": [
+      "cactus",
+      "sea grape"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bonaire pink salt pans",
+    "sources": [
+      {
+        "url": "https://www.tourismbonaire.com/",
+        "title": "Caribbean NL geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bv",
+    "name": "Bouvet Island",
+    "landmarks": [
+      {
+        "name": "Olavtoppen ice cap",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "Nyrøysa black volcanic shore",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "Cape Valdivia cliffs",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "glacier terminus and Southern Ocean surf",
+        "region": "Bouvet Island regional selection"
+      }
+    ],
+    "animals": [
+      "Antarctic fur seal",
+      "macaroni penguin"
+    ],
+    "plants": [
+      "small moss patches",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Olavtoppen ice cap",
+    "sources": [
+      {
+        "url": "https://npolar.no/en/themes/bouvetoya/",
+        "title": "Bouvet Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cc",
+    "name": "Cocos (Keeling) Islands",
+    "landmarks": [
+      {
+        "name": "Direction Island lagoon",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "Home Island Malay civilian wooden houses",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "West Island coral beach",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "atoll reef channel",
+        "region": "Cocos (Keeling) Islands regional selection"
+      }
+    ],
+    "animals": [
+      "red-footed booby",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Direction Island lagoon",
+    "sources": [
+      {
+        "url": "https://www.cocoskeelingislands.com.au/",
+        "title": "Cocos (Keeling) Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cw",
+    "name": "Curaçao",
+    "landmarks": [
+      {
+        "name": "Willemstad Handelskade",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Queen Emma floating bridge",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Christoffel mountain",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Shete Boka limestone coast",
+        "region": "Curaçao regional selection"
+      }
+    ],
+    "animals": [
+      "Curaçao white-tailed deer",
+      "Caribbean flamingo"
+    ],
+    "plants": [
+      "divi-divi",
+      "cactus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Willemstad Handelskade",
+    "sources": [
+      {
+        "url": "https://www.curacao.com/en/",
+        "title": "Curaçao geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cx",
+    "name": "Christmas Island",
+    "landmarks": [
+      {
+        "name": "The Dales rainforest",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Flying Fish Cove civilian coastline",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Hugh's Dale waterfall",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Dolly Beach",
+        "region": "Christmas Island regional selection"
+      }
+    ],
+    "animals": [
+      "Christmas Island red crab",
+      "golden bosun bird"
+    ],
+    "plants": [
+      "pandanus",
+      "rainforest figs"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "The Dales rainforest",
+    "sources": [
+      {
+        "url": "https://www.christmas.net.au/",
+        "title": "Christmas Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "eh",
+    "name": "Western Sahara",
+    "landmarks": [
+      {
+        "name": "Dakhla lagoon",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "White Dune",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "Laayoune civilian low-rise architecture",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "Atlantic desert cliffs",
+        "region": "Western Sahara regional selection"
+      }
+    ],
+    "animals": [
+      "dromedary camel",
+      "greater flamingo"
+    ],
+    "plants": [
+      "tamarisk",
+      "desert grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Dakhla lagoon",
+    "sources": [
+      {
+        "url": "https://www.un.org/dppa/decolonization/en/nsgt/western-sahara",
+        "title": "Western Sahara geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "fk",
+    "name": "Falkland Islands",
+    "landmarks": [
+      {
+        "name": "Christ Church Cathedral Stanley",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "Gypsy Cove",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "Volunteer Point",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "West Point Island cliffs",
+        "region": "Falkland Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "black-browed albatross"
+    ],
+    "plants": [
+      "tussac grass",
+      "diddle-dee"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Christ Church Cathedral Stanley",
+    "sources": [
+      {
+        "url": "https://www.falklandislands.com/",
+        "title": "Falkland Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "fo",
+    "name": "Faroe Islands",
+    "landmarks": [
+      {
+        "name": "Múlafossur waterfall",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Tinganes wooden houses",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Kirkjubøur cathedral ruins",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Drangarnir sea stacks",
+        "region": "Faroe Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Atlantic puffin",
+      "grey seal"
+    ],
+    "plants": [
+      "turf grass",
+      "angelica"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Múlafossur waterfall",
+    "sources": [
+      {
+        "url": "https://visitfaroeislands.com/",
+        "title": "Faroe Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gf",
+    "name": "French Guiana",
+    "landmarks": [
+      {
+        "name": "Devils Island former penal colony stone ruins",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Cayenne Creole civilian houses",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Kaw marshes",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Maroni river rainforest",
+        "region": "French Guiana regional selection"
+      }
+    ],
+    "animals": [
+      "scarlet ibis",
+      "red howler monkey"
+    ],
+    "plants": [
+      "mangrove",
+      "royal palm"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Devils Island former penal colony stone ruins",
+    "sources": [
+      {
+        "url": "https://www.guyane-amazonie.fr/",
+        "title": "French Guiana geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gg",
+    "name": "Guernsey",
+    "landmarks": [
+      {
+        "name": "Castle Cornet",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Saint Peter Port granite houses",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Little Chapel",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Pleínmont cliffs",
+        "region": "Guernsey regional selection"
+      }
+    ],
+    "animals": [
+      "Atlantic puffin",
+      "grey seal"
+    ],
+    "plants": [
+      "gorse",
+      "sea thrift"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Castle Cornet",
+    "sources": [
+      {
+        "url": "https://www.visitguernsey.com/",
+        "title": "Guernsey geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gi",
+    "name": "Gibraltar",
+    "landmarks": [
+      {
+        "name": "Rock of Gibraltar",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Europa Point Lighthouse",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Saint Michaels Cave",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Mediterranean Steps",
+        "region": "Gibraltar regional selection"
+      }
+    ],
+    "animals": [
+      "Barbary macaque",
+      "short-beaked common dolphin"
+    ],
+    "plants": [
+      "Gibraltar candytuft",
+      "olive"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Rock of Gibraltar",
+    "sources": [
+      {
+        "url": "https://www.visitgibraltar.gi/",
+        "title": "Gibraltar geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gl",
+    "name": "Greenland",
+    "landmarks": [
+      {
+        "name": "Ilulissat Icefjord",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Qaqortoq colorful civilian wooden houses",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Hvalsey church ruins",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Disko Island basalt coast",
+        "region": "Greenland regional selection"
+      }
+    ],
+    "animals": [
+      "musk ox",
+      "humpback whale"
+    ],
+    "plants": [
+      "Arctic cotton grass",
+      "dwarf willow"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ilulissat Icefjord",
+    "sources": [
+      {
+        "url": "https://visitgreenland.com/",
+        "title": "Greenland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gp",
+    "name": "Guadeloupe",
+    "landmarks": [
+      {
+        "name": "Basse-Terre Fort Delgrès",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "La Soufrière volcano",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "Carbet Falls",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "Pointe des Châteaux",
+        "region": "Guadeloupe regional selection"
+      }
+    ],
+    "animals": [
+      "Guadeloupe woodpecker",
+      "green sea turtle"
+    ],
+    "plants": [
+      "banana",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Basse-Terre Fort Delgrès",
+    "sources": [
+      {
+        "url": "https://www.lesilesdeguadeloupe.com/",
+        "title": "Guadeloupe geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gs",
+    "name": "South Georgia & the South Sandwich Islands",
+    "landmarks": [
+      {
+        "name": "Grytviken whaling station ruins",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "Saint Andrews Bay",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "Shackleton mountain range",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "South Sandwich volcanic island coast",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "Antarctic fur seal"
+    ],
+    "plants": [
+      "tussac grass",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Grytviken whaling station ruins",
+    "sources": [
+      {
+        "url": "https://gov.gs/",
+        "title": "South Georgia & the South Sandwich Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gu",
+    "name": "Guam",
+    "landmarks": [
+      {
+        "name": "Two Lovers Point",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Latte of Freedom monument",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Plaza de España colonial ruins",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Ritidian limestone coast",
+        "region": "Guam regional selection"
+      }
+    ],
+    "animals": [
+      "Guam kingfisher",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "cycad"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Two Lovers Point",
+    "sources": [
+      {
+        "url": "https://www.visitguam.com/",
+        "title": "Guam geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "hk",
+    "name": "Hong Kong",
+    "landmarks": [
+      {
+        "name": "Victoria Harbour skyline",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Peak panorama",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Tian Tan Buddha",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Tai O stilt houses",
+        "region": "Hong Kong regional selection"
+      }
+    ],
+    "animals": [
+      "rhesus macaque",
+      "black kite"
+    ],
+    "plants": [
+      "banyan",
+      "bauhinia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Victoria Harbour skyline",
+    "sources": [
+      {
+        "url": "https://www.discoverhongkong.com/eng/",
+        "title": "Hong Kong geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "hm",
+    "name": "Heard Island & McDonald Islands",
+    "landmarks": [
+      {
+        "name": "Big Ben volcano and Mawson Peak",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "Atlas Cove",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "Laurens Peninsula",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "McDonald Islands volcanic cliffs",
+        "region": "Heard Island & McDonald Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "southern elephant seal"
+    ],
+    "plants": [
+      "cushion plants",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Big Ben volcano and Mawson Peak",
+    "sources": [
+      {
+        "url": "https://www.antarctica.gov.au/antarctic-operations/stations-and-field-locations/heard-island/",
+        "title": "Heard Island & McDonald Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "im",
+    "name": "Isle of Man",
+    "landmarks": [
+      {
+        "name": "Laxey Wheel",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Peel Castle",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Castle Rushen",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Douglas Victorian promenade",
+        "region": "Isle of Man regional selection"
+      }
+    ],
+    "animals": [
+      "Manx shearwater",
+      "grey seal"
+    ],
+    "plants": [
+      "gorse",
+      "heather"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Laxey Wheel",
+    "sources": [
+      {
+        "url": "https://www.visitisleofman.com/",
+        "title": "Isle of Man geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "io",
+    "name": "British Indian Ocean Territory",
+    "landmarks": [
+      {
+        "name": "Diego Garcia atoll lagoon",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Salomon Islands coconut shore",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Peros Banhos coral reef",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Chagos submerged reef shelf",
+        "region": "British Indian Ocean Territory regional selection"
+      }
+    ],
+    "animals": [
+      "coconut crab",
+      "red-footed booby"
+    ],
+    "plants": [
+      "coconut",
+      "scaevola"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Diego Garcia atoll lagoon",
+    "sources": [
+      {
+        "url": "https://www.biot.gov.io/environment/",
+        "title": "British Indian Ocean Territory geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "je",
+    "name": "Jersey",
+    "landmarks": [
+      {
+        "name": "Mont Orgueil Castle",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "La Corbière Lighthouse",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "Elizabeth Castle",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "Saint Helier civilian waterfront",
+        "region": "Jersey regional selection"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "gorse",
+      "sea lavender"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Mont Orgueil Castle",
+    "sources": [
+      {
+        "url": "https://www.jersey.com/",
+        "title": "Jersey geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ky",
+    "name": "Cayman Islands",
+    "landmarks": [
+      {
+        "name": "Seven Mile Beach",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Pedro Saint James stone house",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Queen Elizabeth II Botanic Park",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Cayman Brac bluff",
+        "region": "Cayman Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Grand Cayman blue iguana",
+      "southern stingray"
+    ],
+    "plants": [
+      "silver thatch palm",
+      "wild banana orchid"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Seven Mile Beach",
+    "sources": [
+      {
+        "url": "https://www.visitcaymanislands.com/",
+        "title": "Cayman Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mf",
+    "name": "St Martin (French)",
+    "landmarks": [
+      {
+        "name": "Fort Louis stone ruins",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Marigot civilian waterfront",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Pic Paradis",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Grand Case Creole houses",
+        "region": "St Martin (French) regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "Caribbean anole"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Fort Louis stone ruins",
+    "sources": [
+      {
+        "url": "https://www.st-martin.org/",
+        "title": "St Martin (French) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mo",
+    "name": "Macau",
+    "landmarks": [
+      {
+        "name": "Ruins of Saint Pauls",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "Senado Square",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "A-Ma Taoist temple",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "Guia lighthouse and Christian chapel",
+        "region": "Macau regional selection"
+      }
+    ],
+    "animals": [
+      "black-faced spoonbill",
+      "little egret"
+    ],
+    "plants": [
+      "lotus",
+      "banyan"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ruins of Saint Pauls",
+    "sources": [
+      {
+        "url": "https://www.macaotourism.gov.mo/en/",
+        "title": "Macau geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mp",
+    "name": "Northern Mariana Islands",
+    "landmarks": [
+      {
+        "name": "Saipan Bird Island",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Tinian latte stones",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Rota limestone cliffs",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Saipan Grotto",
+        "region": "Northern Mariana Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Mariana fruit dove",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "flame tree"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saipan Bird Island",
+    "sources": [
+      {
+        "url": "https://www.mymarianas.com/",
+        "title": "Northern Mariana Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mq",
+    "name": "Martinique",
+    "landmarks": [
+      {
+        "name": "Saint Pierre historic ruins",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Mount Pelée",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Balata garden",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Fort-de-France Schoelcher Library",
+        "region": "Martinique regional selection"
+      }
+    ],
+    "animals": [
+      "Martinique oriole",
+      "green sea turtle"
+    ],
+    "plants": [
+      "tree fern",
+      "red ginger"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Pierre historic ruins",
+    "sources": [
+      {
+        "url": "https://www.martinique.org/",
+        "title": "Martinique geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ms",
+    "name": "Montserrat",
+    "landmarks": [
+      {
+        "name": "Soufrière Hills volcano",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Plymouth ash-buried civilian ruins",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Little Bay coastline",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Centre Hills forest",
+        "region": "Montserrat regional selection"
+      }
+    ],
+    "animals": [
+      "Montserrat oriole",
+      "mountain chicken frog"
+    ],
+    "plants": [
+      "tree fern",
+      "heliconia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Soufrière Hills volcano",
+    "sources": [
+      {
+        "url": "https://www.visitmontserrat.com/",
+        "title": "Montserrat geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nc",
+    "name": "New Caledonia",
+    "landmarks": [
+      {
+        "name": "Tjibaou Cultural Centre",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Amedee Lighthouse",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Heart of Voh mangrove",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Isle of Pines lagoon",
+        "region": "New Caledonia regional selection"
+      }
+    ],
+    "animals": [
+      "kagu",
+      "green sea turtle"
+    ],
+    "plants": [
+      "columnar pine",
+      "mangrove"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tjibaou Cultural Centre",
+    "sources": [
+      {
+        "url": "https://www.newcaledonia.travel/",
+        "title": "New Caledonia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nf",
+    "name": "Norfolk Island",
+    "landmarks": [
+      {
+        "name": "Kingston Georgian heritage buildings",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Emily Bay",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Norfolk Island pine cliffs",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Nepean Island",
+        "region": "Norfolk Island regional selection"
+      }
+    ],
+    "animals": [
+      "Norfolk Island green parrot",
+      "masked booby"
+    ],
+    "plants": [
+      "Norfolk Island pine",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kingston Georgian heritage buildings",
+    "sources": [
+      {
+        "url": "https://www.norfolkisland.com.au/",
+        "title": "Norfolk Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pf",
+    "name": "French Polynesia",
+    "landmarks": [
+      {
+        "name": "Bora Bora Mount Otemanu",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Taputapuatea marae",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Moorea volcanic peaks",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Rangiroa lagoon",
+        "region": "French Polynesia regional selection"
+      }
+    ],
+    "animals": [
+      "blacktip reef shark",
+      "red-tailed tropicbird"
+    ],
+    "plants": [
+      "coconut",
+      "tiare flower"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bora Bora Mount Otemanu",
+    "sources": [
+      {
+        "url": "https://www.tahititourisme.com/",
+        "title": "French Polynesia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pm",
+    "name": "St Pierre & Miquelon",
+    "landmarks": [
+      {
+        "name": "Saint Pierre colorful civilian harbor",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Ile aux Marins wooden church",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Miquelon Langlade sand isthmus",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Grand Barachois lagoon",
+        "region": "St Pierre & Miquelon regional selection"
+      }
+    ],
+    "animals": [
+      "harbor seal",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "spruce",
+      "beach grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Pierre colorful civilian harbor",
+    "sources": [
+      {
+        "url": "https://www.spm-tourisme.fr/en/",
+        "title": "St Pierre & Miquelon geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pn",
+    "name": "Pitcairn",
+    "landmarks": [
+      {
+        "name": "Bounty Bay",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Adamstown civilian wooden houses",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Saint Pauls Pool",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Henderson Island limestone cliffs",
+        "region": "Pitcairn regional selection"
+      }
+    ],
+    "animals": [
+      "Pitcairn reed warbler",
+      "Henderson fruit dove"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bounty Bay",
+    "sources": [
+      {
+        "url": "https://www.visitpitcairn.pn/",
+        "title": "Pitcairn geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pr",
+    "name": "Puerto Rico",
+    "landmarks": [
+      {
+        "name": "Castillo San Felipe del Morro",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "Old San Juan civilian colored houses",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "El Yunque rainforest",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "Cabo Rojo lighthouse",
+        "region": "Puerto Rico regional selection"
+      }
+    ],
+    "animals": [
+      "Puerto Rican parrot",
+      "coqui frog"
+    ],
+    "plants": [
+      "flamboyant tree",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Castillo San Felipe del Morro",
+    "sources": [
+      {
+        "url": "https://www.discoverpuertorico.com/",
+        "title": "Puerto Rico geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "re",
+    "name": "Réunion",
+    "landmarks": [
+      {
+        "name": "Piton de la Fournaise",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Mafate cirque",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Saint Denis Creole civilian villas",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Voile de la Mariée waterfalls",
+        "region": "Réunion regional selection"
+      }
+    ],
+    "animals": [
+      "Reunion harrier",
+      "Reunion grey white-eye"
+    ],
+    "plants": [
+      "tree fern",
+      "tamarind"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Piton de la Fournaise",
+    "sources": [
+      {
+        "url": "https://en.reunion.fr/",
+        "title": "Réunion geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sh",
+    "name": "St Helena",
+    "landmarks": [
+      {
+        "name": "Saint Helena Jacobs Ladder",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Jamestown Georgian houses",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Ascension volcanic shore",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Tristan da Cunha Edinburgh village",
+        "region": "St Helena regional selection"
+      }
+    ],
+    "animals": [
+      "Saint Helena plover",
+      "northern rockhopper penguin"
+    ],
+    "plants": [
+      "Saint Helena tree fern",
+      "tussock grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Helena Jacobs Ladder",
+    "sources": [
+      {
+        "url": "https://www.sthelenatourism.com/",
+        "title": "St Helena geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sj",
+    "name": "Svalbard & Jan Mayen",
+    "landmarks": [
+      {
+        "name": "Svalbard glacier fjord",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Longyearbyen colored civilian houses",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Jan Mayen Beerenberg volcano",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Pyramiden industrial heritage",
+        "region": "Svalbard & Jan Mayen regional selection"
+      }
+    ],
+    "animals": [
+      "polar bear",
+      "Atlantic walrus"
+    ],
+    "plants": [
+      "Arctic moss",
+      "purple saxifrage"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Svalbard glacier fjord",
+    "sources": [
+      {
+        "url": "https://en.visitsvalbard.com/",
+        "title": "Svalbard & Jan Mayen geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sx",
+    "name": "St Maarten (Dutch)",
+    "landmarks": [
+      {
+        "name": "Philipsburg civilian waterfront",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Fort Amsterdam",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Great Bay",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Simpson Bay lagoon",
+        "region": "St Maarten (Dutch) regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Philipsburg civilian waterfront",
+    "sources": [
+      {
+        "url": "https://www.vacationstmaarten.com/",
+        "title": "St Maarten (Dutch) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tc",
+    "name": "Turks & Caicos Is",
+    "landmarks": [
+      {
+        "name": "Grand Turk Lighthouse",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Cockburn Town salt-trade houses",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Chalk Sound",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Middle Caicos Conch Bar Caves",
+        "region": "Turks & Caicos Is regional selection"
+      }
+    ],
+    "animals": [
+      "Turks and Caicos rock iguana",
+      "American flamingo"
+    ],
+    "plants": [
+      "sea grape",
+      "silver palm"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Grand Turk Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.visittci.com/",
+        "title": "Turks & Caicos Is geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tf",
+    "name": "French S. Terr.",
+    "landmarks": [
+      {
+        "name": "Kerguelen Port-aux-Français research station",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Kerguelen glaciated mountain coast",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Crozet volcanic cliffs",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Amsterdam Island coastal plateau",
+        "region": "French S. Terr. regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "southern elephant seal"
+    ],
+    "plants": [
+      "Kerguelen cabbage",
+      "tussock grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kerguelen Port-aux-Français research station",
+    "sources": [
+      {
+        "url": "https://taaf.fr/",
+        "title": "French S. Terr. geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tk",
+    "name": "Tokelau",
+    "landmarks": [
+      {
+        "name": "Atafu traditional wooden meeting house",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "Nukunonu Catholic church",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "Fakaofo coral-islet village",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "atoll lagoon reef pass",
+        "region": "Tokelau regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "white tern"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Atafu traditional wooden meeting house",
+    "sources": [
+      {
+        "url": "https://www.tokelau.org.nz/",
+        "title": "Tokelau geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "um",
+    "name": "US minor outlying islands",
+    "landmarks": [
+      {
+        "name": "Midway Sand Island atoll",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Wake Island lagoon",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Palmyra coral islets",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Johnston Atoll reef shelf",
+        "region": "US minor outlying islands regional selection"
+      }
+    ],
+    "animals": [
+      "Laysan albatross",
+      "Hawaiian monk seal"
+    ],
+    "plants": [
+      "pisonia",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Midway Sand Island atoll",
+    "sources": [
+      {
+        "url": "https://www.fws.gov/refuge/midway-atoll",
+        "title": "US minor outlying islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "vg",
+    "name": "Virgin Islands (UK)",
+    "landmarks": [
+      {
+        "name": "The Baths granite boulders",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Road Town civilian harbor",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Sage Mountain",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Anegada coral coastline",
+        "region": "Virgin Islands (UK) regional selection"
+      }
+    ],
+    "animals": [
+      "Anegada rock iguana",
+      "brown pelican"
+    ],
+    "plants": [
+      "sea grape",
+      "turpentine tree"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "The Baths granite boulders",
+    "sources": [
+      {
+        "url": "https://www.bvitourism.com/",
+        "title": "Virgin Islands (UK) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "vi",
+    "name": "Virgin Islands (US)",
+    "landmarks": [
+      {
+        "name": "Charlotte Amalie Fort Christian",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Christiansted Danish colonial houses",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Trunk Bay",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Annaberg plantation ruins",
+        "region": "Virgin Islands (US) regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "brown pelican"
+    ],
+    "plants": [
+      "mangrove",
+      "hibiscus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Charlotte Amalie Fort Christian",
+    "sources": [
+      {
+        "url": "https://www.visitusvi.com/",
+        "title": "Virgin Islands (US) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "wf",
+    "name": "Wallis & Futuna",
+    "landmarks": [
+      {
+        "name": "Talietumu ancient stone fort",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Lake Lalolalo",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Mata Utu Catholic cathedral",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Futuna coastal traditional houses",
+        "region": "Wallis & Futuna regional selection"
+      }
+    ],
+    "animals": [
+      "Polynesian starling",
+      "green sea turtle"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Talietumu ancient stone fort",
+    "sources": [
+      {
+        "url": "https://www.wallis-et-futuna.wf/",
+        "title": "Wallis & Futuna geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "yt",
+    "name": "Mayotte",
+    "landmarks": [
+      {
+        "name": "Dziani Dzaha crater lake",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Mount Choungui",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Saziley peninsula",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Dzaoudzi secular colonial administrative houses",
+        "region": "Mayotte regional selection"
+      }
+    ],
+    "animals": [
+      "brown lemur",
+      "green sea turtle"
+    ],
+    "plants": [
+      "baobab",
+      "ylang-ylang"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Dziani Dzaha crater lake",
+    "sources": [
+      {
+        "url": "https://www.mayotte-tourisme.com/",
+        "title": "Mayotte geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-eng",
+    "name": "England",
+    "landmarks": [
+      {
+        "name": "Tower Bridge",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Stonehenge",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Durham Cathedral",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Lake District stone villages",
+        "region": "England regional selection"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "red fox"
+    ],
+    "plants": [
+      "English oak",
+      "bluebell"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tower Bridge",
+    "sources": [
+      {
+        "url": "https://www.visitengland.com/",
+        "title": "England geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-sct",
+    "name": "Scotland",
+    "landmarks": [
+      {
+        "name": "Edinburgh Castle",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Eilean Donan Castle",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Glenfinnan Viaduct",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Isle of Skye Old Man of Storr",
+        "region": "Scotland regional selection"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "golden eagle"
+    ],
+    "plants": [
+      "Scots pine",
+      "heather"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Edinburgh Castle",
+    "sources": [
+      {
+        "url": "https://www.visitscotland.com/",
+        "title": "Scotland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-wls",
+    "name": "Wales",
+    "landmarks": [
+      {
+        "name": "Conwy Castle",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Caernarfon Castle",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Pontcysyllte Aqueduct",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Eryri mountain lakes",
+        "region": "Wales regional selection"
+      }
+    ],
+    "animals": [
+      "red kite",
+      "grey seal"
+    ],
+    "plants": [
+      "sessile oak",
+      "daffodil"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Conwy Castle",
+    "sources": [
+      {
+        "url": "https://www.visitwales.com/",
+        "title": "Wales geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-nir",
+    "name": "Northern Ireland",
+    "landmarks": [
+      {
+        "name": "Giants Causeway",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Dunluce Castle",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Titanic Belfast",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Mourne Mountains",
+        "region": "Northern Ireland regional selection"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "hawthorn",
+      "foxglove"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Giants Causeway",
+    "sources": [
+      {
+        "url": "https://discovernorthernireland.com/",
+        "title": "Northern Ireland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  }
+]

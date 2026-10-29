@@ -1,0 +1,2495 @@
+[
+  {
+    "code": "tw",
+    "name": "Taiwan",
+    "landmarks": [
+      {
+        "name": "Taipei 101",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Sun Moon Lake",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Alishan forest railway",
+        "region": "Taiwan regional selection"
+      },
+      {
+        "name": "Taroko marble gorge",
+        "region": "Taiwan regional selection"
+      }
+    ],
+    "animals": [
+      "Formosan sika deer",
+      "Taiwan blue magpie"
+    ],
+    "plants": [
+      "banyan",
+      "tea shrubs"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Taipei 101",
+    "sources": [
+      {
+        "url": "https://eng.taiwan.net.tw/",
+        "title": "Taiwan geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xk",
+    "name": "Kosovo",
+    "landmarks": [
+      {
+        "name": "Prizren stone bridge",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Gracanica Orthodox monastery",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Rugova canyon",
+        "region": "Kosovo regional selection"
+      },
+      {
+        "name": "Gjakova old bazaar civilian houses only",
+        "region": "Kosovo regional selection"
+      }
+    ],
+    "animals": [
+      "Balkan chamois",
+      "golden eagle"
+    ],
+    "plants": [
+      "beech",
+      "wildflowers"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Prizren stone bridge",
+    "sources": [
+      {
+        "url": "https://www.kosovo-tourism.ch/",
+        "title": "Kosovo geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ck",
+    "name": "Cook Islands",
+    "landmarks": [
+      {
+        "name": "Aitutaki lagoon",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Te Rua Manga peak",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Avarua coral-stone church",
+        "region": "Cook Islands regional selection"
+      },
+      {
+        "name": "Ara Metua stone road",
+        "region": "Cook Islands regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "Rarotonga monarch"
+    ],
+    "plants": [
+      "coconut",
+      "hibiscus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Aitutaki lagoon",
+    "sources": [
+      {
+        "url": "https://cookislands.travel/islands/aitutaki",
+        "title": "Cook Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nu",
+    "name": "Niue",
+    "landmarks": [
+      {
+        "name": "Talava Arches",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Matapa Chasm",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Togo Chasm",
+        "region": "Niue regional selection"
+      },
+      {
+        "name": "Limu Pools",
+        "region": "Niue regional selection"
+      }
+    ],
+    "animals": [
+      "coconut crab",
+      "white-tailed tropicbird"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Talava Arches",
+    "sources": [
+      {
+        "url": "https://www.niueisland.com/see-and-do/tracks-walks-and-caves",
+        "title": "Niue geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xn",
+    "name": "Northern Cyprus",
+    "landmarks": [
+      {
+        "name": "Kyrenia Castle",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Bellapais Abbey",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Salamis ancient theatre",
+        "region": "Northern Cyprus regional selection"
+      },
+      {
+        "name": "Saint Hilarion Castle",
+        "region": "Northern Cyprus regional selection"
+      }
+    ],
+    "animals": [
+      "Cyprus mouflon",
+      "loggerhead sea turtle"
+    ],
+    "plants": [
+      "olive",
+      "carob"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kyrenia Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/tentativelists/state=cy",
+        "title": "Northern Cyprus geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xs",
+    "name": "Somaliland",
+    "landmarks": [
+      {
+        "name": "Laas Geel rock paintings",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Berbera secular Ottoman coral-stone civilian houses",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Daallo escarpment",
+        "region": "Somaliland regional selection"
+      },
+      {
+        "name": "Zeila coastal coral ruins without religious structures",
+        "region": "Somaliland regional selection"
+      }
+    ],
+    "animals": [
+      "Beira antelope",
+      "hamadryas baboon"
+    ],
+    "plants": [
+      "frankincense tree",
+      "acacia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Laas Geel rock paintings",
+    "sources": [
+      {
+        "url": "https://somalilandtravel.com/",
+        "title": "Somaliland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xa",
+    "name": "Abkhazia",
+    "landmarks": [
+      {
+        "name": "New Athos Orthodox monastery",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Lake Ritsa",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Anakopia fortress",
+        "region": "Abkhazia regional selection"
+      },
+      {
+        "name": "Gagra colonnade",
+        "region": "Abkhazia regional selection"
+      }
+    ],
+    "animals": [
+      "Caucasian chamois",
+      "red deer"
+    ],
+    "plants": [
+      "boxwood",
+      "magnolia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "New Athos Orthodox monastery",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/Abkhazia",
+        "title": "Abkhazia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xo",
+    "name": "South Ossetia",
+    "landmarks": [
+      {
+        "name": "Tir Monastery",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Ksani medieval defensive towers",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Liakhvi valley",
+        "region": "South Ossetia regional selection"
+      },
+      {
+        "name": "Greater Caucasus mountain ridge",
+        "region": "South Ossetia regional selection"
+      }
+    ],
+    "animals": [
+      "Caucasian tur",
+      "golden eagle"
+    ],
+    "plants": [
+      "beech",
+      "alpine wildflowers"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tir Monastery",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/South-Ossetia",
+        "title": "South Ossetia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "xt",
+    "name": "Transnistria",
+    "landmarks": [
+      {
+        "name": "Bender Fortress",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Tiraspol secular neoclassical theatre",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Dniester river bend",
+        "region": "Transnistria regional selection"
+      },
+      {
+        "name": "Stroentsy wind tower",
+        "region": "Transnistria regional selection"
+      }
+    ],
+    "animals": [
+      "roe deer",
+      "white stork"
+    ],
+    "plants": [
+      "grape vines",
+      "sunflower"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bender Fortress",
+    "sources": [
+      {
+        "url": "https://www.britannica.com/place/Transdniestria",
+        "title": "Transnistria geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ai",
+    "name": "Anguilla",
+    "landmarks": [
+      {
+        "name": "Shoal Bay East",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Wallblake House",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Heritage Collection Museum",
+        "region": "Anguilla regional selection"
+      },
+      {
+        "name": "Sandy Island",
+        "region": "Anguilla regional selection"
+      }
+    ],
+    "animals": [
+      "Anguilla anole",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Shoal Bay East",
+    "sources": [
+      {
+        "url": "https://ivisitanguilla.com/",
+        "title": "Anguilla geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "aq",
+    "name": "Antarctica",
+    "landmarks": [
+      {
+        "name": "Antarctic Peninsula iceberg channel",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "Mount Erebus",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "historic Cape Royds Shackleton hut",
+        "region": "Antarctica regional selection"
+      },
+      {
+        "name": "Transantarctic Mountains",
+        "region": "Antarctica regional selection"
+      }
+    ],
+    "animals": [
+      "emperor penguin",
+      "Weddell seal"
+    ],
+    "plants": [],
+    "foodOrCraft": [],
+    "avatarFocus": "Antarctic Peninsula iceberg channel",
+    "sources": [
+      {
+        "url": "https://www.antarctica.gov.au/about-antarctica/",
+        "title": "Antarctica geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "as",
+    "name": "Samoa (American)",
+    "landmarks": [
+      {
+        "name": "Ofu Beach",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Pago Pago harbor",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Mount Alava",
+        "region": "Samoa (American) regional selection"
+      },
+      {
+        "name": "Ta'u coastal rainforest",
+        "region": "Samoa (American) regional selection"
+      }
+    ],
+    "animals": [
+      "Samoan flying fox",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ofu Beach",
+    "sources": [
+      {
+        "url": "https://www.nps.gov/npsa/index.htm",
+        "title": "Samoa (American) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "aw",
+    "name": "Aruba",
+    "landmarks": [
+      {
+        "name": "California Lighthouse",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Alto Vista Chapel",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Arikok rock formations",
+        "region": "Aruba regional selection"
+      },
+      {
+        "name": "Oranjestad Dutch colonial civilian facades",
+        "region": "Aruba regional selection"
+      }
+    ],
+    "animals": [
+      "Aruban burrowing owl",
+      "Aruban whiptail lizard"
+    ],
+    "plants": [
+      "divi-divi",
+      "cactus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "California Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.aruba.com/",
+        "title": "Aruba geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ax",
+    "name": "Åland Islands",
+    "landmarks": [
+      {
+        "name": "Kastelholm Castle",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Bomarsund fortress ruins",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Mariehamn wooden waterfront",
+        "region": "Åland Islands regional selection"
+      },
+      {
+        "name": "Kobba Klintar pilot station",
+        "region": "Åland Islands regional selection"
+      }
+    ],
+    "animals": [
+      "white-tailed eagle",
+      "grey seal"
+    ],
+    "plants": [
+      "Scots pine",
+      "sea buckthorn"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kastelholm Castle",
+    "sources": [
+      {
+        "url": "https://visitaland.com/en/",
+        "title": "Åland Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bl",
+    "name": "St Barthelemy",
+    "landmarks": [
+      {
+        "name": "Gustavia harbor",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Fort Karl stone ruins",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Colombier Beach",
+        "region": "St Barthelemy regional selection"
+      },
+      {
+        "name": "Saline salt pond",
+        "region": "St Barthelemy regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Gustavia harbor",
+    "sources": [
+      {
+        "url": "https://www.saintbarth-tourisme.com/en/",
+        "title": "St Barthelemy geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bm",
+    "name": "Bermuda",
+    "landmarks": [
+      {
+        "name": "Gibbs Hill Lighthouse",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Saint George stone houses",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Horseshoe Bay",
+        "region": "Bermuda regional selection"
+      },
+      {
+        "name": "Crystal Caves",
+        "region": "Bermuda regional selection"
+      }
+    ],
+    "animals": [
+      "Bermuda skink",
+      "white-tailed tropicbird"
+    ],
+    "plants": [
+      "Bermuda cedar",
+      "oleander"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Gibbs Hill Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.gotobermuda.com/",
+        "title": "Bermuda geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bq",
+    "name": "Caribbean NL",
+    "landmarks": [
+      {
+        "name": "Bonaire pink salt pans",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Saba Mount Scenery",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Sint Eustatius Fort Oranje",
+        "region": "Caribbean NL regional selection"
+      },
+      {
+        "name": "Kralendijk civilian waterfront",
+        "region": "Caribbean NL regional selection"
+      }
+    ],
+    "animals": [
+      "American flamingo",
+      "Saba anole"
+    ],
+    "plants": [
+      "cactus",
+      "sea grape"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bonaire pink salt pans",
+    "sources": [
+      {
+        "url": "https://www.tourismbonaire.com/",
+        "title": "Caribbean NL geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "bv",
+    "name": "Bouvet Island",
+    "landmarks": [
+      {
+        "name": "Olavtoppen ice cap",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "Nyrøysa black volcanic shore",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "Cape Valdivia cliffs",
+        "region": "Bouvet Island regional selection"
+      },
+      {
+        "name": "glacier terminus and Southern Ocean surf",
+        "region": "Bouvet Island regional selection"
+      }
+    ],
+    "animals": [
+      "Antarctic fur seal",
+      "macaroni penguin"
+    ],
+    "plants": [
+      "small moss patches",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Olavtoppen ice cap",
+    "sources": [
+      {
+        "url": "https://npolar.no/en/themes/bouvetoya/",
+        "title": "Bouvet Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cc",
+    "name": "Cocos (Keeling) Islands",
+    "landmarks": [
+      {
+        "name": "Direction Island lagoon",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "Home Island Malay civilian wooden houses",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "West Island coral beach",
+        "region": "Cocos (Keeling) Islands regional selection"
+      },
+      {
+        "name": "atoll reef channel",
+        "region": "Cocos (Keeling) Islands regional selection"
+      }
+    ],
+    "animals": [
+      "red-footed booby",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Direction Island lagoon",
+    "sources": [
+      {
+        "url": "https://www.cocoskeelingislands.com.au/",
+        "title": "Cocos (Keeling) Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cw",
+    "name": "Curaçao",
+    "landmarks": [
+      {
+        "name": "Willemstad Handelskade",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Queen Emma floating bridge",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Christoffel mountain",
+        "region": "Curaçao regional selection"
+      },
+      {
+        "name": "Shete Boka limestone coast",
+        "region": "Curaçao regional selection"
+      }
+    ],
+    "animals": [
+      "Curaçao white-tailed deer",
+      "Caribbean flamingo"
+    ],
+    "plants": [
+      "divi-divi",
+      "cactus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Willemstad Handelskade",
+    "sources": [
+      {
+        "url": "https://www.curacao.com/en/",
+        "title": "Curaçao geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "cx",
+    "name": "Christmas Island",
+    "landmarks": [
+      {
+        "name": "The Dales rainforest",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Flying Fish Cove civilian coastline",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Hugh's Dale waterfall",
+        "region": "Christmas Island regional selection"
+      },
+      {
+        "name": "Dolly Beach",
+        "region": "Christmas Island regional selection"
+      }
+    ],
+    "animals": [
+      "Christmas Island red crab",
+      "golden bosun bird"
+    ],
+    "plants": [
+      "pandanus",
+      "rainforest figs"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "The Dales rainforest",
+    "sources": [
+      {
+        "url": "https://www.christmas.net.au/",
+        "title": "Christmas Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "eh",
+    "name": "Western Sahara",
+    "landmarks": [
+      {
+        "name": "Dakhla lagoon",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "White Dune",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "Laayoune civilian low-rise architecture",
+        "region": "Western Sahara regional selection"
+      },
+      {
+        "name": "Atlantic desert cliffs",
+        "region": "Western Sahara regional selection"
+      }
+    ],
+    "animals": [
+      "dromedary camel",
+      "greater flamingo"
+    ],
+    "plants": [
+      "tamarisk",
+      "desert grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Dakhla lagoon",
+    "sources": [
+      {
+        "url": "https://www.un.org/dppa/decolonization/en/nsgt/western-sahara",
+        "title": "Western Sahara geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "fk",
+    "name": "Falkland Islands",
+    "landmarks": [
+      {
+        "name": "Christ Church Cathedral Stanley",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "Gypsy Cove",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "Volunteer Point",
+        "region": "Falkland Islands regional selection"
+      },
+      {
+        "name": "West Point Island cliffs",
+        "region": "Falkland Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "black-browed albatross"
+    ],
+    "plants": [
+      "tussac grass",
+      "diddle-dee"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Christ Church Cathedral Stanley",
+    "sources": [
+      {
+        "url": "https://www.falklandislands.com/",
+        "title": "Falkland Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "fo",
+    "name": "Faroe Islands",
+    "landmarks": [
+      {
+        "name": "Múlafossur waterfall",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Tinganes wooden houses",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Kirkjubøur cathedral ruins",
+        "region": "Faroe Islands regional selection"
+      },
+      {
+        "name": "Drangarnir sea stacks",
+        "region": "Faroe Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Atlantic puffin",
+      "grey seal"
+    ],
+    "plants": [
+      "turf grass",
+      "angelica"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Múlafossur waterfall",
+    "sources": [
+      {
+        "url": "https://visitfaroeislands.com/",
+        "title": "Faroe Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gf",
+    "name": "French Guiana",
+    "landmarks": [
+      {
+        "name": "Devils Island former penal colony stone ruins",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Cayenne Creole civilian houses",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Kaw marshes",
+        "region": "French Guiana regional selection"
+      },
+      {
+        "name": "Maroni river rainforest",
+        "region": "French Guiana regional selection"
+      }
+    ],
+    "animals": [
+      "scarlet ibis",
+      "red howler monkey"
+    ],
+    "plants": [
+      "mangrove",
+      "royal palm"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Devils Island former penal colony stone ruins",
+    "sources": [
+      {
+        "url": "https://www.guyane-amazonie.fr/",
+        "title": "French Guiana geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gg",
+    "name": "Guernsey",
+    "landmarks": [
+      {
+        "name": "Castle Cornet",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Saint Peter Port granite houses",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Little Chapel",
+        "region": "Guernsey regional selection"
+      },
+      {
+        "name": "Pleínmont cliffs",
+        "region": "Guernsey regional selection"
+      }
+    ],
+    "animals": [
+      "Atlantic puffin",
+      "grey seal"
+    ],
+    "plants": [
+      "gorse",
+      "sea thrift"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Castle Cornet",
+    "sources": [
+      {
+        "url": "https://www.visitguernsey.com/",
+        "title": "Guernsey geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gi",
+    "name": "Gibraltar",
+    "landmarks": [
+      {
+        "name": "Rock of Gibraltar",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Europa Point Lighthouse",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Saint Michaels Cave",
+        "region": "Gibraltar regional selection"
+      },
+      {
+        "name": "Mediterranean Steps",
+        "region": "Gibraltar regional selection"
+      }
+    ],
+    "animals": [
+      "Barbary macaque",
+      "short-beaked common dolphin"
+    ],
+    "plants": [
+      "Gibraltar candytuft",
+      "olive"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Rock of Gibraltar",
+    "sources": [
+      {
+        "url": "https://www.visitgibraltar.gi/",
+        "title": "Gibraltar geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gl",
+    "name": "Greenland",
+    "landmarks": [
+      {
+        "name": "Ilulissat Icefjord",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Qaqortoq colorful civilian wooden houses",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Hvalsey church ruins",
+        "region": "Greenland regional selection"
+      },
+      {
+        "name": "Disko Island basalt coast",
+        "region": "Greenland regional selection"
+      }
+    ],
+    "animals": [
+      "musk ox",
+      "humpback whale"
+    ],
+    "plants": [
+      "Arctic cotton grass",
+      "dwarf willow"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ilulissat Icefjord",
+    "sources": [
+      {
+        "url": "https://visitgreenland.com/",
+        "title": "Greenland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gp",
+    "name": "Guadeloupe",
+    "landmarks": [
+      {
+        "name": "Basse-Terre Fort Delgrès",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "La Soufrière volcano",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "Carbet Falls",
+        "region": "Guadeloupe regional selection"
+      },
+      {
+        "name": "Pointe des Châteaux",
+        "region": "Guadeloupe regional selection"
+      }
+    ],
+    "animals": [
+      "Guadeloupe woodpecker",
+      "green sea turtle"
+    ],
+    "plants": [
+      "banana",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Basse-Terre Fort Delgrès",
+    "sources": [
+      {
+        "url": "https://www.lesilesdeguadeloupe.com/",
+        "title": "Guadeloupe geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gs",
+    "name": "South Georgia & the South Sandwich Islands",
+    "landmarks": [
+      {
+        "name": "Grytviken whaling station ruins",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "Saint Andrews Bay",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "Shackleton mountain range",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      },
+      {
+        "name": "South Sandwich volcanic island coast",
+        "region": "South Georgia & the South Sandwich Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "Antarctic fur seal"
+    ],
+    "plants": [
+      "tussac grass",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Grytviken whaling station ruins",
+    "sources": [
+      {
+        "url": "https://gov.gs/",
+        "title": "South Georgia & the South Sandwich Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gu",
+    "name": "Guam",
+    "landmarks": [
+      {
+        "name": "Two Lovers Point",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Latte of Freedom monument",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Plaza de España colonial ruins",
+        "region": "Guam regional selection"
+      },
+      {
+        "name": "Ritidian limestone coast",
+        "region": "Guam regional selection"
+      }
+    ],
+    "animals": [
+      "Guam kingfisher",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "cycad"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Two Lovers Point",
+    "sources": [
+      {
+        "url": "https://www.visitguam.com/",
+        "title": "Guam geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "hk",
+    "name": "Hong Kong",
+    "landmarks": [
+      {
+        "name": "Victoria Harbour skyline",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Peak panorama",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Tian Tan Buddha",
+        "region": "Hong Kong regional selection"
+      },
+      {
+        "name": "Tai O stilt houses",
+        "region": "Hong Kong regional selection"
+      }
+    ],
+    "animals": [
+      "rhesus macaque",
+      "black kite"
+    ],
+    "plants": [
+      "banyan",
+      "bauhinia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Victoria Harbour skyline",
+    "sources": [
+      {
+        "url": "https://www.discoverhongkong.com/eng/",
+        "title": "Hong Kong geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "hm",
+    "name": "Heard Island & McDonald Islands",
+    "landmarks": [
+      {
+        "name": "Big Ben volcano and Mawson Peak",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "Atlas Cove",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "Laurens Peninsula",
+        "region": "Heard Island & McDonald Islands regional selection"
+      },
+      {
+        "name": "McDonald Islands volcanic cliffs",
+        "region": "Heard Island & McDonald Islands regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "southern elephant seal"
+    ],
+    "plants": [
+      "cushion plants",
+      "lichen"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Big Ben volcano and Mawson Peak",
+    "sources": [
+      {
+        "url": "https://www.antarctica.gov.au/antarctic-operations/stations-and-field-locations/heard-island/",
+        "title": "Heard Island & McDonald Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "im",
+    "name": "Isle of Man",
+    "landmarks": [
+      {
+        "name": "Laxey Wheel",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Peel Castle",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Castle Rushen",
+        "region": "Isle of Man regional selection"
+      },
+      {
+        "name": "Douglas Victorian promenade",
+        "region": "Isle of Man regional selection"
+      }
+    ],
+    "animals": [
+      "Manx shearwater",
+      "grey seal"
+    ],
+    "plants": [
+      "gorse",
+      "heather"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Laxey Wheel",
+    "sources": [
+      {
+        "url": "https://www.visitisleofman.com/",
+        "title": "Isle of Man geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "io",
+    "name": "British Indian Ocean Territory",
+    "landmarks": [
+      {
+        "name": "Diego Garcia atoll lagoon",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Salomon Islands coconut shore",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Peros Banhos coral reef",
+        "region": "British Indian Ocean Territory regional selection"
+      },
+      {
+        "name": "Chagos submerged reef shelf",
+        "region": "British Indian Ocean Territory regional selection"
+      }
+    ],
+    "animals": [
+      "coconut crab",
+      "red-footed booby"
+    ],
+    "plants": [
+      "coconut",
+      "scaevola"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Diego Garcia atoll lagoon",
+    "sources": [
+      {
+        "url": "https://www.biot.gov.io/environment/",
+        "title": "British Indian Ocean Territory geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "je",
+    "name": "Jersey",
+    "landmarks": [
+      {
+        "name": "Mont Orgueil Castle",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "La Corbière Lighthouse",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "Elizabeth Castle",
+        "region": "Jersey regional selection"
+      },
+      {
+        "name": "Saint Helier civilian waterfront",
+        "region": "Jersey regional selection"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "gorse",
+      "sea lavender"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Mont Orgueil Castle",
+    "sources": [
+      {
+        "url": "https://www.jersey.com/",
+        "title": "Jersey geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ky",
+    "name": "Cayman Islands",
+    "landmarks": [
+      {
+        "name": "Seven Mile Beach",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Pedro Saint James stone house",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Queen Elizabeth II Botanic Park",
+        "region": "Cayman Islands regional selection"
+      },
+      {
+        "name": "Cayman Brac bluff",
+        "region": "Cayman Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Grand Cayman blue iguana",
+      "southern stingray"
+    ],
+    "plants": [
+      "silver thatch palm",
+      "wild banana orchid"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Seven Mile Beach",
+    "sources": [
+      {
+        "url": "https://www.visitcaymanislands.com/",
+        "title": "Cayman Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mf",
+    "name": "St Martin (French)",
+    "landmarks": [
+      {
+        "name": "Fort Louis stone ruins",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Marigot civilian waterfront",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Pic Paradis",
+        "region": "St Martin (French) regional selection"
+      },
+      {
+        "name": "Grand Case Creole houses",
+        "region": "St Martin (French) regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "Caribbean anole"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Fort Louis stone ruins",
+    "sources": [
+      {
+        "url": "https://www.st-martin.org/",
+        "title": "St Martin (French) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mo",
+    "name": "Macau",
+    "landmarks": [
+      {
+        "name": "Ruins of Saint Pauls",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "Senado Square",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "A-Ma Taoist temple",
+        "region": "Macau regional selection"
+      },
+      {
+        "name": "Guia lighthouse and Christian chapel",
+        "region": "Macau regional selection"
+      }
+    ],
+    "animals": [
+      "black-faced spoonbill",
+      "little egret"
+    ],
+    "plants": [
+      "lotus",
+      "banyan"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Ruins of Saint Pauls",
+    "sources": [
+      {
+        "url": "https://www.macaotourism.gov.mo/en/",
+        "title": "Macau geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mp",
+    "name": "Northern Mariana Islands",
+    "landmarks": [
+      {
+        "name": "Saipan Bird Island",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Tinian latte stones",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Rota limestone cliffs",
+        "region": "Northern Mariana Islands regional selection"
+      },
+      {
+        "name": "Saipan Grotto",
+        "region": "Northern Mariana Islands regional selection"
+      }
+    ],
+    "animals": [
+      "Mariana fruit dove",
+      "green sea turtle"
+    ],
+    "plants": [
+      "coconut",
+      "flame tree"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saipan Bird Island",
+    "sources": [
+      {
+        "url": "https://www.mymarianas.com/",
+        "title": "Northern Mariana Islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "mq",
+    "name": "Martinique",
+    "landmarks": [
+      {
+        "name": "Saint Pierre historic ruins",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Mount Pelée",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Balata garden",
+        "region": "Martinique regional selection"
+      },
+      {
+        "name": "Fort-de-France Schoelcher Library",
+        "region": "Martinique regional selection"
+      }
+    ],
+    "animals": [
+      "Martinique oriole",
+      "green sea turtle"
+    ],
+    "plants": [
+      "tree fern",
+      "red ginger"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Pierre historic ruins",
+    "sources": [
+      {
+        "url": "https://www.martinique.org/",
+        "title": "Martinique geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "ms",
+    "name": "Montserrat",
+    "landmarks": [
+      {
+        "name": "Soufrière Hills volcano",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Plymouth ash-buried civilian ruins",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Little Bay coastline",
+        "region": "Montserrat regional selection"
+      },
+      {
+        "name": "Centre Hills forest",
+        "region": "Montserrat regional selection"
+      }
+    ],
+    "animals": [
+      "Montserrat oriole",
+      "mountain chicken frog"
+    ],
+    "plants": [
+      "tree fern",
+      "heliconia"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Soufrière Hills volcano",
+    "sources": [
+      {
+        "url": "https://www.visitmontserrat.com/",
+        "title": "Montserrat geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nc",
+    "name": "New Caledonia",
+    "landmarks": [
+      {
+        "name": "Tjibaou Cultural Centre",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Amedee Lighthouse",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Heart of Voh mangrove",
+        "region": "New Caledonia regional selection"
+      },
+      {
+        "name": "Isle of Pines lagoon",
+        "region": "New Caledonia regional selection"
+      }
+    ],
+    "animals": [
+      "kagu",
+      "green sea turtle"
+    ],
+    "plants": [
+      "columnar pine",
+      "mangrove"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tjibaou Cultural Centre",
+    "sources": [
+      {
+        "url": "https://www.newcaledonia.travel/",
+        "title": "New Caledonia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "nf",
+    "name": "Norfolk Island",
+    "landmarks": [
+      {
+        "name": "Kingston Georgian heritage buildings",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Emily Bay",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Norfolk Island pine cliffs",
+        "region": "Norfolk Island regional selection"
+      },
+      {
+        "name": "Nepean Island",
+        "region": "Norfolk Island regional selection"
+      }
+    ],
+    "animals": [
+      "Norfolk Island green parrot",
+      "masked booby"
+    ],
+    "plants": [
+      "Norfolk Island pine",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kingston Georgian heritage buildings",
+    "sources": [
+      {
+        "url": "https://www.norfolkisland.com.au/",
+        "title": "Norfolk Island geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pf",
+    "name": "French Polynesia",
+    "landmarks": [
+      {
+        "name": "Bora Bora Mount Otemanu",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Taputapuatea marae",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Moorea volcanic peaks",
+        "region": "French Polynesia regional selection"
+      },
+      {
+        "name": "Rangiroa lagoon",
+        "region": "French Polynesia regional selection"
+      }
+    ],
+    "animals": [
+      "blacktip reef shark",
+      "red-tailed tropicbird"
+    ],
+    "plants": [
+      "coconut",
+      "tiare flower"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bora Bora Mount Otemanu",
+    "sources": [
+      {
+        "url": "https://www.tahititourisme.com/",
+        "title": "French Polynesia geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pm",
+    "name": "St Pierre & Miquelon",
+    "landmarks": [
+      {
+        "name": "Saint Pierre colorful civilian harbor",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Ile aux Marins wooden church",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Miquelon Langlade sand isthmus",
+        "region": "St Pierre & Miquelon regional selection"
+      },
+      {
+        "name": "Grand Barachois lagoon",
+        "region": "St Pierre & Miquelon regional selection"
+      }
+    ],
+    "animals": [
+      "harbor seal",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "spruce",
+      "beach grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Pierre colorful civilian harbor",
+    "sources": [
+      {
+        "url": "https://www.spm-tourisme.fr/en/",
+        "title": "St Pierre & Miquelon geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pn",
+    "name": "Pitcairn",
+    "landmarks": [
+      {
+        "name": "Bounty Bay",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Adamstown civilian wooden houses",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Saint Pauls Pool",
+        "region": "Pitcairn regional selection"
+      },
+      {
+        "name": "Henderson Island limestone cliffs",
+        "region": "Pitcairn regional selection"
+      }
+    ],
+    "animals": [
+      "Pitcairn reed warbler",
+      "Henderson fruit dove"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Bounty Bay",
+    "sources": [
+      {
+        "url": "https://www.visitpitcairn.pn/",
+        "title": "Pitcairn geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "pr",
+    "name": "Puerto Rico",
+    "landmarks": [
+      {
+        "name": "Castillo San Felipe del Morro",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "Old San Juan civilian colored houses",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "El Yunque rainforest",
+        "region": "Puerto Rico regional selection"
+      },
+      {
+        "name": "Cabo Rojo lighthouse",
+        "region": "Puerto Rico regional selection"
+      }
+    ],
+    "animals": [
+      "Puerto Rican parrot",
+      "coqui frog"
+    ],
+    "plants": [
+      "flamboyant tree",
+      "tree fern"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Castillo San Felipe del Morro",
+    "sources": [
+      {
+        "url": "https://www.discoverpuertorico.com/",
+        "title": "Puerto Rico geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "re",
+    "name": "Réunion",
+    "landmarks": [
+      {
+        "name": "Piton de la Fournaise",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Mafate cirque",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Saint Denis Creole civilian villas",
+        "region": "Réunion regional selection"
+      },
+      {
+        "name": "Voile de la Mariée waterfalls",
+        "region": "Réunion regional selection"
+      }
+    ],
+    "animals": [
+      "Reunion harrier",
+      "Reunion grey white-eye"
+    ],
+    "plants": [
+      "tree fern",
+      "tamarind"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Piton de la Fournaise",
+    "sources": [
+      {
+        "url": "https://en.reunion.fr/",
+        "title": "Réunion geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sh",
+    "name": "St Helena",
+    "landmarks": [
+      {
+        "name": "Saint Helena Jacobs Ladder",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Jamestown Georgian houses",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Ascension volcanic shore",
+        "region": "St Helena regional selection"
+      },
+      {
+        "name": "Tristan da Cunha Edinburgh village",
+        "region": "St Helena regional selection"
+      }
+    ],
+    "animals": [
+      "Saint Helena plover",
+      "northern rockhopper penguin"
+    ],
+    "plants": [
+      "Saint Helena tree fern",
+      "tussock grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Saint Helena Jacobs Ladder",
+    "sources": [
+      {
+        "url": "https://www.sthelenatourism.com/",
+        "title": "St Helena geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sj",
+    "name": "Svalbard & Jan Mayen",
+    "landmarks": [
+      {
+        "name": "Svalbard glacier fjord",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Longyearbyen colored civilian houses",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Jan Mayen Beerenberg volcano",
+        "region": "Svalbard & Jan Mayen regional selection"
+      },
+      {
+        "name": "Pyramiden industrial heritage",
+        "region": "Svalbard & Jan Mayen regional selection"
+      }
+    ],
+    "animals": [
+      "polar bear",
+      "Atlantic walrus"
+    ],
+    "plants": [
+      "Arctic moss",
+      "purple saxifrage"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Svalbard glacier fjord",
+    "sources": [
+      {
+        "url": "https://en.visitsvalbard.com/",
+        "title": "Svalbard & Jan Mayen geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "sx",
+    "name": "St Maarten (Dutch)",
+    "landmarks": [
+      {
+        "name": "Philipsburg civilian waterfront",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Fort Amsterdam",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Great Bay",
+        "region": "St Maarten (Dutch) regional selection"
+      },
+      {
+        "name": "Simpson Bay lagoon",
+        "region": "St Maarten (Dutch) regional selection"
+      }
+    ],
+    "animals": [
+      "brown pelican",
+      "green sea turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "bougainvillea"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Philipsburg civilian waterfront",
+    "sources": [
+      {
+        "url": "https://www.vacationstmaarten.com/",
+        "title": "St Maarten (Dutch) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tc",
+    "name": "Turks & Caicos Is",
+    "landmarks": [
+      {
+        "name": "Grand Turk Lighthouse",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Cockburn Town salt-trade houses",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Chalk Sound",
+        "region": "Turks & Caicos Is regional selection"
+      },
+      {
+        "name": "Middle Caicos Conch Bar Caves",
+        "region": "Turks & Caicos Is regional selection"
+      }
+    ],
+    "animals": [
+      "Turks and Caicos rock iguana",
+      "American flamingo"
+    ],
+    "plants": [
+      "sea grape",
+      "silver palm"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Grand Turk Lighthouse",
+    "sources": [
+      {
+        "url": "https://www.visittci.com/",
+        "title": "Turks & Caicos Is geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tf",
+    "name": "French S. Terr.",
+    "landmarks": [
+      {
+        "name": "Kerguelen Port-aux-Français research station",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Kerguelen glaciated mountain coast",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Crozet volcanic cliffs",
+        "region": "French S. Terr. regional selection"
+      },
+      {
+        "name": "Amsterdam Island coastal plateau",
+        "region": "French S. Terr. regional selection"
+      }
+    ],
+    "animals": [
+      "king penguin",
+      "southern elephant seal"
+    ],
+    "plants": [
+      "Kerguelen cabbage",
+      "tussock grass"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Kerguelen Port-aux-Français research station",
+    "sources": [
+      {
+        "url": "https://taaf.fr/",
+        "title": "French S. Terr. geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "tk",
+    "name": "Tokelau",
+    "landmarks": [
+      {
+        "name": "Atafu traditional wooden meeting house",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "Nukunonu Catholic church",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "Fakaofo coral-islet village",
+        "region": "Tokelau regional selection"
+      },
+      {
+        "name": "atoll lagoon reef pass",
+        "region": "Tokelau regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "white tern"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Atafu traditional wooden meeting house",
+    "sources": [
+      {
+        "url": "https://www.tokelau.org.nz/",
+        "title": "Tokelau geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "um",
+    "name": "US minor outlying islands",
+    "landmarks": [
+      {
+        "name": "Midway Sand Island atoll",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Wake Island lagoon",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Palmyra coral islets",
+        "region": "US minor outlying islands regional selection"
+      },
+      {
+        "name": "Johnston Atoll reef shelf",
+        "region": "US minor outlying islands regional selection"
+      }
+    ],
+    "animals": [
+      "Laysan albatross",
+      "Hawaiian monk seal"
+    ],
+    "plants": [
+      "pisonia",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Midway Sand Island atoll",
+    "sources": [
+      {
+        "url": "https://www.fws.gov/refuge/midway-atoll",
+        "title": "US minor outlying islands geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "vg",
+    "name": "Virgin Islands (UK)",
+    "landmarks": [
+      {
+        "name": "The Baths granite boulders",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Road Town civilian harbor",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Sage Mountain",
+        "region": "Virgin Islands (UK) regional selection"
+      },
+      {
+        "name": "Anegada coral coastline",
+        "region": "Virgin Islands (UK) regional selection"
+      }
+    ],
+    "animals": [
+      "Anegada rock iguana",
+      "brown pelican"
+    ],
+    "plants": [
+      "sea grape",
+      "turpentine tree"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "The Baths granite boulders",
+    "sources": [
+      {
+        "url": "https://www.bvitourism.com/",
+        "title": "Virgin Islands (UK) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "vi",
+    "name": "Virgin Islands (US)",
+    "landmarks": [
+      {
+        "name": "Charlotte Amalie Fort Christian",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Christiansted Danish colonial houses",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Trunk Bay",
+        "region": "Virgin Islands (US) regional selection"
+      },
+      {
+        "name": "Annaberg plantation ruins",
+        "region": "Virgin Islands (US) regional selection"
+      }
+    ],
+    "animals": [
+      "green sea turtle",
+      "brown pelican"
+    ],
+    "plants": [
+      "mangrove",
+      "hibiscus"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Charlotte Amalie Fort Christian",
+    "sources": [
+      {
+        "url": "https://www.visitusvi.com/",
+        "title": "Virgin Islands (US) geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "wf",
+    "name": "Wallis & Futuna",
+    "landmarks": [
+      {
+        "name": "Talietumu ancient stone fort",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Lake Lalolalo",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Mata Utu Catholic cathedral",
+        "region": "Wallis & Futuna regional selection"
+      },
+      {
+        "name": "Futuna coastal traditional houses",
+        "region": "Wallis & Futuna regional selection"
+      }
+    ],
+    "animals": [
+      "Polynesian starling",
+      "green sea turtle"
+    ],
+    "plants": [
+      "pandanus",
+      "coconut"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Talietumu ancient stone fort",
+    "sources": [
+      {
+        "url": "https://www.wallis-et-futuna.wf/",
+        "title": "Wallis & Futuna geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "yt",
+    "name": "Mayotte",
+    "landmarks": [
+      {
+        "name": "Dziani Dzaha crater lake",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Mount Choungui",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Saziley peninsula",
+        "region": "Mayotte regional selection"
+      },
+      {
+        "name": "Dzaoudzi secular colonial administrative houses",
+        "region": "Mayotte regional selection"
+      }
+    ],
+    "animals": [
+      "brown lemur",
+      "green sea turtle"
+    ],
+    "plants": [
+      "baobab",
+      "ylang-ylang"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Dziani Dzaha crater lake",
+    "sources": [
+      {
+        "url": "https://www.mayotte-tourisme.com/",
+        "title": "Mayotte geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-eng",
+    "name": "England",
+    "landmarks": [
+      {
+        "name": "Tower Bridge",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Stonehenge",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Durham Cathedral",
+        "region": "England regional selection"
+      },
+      {
+        "name": "Lake District stone villages",
+        "region": "England regional selection"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "red fox"
+    ],
+    "plants": [
+      "English oak",
+      "bluebell"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Tower Bridge",
+    "sources": [
+      {
+        "url": "https://www.visitengland.com/",
+        "title": "England geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-sct",
+    "name": "Scotland",
+    "landmarks": [
+      {
+        "name": "Edinburgh Castle",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Eilean Donan Castle",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Glenfinnan Viaduct",
+        "region": "Scotland regional selection"
+      },
+      {
+        "name": "Isle of Skye Old Man of Storr",
+        "region": "Scotland regional selection"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "golden eagle"
+    ],
+    "plants": [
+      "Scots pine",
+      "heather"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Edinburgh Castle",
+    "sources": [
+      {
+        "url": "https://www.visitscotland.com/",
+        "title": "Scotland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-wls",
+    "name": "Wales",
+    "landmarks": [
+      {
+        "name": "Conwy Castle",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Caernarfon Castle",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Pontcysyllte Aqueduct",
+        "region": "Wales regional selection"
+      },
+      {
+        "name": "Eryri mountain lakes",
+        "region": "Wales regional selection"
+      }
+    ],
+    "animals": [
+      "red kite",
+      "grey seal"
+    ],
+    "plants": [
+      "sessile oak",
+      "daffodil"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Conwy Castle",
+    "sources": [
+      {
+        "url": "https://www.visitwales.com/",
+        "title": "Wales geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  },
+  {
+    "code": "gb-nir",
+    "name": "Northern Ireland",
+    "landmarks": [
+      {
+        "name": "Giants Causeway",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Dunluce Castle",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Titanic Belfast",
+        "region": "Northern Ireland regional selection"
+      },
+      {
+        "name": "Mourne Mountains",
+        "region": "Northern Ireland regional selection"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "Atlantic puffin"
+    ],
+    "plants": [
+      "hawthorn",
+      "foxglove"
+    ],
+    "foodOrCraft": [],
+    "avatarFocus": "Giants Causeway",
+    "sources": [
+      {
+        "url": "https://discovernorthernireland.com/",
+        "title": "Northern Ireland geographic and heritage reference"
+      }
+    ],
+    "notes": "Representative regional montage; not a sovereignty claim. Natural species in separate habitats. No invented buildings or religious additions. For uninhabited islands use real geography and wildlife; do not invent cultural monuments. Keep all animal silhouettes and principal landmark roofs inside frame."
+  }
+]

@@ -1,0 +1,120 @@
+{
+  "output": "depth/ae_hero.png",
+  "width": 768,
+  "height": 512,
+  "stops": [
+    [
+      0,
+      20
+    ],
+    [
+      0.25,
+      40
+    ],
+    [
+      0.5,
+      105
+    ],
+    [
+      1,
+      220
+    ]
+  ],
+  "regions": [
+    {
+      "ellipse": [
+        0.88,
+        0.74,
+        0.11,
+        0.2
+      ],
+      "value": 242,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.61,
+        0.79,
+        0.065,
+        0.085
+      ],
+      "value": 225,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.7,
+        0.69,
+        0.08,
+        0.055
+      ],
+      "value": 160,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.29,
+        0.39,
+        0.23,
+        0.16
+      ],
+      "value": 135,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.87,
+        0.33,
+        0.12,
+        0.1
+      ],
+      "value": 112,
+      "blur": 0.008
+    },
+    {
+      "polygon": [
+        [
+          0,
+          0.88
+        ],
+        [
+          0.16,
+          0.86
+        ],
+        [
+          0.3,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    },
+    {
+      "polygon": [
+        [
+          0.92,
+          0.94
+        ],
+        [
+          1,
+          0.83
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0.91,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    }
+  ],
+  "method": "hand-authored approximate data; not measured depth; soft ellipse masks simplify subject boundaries"
+}

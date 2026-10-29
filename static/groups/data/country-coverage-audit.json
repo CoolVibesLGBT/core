@@ -1,0 +1,1115 @@
+{
+  "checked_at": "2026-10-24",
+  "scope": "Katalog kapsamı denetimi; tüm eksikler bağımsız devlet değildir. ISO 3166-1 ülkeler, bağlı bölgeler ve özel coğrafi alanlar içerir.",
+  "current_catalog": 259,
+  "unique_codes": 259,
+  "un_members_verified": 193,
+  "un_members_missing": [],
+  "observer_entries_present": [
+    "ps",
+    "va"
+  ],
+  "observer_note": "BM gözlemcisi Kutsal Makam; katalogdaki VA kaydı görsel ülke olarak Vatikan Şehri adını kullanır.",
+  "iso_reference_count": 249,
+  "iso_missing_count": 0,
+  "non_iso_special_status_candidates": [
+    {
+      "name_tr": "Kosova",
+      "code": "xk",
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": true,
+      "source": "https://www.worldbank.org/ext/en/country/kosovo"
+    },
+    {
+      "name_tr": "Kuzey Kıbrıs (KKTC)",
+      "code": null,
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "source": "https://questions-statements.parliament.uk/written-questions/detail/2023-05-09/184203"
+    },
+    {
+      "name_tr": "Somaliland",
+      "code": null,
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "source": "https://questions-statements.parliament.uk/written-questions/detail/2026-01-27/108575"
+    },
+    {
+      "name_tr": "Abhazya",
+      "code": null,
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "source": "https://travel.state.gov/en/international-travel/travel-advisories/georgia.html"
+    },
+    {
+      "name_tr": "Güney Osetya",
+      "code": null,
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "source": "https://travel.state.gov/en/international-travel/travel-advisories/georgia.html"
+    },
+    {
+      "name_tr": "Transdinyester",
+      "code": null,
+      "category": "ISO 3166-1 dışında; tanınma veya fiilî yönetim statüsü ayrıca değerlendirilmeli",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "source": "https://www.gov.uk/foreign-travel-advice/moldova"
+    }
+  ],
+  "constituent_countries_not_separate": [
+    {
+      "code": "GB-ENG",
+      "name_tr": "İngiltere",
+      "category": "Birleşik Krallık bileşeni; mevcut GB kaydı altında; bağımsız devlet eksikliği değil",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "represented_by": "gb"
+    },
+    {
+      "code": "GB-SCT",
+      "name_tr": "İskoçya",
+      "category": "Birleşik Krallık bileşeni; mevcut GB kaydı altında; bağımsız devlet eksikliği değil",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "represented_by": "gb"
+    },
+    {
+      "code": "GB-WLS",
+      "name_tr": "Galler",
+      "category": "Birleşik Krallık bileşeni; mevcut GB kaydı altında; bağımsız devlet eksikliği değil",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "represented_by": "gb"
+    },
+    {
+      "code": "GB-NIR",
+      "name_tr": "Kuzey İrlanda",
+      "category": "Birleşik Krallık bileşeni; mevcut GB kaydı altında; bağımsız devlet eksikliği değil",
+      "iso3166_1": false,
+      "in_current_catalog": false,
+      "represented_by": "gb"
+    }
+  ],
+  "name_corrections": [
+    {
+      "code": "cv",
+      "before": "Cape Verde",
+      "after": "Cabo Verde"
+    },
+    {
+      "code": "cz",
+      "before": "Czech Republic",
+      "after": "Czechia"
+    },
+    {
+      "code": "fm",
+      "before": "Micronesia",
+      "after": "Micronesia (Federated States of)"
+    },
+    {
+      "code": "gb",
+      "before": "Britain (UK)",
+      "after": "United Kingdom"
+    },
+    {
+      "code": "mm",
+      "before": "Myanmar (Burma)",
+      "after": "Myanmar"
+    },
+    {
+      "code": "sz",
+      "before": "Eswatini (Swaziland)",
+      "after": "Eswatini"
+    },
+    {
+      "code": "tl",
+      "before": "East Timor",
+      "after": "Timor-Leste"
+    },
+    {
+      "code": "tr",
+      "before": "Turkey",
+      "after": "Türkiye"
+    },
+    {
+      "code": "vc",
+      "before": "St Vincent",
+      "after": "Saint Vincent and the Grenadines"
+    },
+    {
+      "code": "ws",
+      "before": "Samoa (western)",
+      "after": "Samoa"
+    }
+  ],
+  "recommended_catalog_scope": "Küresel ülke/bölge seçici için ISO 249 + ayrı uygulama koduyla Kosova = 250 kayıt. Diğer fiilî yönetimler ve bileşen ülkeler ayrı tür/üst-bölge alanlarıyla opsiyonel olmalı. Bu bir egemenlik tanıma listesi değildir.",
+  "scope_warning": "259 ülke/bölge kaydı: ISO 3166-1 kapsamındaki 249 giriş, altı ek özel statülü yer ve Birleşik Krallık içindeki dört kurucu ülke. Katalogda bulunmak egemenlik veya tanınma iddiası değildir.",
+  "sources": [
+    "https://research.un.org/en/unmembers/currentmembers",
+    "https://www.un.org/en/about-us/non-member-states",
+    "https://www.iso.org/iso-3166-country-codes.html",
+    "https://www.gov.uk/government/publications/open-standards-for-government/country-codes",
+    "https://data.iana.org/time-zones/tzdb/iso3166.tab",
+    "https://www.mfat.govt.nz/en/countries-and-regions/australia-and-pacific/cook-islands",
+    "https://www.un.org/dppa/decolonization/en/nsgt/western-sahara"
+  ],
+  "baseline_catalog_entries": 195,
+  "expansion_entries_added": 64,
+  "expansion_assets_required": 192,
+  "expansion_status": "complete",
+  "baseline_missing_iso_entries": [
+    {
+      "code": "ai",
+      "name": "Anguilla",
+      "name_tr": "Anguilla",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "aq",
+      "name": "Antarctica",
+      "name_tr": "Antarktika",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "as",
+      "name": "Samoa (American)",
+      "name_tr": "Amerikan Samoası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "aw",
+      "name": "Aruba",
+      "name_tr": "Aruba",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "ax",
+      "name": "Åland Islands",
+      "name_tr": "Åland Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "bl",
+      "name": "St Barthelemy",
+      "name_tr": "Saint Barthélemy",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "bm",
+      "name": "Bermuda",
+      "name_tr": "Bermuda",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "bq",
+      "name": "Caribbean NL",
+      "name_tr": "Bonaire, Sint Eustatius ve Saba",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "bv",
+      "name": "Bouvet Island",
+      "name_tr": "Bouvet Adası",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "cc",
+      "name": "Cocos (Keeling) Islands",
+      "name_tr": "Cocos (Keeling) Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "ck",
+      "name": "Cook Islands",
+      "name_tr": "Cook Adaları",
+      "category": "Serbest ortaklık içindeki kendi kendini yöneten devlet",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "cw",
+      "name": "Curaçao",
+      "name_tr": "Curaçao",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "cx",
+      "name": "Christmas Island",
+      "name_tr": "Christmas Adası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "eh",
+      "name": "Western Sahara",
+      "name_tr": "Batı Sahra",
+      "category": "Statüsü ihtilaflı, BM kendi kendini yönetmeyen bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "fk",
+      "name": "Falkland Islands",
+      "name_tr": "Falkland Adaları (Malvinas)",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "fo",
+      "name": "Faroe Islands",
+      "name_tr": "Faroe Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gf",
+      "name": "French Guiana",
+      "name_tr": "Fransız Guyanası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gg",
+      "name": "Guernsey",
+      "name_tr": "Guernsey",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gi",
+      "name": "Gibraltar",
+      "name_tr": "Cebelitarık",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gl",
+      "name": "Greenland",
+      "name_tr": "Grönland",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gp",
+      "name": "Guadeloupe",
+      "name_tr": "Guadeloupe",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gs",
+      "name": "South Georgia & the South Sandwich Islands",
+      "name_tr": "Güney Georgia ve Güney Sandwich Adaları",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "gu",
+      "name": "Guam",
+      "name_tr": "Guam",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "hk",
+      "name": "Hong Kong",
+      "name_tr": "Hong Kong",
+      "category": "Özel idari bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "hm",
+      "name": "Heard Island & McDonald Islands",
+      "name_tr": "Heard Adası ve McDonald Adaları",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "im",
+      "name": "Isle of Man",
+      "name_tr": "Man Adası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "io",
+      "name": "British Indian Ocean Territory",
+      "name_tr": "Britanya Hint Okyanusu Toprakları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "je",
+      "name": "Jersey",
+      "name_tr": "Jersey",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "ky",
+      "name": "Cayman Islands",
+      "name_tr": "Cayman Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "mf",
+      "name": "St Martin (French)",
+      "name_tr": "Saint Martin (Fransız bölümü)",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "mo",
+      "name": "Macau",
+      "name_tr": "Makao",
+      "category": "Özel idari bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "mp",
+      "name": "Northern Mariana Islands",
+      "name_tr": "Kuzey Mariana Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "mq",
+      "name": "Martinique",
+      "name_tr": "Martinik",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "ms",
+      "name": "Montserrat",
+      "name_tr": "Montserrat",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "nc",
+      "name": "New Caledonia",
+      "name_tr": "Yeni Kaledonya",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "nf",
+      "name": "Norfolk Island",
+      "name_tr": "Norfolk Adası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "nu",
+      "name": "Niue",
+      "name_tr": "Niue",
+      "category": "Serbest ortaklık içindeki kendi kendini yöneten devlet",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "pf",
+      "name": "French Polynesia",
+      "name_tr": "Fransız Polinezyası",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "pm",
+      "name": "St Pierre & Miquelon",
+      "name_tr": "Saint Pierre ve Miquelon",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "pn",
+      "name": "Pitcairn",
+      "name_tr": "Pitcairn Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "pr",
+      "name": "Puerto Rico",
+      "name_tr": "Porto Riko",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "re",
+      "name": "Réunion",
+      "name_tr": "Réunion",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "sh",
+      "name": "St Helena",
+      "name_tr": "Saint Helena, Ascension ve Tristan da Cunha",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "sj",
+      "name": "Svalbard & Jan Mayen",
+      "name_tr": "Svalbard ve Jan Mayen",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "sx",
+      "name": "St Maarten (Dutch)",
+      "name_tr": "Sint Maarten (Hollanda bölümü)",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "tc",
+      "name": "Turks & Caicos Is",
+      "name_tr": "Turks ve Caicos Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "tf",
+      "name": "French S. Terr.",
+      "name_tr": "Fransız Güney Toprakları",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "tk",
+      "name": "Tokelau",
+      "name_tr": "Tokelau",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "tw",
+      "name": "Taiwan",
+      "name_tr": "Tayvan",
+      "category": "Ayrı ISO kaydı bulunan Tayvan",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "um",
+      "name": "US minor outlying islands",
+      "name_tr": "ABD Küçük Dış Adaları",
+      "category": "Antarktika veya kalıcı sivil nüfusu olmayan ada/bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "vg",
+      "name": "Virgin Islands (UK)",
+      "name_tr": "Britanya Virjin Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "vi",
+      "name": "Virgin Islands (US)",
+      "name_tr": "ABD Virjin Adaları",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "wf",
+      "name": "Wallis & Futuna",
+      "name_tr": "Wallis ve Futuna",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    },
+    {
+      "code": "yt",
+      "name": "Mayotte",
+      "name_tr": "Mayotte",
+      "category": "Bağlı/özerk/özel statülü bölge",
+      "in_current_catalog": true,
+      "iso3166_1": true,
+      "source": "https://data.iana.org/time-zones/tzdb/iso3166.tab"
+    }
+  ],
+  "baseline_missing_iso_count": 54,
+  "missing_iso_entries": [],
+  "iso_entries_present": 249,
+  "expansion_assets_saved": 192,
+  "total_assets_saved": 777,
+  "added_entries": [
+    {
+      "code": "tw",
+      "name": "Taiwan",
+      "name_tr": "Tayvan",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "xk",
+      "name": "Kosovo",
+      "name_tr": "Kosova",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "ck",
+      "name": "Cook Islands",
+      "name_tr": "Cook Adaları",
+      "type": "self_governing_state",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "nu",
+      "name": "Niue",
+      "name_tr": "Niue",
+      "type": "self_governing_state",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "xn",
+      "name": "Northern Cyprus",
+      "name_tr": "Kuzey Kıbrıs (KKTC)",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "xs",
+      "name": "Somaliland",
+      "name_tr": "Somaliland",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "xa",
+      "name": "Abkhazia",
+      "name_tr": "Abhazya",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "xo",
+      "name": "South Ossetia",
+      "name_tr": "Güney Osetya",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "xt",
+      "name": "Transnistria",
+      "name_tr": "Transdinyester",
+      "type": "special_status",
+      "code_scheme": "application-private"
+    },
+    {
+      "code": "ai",
+      "name": "Anguilla",
+      "name_tr": "Anguilla",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "aq",
+      "name": "Antarctica",
+      "name_tr": "Antarktika",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "as",
+      "name": "Samoa (American)",
+      "name_tr": "Amerikan Samoası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "aw",
+      "name": "Aruba",
+      "name_tr": "Aruba",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "ax",
+      "name": "Åland Islands",
+      "name_tr": "Åland Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "bl",
+      "name": "St Barthelemy",
+      "name_tr": "Saint Barthélemy",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "bm",
+      "name": "Bermuda",
+      "name_tr": "Bermuda",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "bq",
+      "name": "Caribbean NL",
+      "name_tr": "Bonaire, Sint Eustatius ve Saba",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "bv",
+      "name": "Bouvet Island",
+      "name_tr": "Bouvet Adası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "cc",
+      "name": "Cocos (Keeling) Islands",
+      "name_tr": "Cocos (Keeling) Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "cw",
+      "name": "Curaçao",
+      "name_tr": "Curaçao",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "cx",
+      "name": "Christmas Island",
+      "name_tr": "Christmas Adası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "eh",
+      "name": "Western Sahara",
+      "name_tr": "Batı Sahra",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "fk",
+      "name": "Falkland Islands",
+      "name_tr": "Falkland Adaları (Malvinas)",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "fo",
+      "name": "Faroe Islands",
+      "name_tr": "Faroe Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gf",
+      "name": "French Guiana",
+      "name_tr": "Fransız Guyanası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gg",
+      "name": "Guernsey",
+      "name_tr": "Guernsey",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gi",
+      "name": "Gibraltar",
+      "name_tr": "Cebelitarık",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gl",
+      "name": "Greenland",
+      "name_tr": "Grönland",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gp",
+      "name": "Guadeloupe",
+      "name_tr": "Guadeloupe",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gs",
+      "name": "South Georgia & the South Sandwich Islands",
+      "name_tr": "Güney Georgia ve Güney Sandwich Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gu",
+      "name": "Guam",
+      "name_tr": "Guam",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "hk",
+      "name": "Hong Kong",
+      "name_tr": "Hong Kong",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1",
+      "parent": "cn"
+    },
+    {
+      "code": "hm",
+      "name": "Heard Island & McDonald Islands",
+      "name_tr": "Heard Adası ve McDonald Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "im",
+      "name": "Isle of Man",
+      "name_tr": "Man Adası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "io",
+      "name": "British Indian Ocean Territory",
+      "name_tr": "Britanya Hint Okyanusu Toprakları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "je",
+      "name": "Jersey",
+      "name_tr": "Jersey",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "ky",
+      "name": "Cayman Islands",
+      "name_tr": "Cayman Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "mf",
+      "name": "St Martin (French)",
+      "name_tr": "Saint Martin (Fransız bölümü)",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "mo",
+      "name": "Macau",
+      "name_tr": "Makao",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1",
+      "parent": "cn"
+    },
+    {
+      "code": "mp",
+      "name": "Northern Mariana Islands",
+      "name_tr": "Kuzey Mariana Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "mq",
+      "name": "Martinique",
+      "name_tr": "Martinik",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "ms",
+      "name": "Montserrat",
+      "name_tr": "Montserrat",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "nc",
+      "name": "New Caledonia",
+      "name_tr": "Yeni Kaledonya",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "nf",
+      "name": "Norfolk Island",
+      "name_tr": "Norfolk Adası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "pf",
+      "name": "French Polynesia",
+      "name_tr": "Fransız Polinezyası",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "pm",
+      "name": "St Pierre & Miquelon",
+      "name_tr": "Saint Pierre ve Miquelon",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "pn",
+      "name": "Pitcairn",
+      "name_tr": "Pitcairn Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "pr",
+      "name": "Puerto Rico",
+      "name_tr": "Porto Riko",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "re",
+      "name": "Réunion",
+      "name_tr": "Réunion",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "sh",
+      "name": "St Helena",
+      "name_tr": "Saint Helena, Ascension ve Tristan da Cunha",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "sj",
+      "name": "Svalbard & Jan Mayen",
+      "name_tr": "Svalbard ve Jan Mayen",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "sx",
+      "name": "St Maarten (Dutch)",
+      "name_tr": "Sint Maarten (Hollanda bölümü)",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "tc",
+      "name": "Turks & Caicos Is",
+      "name_tr": "Turks ve Caicos Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "tf",
+      "name": "French S. Terr.",
+      "name_tr": "Fransız Güney Toprakları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "tk",
+      "name": "Tokelau",
+      "name_tr": "Tokelau",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "um",
+      "name": "US minor outlying islands",
+      "name_tr": "ABD Küçük Dış Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "vg",
+      "name": "Virgin Islands (UK)",
+      "name_tr": "Britanya Virjin Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "vi",
+      "name": "Virgin Islands (US)",
+      "name_tr": "ABD Virjin Adaları",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "wf",
+      "name": "Wallis & Futuna",
+      "name_tr": "Wallis ve Futuna",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "yt",
+      "name": "Mayotte",
+      "name_tr": "Mayotte",
+      "type": "country_or_territory",
+      "code_scheme": "ISO3166-1"
+    },
+    {
+      "code": "gb-eng",
+      "name": "England",
+      "name_tr": "İngiltere",
+      "type": "constituent_country",
+      "code_scheme": "ISO3166-2",
+      "parent": "gb"
+    },
+    {
+      "code": "gb-sct",
+      "name": "Scotland",
+      "name_tr": "İskoçya",
+      "type": "constituent_country",
+      "code_scheme": "ISO3166-2",
+      "parent": "gb"
+    },
+    {
+      "code": "gb-wls",
+      "name": "Wales",
+      "name_tr": "Galler",
+      "type": "constituent_country",
+      "code_scheme": "ISO3166-2",
+      "parent": "gb"
+    },
+    {
+      "code": "gb-nir",
+      "name": "Northern Ireland",
+      "name_tr": "Kuzey İrlanda",
+      "type": "constituent_country",
+      "code_scheme": "ISO3166-2",
+      "parent": "gb"
+    }
+  ]
+}
