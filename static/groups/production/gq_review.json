@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Equatorial Guinea montage: Malabo-like twin-spire cathedral/civic waterfront, volcanic mountains, rainforest, waterfall and island coast with natural gorilla/mandrill. Architecture, tree forms and geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Equatorial Guinea montage: Malabo-like twin-spire cathedral/civic waterfront, volcanic mountains, rainforest, waterfall and island coast with natural gorilla/mandrill. Architecture, tree forms and geography are illustrative approximations; no lettering/flags observed. Carved craft figure is a static wooden object.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Malabo-like twin-spire cathedral with mandrill and cacao, coastal mountain behind. Cathedral facade and huge foreground tree are artistic approximations; mandrill body meets left edge and circle crop trims outer foliage. No lettering or flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

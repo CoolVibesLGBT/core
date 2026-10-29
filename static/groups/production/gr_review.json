@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Greek montage with Acropolis, ancient theater and ruins, Knossos, Meteora monasteries, island churches and Rhodes fort. Natural turtle foreground, olive framing. No lettering or excluded architecture. Rightmost island church group partly meets frame; approximate architecture and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Greek ancient and medieval sites, island churches, olive and pottery visible. Turtle water foreground and goat land right; goat near right margin. No lettering or excluded structures. Stylized montage with approximate landmark detail and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Acropolis and natural sea turtle visible, olive and cypress accents. No visible lettering or prohibited architecture. Turtle wholly inside frame; landmarks simplified and geographic montage illustrative. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
