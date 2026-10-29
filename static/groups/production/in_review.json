@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Indian heritage montage of Hampi stone chariot, Hindu temples, Sanchi Buddhist stupa, rock-cut caves, Hawa Mahal civilian palace and mountain railway. Natural tiger/rhino in separate habitats, lotus and banyan. Temple carving, wheels and geographic scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Indian heritage montage of Hampi stone chariot, Hindu temples, Sanchi Buddhist stupa, rock-cut caves, Hawa Mahal civilian palace and mountain railway. Natural tiger/rhino in separate habitats, lotus and banyan. Temple carving, wheels and geographic scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Hampi-like stone chariot with natural tiger, banyan and lotus, temple tower in distance. Chariot proportions and temple carvings are simplified artistic approximations; tiger safely inside square but outer tail can trim in circle. No lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
