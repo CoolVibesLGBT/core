@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Portuguese montage with Belem Tower, Jeronimos-like monastery, Pena palace, Clerigos tower, Evora Roman temple and island vineyards/volcano. Natural Iberian lynx/stork and cork oak. Landmark details and relative geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Portuguese montage with Belem Tower, Jeronimos-like monastery, Pena palace, Clerigos tower, Evora Roman temple and island vineyards/volcano. Natural Iberian lynx/stork and cork oak. Landmark details and relative geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Belem Tower-like fortified tower with natural Iberian lynx, cork oak and estuary bridge. Tower details and bank viewpoint are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
