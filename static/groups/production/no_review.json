@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Norwegian montage with Bryggen waterfront, stave church, Nidaros-like cathedral, fjords, Lofoten fishing cabins and rock-art slab. Natural reindeer/puffin, spruce and berries. Cathedral details and geographical scale are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Norwegian montage with Bryggen waterfront, stave church, Nidaros-like cathedral, fjords, Lofoten fishing cabins and rock-art slab. Natural reindeer/puffin, spruce and berries. Cathedral details and geographical scale are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Bryggen-like timber waterfront with natural reindeer and spruce against high fjord cliffs. Building count and cliff geography are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
