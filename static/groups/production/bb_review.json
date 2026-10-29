@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Inspected: Saint Nicholas Abbey, Morgan Lewis windmill, Bridgetown parliament, cave/coastal montage; green monkey and hawksbill-like turtle natural anatomy. No restricted architecture observed. Contoured volume and warm pastel sky; stylized montage, not literal geography.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Bridgetown parliament clock tower, Saint Nicholas Abbey, windmill, caves and coast. Natural monkey and sea turtle. No restricted architecture observed. Warm pastel sky and sculpted outlined forms.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Saint Nicholas Abbey Jacobean house, natural green monkey with plausible limbs, cane and banyan framing. No restricted religious architecture observed. Soft peach/lilac palette with outlined sculpted depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
