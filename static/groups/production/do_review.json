@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed visible montage: palace and cathedral left, karst and whale middle, iguana and solenodon right. Detailed illustrative treatment less angular than requested. No visible lettering or prohibited religious structures. Approximate depth follows foreground animals and plants.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed panorama: palace and cathedral at left, mountain and karst background, whale in water, foreground iguana left and solenodon right. No visible lettering or excluded structures. Approximate hand drawn depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Palace and natural solenodon visible, palm framing. No lettering or excluded structures. Detailed illustrative style; palace roof near right edge reduces circular crop margin. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
