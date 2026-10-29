@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Madagascar baobab avenue, royal hill interpretation, Tsingy, sandstone formations and rainforest waterfall. Natural ring-tailed lemur, sifaka and chameleon; right lemur tail and chameleon near edge. No text or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Madagascar panorama with baobabs, Tsingy, royal hill, rainforest waterfall and sandstone landscape. Natural lemurs and chameleon, raffia baskets foreground. No lettering or excluded structures. Chameleon tail close to right margin. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Baobab avenue and natural ring-tailed lemur visible with foreground vegetation. No lettering or excluded structures. Lemur close to left crop margin; whole tail inside square. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
