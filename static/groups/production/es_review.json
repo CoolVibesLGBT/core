@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Spain regional montage with Sagrada Familia, Segovia aqueduct, Roman theatre, castle, cave paintings, cathedral and Guggenheim; foreground lynx and eagle. Spatial arrangement and landmark geometry illustrative.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Spain regional montage with Sagrada Familia, Segovia aqueduct, Roman theatre, castle, cave paintings, cathedral and Guggenheim; foreground lynx and eagle. Spatial arrangement and landmark geometry illustrative.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Sagrada Familia and foreground Iberian lynx with olive tree; stylized architectural geometry, no text or prohibited structures visible.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

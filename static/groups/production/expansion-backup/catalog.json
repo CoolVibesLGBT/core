@@ -1,0 +1,4559 @@
+{
+  "scope": "193 UN member states and 2 observer states",
+  "totalCountries": 195,
+  "requiredAssets": 585,
+  "savedAssets": 585,
+  "completeCountries": 195,
+  "countries": [
+    {
+      "code": "ad",
+      "name": "Andorra",
+      "description": "Casa de la Vall, Sant Joan de Caselles church, Sant Climent church, Madriu-Perafita-Claror valley, Ordino stone village. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Pyrenean chamois, golden eagle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ad/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ad_avatar.avif",
+      "cover": "images/ad_cover.avif",
+      "hero": "images/ad_hero.avif",
+      "depth": {
+        "avatar": "depth/ad_avatar.png",
+        "cover": "depth/ad_cover.png",
+        "hero": "depth/ad_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ae",
+      "name": "United Arab Emirates",
+      "description": "Al Jahili Fort, Hili archaeological tombs, Jebel Hafeet tombs, Burj Khalifa, Fujairah Fort, Jebel Jais. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian oryx in desert, dugong off Abu Dhabi, dromedary camel",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ae/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ae_avatar.avif",
+      "cover": "images/ae_cover.avif",
+      "hero": "images/ae_hero.avif",
+      "depth": {
+        "avatar": "depth/ae_avatar.png",
+        "cover": "depth/ae_cover.png",
+        "hero": "depth/ae_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "af",
+      "name": "Afghanistan",
+      "description": "Bamiyan empty Buddha niches, Band-e Amir lakes, Ai Khanoum archaeological ruins, Wakhan valley, Bala Hissar fortress walls, Takht-e Rostam stupa. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "snow leopard in high mountains, Marco Polo sheep in Wakhan",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/af/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://whc.unesco.org/document/106679",
+          "title": "UNESCO adopted Bamiyan statement: empty niches and surviving archaeological ensemble"
+        }
+      ],
+      "avatar": "images/af_avatar.avif",
+      "cover": "images/af_cover.avif",
+      "hero": "images/af_hero.avif",
+      "depth": {
+        "avatar": "depth/af_avatar.png",
+        "cover": "depth/af_cover.png",
+        "hero": "depth/af_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ag",
+      "name": "Antigua & Barbuda",
+      "description": "Nelsons Dockyard, Shirley Heights, Bettys Hope sugar mill, Devils Bridge, Frigate Bird Sanctuary. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "magnificent frigatebird, hawksbill turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ag/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ag_avatar.avif",
+      "cover": "images/ag_cover.avif",
+      "hero": "images/ag_hero.avif",
+      "depth": {
+        "avatar": "depth/ag_avatar.png",
+        "cover": "depth/ag_cover.png",
+        "hero": "depth/ag_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "al",
+      "name": "Albania",
+      "description": "Butrint ancient theatre, Apollonia ancient ruins, Rozafa Castle, Gjirokastër castle, Berat castle walls, Albanian Alps, Durrës amphitheatre. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Dalmatian pelican at lagoons, Balkan lynx in mountains",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/al/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/al_avatar.avif",
+      "cover": "images/al_cover.avif",
+      "hero": "images/al_hero.avif",
+      "depth": {
+        "avatar": "depth/al_avatar.png",
+        "cover": "depth/al_cover.png",
+        "hero": "depth/al_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "am",
+      "name": "Armenia",
+      "description": "Garni pagan temple, Geghard monastery, Tatev monastery, Khor Virap monastery, Etchmiadzin cathedral, Lake Sevan, Zorats Karer standing stones. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Armenian mouflon, bezoar goat",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/am/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/am_avatar.avif",
+      "cover": "images/am_cover.avif",
+      "hero": "images/am_hero.avif",
+      "depth": {
+        "avatar": "depth/am_avatar.png",
+        "cover": "depth/am_cover.png",
+        "hero": "depth/am_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ao",
+      "name": "Angola",
+      "description": "Mbanza Kongo archaeological city, Fortress of São Miguel, Kalandula Falls, Tundavala escarpment, Pedras Negras, Iona desert. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "giant sable antelope, African penguin on southern coast",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ao/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ao_avatar.avif",
+      "cover": "images/ao_cover.avif",
+      "hero": "images/ao_hero.avif",
+      "depth": {
+        "avatar": "depth/ao_avatar.png",
+        "cover": "depth/ao_cover.png",
+        "hero": "depth/ao_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ar",
+      "name": "Argentina",
+      "description": "Iguazú Falls, Perito Moreno glacier, Cueva de las Manos, Quebrada de Humahuaca, Casa Rosada, Aconcagua, Ischigualasto formations. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "guanaco in Patagonia, Magellanic penguin on coast, jaguar in northeast forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ar/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ar_avatar.avif",
+      "cover": "images/ar_cover.avif",
+      "hero": "images/ar_hero.avif",
+      "depth": {
+        "avatar": "depth/ar_avatar.png",
+        "cover": "depth/ar_cover.png",
+        "hero": "depth/ar_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "at",
+      "name": "Austria",
+      "description": "Schönbrunn Palace, Hohensalzburg Fortress, Hallstatt lakeside village, Melk Abbey, Innsbruck Golden Roof, Graz clock tower, Grossglockner. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "alpine ibex, marmot",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/at/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/at_avatar.avif",
+      "cover": "images/at_cover.avif",
+      "hero": "images/at_hero.avif",
+      "depth": {
+        "avatar": "depth/at_avatar.png",
+        "cover": "depth/at_cover.png",
+        "hero": "depth/at_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "au",
+      "name": "Australia",
+      "description": "Sydney Opera House, Uluru, Great Barrier Reef, Twelve Apostles, Bungle Bungle, Cradle Mountain, Kakadu rock shelters. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "kangaroo, koala, wombat",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/au/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/au_avatar.avif",
+      "cover": "images/au_cover.avif",
+      "hero": "images/au_hero.avif",
+      "depth": {
+        "avatar": "depth/au_avatar.png",
+        "cover": "depth/au_cover.png",
+        "hero": "depth/au_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "az",
+      "name": "Azerbaijan",
+      "description": "Gobustan petroglyphs, Maiden Tower, Sheki Khan Palace, Ateshgah fire temple, Mud volcanoes, Ganja bottle house, Greater Caucasus peaks. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Caucasian tur, goitered gazelle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/az/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/az_avatar.avif",
+      "cover": "images/az_cover.avif",
+      "hero": "images/az_hero.avif",
+      "depth": {
+        "avatar": "depth/az_avatar.png",
+        "cover": "depth/az_cover.png",
+        "hero": "depth/az_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ba",
+      "name": "Bosnia & Herzegovina",
+      "description": "Mostar Old Bridge, Mehmed Paša Sokolović bridge, Jajce waterfall and fortress, Kravica waterfalls, Stećci tombstones, Sutjeska landscape, Tvrdos monastery. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "brown bear, chamois",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ba/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ba_avatar.avif",
+      "cover": "images/ba_cover.avif",
+      "hero": "images/ba_hero.avif",
+      "depth": {
+        "avatar": "depth/ba_avatar.png",
+        "cover": "depth/ba_cover.png",
+        "hero": "depth/ba_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bb",
+      "name": "Barbados",
+      "description": "St Nicholas Abbey plantation house, Harrisons Cave, Morgan Lewis windmill, Parliament buildings, Bathsheba rock formations, Animal Flower Cave. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "green monkey introduced population, hawksbill turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bb/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bb_avatar.avif",
+      "cover": "images/bb_cover.avif",
+      "hero": "images/bb_hero.avif",
+      "depth": {
+        "avatar": "depth/bb_avatar.png",
+        "cover": "depth/bb_cover.png",
+        "hero": "depth/bb_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bd",
+      "name": "Bangladesh",
+      "description": "Somapura Buddhist vihara, Mahasthangarh ruins, Kantajew Hindu temple, National Parliament building, Ahsan Manzil palace, Sundarbans mangroves. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Bengal tiger in Sundarbans, Ganges river dolphin",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bd/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bd_avatar.avif",
+      "cover": "images/bd_cover.avif",
+      "hero": "images/bd_hero.avif",
+      "depth": {
+        "avatar": "depth/bd_avatar.png",
+        "cover": "depth/bd_cover.png",
+        "hero": "depth/bd_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "be",
+      "name": "Belgium",
+      "description": "Grand Place guildhalls, Bruges belfry, Gravensteen castle, Antwerp cathedral, Citadel of Dinant, Bois du Cazier industrial heritage, Hallerbos bluebells. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red squirrel, European roe deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/be/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/be_avatar.avif",
+      "cover": "images/be_cover.avif",
+      "hero": "images/be_hero.avif",
+      "depth": {
+        "avatar": "depth/be_avatar.png",
+        "cover": "depth/be_cover.png",
+        "hero": "depth/be_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bf",
+      "name": "Burkina Faso",
+      "description": "Loropéni stone ruins, Tiébélé painted earthen houses, Dômes de Fabédougou, Sindou Peaks, Karfiguéla waterfalls, Arly savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant in protected savanna, roan antelope",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bf/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://whc.unesco.org/en/list/1225/",
+          "title": "UNESCO: Ruins of Loropéni"
+        }
+      ],
+      "avatar": "images/bf_avatar.avif",
+      "cover": "images/bf_cover.avif",
+      "hero": "images/bf_hero.avif",
+      "depth": {
+        "avatar": "depth/bf_avatar.png",
+        "cover": "depth/bf_cover.png",
+        "hero": "depth/bf_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bg",
+      "name": "Bulgaria",
+      "description": "Rila Monastery, Plovdiv Roman theatre, Nesebar ancient churches, Madara Rider rock relief, Thracian tomb, Belogradchik rocks and fortress, Pirin mountains. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "brown bear, Dalmatian pelican",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bg/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bg_avatar.avif",
+      "cover": "images/bg_cover.avif",
+      "hero": "images/bg_hero.avif",
+      "depth": {
+        "avatar": "depth/bg_avatar.png",
+        "cover": "depth/bg_cover.png",
+        "hero": "depth/bg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bh",
+      "name": "Bahrain",
+      "description": "Qalat al Bahrain archaeological fort, Bahrain National Museum civic exterior, Dilmun burial mounds, Bu Maher Fort, Arad Fort, Tree of Life, pearling merchant houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dugong in coastal waters, flamingo in wetlands",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bh/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bh_avatar.avif",
+      "cover": "images/bh_cover.avif",
+      "hero": "images/bh_hero.avif",
+      "depth": {
+        "avatar": "depth/bh_avatar.png",
+        "cover": "depth/bh_cover.png",
+        "hero": "depth/bh_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bi",
+      "name": "Burundi",
+      "description": "Gishora royal drum sanctuary, Karera waterfalls, Lake Tanganyika shore, Kibira forest, Rusizi delta, Gasumo spring. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "hippopotamus in Rusizi, chimpanzee in Kibira",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bi/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bi/tentative/",
+          "title": "UNESCO Burundi tentative sites inventory"
+        }
+      ],
+      "avatar": "images/bi_avatar.avif",
+      "cover": "images/bi_cover.avif",
+      "hero": "images/bi_hero.avif",
+      "depth": {
+        "avatar": "depth/bi_avatar.png",
+        "cover": "depth/bi_cover.png",
+        "hero": "depth/bi_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bj",
+      "name": "Benin",
+      "description": "Royal Palaces of Abomey, Ganvié stilt village, Door of No Return memorial, Tata Somba earthen houses, Pendjari savanna, Porto Novo colonial civic houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "elephant in Pendjari, roan antelope",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bj/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bj_avatar.avif",
+      "cover": "images/bj_cover.avif",
+      "hero": "images/bj_hero.avif",
+      "depth": {
+        "avatar": "depth/bj_avatar.png",
+        "cover": "depth/bj_cover.png",
+        "hero": "depth/bj_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bn",
+      "name": "Brunei",
+      "description": "Kampong Ayer stilt houses secular portions, Ulu Temburong forest canopy, Tasek Merimbun lake, Bubungan Dua Belas historic house, Billionth Barrel monument. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "proboscis monkey in mangroves, hornbill in rainforest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bn/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://www.bruneitourism.com/places/tasek-merimbun-heritage-park/",
+          "title": "Brunei Tourism: Tasek Merimbun, Tutong"
+        },
+        {
+          "url": "https://www.history-centre.gov.bn/SiteAssets/Info%20Sejarah/INFO%20SEJARAH/TEMPAT-TEMPAT%20BERSEJARAH.pdf",
+          "title": "Brunei History Centre: Bubungan Dua Belas historic house"
+        }
+      ],
+      "avatar": "images/bn_avatar.avif",
+      "cover": "images/bn_cover.avif",
+      "hero": "images/bn_hero.avif",
+      "depth": {
+        "avatar": "depth/bn_avatar.png",
+        "cover": "depth/bn_cover.png",
+        "hero": "depth/bn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bo",
+      "name": "Bolivia",
+      "description": "Tiwanaku archaeological site, Salar de Uyuni, Potosí mint, Sucre colonial civic architecture, Jesuit Mission church, Lake Titicaca Island of Sun ruins, Madidi rainforest. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "llama in Andes, Andean flamingo on salt lakes, jaguar in lowland forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bo/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bo_avatar.avif",
+      "cover": "images/bo_cover.avif",
+      "hero": "images/bo_hero.avif",
+      "depth": {
+        "avatar": "depth/bo_avatar.png",
+        "cover": "depth/bo_cover.png",
+        "hero": "depth/bo_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "br",
+      "name": "Brazil",
+      "description": "Christ the Redeemer, Iguaçu Falls, National Congress, Ouro Preto churches, Pelourinho civic houses, Amazon river forest, Lençóis Maranhenses dunes, Serra da Capivara rock art. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "jaguar in Pantanal, toucan in forest, golden lion tamarin in Atlantic forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/br/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/br_avatar.avif",
+      "cover": "images/br_cover.avif",
+      "hero": "images/br_hero.avif",
+      "depth": {
+        "avatar": "depth/br_avatar.png",
+        "cover": "depth/br_cover.png",
+        "hero": "depth/br_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bs",
+      "name": "Bahamas",
+      "description": "Queens Staircase, Fort Charlotte, Elbow Reef lighthouse, Deans Blue Hole, Lucayan cave landscape, Exuma cays. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "flamingo on Inagua, Bahamian rock iguana",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bs/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bs_avatar.avif",
+      "cover": "images/bs_cover.avif",
+      "hero": "images/bs_hero.avif",
+      "depth": {
+        "avatar": "depth/bs_avatar.png",
+        "cover": "depth/bs_cover.png",
+        "hero": "depth/bs_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bt",
+      "name": "Bhutan",
+      "description": "Paro Taktsang monastery, Punakha dzong, Trongsa dzong, Rinpung dzong, Bumthang temples, Phobjikha valley. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "takin in mountain forest, black-necked crane in Phobjikha",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bt/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bt_avatar.avif",
+      "cover": "images/bt_cover.avif",
+      "hero": "images/bt_hero.avif",
+      "depth": {
+        "avatar": "depth/bt_avatar.png",
+        "cover": "depth/bt_cover.png",
+        "hero": "depth/bt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bw",
+      "name": "Botswana",
+      "description": "Tsodilo rock art, Okavango delta, Makgadikgadi salt pans, Kubu Island baobabs, Moremi wetlands, Tuli sandstone landscape. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, African wild dog, zebra",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bw/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bw_avatar.avif",
+      "cover": "images/bw_cover.avif",
+      "hero": "images/bw_hero.avif",
+      "depth": {
+        "avatar": "depth/bw_avatar.png",
+        "cover": "depth/bw_cover.png",
+        "hero": "depth/bw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "by",
+      "name": "Belarus",
+      "description": "Mir Castle, Nesvizh palace, Brest Fortress, Belovezhskaya Pushcha, Saint Sophia Cathedral, Braslav lakes. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "European bison, white stork",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/by/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/by_avatar.avif",
+      "cover": "images/by_cover.avif",
+      "hero": "images/by_hero.avif",
+      "depth": {
+        "avatar": "depth/by_avatar.png",
+        "cover": "depth/by_cover.png",
+        "hero": "depth/by_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "bz",
+      "name": "Belize",
+      "description": "Caracol Maya ruins, Xunantunich Maya ruins, Lamanai Maya ruins, Altun Ha, Great Blue Hole, Glover Reef. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Bairds tapir, jaguar in forest, scarlet macaw",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/bz/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/bz_avatar.avif",
+      "cover": "images/bz_cover.avif",
+      "hero": "images/bz_hero.avif",
+      "depth": {
+        "avatar": "depth/bz_avatar.png",
+        "cover": "depth/bz_cover.png",
+        "hero": "depth/bz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ca",
+      "name": "Canada",
+      "description": "Château Frontenac, CN Tower, LAnse aux Meadows, Banff mountain lakes, Haida Gwaii village remains, Hopewell Rocks, Nahanni canyon, Parliament Hill. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "beaver, moose, polar bear in Arctic habitat",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ca/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ca_avatar.avif",
+      "cover": "images/ca_cover.avif",
+      "hero": "images/ca_hero.avif",
+      "depth": {
+        "avatar": "depth/ca_avatar.png",
+        "cover": "depth/ca_cover.png",
+        "hero": "depth/ca_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cd",
+      "name": "Congo (Dem. Rep.)",
+      "description": "Virunga volcanic landscape, Kahuzi Biega forest, Garamba savanna, Salonga rainforest, Lola ya Bonobo sanctuary, Boyoma Falls. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "okapi in northeastern forest, bonobo in central forest, mountain gorilla in Virunga",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cd/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cd_avatar.avif",
+      "cover": "images/cd_cover.avif",
+      "hero": "images/cd_hero.avif",
+      "depth": {
+        "avatar": "depth/cd_avatar.png",
+        "cover": "depth/cd_cover.png",
+        "hero": "depth/cd_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cf",
+      "name": "Central African Rep.",
+      "description": "Dzanga Sangha forest clearing, Manovo Gounda St Floris savanna, Boali Falls, Notre Dame cathedral, Chinko wilderness. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "forest elephant in Dzanga Sangha, western lowland gorilla, giant eland in northern savanna",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cf/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cf_avatar.avif",
+      "cover": "images/cf_cover.avif",
+      "hero": "images/cf_hero.avif",
+      "depth": {
+        "avatar": "depth/cf_avatar.png",
+        "cover": "depth/cf_cover.png",
+        "hero": "depth/cf_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cg",
+      "name": "Congo (Rep.)",
+      "description": "Odzala Kokoua forest clearings, Nouabalé Ndoki rainforest, Diosso Gorge, Basilica Sainte Anne, Loufoulakari Falls, Pointe Noire railway station. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "western lowland gorilla, forest elephant",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cg/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cg_avatar.avif",
+      "cover": "images/cg_cover.avif",
+      "hero": "images/cg_hero.avif",
+      "depth": {
+        "avatar": "depth/cg_avatar.png",
+        "cover": "depth/cg_cover.png",
+        "hero": "depth/cg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ch",
+      "name": "Switzerland",
+      "description": "Matterhorn, Chillon Castle, Chapel Bridge, Saint Gallen abbey, Bern medieval clock tower, Lavaux vineyards, Landwasser viaduct. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "alpine ibex, marmot",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ch/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ch_avatar.avif",
+      "cover": "images/ch_cover.avif",
+      "hero": "images/ch_hero.avif",
+      "depth": {
+        "avatar": "depth/ch_avatar.png",
+        "cover": "depth/ch_cover.png",
+        "hero": "depth/ch_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ci",
+      "name": "Côte d’Ivoire",
+      "description": "Grand Bassam colonial civic quarter, Basilica of Our Lady of Peace, Mount Nimba, Taï rainforest, Comoé savanna, La Dent de Man mountain. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "pygmy hippopotamus in southwestern forests, chimpanzee in Taï",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ci/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ci_avatar.avif",
+      "cover": "images/ci_cover.avif",
+      "hero": "images/ci_hero.avif",
+      "depth": {
+        "avatar": "depth/ci_avatar.png",
+        "cover": "depth/ci_cover.png",
+        "hero": "depth/ci_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cl",
+      "name": "Chile",
+      "description": "Rapa Nui moai, Torres del Paine, Valparaíso hillside houses, Chiloé wooden churches, Humberstone nitrate works, Atacama salt valley, Marble Caves. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Humboldt penguin on coast, guanaco in Patagonia, Andean condor",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cl/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cl_avatar.avif",
+      "cover": "images/cl_cover.avif",
+      "hero": "images/cl_hero.avif",
+      "depth": {
+        "avatar": "depth/cl_avatar.png",
+        "cover": "depth/cl_cover.png",
+        "hero": "depth/cl_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cm",
+      "name": "Cameroon",
+      "description": "Dja forest reserve, Lobé waterfalls, Mount Cameroon, Foumban royal palace, Rhumsiki rock formations, Shum Laka rock shelter, Waza savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "drill in southwestern forest, forest elephant, giraffe in northern savanna",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cm/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cm_avatar.avif",
+      "cover": "images/cm_cover.avif",
+      "hero": "images/cm_hero.avif",
+      "depth": {
+        "avatar": "depth/cm_avatar.png",
+        "cover": "depth/cm_cover.png",
+        "hero": "depth/cm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cn",
+      "name": "China",
+      "description": "Great Wall, Forbidden City, Terracotta Army, Mogao Buddhist caves, Leshan Giant Buddha, Potala Palace, Guilin karst, Zhangjiajie pillars, Huangshan peaks. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "giant panda in Sichuan, red-crowned crane in northeast wetlands, golden snub-nosed monkey in mountain forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cn/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cn_avatar.avif",
+      "cover": "images/cn_cover.avif",
+      "hero": "images/cn_hero.avif",
+      "depth": {
+        "avatar": "depth/cn_avatar.png",
+        "cover": "depth/cn_cover.png",
+        "hero": "depth/cn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "co",
+      "name": "Colombia",
+      "description": "Cartagena secular ramparts, San Agustín stone sculptures, Tierradentro tombs, Coffee cultural landscape, Las Lajas sanctuary, Ciudad Perdida ruins, Caño Cristales. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Andean condor in mountains, jaguar in forest, cotton-top tamarin in northwest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/co/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/co_avatar.avif",
+      "cover": "images/co_cover.avif",
+      "hero": "images/co_hero.avif",
+      "depth": {
+        "avatar": "depth/co_avatar.png",
+        "cover": "depth/co_cover.png",
+        "hero": "depth/co_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cr",
+      "name": "Costa Rica",
+      "description": "Guayabo archaeological site, Diquís stone spheres, Arenal volcano, Monteverde cloud forest, National Theatre, Tortuguero canals, Rincón de la Vieja. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "three-toed sloth, resplendent quetzal in cloud forest, green turtle on Caribbean coast",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cr/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cr_avatar.avif",
+      "cover": "images/cr_cover.avif",
+      "hero": "images/cr_hero.avif",
+      "depth": {
+        "avatar": "depth/cr_avatar.png",
+        "cover": "depth/cr_cover.png",
+        "hero": "depth/cr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cu",
+      "name": "Cuba",
+      "description": "Morro Castle, Trinidad colonial houses, Viñales mogotes, San Pedro de la Roca castle, Cienfuegos civic square, Alejandro de Humboldt forest. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Cuban trogon, bee hummingbird, Cuban crocodile in Zapata",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cu/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cu_avatar.avif",
+      "cover": "images/cu_cover.avif",
+      "hero": "images/cu_hero.avif",
+      "depth": {
+        "avatar": "depth/cu_avatar.png",
+        "cover": "depth/cu_cover.png",
+        "hero": "depth/cu_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cv",
+      "name": "Cabo Verde",
+      "description": "Cidade Velha pillory and secular ruins, Royal Fort of São Filipe, Pico do Fogo, Mindelo civic waterfront, Paul valley terraces, Sal salt pans. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "loggerhead turtle on beaches, Cape Verde shearwater",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cv/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cv_avatar.avif",
+      "cover": "images/cv_cover.avif",
+      "hero": "images/cv_hero.avif",
+      "depth": {
+        "avatar": "depth/cv_avatar.png",
+        "cover": "depth/cv_cover.png",
+        "hero": "depth/cv_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cy",
+      "name": "Cyprus",
+      "description": "Paphos Roman mosaics, Kourion theatre, Choirokoitia Neolithic settlement, Painted Troodos churches, Kolossi Castle, Kyrenia castle, Salamis ancient ruins. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Cyprus mouflon in mountains, loggerhead turtle on coast",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cy/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cy_avatar.avif",
+      "cover": "images/cy_cover.avif",
+      "hero": "images/cy_hero.avif",
+      "depth": {
+        "avatar": "depth/cy_avatar.png",
+        "cover": "depth/cy_cover.png",
+        "hero": "depth/cy_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "cz",
+      "name": "Czechia",
+      "description": "Charles Bridge, Prague Castle and Saint Vitus, Český Krumlov castle, Kutná Hora cathedral, Telč civic houses, Lednice chateau, Adršpach rock city. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red deer, European otter",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/cz/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/cz_avatar.avif",
+      "cover": "images/cz_cover.avif",
+      "hero": "images/cz_hero.avif",
+      "depth": {
+        "avatar": "depth/cz_avatar.png",
+        "cover": "depth/cz_cover.png",
+        "hero": "depth/cz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "de",
+      "name": "Germany",
+      "description": "Brandenburg Gate, Neuschwanstein Castle, Cologne Cathedral, Wartburg Castle, Bremen town hall, Dresden Frauenkirche, Loreley Rhine cliffs, Bauhaus building. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red squirrel, wild boar",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/de/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/de_avatar.avif",
+      "cover": "images/de_cover.avif",
+      "hero": "images/de_hero.avif",
+      "depth": {
+        "avatar": "depth/de_avatar.png",
+        "cover": "depth/de_cover.png",
+        "hero": "depth/de_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "dj",
+      "name": "Djibouti",
+      "description": "Lake Assal, Lake Abbe limestone chimneys, Day forest, Abourma rock engravings, Moucha islands, Goubet gulf. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "whale shark in gulf, Soemmerrings gazelle in arid plains",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/dj/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://whc.unesco.org/document/221408",
+          "title": "UNESCO tentative list 2025: Djibouti landscape and archaeological sites"
+        }
+      ],
+      "avatar": "images/dj_avatar.avif",
+      "cover": "images/dj_cover.avif",
+      "hero": "images/dj_hero.avif",
+      "depth": {
+        "avatar": "depth/dj_avatar.png",
+        "cover": "depth/dj_cover.png",
+        "hero": "depth/dj_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "dk",
+      "name": "Denmark",
+      "description": "Kronborg Castle, Roskilde Cathedral, Jelling runestones, Nyhavn civic houses, Egeskov Castle, Møns Klint, Wadden Sea tidal flats. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "harbour seal, red deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/dk/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/dk_avatar.avif",
+      "cover": "images/dk_cover.avif",
+      "hero": "images/dk_hero.avif",
+      "depth": {
+        "avatar": "depth/dk_avatar.png",
+        "cover": "depth/dk_cover.png",
+        "hero": "depth/dk_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "dm",
+      "name": "Dominica",
+      "description": "Boiling Lake, Trafalgar Falls, Cabrits Fort Shirley, Emerald Pool, Kalinago traditional carbet, Titou Gorge. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "imperial amazon parrot, red-necked amazon parrot",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/dm/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/dm_avatar.avif",
+      "cover": "images/dm_cover.avif",
+      "hero": "images/dm_hero.avif",
+      "depth": {
+        "avatar": "depth/dm_avatar.png",
+        "cover": "depth/dm_cover.png",
+        "hero": "depth/dm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "do",
+      "name": "Dominican Republic",
+      "description": "Alcázar de Colón palace, Cathedral of Santo Domingo, Altos de Chavón, Los Haitises karst, Pico Duarte, Jaragua coast. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Hispaniolan solenodon, Rhinoceros iguana, humpback whale off Samaná",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/do/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/do_avatar.avif",
+      "cover": "images/do_cover.avif",
+      "hero": "images/do_hero.avif",
+      "depth": {
+        "avatar": "depth/do_avatar.png",
+        "cover": "depth/do_cover.png",
+        "hero": "depth/do_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "dz",
+      "name": "Algeria",
+      "description": "Timgad Roman ruins, Djemila Roman ruins, Tipasa ancient ruins, Tassili nAjjer rock art, Royal Mausoleum of Mauretania, Beni Hammad secular fortress walls, Ahaggar mountains. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "fennec fox, Barbary macaque in northern forest, dromedary in Sahara",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/dz/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/dz_avatar.avif",
+      "cover": "images/dz_cover.avif",
+      "hero": "images/dz_hero.avif",
+      "depth": {
+        "avatar": "depth/dz_avatar.png",
+        "cover": "depth/dz_cover.png",
+        "hero": "depth/dz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ec",
+      "name": "Ecuador",
+      "description": "Galápagos volcanic islands, Ingapirca Inca ruins, Quito colonial churches, Cuenca civic architecture, Cotopaxi volcano, Chimborazo, Yasuní forest. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Galápagos giant tortoise on islands, marine iguana on islands, Andean condor in highlands",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ec/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ec_avatar.avif",
+      "cover": "images/ec_cover.avif",
+      "hero": "images/ec_hero.avif",
+      "depth": {
+        "avatar": "depth/ec_avatar.png",
+        "cover": "depth/ec_cover.png",
+        "hero": "depth/ec_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ee",
+      "name": "Estonia",
+      "description": "Tallinn town hall, Kuressaare Castle, Tartu university, Lahemaa manor houses, Narva Castle, Kaali meteorite crater. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "European lynx, grey seal",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ee/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ee_avatar.avif",
+      "cover": "images/ee_cover.avif",
+      "hero": "images/ee_hero.avif",
+      "depth": {
+        "avatar": "depth/ee_avatar.png",
+        "cover": "depth/ee_cover.png",
+        "hero": "depth/ee_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "eg",
+      "name": "Egypt",
+      "description": "Giza pyramids and sphinx, Karnak temple, Abu Simbel temples, Philae temple, Valley of Kings, White Desert, Saint Catherine monastery, Alexandria library modern exterior. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Nubian ibex in desert mountains, dromedary camel, Nile crocodile in Lake Nasser",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/eg/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/eg_avatar.avif",
+      "cover": "images/eg_cover.avif",
+      "hero": "images/eg_hero.avif",
+      "depth": {
+        "avatar": "depth/eg_avatar.png",
+        "cover": "depth/eg_cover.png",
+        "hero": "depth/eg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "er",
+      "name": "Eritrea",
+      "description": "Fiat Tagliero building, Cinema Impero, Qohaito archaeological ruins, Adulis ancient port ruins, Dahlak islands, Metera ruins. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Hamadryas baboon in arid hills, dugong in Red Sea",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/er/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/er_avatar.avif",
+      "cover": "images/er_cover.avif",
+      "hero": "images/er_hero.avif",
+      "depth": {
+        "avatar": "depth/er_avatar.png",
+        "cover": "depth/er_cover.png",
+        "hero": "depth/er_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "es",
+      "name": "Spain",
+      "description": "Sagrada Família, Roman aqueduct, Santiago cathedral, Alcázar secular fortress, Guggenheim Museum, Roman theatre, Teide, Altamira cave heritage. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Iberian lynx, Spanish imperial eagle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/es/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/es_avatar.avif",
+      "cover": "images/es_cover.avif",
+      "hero": "images/es_hero.avif",
+      "depth": {
+        "avatar": "depth/es_avatar.png",
+        "cover": "depth/es_cover.png",
+        "hero": "depth/es_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "et",
+      "name": "Ethiopia",
+      "description": "Lalibela rock-hewn churches, Aksum stelae, Fasil Ghebbi castles, Konso terraces, Simien escarpments, Lower Omo archaeological landscape, Yeha ancient temple. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "gelada in highlands, Ethiopian wolf in Afroalpine habitat",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/et/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/et_avatar.avif",
+      "cover": "images/et_cover.avif",
+      "hero": "images/et_hero.avif",
+      "depth": {
+        "avatar": "depth/et_avatar.png",
+        "cover": "depth/et_cover.png",
+        "hero": "depth/et_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "fi",
+      "name": "Finland",
+      "description": "Suomenlinna fortress, Turku Castle, Petäjävesi old church, Old Rauma timber houses, Sammallahdenmäki burial cairns, Lake Saimaa, fells of Lapland. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Saimaa ringed seal in Saimaa, reindeer in north",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/fi/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/fi_avatar.avif",
+      "cover": "images/fi_cover.avif",
+      "hero": "images/fi_hero.avif",
+      "depth": {
+        "avatar": "depth/fi_avatar.png",
+        "cover": "depth/fi_cover.png",
+        "hero": "depth/fi_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "fj",
+      "name": "Fiji",
+      "description": "Levuka colonial civic waterfront, Sigatoka sand dunes, Bouma waterfalls, Sri Siva Subramaniya temple, Tavoro forest, Great Astrolabe Reef. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Fiji crested iguana, collared lory",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/fj/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/fj_avatar.avif",
+      "cover": "images/fj_cover.avif",
+      "hero": "images/fj_hero.avif",
+      "depth": {
+        "avatar": "depth/fj_avatar.png",
+        "cover": "depth/fj_cover.png",
+        "hero": "depth/fj_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "fm",
+      "name": "Micronesia (Federated States of)",
+      "description": "Nan Madol stone islets, Lelu archaeological ruins, Kepirohi waterfall, Yap stone money banks, Chuuk lagoon, Pohnpei basalt peaks. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Pohnpei lorikeet, sea turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/fm/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/fm_avatar.avif",
+      "cover": "images/fm_cover.avif",
+      "hero": "images/fm_hero.avif",
+      "depth": {
+        "avatar": "depth/fm_avatar.png",
+        "cover": "depth/fm_cover.png",
+        "hero": "depth/fm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "fr",
+      "name": "France",
+      "description": "Eiffel Tower, Mont Saint Michel abbey, Chambord château, Pont du Gard, Carcassonne ramparts, Strasbourg cathedral, Provence lavender landscapes, Chamonix Mont Blanc. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "alpine marmot, Camargue horse, flamingo in Camargue",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/fr/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/fr_avatar.avif",
+      "cover": "images/fr_cover.avif",
+      "hero": "images/fr_hero.avif",
+      "depth": {
+        "avatar": "depth/fr_avatar.png",
+        "cover": "depth/fr_cover.png",
+        "hero": "depth/fr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ga",
+      "name": "Gabon",
+      "description": "Lopé forest-savanna, Ivindo Kongou falls, Loango lagoon, Lastoursville caves, Batéké plateaus, Saint Michael church carved pillars. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "mandrill in forest, forest elephant, western lowland gorilla",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ga/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ga_avatar.avif",
+      "cover": "images/ga_cover.avif",
+      "hero": "images/ga_hero.avif",
+      "depth": {
+        "avatar": "depth/ga_avatar.png",
+        "cover": "depth/ga_cover.png",
+        "hero": "depth/ga_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gb",
+      "name": "United Kingdom",
+      "description": "Stonehenge, Tower Bridge, Edinburgh Castle, Caernarfon Castle, Giants Causeway, Roman Baths, York Minster, Lake District. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red deer, Atlantic puffin on coastal cliffs, red squirrel",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gb/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gb_avatar.avif",
+      "cover": "images/gb_cover.avif",
+      "hero": "images/gb_hero.avif",
+      "depth": {
+        "avatar": "depth/gb_avatar.png",
+        "cover": "depth/gb_cover.png",
+        "hero": "depth/gb_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gd",
+      "name": "Grenada",
+      "description": "Fort George, Belmont Estate, Annandale Falls, Underwater Sculpture Park, Carriacou boatbuilding shore, Grand Etang lake. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Grenada dove, leatherback turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gd/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gd_avatar.avif",
+      "cover": "images/gd_cover.avif",
+      "hero": "images/gd_hero.avif",
+      "depth": {
+        "avatar": "depth/gd_avatar.png",
+        "cover": "depth/gd_cover.png",
+        "hero": "depth/gd_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ge",
+      "name": "Georgia",
+      "description": "Svetitskhoveli cathedral, Gelati monastery, Svan tower houses, Uplistsikhe cave town, Vardzia cave monastery, Narikala fortress secular walls, Kazbegi peak. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Caucasian tur, brown bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ge/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ge_avatar.avif",
+      "cover": "images/ge_cover.avif",
+      "hero": "images/ge_hero.avif",
+      "depth": {
+        "avatar": "depth/ge_avatar.png",
+        "cover": "depth/ge_cover.png",
+        "hero": "depth/ge_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gh",
+      "name": "Ghana",
+      "description": "Cape Coast Castle, Elmina Castle, Asante traditional buildings, Nzulezu stilt village, Kakum canopy, Mole savanna, Navrongo cathedral. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant in Mole, olive colobus in forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gh/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gh_avatar.avif",
+      "cover": "images/gh_cover.avif",
+      "hero": "images/gh_hero.avif",
+      "depth": {
+        "avatar": "depth/gh_avatar.png",
+        "cover": "depth/gh_cover.png",
+        "hero": "depth/gh_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gm",
+      "name": "Gambia",
+      "description": "Kunta Kinteh Island fort, Wassu stone circles, JanJanbureh civic heritage, River Gambia mangroves, Abuko reserve, Tanji fishing boats. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red colobus in forest, African fish eagle on river",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gm/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gm_avatar.avif",
+      "cover": "images/gm_cover.avif",
+      "hero": "images/gm_hero.avif",
+      "depth": {
+        "avatar": "depth/gm_avatar.png",
+        "cover": "depth/gm_cover.png",
+        "hero": "depth/gm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gn",
+      "name": "Guinea",
+      "description": "Mount Nimba, Fouta Djallon escarpments, Dame de Mali rock formation, Niger river source, Îles de Los, Badiar savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "western chimpanzee, Nimba viviparous toad at Nimba",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gn/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gn_avatar.avif",
+      "cover": "images/gn_cover.avif",
+      "hero": "images/gn_hero.avif",
+      "depth": {
+        "avatar": "depth/gn_avatar.png",
+        "cover": "depth/gn_cover.png",
+        "hero": "depth/gn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gq",
+      "name": "Equatorial Guinea",
+      "description": "Santa Isabel cathedral, Pico Basilé, Ureka waterfalls, Monte Alén rainforest, Annobón volcanic landscape, Bata civic waterfront. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "drill on Bioko, western lowland gorilla on mainland",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gq/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gq_avatar.avif",
+      "cover": "images/gq_cover.avif",
+      "hero": "images/gq_hero.avif",
+      "depth": {
+        "avatar": "depth/gq_avatar.png",
+        "cover": "depth/gq_cover.png",
+        "hero": "depth/gq_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gr",
+      "name": "Greece",
+      "description": "Parthenon, Delphi ancient sanctuary, Olympia ruins, Meteora monasteries, Knossos, Epidaurus theatre, Santorini caldera, Rhodes medieval walls. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "loggerhead turtle in Ionian Sea, Cretan wild goat",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gr/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gr_avatar.avif",
+      "cover": "images/gr_cover.avif",
+      "hero": "images/gr_hero.avif",
+      "depth": {
+        "avatar": "depth/gr_avatar.png",
+        "cover": "depth/gr_cover.png",
+        "hero": "depth/gr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gt",
+      "name": "Guatemala",
+      "description": "Tikal Maya temples, Quiriguá stelae, Antigua colonial churches, Lake Atitlán, Iximché ruins, Semuc Champey, Takalik Abaj. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "resplendent quetzal in cloud forest, jaguar in Petén",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gt/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gt_avatar.avif",
+      "cover": "images/gt_cover.avif",
+      "hero": "images/gt_hero.avif",
+      "depth": {
+        "avatar": "depth/gt_avatar.png",
+        "cover": "depth/gt_cover.png",
+        "hero": "depth/gt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gw",
+      "name": "Guinea-Bissau",
+      "description": "Bolama colonial civic buildings, Cacheu Fort, Orango island mangroves, João Vieira Poilão islands, Cantanhez forest, Bissau colonial civic waterfront. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "saltwater-adapted hippopotamus on Orango, green turtle at Poilão, chimpanzee in Cantanhez",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gw/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gw_avatar.avif",
+      "cover": "images/gw_cover.avif",
+      "hero": "images/gw_hero.avif",
+      "depth": {
+        "avatar": "depth/gw_avatar.png",
+        "cover": "depth/gw_cover.png",
+        "hero": "depth/gw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "gy",
+      "name": "Guyana",
+      "description": "Kaieteur Falls, Saint Georges cathedral, Stabroek Market, Iwokrama rainforest, Mount Roraima, Rupununi savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "jaguar, giant river otter, hoatzin",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/gy/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/gy_avatar.avif",
+      "cover": "images/gy_cover.avif",
+      "hero": "images/gy_hero.avif",
+      "depth": {
+        "avatar": "depth/gy_avatar.png",
+        "cover": "depth/gy_cover.png",
+        "hero": "depth/gy_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "hn",
+      "name": "Honduras",
+      "description": "Copán Maya ruins, Río Plátano forest, Fort San Fernando, Comayagua cathedral, Yojoa lake, Roatán reef. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "scarlet macaw, jaguar in forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/hn/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/hn_avatar.avif",
+      "cover": "images/hn_cover.avif",
+      "hero": "images/hn_hero.avif",
+      "depth": {
+        "avatar": "depth/hn_avatar.png",
+        "cover": "depth/hn_cover.png",
+        "hero": "depth/hn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "hr",
+      "name": "Croatia",
+      "description": "Dubrovnik ramparts, Diocletian palace, Plitvice lakes, Šibenik cathedral, Pula Roman amphitheatre, Trogir cathedral, Zagreb tiled Saint Marks roof. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "brown bear in Dinaric forest, griffon vulture on Cres",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/hr/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/hr_avatar.avif",
+      "cover": "images/hr_cover.avif",
+      "hero": "images/hr_hero.avif",
+      "depth": {
+        "avatar": "depth/hr_avatar.png",
+        "cover": "depth/hr_cover.png",
+        "hero": "depth/hr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ht",
+      "name": "Haiti",
+      "description": "Citadelle Laferrière, Sans Souci palace ruins, Jacmel civic houses, Bassin Bleu, Pic Macaya cloud forest, Iron Market. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Hispaniolan trogon, Hispaniolan hutia",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ht/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ht_avatar.avif",
+      "cover": "images/ht_cover.avif",
+      "hero": "images/ht_hero.avif",
+      "depth": {
+        "avatar": "depth/ht_avatar.png",
+        "cover": "depth/ht_cover.png",
+        "hero": "depth/ht_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "hu",
+      "name": "Hungary",
+      "description": "Parliament building, Buda Castle, Pannonhalma abbey, Hortobágy nine-arch bridge, Hollókő village, Lake Balaton, Pécs early Christian tombs. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Hungarian grey cattle, great bustard on plains",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/hu/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/hu_avatar.avif",
+      "cover": "images/hu_cover.avif",
+      "hero": "images/hu_hero.avif",
+      "depth": {
+        "avatar": "depth/hu_avatar.png",
+        "cover": "depth/hu_cover.png",
+        "hero": "depth/hu_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "id",
+      "name": "Indonesia",
+      "description": "Borobudur Buddhist temple, Prambanan Hindu temples, Bali rice terraces, Tongkonan houses, Lake Toba, Komodo landscape, Raja Ampat limestone islets, Sangiran archaeology. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Komodo dragon on Komodo islands, orangutan in Sumatra and Borneo, Bali myna on Bali",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/id/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/id_avatar.avif",
+      "cover": "images/id_cover.avif",
+      "hero": "images/id_hero.avif",
+      "depth": {
+        "avatar": "depth/id_avatar.png",
+        "cover": "depth/id_cover.png",
+        "hero": "depth/id_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ie",
+      "name": "Ireland",
+      "description": "Newgrange passage tomb, Rock of Cashel, Cliffs of Moher, Skellig Michael monastery, Trinity College, Kylemore abbey, Dun Aonghasa stone fort. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red deer, Atlantic puffin at coast",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ie/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ie_avatar.avif",
+      "cover": "images/ie_cover.avif",
+      "hero": "images/ie_hero.avif",
+      "depth": {
+        "avatar": "depth/ie_avatar.png",
+        "cover": "depth/ie_cover.png",
+        "hero": "depth/ie_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "il",
+      "name": "Israel",
+      "description": "Masada fortress, Caesarea Roman aqueduct, Western Wall, Church of Holy Sepulchre, Bahai gardens, Beit Shean Roman ruins, White City Bauhaus buildings, Timna rock formations. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Nubian ibex in desert, hoopoe",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/il/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/il_avatar.avif",
+      "cover": "images/il_cover.avif",
+      "hero": "images/il_hero.avif",
+      "depth": {
+        "avatar": "depth/il_avatar.png",
+        "cover": "depth/il_cover.png",
+        "hero": "depth/il_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "in",
+      "name": "India",
+      "description": "Hampi ruins, Khajuraho Hindu temples, Konark Sun temple, Ajanta Buddhist caves, Sanchi stupa, Brihadisvara temple, Jaipur Hawa Mahal, Darjeeling mountain railway, Kaziranga grasslands. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Bengal tiger in reserves, Indian elephant in forests, one-horned rhinoceros in Assam",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/in/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/in_avatar.avif",
+      "cover": "images/in_cover.avif",
+      "hero": "images/in_hero.avif",
+      "depth": {
+        "avatar": "depth/in_avatar.png",
+        "cover": "depth/in_cover.png",
+        "hero": "depth/in_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "iq",
+      "name": "Iraq",
+      "description": "Ur ziggurat, Babylon archaeological ruins, Hatra ancient temples, Erbil citadel secular walls, Aqar Quf ziggurat, Mesopotamian marshes, Alqosh monastery. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "water buffalo in marshes, marbled teal in wetlands",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/iq/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/iq_avatar.avif",
+      "cover": "images/iq_cover.avif",
+      "hero": "images/iq_hero.avif",
+      "depth": {
+        "avatar": "depth/iq_avatar.png",
+        "cover": "depth/iq_cover.png",
+        "hero": "depth/iq_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ir",
+      "name": "Iran",
+      "description": "Persepolis, Pasargadae Cyrus tomb, Chogha Zanbil ziggurat, Shushtar hydraulic system, Takht e Soleyman pre-Islamic sanctuary remains, Bam citadel secular walls, Armenian Saint Thaddeus monastery, Lut desert. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Asiatic cheetah in central desert, Persian onager",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ir/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ir_avatar.avif",
+      "cover": "images/ir_cover.avif",
+      "hero": "images/ir_hero.avif",
+      "depth": {
+        "avatar": "depth/ir_avatar.png",
+        "cover": "depth/ir_cover.png",
+        "hero": "depth/ir_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "is",
+      "name": "Iceland",
+      "description": "Þingvellir rift, Gullfoss waterfall, Jökulsárlón glacial lagoon, Hallgrímskirkja church, Kirkjufell, Dimmuborgir lava, Reynisfjara basalt. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Atlantic puffin, Arctic fox, Icelandic horse",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/is/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/is_avatar.avif",
+      "cover": "images/is_cover.avif",
+      "hero": "images/is_hero.avif",
+      "depth": {
+        "avatar": "depth/is_avatar.png",
+        "cover": "depth/is_cover.png",
+        "hero": "depth/is_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "it",
+      "name": "Italy",
+      "description": "Colosseum, Florence cathedral, Venice Rialto bridge, Pompeii, Leaning Tower, Trulli of Alberobello, Valley of Temples, Dolomites. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Apennine wolf, alpine ibex",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/it/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/it_avatar.avif",
+      "cover": "images/it_cover.avif",
+      "hero": "images/it_hero.avif",
+      "depth": {
+        "avatar": "depth/it_avatar.png",
+        "cover": "depth/it_cover.png",
+        "hero": "depth/it_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "jm",
+      "name": "Jamaica",
+      "description": "Blue Mountains coffee landscape, Port Royal fort remains, Devon House, Rose Hall, Dunns River Falls, Seville Great House. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red-billed streamertail, Jamaican iguana",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/jm/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/jm_avatar.avif",
+      "cover": "images/jm_cover.avif",
+      "hero": "images/jm_hero.avif",
+      "depth": {
+        "avatar": "depth/jm_avatar.png",
+        "cover": "depth/jm_cover.png",
+        "hero": "depth/jm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "jo",
+      "name": "Jordan",
+      "description": "Petra rock-cut tombs, Jerash Roman ruins, Wadi Rum, Umm Qais Roman ruins, Kerak Castle, Mount Nebo church mosaics, Madaba church mosaic map. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian oryx in managed reserves, Nubian ibex",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/jo/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/jo_avatar.avif",
+      "cover": "images/jo_cover.avif",
+      "hero": "images/jo_hero.avif",
+      "depth": {
+        "avatar": "depth/jo_avatar.png",
+        "cover": "depth/jo_cover.png",
+        "hero": "depth/jo_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "jp",
+      "name": "Japan",
+      "description": "Himeji Castle, Mount Fuji, Tōji pagoda, Itsukushima shrine, Shirakawa gasshō houses, Hōryūji temple, Shiretoko coast, Shuri Castle restoration context, Jōmon stone circles. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Japanese macaque in mountains, sika deer in Nara, red-crowned crane in Hokkaidō",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/jp/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/jp_avatar.avif",
+      "cover": "images/jp_cover.avif",
+      "hero": "images/jp_hero.avif",
+      "depth": {
+        "avatar": "depth/jp_avatar.png",
+        "cover": "depth/jp_cover.png",
+        "hero": "depth/jp_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ke",
+      "name": "Kenya",
+      "description": "Fort Jesus, Mount Kenya, Lake Nakuru, Maasai Mara savanna, Gedi secular palace ruins, Thimlich Ohinga stone settlement, Turkana archaeological landscape. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant in savanna, giraffe, Grevy zebra in north",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ke/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/ke_avatar.avif",
+      "cover": "images/ke_cover.avif",
+      "hero": "images/ke_hero.avif",
+      "depth": {
+        "avatar": "depth/ke_avatar.png",
+        "cover": "depth/ke_cover.png",
+        "hero": "depth/ke_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kg",
+      "name": "Kyrgyzstan",
+      "description": "Tash Rabat caravanserai, Issyk Kul, Sary Chelek lake, Saimaluu Tash petroglyphs, Ala Archa peaks. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "snow leopard in high mountains, Kyrgyz horse",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kg/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kg_avatar.avif",
+      "cover": "images/kg_cover.avif",
+      "hero": "images/kg_hero.avif",
+      "depth": {
+        "avatar": "depth/kg_avatar.png",
+        "cover": "depth/kg_cover.png",
+        "hero": "depth/kg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kh",
+      "name": "Cambodia",
+      "description": "Angkor Wat Hindu-Buddhist temple, Bayon Buddhist temple, Preah Vihear Hindu temple, Sambor Prei Kuk Hindu ruins, Koh Ker Hindu ruins, Tonle Sap stilt villages, Cardamom forest. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "giant ibis in northern wetlands, Irrawaddy dolphin in Mekong",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kh/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kh_avatar.avif",
+      "cover": "images/kh_cover.avif",
+      "hero": "images/kh_hero.avif",
+      "depth": {
+        "avatar": "depth/kh_avatar.png",
+        "cover": "depth/kh_cover.png",
+        "hero": "depth/kh_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ki",
+      "name": "Kiribati",
+      "description": "Maneaba ni Maungatabu parliament, Phoenix Islands reefs, Christmas Island lagoon, Butaritari lagoon, traditional maneaba meetinghouse. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "frigatebird, sooty tern, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ki/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        },
+        {
+          "url": "https://parliament.gov.ki/index.php",
+          "title": "Kiribati Parliament: location in Ambo and architecture inspired by traditional maneaba"
+        }
+      ],
+      "avatar": "images/ki_avatar.avif",
+      "cover": "images/ki_cover.avif",
+      "hero": "images/ki_hero.avif",
+      "depth": {
+        "avatar": "depth/ki_avatar.png",
+        "cover": "depth/ki_cover.png",
+        "hero": "depth/ki_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "km",
+      "name": "Comoros",
+      "description": "Mount Karthala, Lac Salé crater lake, Mohéli marine park, Itsandra secular seaside houses, Mutsamudu citadel secular walls, Dziani Boundouni lake. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Livingstones fruit bat on Anjouan and Mohéli, green turtle on Mohéli",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/km/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/km_avatar.avif",
+      "cover": "images/km_cover.avif",
+      "hero": "images/km_hero.avif",
+      "depth": {
+        "avatar": "depth/km_avatar.png",
+        "cover": "depth/km_cover.png",
+        "hero": "depth/km_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kn",
+      "name": "St Kitts & Nevis",
+      "description": "Brimstone Hill fortress, Wingfield estate ruins, Romney Manor, Nevis Peak, Charlestown Georgian civic buildings, Saint Kitts scenic railway. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "green vervet monkey introduced population, hawksbill turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kn/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kn_avatar.avif",
+      "cover": "images/kn_cover.avif",
+      "hero": "images/kn_hero.avif",
+      "depth": {
+        "avatar": "depth/kn_avatar.png",
+        "cover": "depth/kn_cover.png",
+        "hero": "depth/kn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kp",
+      "name": "Korea (North)",
+      "description": "Koguryo tomb murals, Kaesong Confucian academy, Juche Tower secular exterior, Paektu crater lake, Mount Kumgang, Pohyon Buddhist temple. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red-crowned crane in wetlands",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kp/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kp_avatar.avif",
+      "cover": "images/kp_cover.avif",
+      "hero": "images/kp_hero.avif",
+      "depth": {
+        "avatar": "depth/kp_avatar.png",
+        "cover": "depth/kp_cover.png",
+        "hero": "depth/kp_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kr",
+      "name": "Korea (South)",
+      "description": "Bulguksa Buddhist temple, Seokguram grotto, Changdeokgung palace, Hwaseong fortress, Haeinsa temple, Jeju volcanic landscape, Hahoe village. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Korean water deer, red-crowned crane in winter wetlands",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kr/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kr_avatar.avif",
+      "cover": "images/kr_cover.avif",
+      "hero": "images/kr_hero.avif",
+      "depth": {
+        "avatar": "depth/kr_avatar.png",
+        "cover": "depth/kr_cover.png",
+        "hero": "depth/kr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kw",
+      "name": "Kuwait",
+      "description": "Kuwait Towers, Failaka Greek archaeological ruins, Red Fort, Sadu House, Al Qurain house museum, Kuwait Bay mudflats. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian red fox, greater flamingo in wetlands, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kw/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kw_avatar.avif",
+      "cover": "images/kw_cover.avif",
+      "hero": "images/kw_hero.avif",
+      "depth": {
+        "avatar": "depth/kw_avatar.png",
+        "cover": "depth/kw_cover.png",
+        "hero": "depth/kw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "kz",
+      "name": "Kazakhstan",
+      "description": "Tamgaly petroglyphs, Charyn canyon, Baiterek tower, Aksu Zhabagly, Burabay rock lakes, Bozzhyra chalk landscape, Issyk golden warrior burial archaeology. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "saiga on steppe, snow leopard in Tian Shan, Bactrian camel domestic herds",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/kz/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/kz_avatar.avif",
+      "cover": "images/kz_cover.avif",
+      "hero": "images/kz_hero.avif",
+      "depth": {
+        "avatar": "depth/kz_avatar.png",
+        "cover": "depth/kz_cover.png",
+        "hero": "depth/kz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "la",
+      "name": "Laos",
+      "description": "Wat Xieng Thong Buddhist temple, Vat Phou Hindu ruins, Plain of Jars, Kuang Si falls, Kong Lor cave, Si Phan Don river islands. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Asian elephant in forests, white-cheeked gibbon in forest",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/la/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/la_avatar.avif",
+      "cover": "images/la_cover.avif",
+      "hero": "images/la_hero.avif",
+      "depth": {
+        "avatar": "depth/la_avatar.png",
+        "cover": "depth/la_cover.png",
+        "hero": "depth/la_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lb",
+      "name": "Lebanon",
+      "description": "Baalbek Roman temples, Byblos ancient harbour ruins, Tyre Roman hippodrome, Anjar secular Umayyad city ruins, Qadisha Christian monasteries, Cedars of God, Sidon Sea Castle. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "striped hyena, Eurasian otter in rivers",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lb/",
+          "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+        }
+      ],
+      "avatar": "images/lb_avatar.avif",
+      "cover": "images/lb_cover.avif",
+      "hero": "images/lb_hero.avif",
+      "depth": {
+        "avatar": "depth/lb_avatar.png",
+        "cover": "depth/lb_cover.png",
+        "hero": "depth/lb_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lc",
+      "name": "St Lucia",
+      "description": "Pitons, Pigeon Island fortifications, Diamond Falls, Morne Fortune, Sulphur Springs. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Saint Lucia parrot, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lc",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lc_avatar.avif",
+      "cover": "images/lc_cover.avif",
+      "hero": "images/lc_hero.avif",
+      "depth": {
+        "avatar": "depth/lc_avatar.png",
+        "cover": "depth/lc_cover.png",
+        "hero": "depth/lc_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "li",
+      "name": "Liechtenstein",
+      "description": "Vaduz Castle, Gutenberg Castle, Kunstmuseum, Malbun alpine village, Old Rhine Bridge. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "alpine ibex, red deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/li",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/li_avatar.avif",
+      "cover": "images/li_cover.avif",
+      "hero": "images/li_hero.avif",
+      "depth": {
+        "avatar": "depth/li_avatar.png",
+        "cover": "depth/li_cover.png",
+        "hero": "depth/li_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lk",
+      "name": "Sri Lanka",
+      "description": "Sigiriya, Dambulla cave temples, Sacred City of Kandy, Anuradhapura stupas, Galle Dutch fort, Polonnaruwa Gal Vihara. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Asian elephant, Sri Lankan leopard",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lk",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lk_avatar.avif",
+      "cover": "images/lk_cover.avif",
+      "hero": "images/lk_hero.avif",
+      "depth": {
+        "avatar": "depth/lk_avatar.png",
+        "cover": "depth/lk_cover.png",
+        "hero": "depth/lk_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lr",
+      "name": "Liberia",
+      "description": "Providence Island, Ducor Hotel exterior, Kpatawee Falls, Sapo forest, Cape Mount coast. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "pygmy hippopotamus, chimpanzee",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lr",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lr_avatar.avif",
+      "cover": "images/lr_cover.avif",
+      "hero": "images/lr_hero.avif",
+      "depth": {
+        "avatar": "depth/lr_avatar.png",
+        "cover": "depth/lr_cover.png",
+        "hero": "depth/lr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ls",
+      "name": "Lesotho",
+      "description": "Thaba Bosiu, Maletsunyane Falls, Katse Dam, Liphofung rock shelter, Kome cave dwellings. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Basotho pony, bearded vulture",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ls",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ls_avatar.avif",
+      "cover": "images/ls_cover.avif",
+      "hero": "images/ls_hero.avif",
+      "depth": {
+        "avatar": "depth/ls_avatar.png",
+        "cover": "depth/ls_cover.png",
+        "hero": "depth/ls_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lt",
+      "name": "Lithuania",
+      "description": "Trakai Island Castle, Gediminas Tower, Hill of Crosses, Curonian Spit, Kaunas interwar architecture. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white stork, European bison",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lt",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lt_avatar.avif",
+      "cover": "images/lt_cover.avif",
+      "hero": "images/lt_hero.avif",
+      "depth": {
+        "avatar": "depth/lt_avatar.png",
+        "cover": "depth/lt_cover.png",
+        "hero": "depth/lt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lu",
+      "name": "Luxembourg",
+      "description": "Vianden Castle, Bock Casemates, Adolphe Bridge, Echternach Abbey, Clervaux Castle. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red fox, roe deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lu",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lu_avatar.avif",
+      "cover": "images/lu_cover.avif",
+      "hero": "images/lu_hero.avif",
+      "depth": {
+        "avatar": "depth/lu_avatar.png",
+        "cover": "depth/lu_cover.png",
+        "hero": "depth/lu_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "lv",
+      "name": "Latvia",
+      "description": "House of the Black Heads, Rundale Palace, Turaida Castle, Kuldiga brick bridge, Aglona Basilica. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white stork, red deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/lv",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/lv_avatar.avif",
+      "cover": "images/lv_cover.avif",
+      "hero": "images/lv_hero.avif",
+      "depth": {
+        "avatar": "depth/lv_avatar.png",
+        "cover": "depth/lv_cover.png",
+        "hero": "depth/lv_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ly",
+      "name": "Libya",
+      "description": "Leptis Magna Roman theatre, Sabratha Roman theatre, Cyrene Greek ruins, Acacus rock art, Ghadames vernacular houses only. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dromedary, fennec fox",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ly",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ly_avatar.avif",
+      "cover": "images/ly_cover.avif",
+      "hero": "images/ly_hero.avif",
+      "depth": {
+        "avatar": "depth/ly_avatar.png",
+        "cover": "depth/ly_cover.png",
+        "hero": "depth/ly_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ma",
+      "name": "Morocco",
+      "description": "Volubilis Roman ruins, Ait Ben Haddou earthen houses only, Ouzoud Falls, Essaouira sea ramparts, Hassan II bridge, Todra Gorge. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Barbary macaque, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ma",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ma_avatar.avif",
+      "cover": "images/ma_cover.avif",
+      "hero": "images/ma_hero.avif",
+      "depth": {
+        "avatar": "depth/ma_avatar.png",
+        "cover": "depth/ma_cover.png",
+        "hero": "depth/ma_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mc",
+      "name": "Monaco",
+      "description": "Prince's Palace, Oceanographic Museum, Monte Carlo Casino, Port Hercule, Saint Nicholas Cathedral. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Mediterranean gull",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mc",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mc_avatar.avif",
+      "cover": "images/mc_cover.avif",
+      "hero": "images/mc_hero.avif",
+      "depth": {
+        "avatar": "depth/mc_avatar.png",
+        "cover": "depth/mc_cover.png",
+        "hero": "depth/mc_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "md",
+      "name": "Moldova",
+      "description": "Soroca Fortress, Orheiul Vechi cave monastery, Cricova wine cellars, Capriana Monastery, Stephen the Great monument. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white stork, roe deer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/md",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/md_avatar.avif",
+      "cover": "images/md_cover.avif",
+      "hero": "images/md_hero.avif",
+      "depth": {
+        "avatar": "depth/md_avatar.png",
+        "cover": "depth/md_cover.png",
+        "hero": "depth/md_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "me",
+      "name": "Montenegro",
+      "description": "Kotor city walls, Ostrog Monastery, Durmitor mountain landscape, Tara Canyon bridge, Cetinjе Monastery, Sveti Stefan. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Dalmatian pelican, chamois",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/me",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/me_avatar.avif",
+      "cover": "images/me_cover.avif",
+      "hero": "images/me_hero.avif",
+      "depth": {
+        "avatar": "depth/me_avatar.png",
+        "cover": "depth/me_cover.png",
+        "hero": "depth/me_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mg",
+      "name": "Madagascar",
+      "description": "Avenue of the Baobabs, Royal Hill of Ambohimanga, Tsingy de Bemaraha, Ranomafana rainforest, Isalo sandstone formations. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "ring-tailed lemur, sifaka, chameleon",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mg",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mg_avatar.avif",
+      "cover": "images/mg_cover.avif",
+      "hero": "images/mg_hero.avif",
+      "depth": {
+        "avatar": "depth/mg_avatar.png",
+        "cover": "depth/mg_cover.png",
+        "hero": "depth/mg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mh",
+      "name": "Marshall Islands",
+      "description": "Alele Museum, Laura village lagoon, traditional canoe house, Arno lagoon, Bikini Atoll landscape. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "frigatebird, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mh",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mh_avatar.avif",
+      "cover": "images/mh_cover.avif",
+      "hero": "images/mh_hero.avif",
+      "depth": {
+        "avatar": "depth/mh_avatar.png",
+        "cover": "depth/mh_cover.png",
+        "hero": "depth/mh_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mk",
+      "name": "North Macedonia",
+      "description": "Church of Saint John at Kaneo, Stone Bridge, Heraclea Lyncestis, Kokino observatory, Saint Naum Monastery, Kratovo stone towers. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Balkan lynx, Dalmatian pelican",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mk",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mk_avatar.avif",
+      "cover": "images/mk_cover.avif",
+      "hero": "images/mk_hero.avif",
+      "depth": {
+        "avatar": "depth/mk_avatar.png",
+        "cover": "depth/mk_cover.png",
+        "hero": "depth/mk_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ml",
+      "name": "Mali",
+      "description": "Cliff of Bandiagara vernacular dwellings, Tellem cliff dwellings, Niger river pinasse boats, Gouina Falls, Boucle du Baoule savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ml",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ml_avatar.avif",
+      "cover": "images/ml_cover.avif",
+      "hero": "images/ml_hero.avif",
+      "depth": {
+        "avatar": "depth/ml_avatar.png",
+        "cover": "depth/ml_cover.png",
+        "hero": "depth/ml_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mm",
+      "name": "Myanmar",
+      "description": "Bagan Buddhist temples, Shwedagon Pagoda, Inle Lake stilt houses, Golden Rock Buddhist shrine, Mandalay royal palace, Mrauk U Buddhist temples. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Asian elephant, Burmese star tortoise",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mm",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mm_avatar.avif",
+      "cover": "images/mm_cover.avif",
+      "hero": "images/mm_hero.avif",
+      "depth": {
+        "avatar": "depth/mm_avatar.png",
+        "cover": "depth/mm_cover.png",
+        "hero": "depth/mm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mn",
+      "name": "Mongolia",
+      "description": "Erdene Zuu Buddhist monastery, Orkhon Valley, Gobi Flaming Cliffs, Deer Stone monuments, Amarbayasgalant Monastery, Altai petroglyphs. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Przewalski horse, Bactrian camel, snow leopard",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mn",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mn_avatar.avif",
+      "cover": "images/mn_cover.avif",
+      "hero": "images/mn_hero.avif",
+      "depth": {
+        "avatar": "depth/mn_avatar.png",
+        "cover": "depth/mn_cover.png",
+        "hero": "depth/mn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mr",
+      "name": "Mauritania",
+      "description": "Banc d'Arguin coast, Richat Structure, Terjit oasis, Azougui archaeological remains, Archaeological site of Koumbi Saleh nonreligious remains. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dromedary, monk seal",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mr",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mr_avatar.avif",
+      "cover": "images/mr_cover.avif",
+      "hero": "images/mr_hero.avif",
+      "depth": {
+        "avatar": "depth/mr_avatar.png",
+        "cover": "depth/mr_cover.png",
+        "hero": "depth/mr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mt",
+      "name": "Malta",
+      "description": "Hagar Qim temples, Mnajdra temples, Saint John's Co-Cathedral, Mdina ramparts, Ggantija temples, Fort Saint Angelo. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Maltese wall lizard, blue rock thrush",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mt",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mt_avatar.avif",
+      "cover": "images/mt_cover.avif",
+      "hero": "images/mt_hero.avif",
+      "depth": {
+        "avatar": "depth/mt_avatar.png",
+        "cover": "depth/mt_cover.png",
+        "hero": "depth/mt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mu",
+      "name": "Mauritius",
+      "description": "Aapravasi Ghat, Le Morne Brabant, Ganga Talao Hindu temples, Chamarel coloured earths, Pamplemousses botanical garden. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "pink pigeon, Mauritius kestrel",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mu",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mu_avatar.avif",
+      "cover": "images/mu_cover.avif",
+      "hero": "images/mu_hero.avif",
+      "depth": {
+        "avatar": "depth/mu_avatar.png",
+        "cover": "depth/mu_cover.png",
+        "hero": "depth/mu_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mv",
+      "name": "Maldives",
+      "description": "Coral-stone secular houses, traditional dhoni boats, Hanifaru Bay, Addu causeway, coral reef gardens. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "manta ray, whale shark, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mv",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mv_avatar.avif",
+      "cover": "images/mv_cover.avif",
+      "hero": "images/mv_hero.avif",
+      "depth": {
+        "avatar": "depth/mv_avatar.png",
+        "cover": "depth/mv_cover.png",
+        "hero": "depth/mv_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mw",
+      "name": "Malawi",
+      "description": "Chongoni rock art, Lake Malawi, Livingstonia mission church, Zomba Plateau, Liwonde floodplain. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, Lake Malawi cichlids",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mw",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mw_avatar.avif",
+      "cover": "images/mw_cover.avif",
+      "hero": "images/mw_hero.avif",
+      "depth": {
+        "avatar": "depth/mw_avatar.png",
+        "cover": "depth/mw_cover.png",
+        "hero": "depth/mw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mx",
+      "name": "Mexico",
+      "description": "Chichen Itza, Teotihuacan, Palenque, Monte Alban, Mexico City Cathedral, Guanajuato historic streets, Paquime. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "axolotl, jaguar, golden eagle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mx",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mx_avatar.avif",
+      "cover": "images/mx_cover.avif",
+      "hero": "images/mx_hero.avif",
+      "depth": {
+        "avatar": "depth/mx_avatar.png",
+        "cover": "depth/mx_cover.png",
+        "hero": "depth/mx_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "my",
+      "name": "Malaysia",
+      "description": "Petronas Towers, Kek Lok Si Buddhist temple, Batu Caves Hindu shrine, A Famosa gate, Mount Kinabalu, Mulu limestone pinnacles. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "orangutan, Malayan tapir, hornbill",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/my",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/my_avatar.avif",
+      "cover": "images/my_cover.avif",
+      "hero": "images/my_hero.avif",
+      "depth": {
+        "avatar": "depth/my_avatar.png",
+        "cover": "depth/my_cover.png",
+        "hero": "depth/my_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "mz",
+      "name": "Mozambique",
+      "description": "Fort Sao Sebastiao, Chapel of Nossa Senhora de Baluarte, Maputo railway station, Bazaruto dunes, Gorongosa floodplain. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dugong, African elephant",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/mz",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/mz_avatar.avif",
+      "cover": "images/mz_cover.avif",
+      "hero": "images/mz_hero.avif",
+      "depth": {
+        "avatar": "depth/mz_avatar.png",
+        "cover": "depth/mz_cover.png",
+        "hero": "depth/mz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "na",
+      "name": "Namibia",
+      "description": "Twyfelfontein rock engravings, Sossusvlei dunes, Etosha salt pan, Kolmanskop houses, Spitzkoppe. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "oryx, desert-adapted elephant",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/na",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/na_avatar.avif",
+      "cover": "images/na_cover.avif",
+      "hero": "images/na_hero.avif",
+      "depth": {
+        "avatar": "depth/na_avatar.png",
+        "cover": "depth/na_cover.png",
+        "hero": "depth/na_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ne",
+      "name": "Niger",
+      "description": "Agadez secular earthen houses only, Air mountains, Tenere desert, Djado abandoned earthen settlement nonreligious walls, W National Park. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dromedary, giraffe",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ne",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ne_avatar.avif",
+      "cover": "images/ne_cover.avif",
+      "hero": "images/ne_hero.avif",
+      "depth": {
+        "avatar": "depth/ne_avatar.png",
+        "cover": "depth/ne_cover.png",
+        "hero": "depth/ne_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ng",
+      "name": "Nigeria",
+      "description": "Sukur cultural landscape, Osun-Osogbo sacred grove, Benin City palace art, Olumo Rock, National Theatre, Ogbunike caves. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, drill monkey",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ng",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ng_avatar.avif",
+      "cover": "images/ng_cover.avif",
+      "hero": "images/ng_hero.avif",
+      "depth": {
+        "avatar": "depth/ng_avatar.png",
+        "cover": "depth/ng_cover.png",
+        "hero": "depth/ng_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ni",
+      "name": "Nicaragua",
+      "description": "Leon Cathedral, Leon Viejo ruins, Granada colonial houses, Ometepe volcanoes, El Castillo fortress, Masaya volcano. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "guardabarranco, howler monkey",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ni",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ni_avatar.avif",
+      "cover": "images/ni_cover.avif",
+      "hero": "images/ni_hero.avif",
+      "depth": {
+        "avatar": "depth/ni_avatar.png",
+        "cover": "depth/ni_cover.png",
+        "hero": "depth/ni_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "nl",
+      "name": "Netherlands",
+      "description": "Kinderdijk windmills, Amsterdam canal houses, Rietveld Schroder House, Maastricht Saint Servatius Bridge, Wadden Sea, Delta Works. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "spoonbill, harbour seal",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/nl",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/nl_avatar.avif",
+      "cover": "images/nl_cover.avif",
+      "hero": "images/nl_hero.avif",
+      "depth": {
+        "avatar": "depth/nl_avatar.png",
+        "cover": "depth/nl_cover.png",
+        "hero": "depth/nl_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "no",
+      "name": "Norway",
+      "description": "Bryggen wooden wharf, Urnes stave church, Nidaros Cathedral, Vega fishing landscape, Geirangerfjord, Alta rock art. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "reindeer, puffin",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/no",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/no_avatar.avif",
+      "cover": "images/no_cover.avif",
+      "hero": "images/no_hero.avif",
+      "depth": {
+        "avatar": "depth/no_avatar.png",
+        "cover": "depth/no_cover.png",
+        "hero": "depth/no_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "np",
+      "name": "Nepal",
+      "description": "Swayambhunath, Boudhanath, Patan Durbar Square, Lumbini Maya Devi Temple, Sagarmatha mountain landscape, Bhaktapur Nyatapola Temple. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red panda, greater one-horned rhinoceros, yak",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/np",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/np_avatar.avif",
+      "cover": "images/np_cover.avif",
+      "hero": "images/np_hero.avif",
+      "depth": {
+        "avatar": "depth/np_avatar.png",
+        "cover": "depth/np_cover.png",
+        "hero": "depth/np_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "nr",
+      "name": "Nauru",
+      "description": "Buada Lagoon, Command Ridge, Anibare Bay, Moqua Caves, phosphate limestone pinnacles. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "frigatebird, noddy",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/nr",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        },
+        {
+          "url": "https://nauru-data.sprep.org/dataset/nauru-island-hydrology",
+          "title": "Nauru Department of Commerce: island hydrology"
+        }
+      ],
+      "avatar": "images/nr_avatar.avif",
+      "cover": "images/nr_cover.avif",
+      "hero": "images/nr_hero.avif",
+      "depth": {
+        "avatar": "depth/nr_avatar.png",
+        "cover": "depth/nr_cover.png",
+        "hero": "depth/nr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "nz",
+      "name": "New Zealand",
+      "description": "Waitangi Treaty House, Hobbiton film set, Tongariro volcanic landscape, Milford Sound, Aoraki Mount Cook, Dunedin railway station. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "kiwi, kea, tuatara",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/nz",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/nz_avatar.avif",
+      "cover": "images/nz_cover.avif",
+      "hero": "images/nz_hero.avif",
+      "depth": {
+        "avatar": "depth/nz_avatar.png",
+        "cover": "depth/nz_cover.png",
+        "hero": "depth/nz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "om",
+      "name": "Oman",
+      "description": "Bahla Fort secular ramparts only, Bat beehive tombs, Al Ayn tombs, Khor Rori ancient port, Wadi Shab, Jebel Akhdar terraces. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian oryx, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/om",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/om_avatar.avif",
+      "cover": "images/om_cover.avif",
+      "hero": "images/om_hero.avif",
+      "depth": {
+        "avatar": "depth/om_avatar.png",
+        "cover": "depth/om_cover.png",
+        "hero": "depth/om_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pa",
+      "name": "Panama",
+      "description": "Panama Canal locks, Panama Viejo cathedral ruins, Portobelo fortifications, Coiba island, Darien rainforest, Casco Viejo colonial houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "harpy eagle, sloth",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pa",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pa_avatar.avif",
+      "cover": "images/pa_cover.avif",
+      "hero": "images/pa_hero.avif",
+      "depth": {
+        "avatar": "depth/pa_avatar.png",
+        "cover": "depth/pa_cover.png",
+        "hero": "depth/pa_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pe",
+      "name": "Peru",
+      "description": "Machu Picchu, Chan Chan, Nazca geoglyphs, Caral, Arequipa cathedral, Lake Titicaca reed islands, Kuelap. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "llama, Andean condor, spectacled bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pe",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pe_avatar.avif",
+      "cover": "images/pe_cover.avif",
+      "hero": "images/pe_hero.avif",
+      "depth": {
+        "avatar": "depth/pe_avatar.png",
+        "cover": "depth/pe_cover.png",
+        "hero": "depth/pe_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pg",
+      "name": "Papua New Guinea",
+      "description": "Kuk early agricultural site, traditional Sepik spirit house, Mount Hagen highlands, Kokoda Track, Port Moresby stilt houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "bird-of-paradise, tree kangaroo",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pg",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pg_avatar.avif",
+      "cover": "images/pg_cover.avif",
+      "hero": "images/pg_hero.avif",
+      "depth": {
+        "avatar": "depth/pg_avatar.png",
+        "cover": "depth/pg_cover.png",
+        "hero": "depth/pg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ph",
+      "name": "Philippines",
+      "description": "Banaue rice terraces, San Agustin Church, Vigan ancestral houses, Chocolate Hills, Mayon volcano, Tubbataha reefs. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Philippine eagle, tarsier",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ph",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ph_avatar.avif",
+      "cover": "images/ph_cover.avif",
+      "hero": "images/ph_hero.avif",
+      "depth": {
+        "avatar": "depth/ph_avatar.png",
+        "cover": "depth/ph_cover.png",
+        "hero": "depth/ph_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pk",
+      "name": "Pakistan",
+      "description": "Mohenjo-daro, Taxila Buddhist ruins, Takht-i-Bahi Buddhist monastery, Rohtas Fort secular gate, Baltit Fort, Derawar Fort secular walls, K2 mountain. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "markhor, Indus river dolphin, snow leopard",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pk",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pk_avatar.avif",
+      "cover": "images/pk_cover.avif",
+      "hero": "images/pk_hero.avif",
+      "depth": {
+        "avatar": "depth/pk_avatar.png",
+        "cover": "depth/pk_cover.png",
+        "hero": "depth/pk_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pl",
+      "name": "Poland",
+      "description": "Wawel Castle, Malbork Castle, Warsaw old town houses, Centennial Hall, Wieliczka salt mine, Torun gothic town hall. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "European bison, white stork",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pl",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pl_avatar.avif",
+      "cover": "images/pl_cover.avif",
+      "hero": "images/pl_hero.avif",
+      "depth": {
+        "avatar": "depth/pl_avatar.png",
+        "cover": "depth/pl_cover.png",
+        "hero": "depth/pl_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ps",
+      "name": "Palestine",
+      "description": "Church of the Nativity, Tell es-Sultan, Battir agricultural terraces, Saint Hilarion Monastery ruins, Hisham's Palace secular mosaic courtyard only. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Palestine sunbird, gazelle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ps",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ps_avatar.avif",
+      "cover": "images/ps_cover.avif",
+      "hero": "images/ps_hero.avif",
+      "depth": {
+        "avatar": "depth/ps_avatar.png",
+        "cover": "depth/ps_cover.png",
+        "hero": "depth/ps_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pt",
+      "name": "Portugal",
+      "description": "Belem Tower, Jeronimos Monastery, Pena Palace, Clerigos Tower, Evora Roman temple, Pico vineyard walls. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Iberian lynx, white stork",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pt",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pt_avatar.avif",
+      "cover": "images/pt_cover.avif",
+      "hero": "images/pt_hero.avif",
+      "depth": {
+        "avatar": "depth/pt_avatar.png",
+        "cover": "depth/pt_cover.png",
+        "hero": "depth/pt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "pw",
+      "name": "Palau",
+      "description": "Rock Islands, Badrulchau stone monoliths, Bai ra Irrai meeting house, Ngardmau waterfall, Jellyfish Lake. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dugong, fruit dove",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/pw",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/pw_avatar.avif",
+      "cover": "images/pw_cover.avif",
+      "hero": "images/pw_hero.avif",
+      "depth": {
+        "avatar": "depth/pw_avatar.png",
+        "cover": "depth/pw_cover.png",
+        "hero": "depth/pw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "py",
+      "name": "Paraguay",
+      "description": "La Santisima Trinidad Jesuit ruins, Jesus de Tavarangue Jesuit ruins, Palacio de los Lopez, Ybycui historic ironworks, Itaipu dam. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "jaguar, capybara",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/py",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/py_avatar.avif",
+      "cover": "images/py_cover.avif",
+      "hero": "images/py_hero.avif",
+      "depth": {
+        "avatar": "depth/py_avatar.png",
+        "cover": "depth/py_cover.png",
+        "hero": "depth/py_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "qa",
+      "name": "Qatar",
+      "description": "Al Zubarah Fort, National Museum desert-rose building, Aspire Tower, Khor Al Adaid dunes, traditional dhow harbour. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian oryx, dugong",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/qa",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/qa_avatar.avif",
+      "cover": "images/qa_cover.avif",
+      "hero": "images/qa_hero.avif",
+      "depth": {
+        "avatar": "depth/qa_avatar.png",
+        "cover": "depth/qa_cover.png",
+        "hero": "depth/qa_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ro",
+      "name": "Romania",
+      "description": "Bran Castle, Peles Castle, Sucevita Monastery, Sarmizegetusa Regia, wooden church of Barsana, Danube Delta. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "brown bear, Dalmatian pelican",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ro",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ro_avatar.avif",
+      "cover": "images/ro_cover.avif",
+      "hero": "images/ro_hero.avif",
+      "depth": {
+        "avatar": "depth/ro_avatar.png",
+        "cover": "depth/ro_cover.png",
+        "hero": "depth/ro_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "rs",
+      "name": "Serbia",
+      "description": "Studenica Monastery, Gamzigrad Roman palace, Petrovaradin Fortress, Belgrade Fortress, Sopocani Monastery, Uvac meanders. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "griffon vulture, brown bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/rs",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/rs_avatar.avif",
+      "cover": "images/rs_cover.avif",
+      "hero": "images/rs_hero.avif",
+      "depth": {
+        "avatar": "depth/rs_avatar.png",
+        "cover": "depth/rs_cover.png",
+        "hero": "depth/rs_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ru",
+      "name": "Russia",
+      "description": "Saint Basil's Cathedral, Winter Palace, Kizhi wooden churches, Lake Baikal, Vladivostok Golden Bridge, Kamchatka volcanoes. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Amur tiger, brown bear, reindeer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ru",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ru_avatar.avif",
+      "cover": "images/ru_cover.avif",
+      "hero": "images/ru_hero.avif",
+      "depth": {
+        "avatar": "depth/ru_avatar.png",
+        "cover": "depth/ru_cover.png",
+        "hero": "depth/ru_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "rw",
+      "name": "Rwanda",
+      "description": "King's Palace traditional thatched enclosure, Ethnographic Museum, Nyungwe forest canopy, Volcanoes National Park, Lake Kivu. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "mountain gorilla, golden monkey",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/rw",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/rw_avatar.avif",
+      "cover": "images/rw_cover.avif",
+      "hero": "images/rw_hero.avif",
+      "depth": {
+        "avatar": "depth/rw_avatar.png",
+        "cover": "depth/rw_cover.png",
+        "hero": "depth/rw_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sa",
+      "name": "Saudi Arabia",
+      "description": "Hegra Nabataean tombs, Dadan archaeological remains, Jubbah rock art, Al Ahsa oasis palms only, Tuwaiq escarpment, Farasan coral islands. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Arabian oryx, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sa",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sa_avatar.avif",
+      "cover": "images/sa_cover.avif",
+      "hero": "images/sa_hero.avif",
+      "depth": {
+        "avatar": "depth/sa_avatar.png",
+        "cover": "depth/sa_cover.png",
+        "hero": "depth/sa_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sb",
+      "name": "Solomon Islands",
+      "description": "East Rennell lake landscape, Marovo Lagoon, Vilu war museum, traditional leaf houses, Langa Langa artificial islands. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Solomon eclectus parrot, hawksbill turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sb",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sb_avatar.avif",
+      "cover": "images/sb_cover.avif",
+      "hero": "images/sb_hero.avif",
+      "depth": {
+        "avatar": "depth/sb_avatar.png",
+        "cover": "depth/sb_cover.png",
+        "hero": "depth/sb_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sc",
+      "name": "Seychelles",
+      "description": "Vallee de Mai, Aldabra Atoll, Clock Tower, Anse Source d'Argent granite boulders, Mission Lodge ruins. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Aldabra giant tortoise, Seychelles black parrot",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sc",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sc_avatar.avif",
+      "cover": "images/sc_cover.avif",
+      "hero": "images/sc_hero.avif",
+      "depth": {
+        "avatar": "depth/sc_avatar.png",
+        "cover": "depth/sc_cover.png",
+        "hero": "depth/sc_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sd",
+      "name": "Sudan",
+      "description": "Meroe pyramids, Jebel Barkal ancient temple ruins, Musawwarat es-Sufra, Naqa ancient temples, Kerma deffufa. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dromedary, Nile crocodile",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sd",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sd_avatar.avif",
+      "cover": "images/sd_cover.avif",
+      "hero": "images/sd_hero.avif",
+      "depth": {
+        "avatar": "depth/sd_avatar.png",
+        "cover": "depth/sd_cover.png",
+        "hero": "depth/sd_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "se",
+      "name": "Sweden",
+      "description": "Drottningholm Palace, Visby city walls, Falun copper mine, Gammelstad church town, Oresund Bridge, Tanum rock carvings. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "moose, reindeer",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/se",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/se_avatar.avif",
+      "cover": "images/se_cover.avif",
+      "hero": "images/se_hero.avif",
+      "depth": {
+        "avatar": "depth/se_avatar.png",
+        "cover": "depth/se_cover.png",
+        "hero": "depth/se_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sg",
+      "name": "Singapore",
+      "description": "Marina Bay Sands, Supertree Grove, Sri Mariamman Hindu temple, Buddha Tooth Relic Temple, Botanic Gardens, Merlion statue. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "smooth-coated otter, oriental pied hornbill",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sg",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sg_avatar.avif",
+      "cover": "images/sg_cover.avif",
+      "hero": "images/sg_hero.avif",
+      "depth": {
+        "avatar": "depth/sg_avatar.png",
+        "cover": "depth/sg_cover.png",
+        "hero": "depth/sg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "si",
+      "name": "Slovenia",
+      "description": "Bled island church, Predjama Castle, Ljubljana Triple Bridge, Skocjan Caves, Ptuj Castle, Triglav mountain. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "alpine ibex, brown bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/si",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/si_avatar.avif",
+      "cover": "images/si_cover.avif",
+      "hero": "images/si_hero.avif",
+      "depth": {
+        "avatar": "depth/si_avatar.png",
+        "cover": "depth/si_cover.png",
+        "hero": "depth/si_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sk",
+      "name": "Slovakia",
+      "description": "Spis Castle, Bojnice Castle, Vlkolinec wooden houses, Bardejov town hall, Bratislava Castle, Dobsina ice cave. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "chamois, brown bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sk",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sk_avatar.avif",
+      "cover": "images/sk_cover.avif",
+      "hero": "images/sk_hero.avif",
+      "depth": {
+        "avatar": "depth/sk_avatar.png",
+        "cover": "depth/sk_cover.png",
+        "hero": "depth/sk_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sl",
+      "name": "Sierra Leone",
+      "description": "Bunce Island fort ruins, Old Fourah Bay College, Cotton Tree historic stump site (tree fell in 2023; do not show as intact current tree), Tiwai Island forest, Banana Islands coast. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "pygmy hippopotamus, chimpanzee",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sl",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        },
+        {
+          "url": "https://tourismsierraleone.com/attractions/bunce-island/",
+          "title": "Sierra Leone tourism: Bunce Island"
+        },
+        {
+          "url": "https://sierraleoneheritage.org/sites/monuments/oldfourahbay",
+          "title": "Sierra Leone Heritage: Old Fourah Bay College"
+        },
+        {
+          "url": "https://ntb.gov.sl/beaches-and-coastal/",
+          "title": "Sierra Leone National Tourist Board: coastal sites"
+        }
+      ],
+      "avatar": "images/sl_avatar.avif",
+      "cover": "images/sl_cover.avif",
+      "hero": "images/sl_hero.avif",
+      "depth": {
+        "avatar": "depth/sl_avatar.png",
+        "cover": "depth/sl_cover.png",
+        "hero": "depth/sl_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sm",
+      "name": "San Marino",
+      "description": "Guaita tower, Cesta tower, Montale tower, Palazzo Pubblico, Basilica of San Marino. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "peregrine falcon",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sm",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sm_avatar.avif",
+      "cover": "images/sm_cover.avif",
+      "hero": "images/sm_hero.avif",
+      "depth": {
+        "avatar": "depth/sm_avatar.png",
+        "cover": "depth/sm_cover.png",
+        "hero": "depth/sm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sn",
+      "name": "Senegal",
+      "description": "Goree Island houses, Saint-Louis Faidherbe Bridge, Djoudj wetlands, Saloum Delta shell islands, Sine Ngayene stone circles. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "pelican, warthog",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sn",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        },
+        {
+          "url": "https://whc.unesco.org/en/list/1226/",
+          "title": "UNESCO: Sine Ngayene is in Senegal; Wassu is in Gambia"
+        }
+      ],
+      "avatar": "images/sn_avatar.avif",
+      "cover": "images/sn_cover.avif",
+      "hero": "images/sn_hero.avif",
+      "depth": {
+        "avatar": "depth/sn_avatar.png",
+        "cover": "depth/sn_cover.png",
+        "hero": "depth/sn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "so",
+      "name": "Somalia",
+      "description": "Laas Geel rock art, Taleh secular fort ruins only, Mogadishu colonial civic facades only, Cal Madow mountains, Lido Beach coast. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Somali wild ass, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/so",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/so_avatar.avif",
+      "cover": "images/so_cover.avif",
+      "hero": "images/so_hero.avif",
+      "depth": {
+        "avatar": "depth/so_avatar.png",
+        "cover": "depth/so_cover.png",
+        "hero": "depth/so_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sr",
+      "name": "Suriname",
+      "description": "Paramaribo wooden houses, Saint Peter and Paul Cathedral, Fort Zeelandia, Jodensavanne synagogue ruins, Central Suriname rainforest. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "jaguar, scarlet ibis",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sr",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sr_avatar.avif",
+      "cover": "images/sr_cover.avif",
+      "hero": "images/sr_hero.avif",
+      "depth": {
+        "avatar": "depth/sr_avatar.png",
+        "cover": "depth/sr_cover.png",
+        "hero": "depth/sr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ss",
+      "name": "South Sudan",
+      "description": "Sudd wetlands, Boma savanna, Nimule Nile rapids, Imatong mountains, traditional Dinka cattle camps. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white-eared kob, shoebill, Nile crocodile",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ss",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ss_avatar.avif",
+      "cover": "images/ss_cover.avif",
+      "hero": "images/ss_hero.avif",
+      "depth": {
+        "avatar": "depth/ss_avatar.png",
+        "cover": "depth/ss_cover.png",
+        "hero": "depth/ss_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "st",
+      "name": "Sao Tome & Principe",
+      "description": "Sao Sebastiao Fort, Sao Tome Cathedral, Pico Cao Grande, Roca Agua Ize estate, Santo Antonio waterfront. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Sao Tome ibis, Principe kingfisher",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/st",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/st_avatar.avif",
+      "cover": "images/st_cover.avif",
+      "hero": "images/st_hero.avif",
+      "depth": {
+        "avatar": "depth/st_avatar.png",
+        "cover": "depth/st_cover.png",
+        "hero": "depth/st_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sv",
+      "name": "El Salvador",
+      "description": "Joya de Ceren, Tazumal, San Andres archaeological site, Suchitoto colonial streets, Santa Ana volcano, El Rosario Church. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "torogoz, iguana",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sv",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sv_avatar.avif",
+      "cover": "images/sv_cover.avif",
+      "hero": "images/sv_hero.avif",
+      "depth": {
+        "avatar": "depth/sv_avatar.png",
+        "cover": "depth/sv_cover.png",
+        "hero": "depth/sv_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sy",
+      "name": "Syria",
+      "description": "Palmyra Roman colonnade, Bosra Roman theatre, Krak des Chevaliers secular fortifications, Saint Simeon church ruins, Ugarit archaeological remains, Apamea colonnade. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "dromedary, griffon vulture",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sy",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sy_avatar.avif",
+      "cover": "images/sy_cover.avif",
+      "hero": "images/sy_hero.avif",
+      "depth": {
+        "avatar": "depth/sy_avatar.png",
+        "cover": "depth/sy_cover.png",
+        "hero": "depth/sy_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "sz",
+      "name": "Eswatini",
+      "description": "Ngwenya ancient iron mine, Mantenga cultural village, Sibebe Rock, Malolotja mountains, Hlane savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white rhinoceros, African elephant",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/sz",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/sz_avatar.avif",
+      "cover": "images/sz_cover.avif",
+      "hero": "images/sz_hero.avif",
+      "depth": {
+        "avatar": "depth/sz_avatar.png",
+        "cover": "depth/sz_cover.png",
+        "hero": "depth/sz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "td",
+      "name": "Chad",
+      "description": "Lakes of Ounianga, Ennedi rock arch, Ennedi rock art, Tibesti mountains, Zakouma savanna. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/td",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/td_avatar.avif",
+      "cover": "images/td_cover.avif",
+      "hero": "images/td_hero.avif",
+      "depth": {
+        "avatar": "depth/td_avatar.png",
+        "cover": "depth/td_cover.png",
+        "hero": "depth/td_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tg",
+      "name": "Togo",
+      "description": "Koutammakou takienta houses, Kpalime cathedral, Togoville church, Cascade de Kpime, Lome Independence Monument. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "hippopotamus, green monkey",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tg",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tg_avatar.avif",
+      "cover": "images/tg_cover.avif",
+      "hero": "images/tg_hero.avif",
+      "depth": {
+        "avatar": "depth/tg_avatar.png",
+        "cover": "depth/tg_cover.png",
+        "hero": "depth/tg_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "th",
+      "name": "Thailand",
+      "description": "Wat Arun, Sukhothai Buddhist ruins, Ayutthaya temples, Doi Suthep Buddhist temple, Phanom Rung Hindu temple, Phang Nga limestone islands. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Asian elephant, gibbon",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/th",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/th_avatar.avif",
+      "cover": "images/th_cover.avif",
+      "hero": "images/th_hero.avif",
+      "depth": {
+        "avatar": "depth/th_avatar.png",
+        "cover": "depth/th_cover.png",
+        "hero": "depth/th_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tj",
+      "name": "Tajikistan",
+      "description": "Sarazm archaeological remains, Ancient Panjakent pre-Islamic ruins, Hulbuk secular palace remains, Hissar fortress secular gate, Pamir mountains. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Marco Polo sheep, snow leopard",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tj",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tj_avatar.avif",
+      "cover": "images/tj_cover.avif",
+      "hero": "images/tj_hero.avif",
+      "depth": {
+        "avatar": "depth/tj_avatar.png",
+        "cover": "depth/tj_cover.png",
+        "hero": "depth/tj_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tl",
+      "name": "Timor-Leste",
+      "description": "Cristo Rei statue, Balibo fort, Uma Lulik traditional sacred house, Mount Ramelau, Jaco Island. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "saltwater crocodile, Timor green pigeon",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tl",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        },
+        {
+          "url": "https://timorleste.tl/destinations/balibo",
+          "title": "Official Timor-Leste tourism: Balibo"
+        },
+        {
+          "url": "https://timorleste.tl/destinations/jaco-island",
+          "title": "Official Timor-Leste tourism: Jaco Island"
+        },
+        {
+          "url": "https://snap.mappf.gov.tl/main/detail_sub_menu/32",
+          "title": "Timor-Leste protected areas: Uma Lulik and regional itineraries"
+        }
+      ],
+      "avatar": "images/tl_avatar.avif",
+      "cover": "images/tl_cover.avif",
+      "hero": "images/tl_hero.avif",
+      "depth": {
+        "avatar": "depth/tl_avatar.png",
+        "cover": "depth/tl_cover.png",
+        "hero": "depth/tl_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tm",
+      "name": "Turkmenistan",
+      "description": "Nisa Parthian fortress, Gonur Depe Bronze Age ruins, Merv ancient Erk Kala citadel earthworks, Yangykala Canyon, Dinosaur Plateau. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Akhal-Teke horse, goitered gazelle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tm",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tm_avatar.avif",
+      "cover": "images/tm_cover.avif",
+      "hero": "images/tm_hero.avif",
+      "depth": {
+        "avatar": "depth/tm_avatar.png",
+        "cover": "depth/tm_cover.png",
+        "hero": "depth/tm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tn",
+      "name": "Tunisia",
+      "description": "Carthage Roman ruins, El Jem amphitheatre, Dougga Roman theatre, Bulla Regia Roman houses, Kerkuane Punic ruins, Chott el Jerid. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "fennec fox, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tn",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tn_avatar.avif",
+      "cover": "images/tn_cover.avif",
+      "hero": "images/tn_hero.avif",
+      "depth": {
+        "avatar": "depth/tn_avatar.png",
+        "cover": "depth/tn_cover.png",
+        "hero": "depth/tn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "to",
+      "name": "Tonga",
+      "description": "Haamonga a Maui trilithon, Langi royal tombs, Royal Palace exterior, Mapu a Vaea blowholes, Anahulu cave. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "humpback whale, flying fox",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/to",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        },
+        {
+          "url": "https://www.doc.govt.nz/documents/about-doc/role/international/taonga-pasifika.pdf",
+          "title": "New Zealand Department of Conservation: Pacific heritage, Tonga trilithon and tombs"
+        }
+      ],
+      "avatar": "images/to_avatar.avif",
+      "cover": "images/to_cover.avif",
+      "hero": "images/to_hero.avif",
+      "depth": {
+        "avatar": "depth/to_avatar.png",
+        "cover": "depth/to_cover.png",
+        "hero": "depth/to_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tr",
+      "name": "Türkiye",
+      "description": "Trojan Horse modern commemorative wooden replica, Troy ancient walls, Library of Celsus at Ephesus, Gobekli Tepe, Nemrut colossal heads, Hattusa Lion Gate, Sumela Monastery, Ani Cathedral, Galata Tower, Pamukkale and Hierapolis, Cappadocia rock formations, Aspendos theatre, Van Castle, Safranbolu secular houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Van cat, Ankara cat, Anatolian wild sheep",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tr",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tr_avatar.avif",
+      "cover": "images/tr_cover.avif",
+      "hero": "images/tr_hero.avif",
+      "depth": {
+        "avatar": "depth/tr_avatar.png",
+        "cover": "depth/tr_cover.png",
+        "hero": "depth/tr_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tt",
+      "name": "Trinidad & Tobago",
+      "description": "Queen's Royal College, Temple in the Sea Hindu temple, Fort King George, Pitch Lake, Caroni Swamp, Argyle Falls. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "scarlet ibis, leatherback turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tt",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tt_avatar.avif",
+      "cover": "images/tt_cover.avif",
+      "hero": "images/tt_hero.avif",
+      "depth": {
+        "avatar": "depth/tt_avatar.png",
+        "cover": "depth/tt_cover.png",
+        "hero": "depth/tt_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tv",
+      "name": "Tuvalu",
+      "description": "Funafuti lagoon, Fetu Ao Lima Church, traditional maneapa meeting house, Nanumea atoll shoreline, Funafuti conservation reefs. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "green turtle, black noddy",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tv",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tv_avatar.avif",
+      "cover": "images/tv_cover.avif",
+      "hero": "images/tv_hero.avif",
+      "depth": {
+        "avatar": "depth/tv_avatar.png",
+        "cover": "depth/tv_cover.png",
+        "hero": "depth/tv_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "tz",
+      "name": "Tanzania",
+      "description": "Kilimanjaro, Ngorongoro crater, Serengeti savanna, Kondoa rock art, Stone Town secular carved doors only, Olduvai Gorge. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "lion, African elephant, giraffe",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/tz",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/tz_avatar.avif",
+      "cover": "images/tz_cover.avif",
+      "hero": "images/tz_hero.avif",
+      "depth": {
+        "avatar": "depth/tz_avatar.png",
+        "cover": "depth/tz_cover.png",
+        "hero": "depth/tz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ua",
+      "name": "Ukraine",
+      "description": "Saint Sophia Cathedral, Lviv Rynok Square, Kamianets-Podilskyi Castle, Chernivtsi university former residence, wooden churches of Carpathians, Odesa opera house. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "white stork, European bison",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ua",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ua_avatar.avif",
+      "cover": "images/ua_cover.avif",
+      "hero": "images/ua_hero.avif",
+      "depth": {
+        "avatar": "depth/ua_avatar.png",
+        "cover": "depth/ua_cover.png",
+        "hero": "depth/ua_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ug",
+      "name": "Uganda",
+      "description": "Kasubi royal tombs, Bwindi forest, Murchison Falls, Rwenzori mountains, Nyero rock paintings, Source of Nile. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "mountain gorilla, shoebill, Uganda kob",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ug",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ug_avatar.avif",
+      "cover": "images/ug_cover.avif",
+      "hero": "images/ug_hero.avif",
+      "depth": {
+        "avatar": "depth/ug_avatar.png",
+        "cover": "depth/ug_cover.png",
+        "hero": "depth/ug_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "us",
+      "name": "United States",
+      "description": "Statue of Liberty, Grand Canyon, Golden Gate Bridge, Mesa Verde cliff dwellings, Independence Hall, Mount Rushmore, Hawaii volcanoes, Denali. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "American bison, bald eagle, grizzly bear",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/us",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/us_avatar.avif",
+      "cover": "images/us_cover.avif",
+      "hero": "images/us_hero.avif",
+      "depth": {
+        "avatar": "depth/us_avatar.png",
+        "cover": "depth/us_cover.png",
+        "hero": "depth/us_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "uy",
+      "name": "Uruguay",
+      "description": "Fray Bentos industrial landscape, Colonia del Sacramento lighthouse, Palacio Salvo, Casapueblo, Santa Teresa fortress. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "southern lapwing, capybara",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/uy",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/uy_avatar.avif",
+      "cover": "images/uy_cover.avif",
+      "hero": "images/uy_hero.avif",
+      "depth": {
+        "avatar": "depth/uy_avatar.png",
+        "cover": "depth/uy_cover.png",
+        "hero": "depth/uy_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "uz",
+      "name": "Uzbekistan",
+      "description": "Ayaz Kala pre-Islamic fortress, Toprak Kala palace ruins, Afrasiab pre-Islamic mural fragment, Savitsky Museum exterior, Chimgan mountains, Termez Buddhist Fayaz Tepe ruins. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Bactrian camel, goitered gazelle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/uz",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/uz_avatar.avif",
+      "cover": "images/uz_cover.avif",
+      "hero": "images/uz_hero.avif",
+      "depth": {
+        "avatar": "depth/uz_avatar.png",
+        "cover": "depth/uz_cover.png",
+        "hero": "depth/uz_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "va",
+      "name": "Vatican City",
+      "description": "Saint Peter's Basilica, Saint Peter's colonnade, Sistine Chapel, Vatican Museums courtyard, Vatican Gardens. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "rock dove",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/va",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/va_avatar.avif",
+      "cover": "images/va_cover.avif",
+      "hero": "images/va_hero.avif",
+      "depth": {
+        "avatar": "depth/va_avatar.png",
+        "cover": "depth/va_cover.png",
+        "hero": "depth/va_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "vc",
+      "name": "Saint Vincent and the Grenadines",
+      "description": "Fort Charlotte, Botanic Gardens, Saint George's Cathedral, La Soufriere volcano, Tobago Cays. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Saint Vincent parrot, green turtle",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/vc",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/vc_avatar.avif",
+      "cover": "images/vc_cover.avif",
+      "hero": "images/vc_hero.avif",
+      "depth": {
+        "avatar": "depth/vc_avatar.png",
+        "cover": "depth/vc_cover.png",
+        "hero": "depth/vc_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ve",
+      "name": "Venezuela",
+      "description": "Angel Falls, Ciudad Universitaria modern architecture, Coro colonial houses, Los Roques coral islands, Mount Roraima, Merida cable car. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "jaguar, scarlet ibis, capybara",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ve",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ve_avatar.avif",
+      "cover": "images/ve_cover.avif",
+      "hero": "images/ve_hero.avif",
+      "depth": {
+        "avatar": "depth/ve_avatar.png",
+        "cover": "depth/ve_cover.png",
+        "hero": "depth/ve_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "vn",
+      "name": "Vietnam",
+      "description": "Hoi An Japanese Covered Bridge, My Son Hindu temples, Hue imperial citadel, Temple of Literature, Ha Long limestone islands, Phong Nha caves. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "red-shanked douc, saola",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/vn",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/vn_avatar.avif",
+      "cover": "images/vn_cover.avif",
+      "hero": "images/vn_hero.avif",
+      "depth": {
+        "avatar": "depth/vn_avatar.png",
+        "cover": "depth/vn_cover.png",
+        "hero": "depth/vn_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "vu",
+      "name": "Vanuatu",
+      "description": "Chief Roi Mata's Domain, Yasur volcano, land-diving tower, Port Vila market, Millennium Cave. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Vanuatu flying fox, dugong",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/vu",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/vu_avatar.avif",
+      "cover": "images/vu_cover.avif",
+      "hero": "images/vu_hero.avif",
+      "depth": {
+        "avatar": "depth/vu_avatar.png",
+        "cover": "depth/vu_cover.png",
+        "hero": "depth/vu_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ws",
+      "name": "Samoa",
+      "description": "Robert Louis Stevenson Museum, To Sua ocean trench, Pulemelei mound, Alofaaga blowholes, traditional fale houses. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Samoan flying fox, manumea",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ws",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ws_avatar.avif",
+      "cover": "images/ws_cover.avif",
+      "hero": "images/ws_hero.avif",
+      "depth": {
+        "avatar": "depth/ws_avatar.png",
+        "cover": "depth/ws_cover.png",
+        "hero": "depth/ws_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "ye",
+      "name": "Yemen",
+      "description": "Shibam secular mudbrick tower houses only, Old Marib dam, Baran ancient temple columns, Socotra dragon-blood landscape, Dar al-Hajar secular rock palace only. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "Socotra cormorant, dromedary",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/ye",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/ye_avatar.avif",
+      "cover": "images/ye_cover.avif",
+      "hero": "images/ye_hero.avif",
+      "depth": {
+        "avatar": "depth/ye_avatar.png",
+        "cover": "depth/ye_cover.png",
+        "hero": "depth/ye_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "za",
+      "name": "South Africa",
+      "description": "Table Mountain, Robben Island prison buildings, Mapungubwe archaeological landscape, Drakensberg San rock art, Cape Agulhas lighthouse, Union Buildings. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African penguin, springbok, African elephant",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/za",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/za_avatar.avif",
+      "cover": "images/za_cover.avif",
+      "hero": "images/za_hero.avif",
+      "depth": {
+        "avatar": "depth/za_avatar.png",
+        "cover": "depth/za_cover.png",
+        "hero": "depth/za_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "zm",
+      "name": "Zambia",
+      "description": "Victoria Falls, Kalambo Falls, Mwela rock paintings, Ingombe Ilede archaeological site, South Luangwa floodplain, Kuomboka royal barge. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, Thornicroft giraffe, shoebill",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/zm",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/zm_avatar.avif",
+      "cover": "images/zm_cover.avif",
+      "hero": "images/zm_hero.avif",
+      "depth": {
+        "avatar": "depth/zm_avatar.png",
+        "cover": "depth/zm_cover.png",
+        "hero": "depth/zm_hero.png"
+      },
+      "visualReview": "recorded"
+    },
+    {
+      "code": "zw",
+      "name": "Zimbabwe",
+      "description": "Great Zimbabwe dry-stone walls, Khami ruins, Matobo rock art, Victoria Falls, Mana Pools, Chimanimani peaks. Bölgesel bir seçkidir; eksiksiz envanter değildir.",
+      "animals": "African elephant, sable antelope, rhinoceros",
+      "depthMode": "approximate",
+      "status": "complete",
+      "sources": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/zw",
+          "title": "UNESCO World Heritage country inventory (reference; individual candidate verification required)"
+        }
+      ],
+      "avatar": "images/zw_avatar.avif",
+      "cover": "images/zw_cover.avif",
+      "hero": "images/zw_hero.avif",
+      "depth": {
+        "avatar": "depth/zw_avatar.png",
+        "cover": "depth/zw_cover.png",
+        "hero": "depth/zw_hero.png"
+      },
+      "visualReview": "recorded"
+    }
+  ],
+  "errors": []
+}
