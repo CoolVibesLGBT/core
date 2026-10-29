@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Malta montage with megalithic temples, Mdina-like fortified city, Christian baroque churches, harbor fort and limestone cliffs. Natural wall lizard/blue rock thrush and prickly pear; temple slab counts and city facade details are illustrative approximations. No lettering/flags observed. Bird tail and lizard tail meet right edge.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Malta montage with megalithic temples, Mdina-like fortified city, Christian baroque churches, harbor fort and limestone cliffs. Natural wall lizard/blue rock thrush and prickly pear; temple slab counts and city facade details are illustrative approximations. No lettering/flags observed. Lizard tail extends toward right edge.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Hagar Qim-like megalithic temple with natural wall lizard, prickly pear and Mediterranean coast. Stone portal shapes and terrain are artistic approximations; lizard tail approaches lower edge. No lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
