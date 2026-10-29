@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Egypt montage inspected: pyramids, sphinx, ancient temples, White Desert, monastery, modern library. Ibex, camel and crocodile in separate habitats. No visible Islamic structures or lettering. Monument detail approximate, more illustrative than wonky. Approximate subject depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Egypt panorama inspected: ancient temples and pyramids, library, White Desert, monastery; crocodile and desert animals visible. No visible excluded structures or lettering. Regional montage approximate; hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Pyramids and sphinx with natural ibex, palms and papyrus. No visible lettering or prohibited structures. Ibex close to left edge, circular crop may trim it. Stylized layered rendering. Approximate subject depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

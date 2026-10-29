@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Estonian montage with Tallinn, castles, manor/university facades, crater lake and northern coasts. Natural lynx and seal occupy separate foreground rocks. Architectural and geographic relationships are explicitly montage approximations, painterly rather than very wonky. No captions/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Estonian montage with Tallinn, castles, manor/university facades, crater lake and northern coasts. Natural lynx and seal occupy separate foreground rocks. Architectural and geographic relationships are explicitly montage approximations, painterly rather than very wonky. No captions/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Tallinn town hall silhouette with lynx, pine and cornflower. Civic tower and old town are illustrative approximations; circular crop can clip outer plant and animal edges. No text or flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
