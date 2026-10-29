@@ -1,0 +1,10 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-71f8aed0-70d8-43fb-81ad-5aaf6e6fbec7.png",
+  "prompt": "Use case: precise-object-edit. Edit ONLY the foreground antelope in this Somaliland illustration to accurately portray a Beira antelope (Dorcatragus megalotis). Replace the current long-horned gazelle completely. Beira is a tiny compact antelope around 55 cm at shoulder with very large broad rounded ears lined in white fur and a dark rim, greyish fawn back and neck, reddish legs and head, cream belly separated by a dark flank band, short bushy tail and short slim nearly straight upright horns no longer than 12 cm, visibly shorter than the ears. NO long sweeping or curved gazelle horns, NO springbok-like black and white face stripes. Natural neutral animal expression, no clothes. Keep the animal complete inside existing framing. Preserve EVERY other element, detailed painterly cel-shaded style, lighting, rock paintings, civilian coastal architecture, terrain, plants and any baboon. No new text, flags, emblems, people, mosques, minarets or Islamic iconography. Same aspect ratio and composition as source.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-3322f94c-ff5c-468a-ae2a-0e1bb4ba6075.png"
+  ],
+  "saved_asset": "images/xs_avatar.avif",
+  "source_png_available": false
+}

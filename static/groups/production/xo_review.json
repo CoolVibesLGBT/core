@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Tir Monastery, Ksani medieval defensive towers, Liakhvi valley, Greater Caucasus mountain ridge. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Tir Monastery, Ksani medieval defensive towers, Liakhvi valley, Greater Caucasus mountain ridge. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Tir Monastery, Ksani medieval defensive towers, Liakhvi valley, Greater Caucasus mountain ridge. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
