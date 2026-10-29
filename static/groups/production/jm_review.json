@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Jamaica heritage houses, Port Royal fort, waterfall and mountains visible; hummingbird and iguana, ackee framing. Optional carved wooden detail generic and not verified as Jamaican. Iguana rear touches right edge. No lettering or excluded architecture. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Jamaican heritage houses, coastal fort, terraced waterfall and mountains with iguana and hummingbird. Ackee and lignum vitae framing. No lettering or excluded architecture. Iguana tail touches right edge; approximate montage and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Blue Mountain landscape and natural streamer-tail hummingbird, ackee, flowering tree and coffee foreground. No lettering or excluded structures. Bird above central crop safe zone; silhouette inside square. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
