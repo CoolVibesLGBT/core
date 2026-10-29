@@ -1,0 +1,104 @@
+[
+  {
+    "code": "sb",
+    "kind": "hero",
+    "issue": "Turtle lower and right flippers cropped; regenerate with full turtle within safe margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "ss",
+    "kind": "hero",
+    "issue": "Crocodile tail cropped on right; regenerate with entire animal safely within frame.",
+    "status": "resolved"
+  },
+  {
+    "code": "ss",
+    "kind": "cover",
+    "issue": "Crocodile tail cropped on right; regenerate with entire animal safely within frame.",
+    "status": "resolved"
+  },
+  {
+    "code": "tg",
+    "kind": "hero",
+    "issue": "Hippo back cropped at right edge; keep visible above-water body fully inside frame.",
+    "status": "resolved"
+  },
+  {
+    "code": "tj",
+    "kind": "hero",
+    "issue": "Keep snow leopard tail and entire argali body within frame with generous right margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "tl",
+    "kind": "cover",
+    "issue": "Crocodile tail touches right frame; regenerate with clear margin around entire animal.",
+    "status": "resolved"
+  },
+  {
+    "code": "tt",
+    "kind": "avatar",
+    "issue": "Cathedral roof and right side cropped; keep full principal landmark with circular crop safe margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "tv",
+    "kind": "hero",
+    "issue": "Turtle rear body and seabird tail cropped on right; keep all animal outlines inside safe margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "ug",
+    "kind": "hero",
+    "issue": "Keep full gorilla safely inside frame rather than cut at right and bottom edges.",
+    "status": "resolved"
+  },
+  {
+    "code": "ug",
+    "kind": "avatar",
+    "issue": "Keep entire Kasubi thatched roof inside square frame and circular safe margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "us",
+    "kind": "hero",
+    "issue": "Eagle wing tip clipped at top; keep complete eagle and all other animals inside generous frame margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "vn",
+    "kind": "cover",
+    "issue": "Saola hindquarters cropped at right; keep complete saola silhouette within safe margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "vu",
+    "kind": "hero",
+    "issue": "Dugong tail cropped at right; keep entire animal and flying fox inside frame with clear margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "ws",
+    "kind": "cover",
+    "issue": "Pigeon body cut off at right; keep complete bird within frame.",
+    "status": "resolved"
+  },
+  {
+    "code": "ws",
+    "kind": "avatar",
+    "issue": "Keep full Vailima house and roof inside frame with generous circular crop safe margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "za",
+    "kind": "hero",
+    "issue": "Tiny elephant calf cropped at right; remove extra calf or keep every animal fully inside frame.",
+    "status": "resolved"
+  },
+  {
+    "code": "zm",
+    "kind": "cover",
+    "issue": "Giraffe cropped at right; keep all animals entirely inside generous frame margins.",
+    "status": "resolved"
+  }
+]
