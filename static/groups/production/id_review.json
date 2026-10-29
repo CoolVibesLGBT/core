@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Indonesian montage: Borobudur, Prambanan, Toraja houses, terraced fields, lake and karst islands, fossil site. Natural orangutan, Bali myna and Komodo dragon; dragon rear cropped at right. Rafflesia framing. No visible lettering or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Indonesian panorama with Borobudur, Prambanan, Toraja houses, Hindu gateway, terraces, lake and karst islands. Natural orangutan, myna and Komodo dragon; tail near right margin. No lettering or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Borobudur, natural Komodo dragon, rafflesia and frangipani with island landscape visible. No lettering or excluded architecture. Dragon face inside central circle; temple broad left extent. Approximate montage and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Ireland national montage with passage tomb, rock ruins, Dublin civic architecture and sea cliffs. Natural deer and puffin. Illustrative ancient monuments, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Ireland panorama with Newgrange, rock ruins, cliffs and Dublin civic architecture; puffin and deer visible. Passage tomb touches left edge as peripheral montage element. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Newgrange passage tomb interpretation and natural red deer, strong angular contours. Entrance carving stylized, tomb wider than crop; animal fully inside square. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
