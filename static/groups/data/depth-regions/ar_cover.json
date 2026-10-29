@@ -1,0 +1,110 @@
+{
+  "output": "depth/ar_cover.png",
+  "width": 900,
+  "height": 300,
+  "stops": [
+    [
+      0,
+      20
+    ],
+    [
+      0.25,
+      40
+    ],
+    [
+      0.5,
+      105
+    ],
+    [
+      1,
+      220
+    ]
+  ],
+  "regions": [
+    {
+      "ellipse": [
+        0.72,
+        0.72,
+        0.045,
+        0.2
+      ],
+      "value": 239,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.89,
+        0.83,
+        0.06,
+        0.14
+      ],
+      "value": 246,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.35,
+        0.4,
+        0.08,
+        0.13
+      ],
+      "value": 123,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.5,
+        0.7,
+        0.13,
+        0.12
+      ],
+      "value": 165,
+      "blur": 0.008
+    },
+    {
+      "polygon": [
+        [
+          0,
+          0.88
+        ],
+        [
+          0.16,
+          0.86
+        ],
+        [
+          0.3,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    },
+    {
+      "polygon": [
+        [
+          0.92,
+          0.94
+        ],
+        [
+          1,
+          0.83
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0.91,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    }
+  ],
+  "method": "hand-authored approximate data; not measured depth; soft ellipse masks simplify subject boundaries"
+}

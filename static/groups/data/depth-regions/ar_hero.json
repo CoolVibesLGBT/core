@@ -1,0 +1,110 @@
+{
+  "output": "depth/ar_hero.png",
+  "width": 768,
+  "height": 512,
+  "stops": [
+    [
+      0,
+      20
+    ],
+    [
+      0.25,
+      40
+    ],
+    [
+      0.5,
+      105
+    ],
+    [
+      1,
+      220
+    ]
+  ],
+  "regions": [
+    {
+      "ellipse": [
+        0.82,
+        0.73,
+        0.11,
+        0.23
+      ],
+      "value": 245,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.36,
+        0.78,
+        0.045,
+        0.08
+      ],
+      "value": 224,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.1,
+        0.12,
+        0.095,
+        0.1
+      ],
+      "value": 125,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.64,
+        0.57,
+        0.16,
+        0.12
+      ],
+      "value": 151,
+      "blur": 0.008
+    },
+    {
+      "polygon": [
+        [
+          0,
+          0.88
+        ],
+        [
+          0.16,
+          0.86
+        ],
+        [
+          0.3,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    },
+    {
+      "polygon": [
+        [
+          0.92,
+          0.94
+        ],
+        [
+          1,
+          0.83
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0.91,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    }
+  ],
+  "method": "hand-authored approximate data; not measured depth; soft ellipse masks simplify subject boundaries"
+}
