@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Thailand montage with Wat Arun, Sukhothai/Ayutthaya Buddhist ruins, Doi Suthep, Khmer-style Hindu temple and limestone island coast, wooden river houses. Natural elephant/gibbon, lotus and tropical foliage. Temple details and geography are illustrative approximations; no lettering/flags observed. Elephant hindquarters and gibbon branch near right edge.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Thailand montage with Wat Arun, Sukhothai/Ayutthaya Buddhist ruins, Doi Suthep, Khmer-style Hindu temple and limestone island coast, wooden river houses. Natural elephant/gibbon, lotus and tropical foliage. Temple details and geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Wat Arun-like Buddhist prang and river boat with natural elephant, lotus and tree framing. Prang tiers and ceramic patterns are artistic approximations; elephant partly screened by left foliage. No lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
