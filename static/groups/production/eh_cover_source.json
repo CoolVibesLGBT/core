@@ -1,0 +1,10 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-1ad892fe-ae8e-4816-824f-dc9a5c9ea3e5.png",
+  "prompt": "Use case: precise-object-edit. Edit ONLY the distant town in this Western Sahara regional illustration. REMOVE the tall mosque/minaret tower and the entire adjacent religious building complex. Replace that section with mundane low-rise secular civilian houses and workshops: maximum two storeys, plain flat roofs, simple rectangular doors and windows, no religious motifs. There must be NO towers, minarets, domes, mosques, religious crescents, calligraphy, religious arches or other Islamic religious architecture anywhere in the distant skyline. Keep the same desert, cliffs, ocean, lagoon, White Dune, camel, flamingos, plants, palette, detailed painterly cel-shaded style and composition. No text, logos, flags, emblems or people. Preserve source aspect ratio.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-4177fcaf-df09-4837-badd-9de042a046a0.png"
+  ],
+  "saved_asset": "images/eh_cover.avif",
+  "source_png_available": false
+}
