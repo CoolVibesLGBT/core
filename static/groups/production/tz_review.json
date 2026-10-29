@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Tanzanian montage with Kilimanjaro, Ngorongoro-like crater, Olduvai-like gorge, Kondoa-like animal rock-art and Zanzibar civilian carved-door houses. Natural lion/elephant/giraffe, baobab/aloe. Terrain and door ornament are artistic approximations; decorative door carving is nonlettering. No flags or religious towers observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Tanzanian montage with Kilimanjaro, Ngorongoro-like crater, Olduvai-like gorge, Kondoa-like animal rock-art and Zanzibar civilian carved-door houses. Natural lion/elephant/giraffe, baobab/aloe. Terrain and door ornament are artistic approximations; decorative door carving is nonlettering. No flags or religious towers observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Kilimanjaro-like snow mountain with natural lion and baobab. Mountain profile and exaggerated baobab scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
