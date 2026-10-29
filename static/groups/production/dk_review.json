@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Recognizable Danish castles, Nyhavn civic houses, chalk cliffs and seal/deer montage; cathedral and runestones are stylized approximations. Image has painterly rather than strongly wonky geometry; no text/flags observed. Approximate foreground seal and trees depth masks.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Broad Danish montage with castle, cathedral, runestones, Nyhavn houses and chalk cliffs; natural seal and deer. Regional architecture is approximate and painterly; runestone carving is decorative. No captions or flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Kronborg-like castle across water with harbour seal and daisies. Castle silhouette is an artistic approximation; foreground seal tail approaches edge and circular crop may trim its tail. Painterly geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
