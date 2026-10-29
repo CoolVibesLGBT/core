@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Mongolia montage with Buddhist monasteries, deer stones, rock art and Gobi/mountain regions. Natural horse, camels and snow leopard in separate habitats. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Mongolia panorama with monasteries, deer stones, rock art, ger and Gobi cliffs; horses, camels and snow leopard separated regionally. Stone carvings illustrative. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Erdene Zuu Buddhist monastery interpretation and full natural Przewalski horse. Monastery extends laterally beyond square as background; circular crop trims rear horse. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
