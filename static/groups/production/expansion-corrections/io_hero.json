@@ -1,0 +1,8 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-0c92e965-23c3-4031-84ef-9d9e13ca75fe.png",
+  "prompt": "Use case: precise-object-edit. Edit this atlas illustration. Preserve the detailed painterly style, landscape, colors, lighting and all other objects. Reduce and reposition the foreground coconut crab toward the center so ALL legs, claws and antennae fit entirely within the image with generous 10 percent margin from right and bottom edges. No text or people. Preserve the 3:2 landscape format.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/Desktop/ulkeler/production/io-edit-target.png"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-a1be6cd9-3f39-456e-a241-af39455d027c.png",
+  "prompt": "Use case: precise-object-edit. Preserve this detailed painterly Cayman Islands atlas landscape and every other element. Reframe ONLY the blue iguana in the lower right: make the entire iguana smaller and move it left so its whole long tail, all toes and body are fully visible with at least 8 percent clear space from right and bottom image edges. Natural blue iguana anatomy. Maintain original 3:2 format, colors, lighting and style. No text.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/Desktop/ulkeler/production/ky-edit-target.png"
+  ]
+}

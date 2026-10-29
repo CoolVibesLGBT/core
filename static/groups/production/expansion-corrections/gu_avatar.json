@@ -1,0 +1,8 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-04b0359d-d830-4cdb-92cb-7993344820c1.png",
+  "prompt": "Use case: precise-object-edit. Correct ONLY the endemic bird in this regional illustration to its accurate species-specific plumage: adult male Guam kingfisher / sihek (Todiramphus cinnamominus): entirely CINNAMON-RUST head and crown, cinnamon neck, chest and belly; iridescent blue-green back, wings and tail; large sturdy BLACK bill; narrow dark eye stripe. No blue crown, no large white collar or white throat, no crested European common kingfisher pattern. Smooth compact kingfisher silhouette. Preserve the bird's current pose and position, complete silhouette safely inside image, and natural neutral expression. Preserve ALL other elements, landscapes, buildings, other wildlife, flowers, detailed painterly cel-shaded atlas style, lighting, palette, textures and framing. No new people, words, lettering, flags, emblems, mosques, minarets or Islamic religious structures. Same source aspect ratio.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-dca73a73-2504-42ba-93f6-c22a770c13b5.png"
+  ]
+}
