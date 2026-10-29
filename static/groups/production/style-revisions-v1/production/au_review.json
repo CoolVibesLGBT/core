@@ -1,0 +1,14 @@
+{
+  "hero": {
+    "observations": "Inspected generated edit: recognizable Opera House, Uluru, Bungle Bungle, Twelve Apostles, reef, Cradle Mountain; healthy kangaroo, koala and wombat. Bold ink and sculpted layers after style correction. No restricted religious architecture observed. Rock art is illustrative, not documented facsimile. Approximate manual depth masks, not measured geometry.",
+    "status": "reviewed"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Recognizable Opera House and natural regional montage; koala/kangaroo/wombat have plausible anatomy. Bold outlined cel-shaded depth. No restricted architecture observed. Approximate hand-authored depth; stylized rock art not an authentic facsimile."
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Opera House large and recognizable; natural kangaroo foreground, tree frame, flower accents. No restricted skyline observed. Approximate manual depth masks."
+  }
+}
