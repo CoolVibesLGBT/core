@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Malaysia Petronas towers, Buddhist temple, Batu Hindu caves, Malacca fort, Mulu pinnacles and Kinabalu visible. Natural orangutan, tapir and hornbill, rafflesia framing. No lettering or excluded structures. Approximate depth and landmark scale.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Malaysian Buddhist and Hindu sites, twin towers, Portuguese fort, Mulu pinnacles and Kinabalu visible. Natural tapir, hornbill and orangutan; orangutan partly near right edge. Rafflesia foreground. No lettering or excluded structures. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Petronas twin towers, natural orangutan and rafflesia with tropical foliage and mountain backdrop. No lettering or excluded religious structures. Animal face inside central circle; lower silhouette partly behind plants. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

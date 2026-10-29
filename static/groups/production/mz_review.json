@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Mozambique montage with fort, Christian colonial church, Maputo station, dunes and savanna. Natural dugong in water and elephants on land. Architecture illustrative; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Mozambique panorama with fort, church, station, dunes and savanna; dugong in seagrass and elephants on land. Makonde sculpture as craft detail, no live people. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Fort Sao Sebastiao interpretation and full dugong in seagrass water. Fort proportions stylized; marine tail visible. Approximate hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
