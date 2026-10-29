@@ -1,0 +1,65 @@
+﻿code,name_tr,type,code_scheme,in_current_catalog,assets_saved,status
+tw,Tayvan,country_or_territory,ISO3166-1,True,3,complete
+xk,Kosova,special_status,application-private,True,3,complete
+ck,Cook Adaları,self_governing_state,ISO3166-1,True,3,complete
+nu,Niue,self_governing_state,ISO3166-1,True,3,complete
+xn,Kuzey Kıbrıs (KKTC),special_status,application-private,True,3,complete
+xs,Somaliland,special_status,application-private,True,3,complete
+xa,Abhazya,special_status,application-private,True,3,complete
+xo,Güney Osetya,special_status,application-private,True,3,complete
+xt,Transdinyester,special_status,application-private,True,3,complete
+ai,Anguilla,country_or_territory,ISO3166-1,True,3,complete
+aq,Antarktika,country_or_territory,ISO3166-1,True,3,complete
+as,Amerikan Samoası,country_or_territory,ISO3166-1,True,3,complete
+aw,Aruba,country_or_territory,ISO3166-1,True,3,complete
+ax,Åland Adaları,country_or_territory,ISO3166-1,True,3,complete
+bl,Saint Barthélemy,country_or_territory,ISO3166-1,True,3,complete
+bm,Bermuda,country_or_territory,ISO3166-1,True,3,complete
+bq,"Bonaire, Sint Eustatius ve Saba",country_or_territory,ISO3166-1,True,3,complete
+bv,Bouvet Adası,country_or_territory,ISO3166-1,True,3,complete
+cc,Cocos (Keeling) Adaları,country_or_territory,ISO3166-1,True,3,complete
+cw,Curaçao,country_or_territory,ISO3166-1,True,3,complete
+cx,Christmas Adası,country_or_territory,ISO3166-1,True,3,complete
+eh,Batı Sahra,country_or_territory,ISO3166-1,True,3,complete
+fk,Falkland Adaları (Malvinas),country_or_territory,ISO3166-1,True,3,complete
+fo,Faroe Adaları,country_or_territory,ISO3166-1,True,3,complete
+gf,Fransız Guyanası,country_or_territory,ISO3166-1,True,3,complete
+gg,Guernsey,country_or_territory,ISO3166-1,True,3,complete
+gi,Cebelitarık,country_or_territory,ISO3166-1,True,3,complete
+gl,Grönland,country_or_territory,ISO3166-1,True,3,complete
+gp,Guadeloupe,country_or_territory,ISO3166-1,True,3,complete
+gs,Güney Georgia ve Güney Sandwich Adaları,country_or_territory,ISO3166-1,True,3,complete
+gu,Guam,country_or_territory,ISO3166-1,True,3,complete
+hk,Hong Kong,country_or_territory,ISO3166-1,True,3,complete
+hm,Heard Adası ve McDonald Adaları,country_or_territory,ISO3166-1,True,3,complete
+im,Man Adası,country_or_territory,ISO3166-1,True,3,complete
+io,Britanya Hint Okyanusu Toprakları,country_or_territory,ISO3166-1,True,3,complete
+je,Jersey,country_or_territory,ISO3166-1,True,3,complete
+ky,Cayman Adaları,country_or_territory,ISO3166-1,True,3,complete
+mf,Saint Martin (Fransız bölümü),country_or_territory,ISO3166-1,True,3,complete
+mo,Makao,country_or_territory,ISO3166-1,True,3,complete
+mp,Kuzey Mariana Adaları,country_or_territory,ISO3166-1,True,3,complete
+mq,Martinik,country_or_territory,ISO3166-1,True,3,complete
+ms,Montserrat,country_or_territory,ISO3166-1,True,3,complete
+nc,Yeni Kaledonya,country_or_territory,ISO3166-1,True,3,complete
+nf,Norfolk Adası,country_or_territory,ISO3166-1,True,3,complete
+pf,Fransız Polinezyası,country_or_territory,ISO3166-1,True,3,complete
+pm,Saint Pierre ve Miquelon,country_or_territory,ISO3166-1,True,3,complete
+pn,Pitcairn Adaları,country_or_territory,ISO3166-1,True,3,complete
+pr,Porto Riko,country_or_territory,ISO3166-1,True,3,complete
+re,Réunion,country_or_territory,ISO3166-1,True,3,complete
+sh,"Saint Helena, Ascension ve Tristan da Cunha",country_or_territory,ISO3166-1,True,3,complete
+sj,Svalbard ve Jan Mayen,country_or_territory,ISO3166-1,True,3,complete
+sx,Sint Maarten (Hollanda bölümü),country_or_territory,ISO3166-1,True,3,complete
+tc,Turks ve Caicos Adaları,country_or_territory,ISO3166-1,True,3,complete
+tf,Fransız Güney Toprakları,country_or_territory,ISO3166-1,True,3,complete
+tk,Tokelau,country_or_territory,ISO3166-1,True,3,complete
+um,ABD Küçük Dış Adaları,country_or_territory,ISO3166-1,True,3,complete
+vg,Britanya Virjin Adaları,country_or_territory,ISO3166-1,True,3,complete
+vi,ABD Virjin Adaları,country_or_territory,ISO3166-1,True,3,complete
+wf,Wallis ve Futuna,country_or_territory,ISO3166-1,True,3,complete
+yt,Mayotte,country_or_territory,ISO3166-1,True,3,complete
+gb-eng,İngiltere,constituent_country,ISO3166-2,True,3,complete
+gb-sct,İskoçya,constituent_country,ISO3166-2,True,3,complete
+gb-wls,Galler,constituent_country,ISO3166-2,True,3,complete
+gb-nir,Kuzey İrlanda,constituent_country,ISO3166-2,True,3,complete

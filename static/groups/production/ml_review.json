@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Mali montage with Bandiagara/Tellem cliff dwellings, Niger pinasse boats, Gouina-like falls, baobab and natural elephant/camel. Dwellings, riverscape and cliff scale are illustrative approximations; no lettering/flags observed. Civilian flat-roof village and granaries beneath cliffs.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Mali montage with Bandiagara/Tellem cliff dwellings, Niger pinasse boats, Gouina-like falls, baobab and natural elephant/camel. Dwellings, riverscape and cliff scale are illustrative approximations; no lettering/flags observed. Rejected initial cover with mosque-like central structure; regenerated with only low civilian village and round straw-roof granaries.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Bandiagara-like cliff dwellings with natural elephant and baobab. Dwelling tower shapes are vernacular illustrative approximations; no lettering/flags or religious buildings observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
