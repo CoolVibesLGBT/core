@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Philippines montage with rice terraces, Spanish-era Christian church/fort, Vigan-like civilian houses, Mayon-like volcano, Chocolate Hills and Palawan-like islands. Natural Philippine eagle/tarsier; coconut vegetation. Landmark facades and terrain relationships are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Philippines montage with rice terraces, Spanish-era Christian church/fort, Vigan-like civilian houses, Mayon-like volcano, Chocolate Hills and Palawan-like islands. Natural Philippine eagle/tarsier; coconut vegetation. Landmark facades and terrain relationships are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Ifugao-like rice terraces and wooden houses with natural Philippine eagle and tropical vegetation. Terrace shapes, eagle plumage and dramatic mountain forms are artistic approximations; no lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
