@@ -1,0 +1,10 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-babd98e8-edf6-4fea-b3de-1a018afa3cc2.png",
+  "prompt": "Use case: precise-object-edit. Preserve this detailed painterly French Southern Territories landscape and foreground penguin. Reposition and reduce ONLY the elephant seal family on the right so EVERY seal's full body and rear flippers fit comfortably inside the image. Leave 10 percent space between the rightmost animal and right edge. The current largest seal is cut off; fix this by moving all seals left and making them smaller. Keep penguin, landscape, station, boat, lighting, colors, painterly style and original 3:2 format unchanged. No text.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/Desktop/ulkeler/production/tf-edit-target.png"
+  ],
+  "saved_asset": "images/tf_hero.avif",
+  "source_png_available": true
+}

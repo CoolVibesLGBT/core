@@ -1,0 +1,35 @@
+{
+  "removed_allocated_bytes": 777781248,
+  "items": [
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/metro-cache",
+      "status": "removed",
+      "allocated_bytes": 391987200
+    },
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/DockerDesktopUpdates",
+      "status": "removed",
+      "allocated_bytes": 310697984
+    },
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/node-compile-cache",
+      "status": "removed",
+      "allocated_bytes": 32280576
+    },
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/v8-compile-cache-501",
+      "status": "removed",
+      "allocated_bytes": 2404352
+    },
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/go-build182209324",
+      "status": "removed",
+      "allocated_bytes": 40411136
+    },
+    {
+      "path": "/private/var/folders/01/j2wh82xd3pg350jqx75l1_8w0000gn/T/go-build3885717103",
+      "status": "removed",
+      "allocated_bytes": 0
+    }
+  ]
+}
