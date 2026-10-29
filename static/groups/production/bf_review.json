@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Kassena painted flat-roof houses, Loropeni stone walls, domed rock and Sindou pinnacles, waterfalls. Elephant and antelope plausible anatomy. No mosque/minaret/religious symbols observed. Cel shaded outlined geographic montage; approximate motifs.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Painted Kassena homes and secular stone ruins; rounded and spire rock groups, waterfall, elephant and antelope. No restricted religious motifs observed. Thick contour cel-shaded volume and supplied turquoise/pink/yellow hues.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Secular Loropeni stone ruin walls and elephant, baobab and savanna. Natural elephant anatomy with four legs and single trunk. No restricted architectural silhouettes observed. Bold outlines and volume.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
