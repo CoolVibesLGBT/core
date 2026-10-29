@@ -1,0 +1,137 @@
+[
+  {
+    "code": "xs",
+    "kind": "hero",
+    "issue": "Beira antelope must have huge rounded ears, compact small body and short nearly straight horns, not a long-horned gazelle. Preserve regional landscapes and other subjects.",
+    "status": "resolved"
+  },
+  {
+    "code": "xs",
+    "kind": "cover",
+    "issue": "Beira antelope must have huge rounded ears, compact small body and short nearly straight horns, not a long-horned gazelle. Preserve regional landscapes and other subjects.",
+    "status": "resolved"
+  },
+  {
+    "code": "xs",
+    "kind": "avatar",
+    "issue": "Beira antelope must have huge rounded ears, compact small body and short nearly straight horns, not a long-horned gazelle. Preserve regional landscapes and other subjects.",
+    "status": "resolved"
+  },
+  {
+    "code": "bv",
+    "kind": "hero",
+    "issue": "Replace orange-necked king/emperor-like penguins with native macaroni penguins: yellow feather crests, black heads, red bill and no orange neck patches.",
+    "status": "resolved",
+    "resolution": "Full-resolution inspection confirms yellow crests and red beaks of macaroni penguins; no species edit needed."
+  },
+  {
+    "code": "bv",
+    "kind": "cover",
+    "issue": "Full-resolution inspection confirms macaroni penguins. Reframe ONLY rightmost penguin, whose body is cropped at right edge. Keep every penguin fully within frame with generous margin.",
+    "status": "resolved"
+  },
+  {
+    "code": "eh",
+    "kind": "hero",
+    "issue": "Remove tall minaret-like tower and any mosque structures from distant civilian town. Replace with low flat-roofed secular houses only; keep dune, coast, camel and flamingos.",
+    "status": "resolved"
+  },
+  {
+    "code": "eh",
+    "kind": "cover",
+    "issue": "Remove tall minaret-like tower and any mosque structures from distant civilian town. Replace with low flat-roofed secular houses only; keep dune, coast, camel and flamingos.",
+    "status": "resolved"
+  },
+  {
+    "code": "gp",
+    "kind": "hero",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-0e4f6916-d3ce-4a83-834c-34ce69c63cda.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "gp",
+    "kind": "cover",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-428af144-0586-4806-9193-44ea71b65f35.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "gp",
+    "kind": "avatar",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-454f5045-d289-4077-9834-5679977e725b.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "gu",
+    "kind": "hero",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-402f662c-5bef-42f7-82e4-c99659ed19cb.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "gu",
+    "kind": "cover",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-50b3a5f0-3ddd-455b-aa19-e7c483d38b20.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "gu",
+    "kind": "avatar",
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-dca73a73-2504-42ba-93f6-c22a770c13b5.png",
+    "issue": "Correct endemic bird plumage: Guadeloupe woodpecker has black head and blue-black wings with red throat/belly; Guam sihek has cinnamon head and rusty underparts, no European kingfisher head pattern.",
+    "status": "resolved"
+  },
+  {
+    "code": "hm",
+    "kind": "hero",
+    "issue": "Inspect full-resolution right foreground animal; reframe if rear body/legs cut at right border. Keep entire elephant seal (HM) or coconut crab (IO) safely inside margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "io",
+    "kind": "hero",
+    "issue": "Inspect full-resolution right foreground animal; reframe if rear body/legs cut at right border. Keep entire elephant seal (HM) or coconut crab (IO) safely inside margins.",
+    "status": "resolved"
+  },
+  {
+    "code": "ky",
+    "kind": "hero",
+    "issue": "Reframe right foreground animal to keep complete tail/body inside margin",
+    "status": "resolved"
+  },
+  {
+    "code": "mf",
+    "kind": "hero",
+    "issue": "Reframe right foreground animal to keep complete tail/body inside margin",
+    "status": "resolved",
+    "resolution": "Full-resolution inspection confirms complete body and tail within image; no edit necessary."
+  },
+  {
+    "code": "pm",
+    "kind": "hero",
+    "issue": "Reframe right foreground animal to keep complete tail/body inside margin",
+    "status": "resolved",
+    "resolution": "Full-resolution inspection confirms complete body and tail within image; no edit necessary."
+  },
+  {
+    "code": "tc",
+    "kind": "hero",
+    "issue": "Iguana tail cut by right border",
+    "status": "resolved"
+  },
+  {
+    "code": "tf",
+    "kind": "hero",
+    "issue": "Background elephant seal cut by right image border",
+    "status": "resolved"
+  },
+  {
+    "code": "vg",
+    "kind": "hero",
+    "issue": "Reframe iguana tail at right border",
+    "status": "resolved"
+  }
+]
