@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Nauru montage with Buada Lagoon, phosphate pinnacles, low plateau and coast. Frigatebird tail reaches lower-right edge; landscape stylized. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Nauru panorama with low plateau, lagoon, phosphate pinnacles, cave and coast. Natural birds; frigatebird tail at lower edge. Landscape exaggerated stylistically, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Buada Lagoon interpretation with full flying frigatebird and pandanus. Lagoon rock edges exaggerated illustration. Circular crop trims wing tip; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
