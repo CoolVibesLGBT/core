@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Saint Kitts and Nevis montage: hill fortress, sugar works, railway, heritage house, waterfront and volcanic landscape. Monkey and sea turtle, flamboyant and sugar cane. No lettering or excluded architecture. Turtle rear cropped right. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Saint Kitts and Nevis fortress, sugar mill, railway, heritage house and waterfront, volcanic island backdrop. Monkey and turtle in separate habitats; cane and flamboyant frame. No lettering or excluded architecture. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Brimstone Hill fortress interpretation with natural vervet, cane and flamboyant. No lettering or excluded architecture. Monkey inside frame; fortress outer right wall meets margin. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
