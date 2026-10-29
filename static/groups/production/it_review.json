@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Italian montage with Colosseum, Florence cathedral, Rialto bridge, Pompeii, Greek temple and Dolomites, natural wolf/ibex and olive/cypress. Monument details and geography are artistic approximations, no lettering/flags observed. Wolf tail reaches right edge.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Italian montage with Colosseum, Florence cathedral, Rialto bridge, Pompeii, Greek temple and Dolomites, natural wolf/ibex and olive/cypress. Monument details and geography are artistic approximations, no lettering/flags observed. Pisa and trulli also recognizable.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Colosseum-like Roman amphitheatre with natural wolf, olive and cypress. Amphitheatre arch counts and distant terrain are stylized approximations. Wolf fully inside square, exterior olive branches intentionally crop. No lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
