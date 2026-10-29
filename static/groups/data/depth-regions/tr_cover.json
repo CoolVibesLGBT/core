@@ -1,0 +1,120 @@
+{
+  "output": "depth/tr_cover.png",
+  "width": 900,
+  "height": 300,
+  "stops": [
+    [
+      0,
+      20
+    ],
+    [
+      0.25,
+      40
+    ],
+    [
+      0.5,
+      105
+    ],
+    [
+      1,
+      220
+    ]
+  ],
+  "regions": [
+    {
+      "ellipse": [
+        0.12,
+        0.46,
+        0.11,
+        0.4
+      ],
+      "value": 238,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.845,
+        0.74,
+        0.07,
+        0.2
+      ],
+      "value": 245,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.595,
+        0.8,
+        0.05,
+        0.11
+      ],
+      "value": 232,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.34,
+        0.84,
+        0.07,
+        0.07
+      ],
+      "value": 240,
+      "blur": 0.008
+    },
+    {
+      "ellipse": [
+        0.36,
+        0.46,
+        0.07,
+        0.19
+      ],
+      "value": 150,
+      "blur": 0.008
+    },
+    {
+      "polygon": [
+        [
+          0,
+          0.88
+        ],
+        [
+          0.16,
+          0.86
+        ],
+        [
+          0.3,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    },
+    {
+      "polygon": [
+        [
+          0.92,
+          0.94
+        ],
+        [
+          1,
+          0.83
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0.91,
+          1
+        ]
+      ],
+      "value": 253,
+      "blur": 0.012
+    }
+  ],
+  "method": "hand-authored approximate data; not measured depth; soft ellipse masks simplify subject boundaries"
+}
