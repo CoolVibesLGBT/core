@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Selected second generation after rejecting Asian-looking roofs. Ghana forts, earthen straight-thatched Ashanti houses, cathedral, canopy bridge and stilt village visible. Natural elephant and colobus. No lettering or prohibited structures. Approximate montage geometry and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Ghana coast forts, stilt village, canopy bridge, straight-thatched earthen Ashanti houses and cathedral visible. Natural colobus and elephant, cocoa and baobab. No visible lettering or prohibited structures. Approximate geographic montage; hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Ghana coastal castle central with cocoa, baobab and elephant distant land. No visible lettering or excluded structures. Castle simplified and elephant has adequate body margin; hand-authored approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
