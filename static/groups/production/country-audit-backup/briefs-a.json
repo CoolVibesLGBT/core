@@ -1,0 +1,5136 @@
+[
+  {
+    "code": "ad",
+    "name": "Andorra",
+    "landmarks": [
+      {
+        "name": "Casa de la Vall",
+        "region": "Andorra la Vella"
+      },
+      {
+        "name": "Sant Joan de Caselles church",
+        "region": "Canillo"
+      },
+      {
+        "name": "Sant Climent church",
+        "region": "Pal"
+      },
+      {
+        "name": "Madriu-Perafita-Claror valley",
+        "region": "Escaldes-Engordany"
+      },
+      {
+        "name": "Ordino stone village",
+        "region": "Ordino"
+      }
+    ],
+    "animals": [
+      "Pyrenean chamois",
+      "golden eagle"
+    ],
+    "plants": [
+      "mountain pine",
+      "alpine flowers"
+    ],
+    "foodOrCraft": [
+      "dry-stone masonry"
+    ],
+    "avatarFocus": "Casa de la Vall",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ad/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ae",
+    "name": "United Arab Emirates",
+    "landmarks": [
+      {
+        "name": "Al Jahili Fort",
+        "region": "Al Ain"
+      },
+      {
+        "name": "Hili archaeological tombs",
+        "region": "Al Ain"
+      },
+      {
+        "name": "Jebel Hafeet tombs",
+        "region": "Al Ain"
+      },
+      {
+        "name": "Burj Khalifa",
+        "region": "Dubai"
+      },
+      {
+        "name": "Fujairah Fort",
+        "region": "Fujairah"
+      },
+      {
+        "name": "Jebel Jais",
+        "region": "Ras Al Khaimah"
+      }
+    ],
+    "animals": [
+      "Arabian oryx in desert",
+      "dugong off Abu Dhabi",
+      "dromedary camel"
+    ],
+    "plants": [
+      "date palm",
+      "ghaf tree"
+    ],
+    "foodOrCraft": [
+      "pearl-diving dhow"
+    ],
+    "avatarFocus": "Al Jahili Fort",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ae/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "af",
+    "name": "Afghanistan",
+    "landmarks": [
+      {
+        "name": "Bamiyan empty Buddha niches",
+        "region": "Bamiyan"
+      },
+      {
+        "name": "Band-e Amir lakes",
+        "region": "Bamiyan"
+      },
+      {
+        "name": "Ai Khanoum archaeological ruins",
+        "region": "Takhar"
+      },
+      {
+        "name": "Wakhan valley",
+        "region": "Badakhshan"
+      },
+      {
+        "name": "Bala Hissar fortress walls",
+        "region": "Kabul"
+      },
+      {
+        "name": "Takht-e Rostam stupa",
+        "region": "Samangan"
+      }
+    ],
+    "animals": [
+      "snow leopard in high mountains",
+      "Marco Polo sheep in Wakhan"
+    ],
+    "plants": [
+      "pomegranate",
+      "almond"
+    ],
+    "foodOrCraft": [
+      "lapis lazuli craft"
+    ],
+    "avatarFocus": "Bamiyan empty Buddha niches",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/af/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://whc.unesco.org/document/106679",
+        "title": "UNESCO adopted Bamiyan statement: empty niches and surviving archaeological ensemble"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Show the present empty Bamiyan niches; do not reconstruct destroyed Buddha statues as surviving monuments. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ag",
+    "name": "Antigua & Barbuda",
+    "landmarks": [
+      {
+        "name": "Nelsons Dockyard",
+        "region": "Antigua"
+      },
+      {
+        "name": "Shirley Heights",
+        "region": "Antigua"
+      },
+      {
+        "name": "Bettys Hope sugar mill",
+        "region": "Antigua"
+      },
+      {
+        "name": "Devils Bridge",
+        "region": "Antigua"
+      },
+      {
+        "name": "Frigate Bird Sanctuary",
+        "region": "Barbuda"
+      }
+    ],
+    "animals": [
+      "magnificent frigatebird",
+      "hawksbill turtle"
+    ],
+    "plants": [
+      "sea grape",
+      "palms"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Nelsons Dockyard",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ag/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "al",
+    "name": "Albania",
+    "landmarks": [
+      {
+        "name": "Butrint ancient theatre",
+        "region": "Vlorë"
+      },
+      {
+        "name": "Apollonia ancient ruins",
+        "region": "Fier"
+      },
+      {
+        "name": "Rozafa Castle",
+        "region": "Shkodër"
+      },
+      {
+        "name": "Gjirokastër castle",
+        "region": "Gjirokastër"
+      },
+      {
+        "name": "Berat castle walls",
+        "region": "Berat"
+      },
+      {
+        "name": "Albanian Alps",
+        "region": "Shkodër"
+      },
+      {
+        "name": "Durrës amphitheatre",
+        "region": "Durrës"
+      }
+    ],
+    "animals": [
+      "Dalmatian pelican at lagoons",
+      "Balkan lynx in mountains"
+    ],
+    "plants": [
+      "olive",
+      "black pine"
+    ],
+    "foodOrCraft": [
+      "filigree silverwork"
+    ],
+    "avatarFocus": "Butrint ancient theatre",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/al/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "am",
+    "name": "Armenia",
+    "landmarks": [
+      {
+        "name": "Garni pagan temple",
+        "region": "Kotayk"
+      },
+      {
+        "name": "Geghard monastery",
+        "region": "Kotayk"
+      },
+      {
+        "name": "Tatev monastery",
+        "region": "Syunik"
+      },
+      {
+        "name": "Khor Virap monastery",
+        "region": "Ararat"
+      },
+      {
+        "name": "Etchmiadzin cathedral",
+        "region": "Armavir"
+      },
+      {
+        "name": "Lake Sevan",
+        "region": "Gegharkunik"
+      },
+      {
+        "name": "Zorats Karer standing stones",
+        "region": "Syunik"
+      }
+    ],
+    "animals": [
+      "Armenian mouflon",
+      "bezoar goat"
+    ],
+    "plants": [
+      "apricot",
+      "pomegranate"
+    ],
+    "foodOrCraft": [
+      "khachkar stone carving"
+    ],
+    "avatarFocus": "Garni pagan temple",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/am/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ao",
+    "name": "Angola",
+    "landmarks": [
+      {
+        "name": "Mbanza Kongo archaeological city",
+        "region": "Zaire"
+      },
+      {
+        "name": "Fortress of São Miguel",
+        "region": "Luanda"
+      },
+      {
+        "name": "Kalandula Falls",
+        "region": "Malanje"
+      },
+      {
+        "name": "Tundavala escarpment",
+        "region": "Huíla"
+      },
+      {
+        "name": "Pedras Negras",
+        "region": "Malanje"
+      },
+      {
+        "name": "Iona desert",
+        "region": "Namibe"
+      }
+    ],
+    "animals": [
+      "giant sable antelope",
+      "African penguin on southern coast"
+    ],
+    "plants": [
+      "baobab",
+      "welwitschia"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Mbanza Kongo archaeological city",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ao/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ar",
+    "name": "Argentina",
+    "landmarks": [
+      {
+        "name": "Iguazú Falls",
+        "region": "Misiones"
+      },
+      {
+        "name": "Perito Moreno glacier",
+        "region": "Santa Cruz"
+      },
+      {
+        "name": "Cueva de las Manos",
+        "region": "Santa Cruz"
+      },
+      {
+        "name": "Quebrada de Humahuaca",
+        "region": "Jujuy"
+      },
+      {
+        "name": "Casa Rosada",
+        "region": "Buenos Aires"
+      },
+      {
+        "name": "Aconcagua",
+        "region": "Mendoza"
+      },
+      {
+        "name": "Ischigualasto formations",
+        "region": "San Juan"
+      }
+    ],
+    "animals": [
+      "guanaco in Patagonia",
+      "Magellanic penguin on coast",
+      "jaguar in northeast forest"
+    ],
+    "plants": [
+      "ceibo",
+      "yerba mate"
+    ],
+    "foodOrCraft": [
+      "mate gourd"
+    ],
+    "avatarFocus": "Iguazú Falls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ar/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "at",
+    "name": "Austria",
+    "landmarks": [
+      {
+        "name": "Schönbrunn Palace",
+        "region": "Vienna"
+      },
+      {
+        "name": "Hohensalzburg Fortress",
+        "region": "Salzburg"
+      },
+      {
+        "name": "Hallstatt lakeside village",
+        "region": "Upper Austria"
+      },
+      {
+        "name": "Melk Abbey",
+        "region": "Lower Austria"
+      },
+      {
+        "name": "Innsbruck Golden Roof",
+        "region": "Tyrol"
+      },
+      {
+        "name": "Graz clock tower",
+        "region": "Styria"
+      },
+      {
+        "name": "Grossglockner",
+        "region": "Carinthia and Tyrol"
+      }
+    ],
+    "animals": [
+      "alpine ibex",
+      "marmot"
+    ],
+    "plants": [
+      "edelweiss",
+      "spruce"
+    ],
+    "foodOrCraft": [
+      "porcelain"
+    ],
+    "avatarFocus": "Schönbrunn Palace",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/at/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "au",
+    "name": "Australia",
+    "landmarks": [
+      {
+        "name": "Sydney Opera House",
+        "region": "New South Wales"
+      },
+      {
+        "name": "Uluru",
+        "region": "Northern Territory"
+      },
+      {
+        "name": "Great Barrier Reef",
+        "region": "Queensland"
+      },
+      {
+        "name": "Twelve Apostles",
+        "region": "Victoria"
+      },
+      {
+        "name": "Bungle Bungle",
+        "region": "Western Australia"
+      },
+      {
+        "name": "Cradle Mountain",
+        "region": "Tasmania"
+      },
+      {
+        "name": "Kakadu rock shelters",
+        "region": "Northern Territory"
+      }
+    ],
+    "animals": [
+      "kangaroo",
+      "koala",
+      "wombat"
+    ],
+    "plants": [
+      "eucalyptus",
+      "waratah"
+    ],
+    "foodOrCraft": [
+      "Aboriginal cultural patterns require community permission",
+      "boomerang form"
+    ],
+    "avatarFocus": "Sydney Opera House",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/au/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "az",
+    "name": "Azerbaijan",
+    "landmarks": [
+      {
+        "name": "Gobustan petroglyphs",
+        "region": "Absheron"
+      },
+      {
+        "name": "Maiden Tower",
+        "region": "Baku"
+      },
+      {
+        "name": "Sheki Khan Palace",
+        "region": "Sheki"
+      },
+      {
+        "name": "Ateshgah fire temple",
+        "region": "Surakhany"
+      },
+      {
+        "name": "Mud volcanoes",
+        "region": "Gobustan"
+      },
+      {
+        "name": "Ganja bottle house",
+        "region": "Ganja"
+      },
+      {
+        "name": "Greater Caucasus peaks",
+        "region": "north"
+      }
+    ],
+    "animals": [
+      "Caucasian tur",
+      "goitered gazelle"
+    ],
+    "plants": [
+      "pomegranate",
+      "plane tree"
+    ],
+    "foodOrCraft": [
+      "carpet weaving"
+    ],
+    "avatarFocus": "Gobustan petroglyphs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/az/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ba",
+    "name": "Bosnia & Herzegovina",
+    "landmarks": [
+      {
+        "name": "Mostar Old Bridge",
+        "region": "Herzegovina"
+      },
+      {
+        "name": "Mehmed Paša Sokolović bridge",
+        "region": "Višegrad"
+      },
+      {
+        "name": "Jajce waterfall and fortress",
+        "region": "Jajce"
+      },
+      {
+        "name": "Kravica waterfalls",
+        "region": "Ljubuški"
+      },
+      {
+        "name": "Stećci tombstones",
+        "region": "Radimlja"
+      },
+      {
+        "name": "Sutjeska landscape",
+        "region": "Foča"
+      },
+      {
+        "name": "Tvrdos monastery",
+        "region": "Trebinje"
+      }
+    ],
+    "animals": [
+      "brown bear",
+      "chamois"
+    ],
+    "plants": [
+      "Bosnian pine",
+      "plum"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Mostar Old Bridge",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ba/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bb",
+    "name": "Barbados",
+    "landmarks": [
+      {
+        "name": "St Nicholas Abbey plantation house",
+        "region": "Saint Peter"
+      },
+      {
+        "name": "Harrisons Cave",
+        "region": "Saint Thomas"
+      },
+      {
+        "name": "Morgan Lewis windmill",
+        "region": "Saint Andrew"
+      },
+      {
+        "name": "Parliament buildings",
+        "region": "Bridgetown"
+      },
+      {
+        "name": "Bathsheba rock formations",
+        "region": "Saint Joseph"
+      },
+      {
+        "name": "Animal Flower Cave",
+        "region": "Saint Lucy"
+      }
+    ],
+    "animals": [
+      "green monkey introduced population",
+      "hawksbill turtle"
+    ],
+    "plants": [
+      "bearded fig",
+      "sugar cane"
+    ],
+    "foodOrCraft": [
+      "pottery"
+    ],
+    "avatarFocus": "St Nicholas Abbey plantation house",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bb/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bd",
+    "name": "Bangladesh",
+    "landmarks": [
+      {
+        "name": "Somapura Buddhist vihara",
+        "region": "Naogaon"
+      },
+      {
+        "name": "Mahasthangarh ruins",
+        "region": "Bogura"
+      },
+      {
+        "name": "Kantajew Hindu temple",
+        "region": "Dinajpur"
+      },
+      {
+        "name": "National Parliament building",
+        "region": "Dhaka"
+      },
+      {
+        "name": "Ahsan Manzil palace",
+        "region": "Dhaka"
+      },
+      {
+        "name": "Sundarbans mangroves",
+        "region": "Khulna"
+      }
+    ],
+    "animals": [
+      "Bengal tiger in Sundarbans",
+      "Ganges river dolphin"
+    ],
+    "plants": [
+      "water lily",
+      "mangrove"
+    ],
+    "foodOrCraft": [
+      "jamdani textile"
+    ],
+    "avatarFocus": "Somapura Buddhist vihara",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bd/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "be",
+    "name": "Belgium",
+    "landmarks": [
+      {
+        "name": "Grand Place guildhalls",
+        "region": "Brussels"
+      },
+      {
+        "name": "Bruges belfry",
+        "region": "West Flanders"
+      },
+      {
+        "name": "Gravensteen castle",
+        "region": "Ghent"
+      },
+      {
+        "name": "Antwerp cathedral",
+        "region": "Antwerp"
+      },
+      {
+        "name": "Citadel of Dinant",
+        "region": "Namur"
+      },
+      {
+        "name": "Bois du Cazier industrial heritage",
+        "region": "Hainaut"
+      },
+      {
+        "name": "Hallerbos bluebells",
+        "region": "Flemish Brabant"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "European roe deer"
+    ],
+    "plants": [
+      "bluebell",
+      "beech"
+    ],
+    "foodOrCraft": [
+      "lace",
+      "chocolate"
+    ],
+    "avatarFocus": "Grand Place guildhalls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/be/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bf",
+    "name": "Burkina Faso",
+    "landmarks": [
+      {
+        "name": "Loropéni stone ruins",
+        "region": "southwest"
+      },
+      {
+        "name": "Tiébélé painted earthen houses",
+        "region": "Nahouri"
+      },
+      {
+        "name": "Dômes de Fabédougou",
+        "region": "Comoé"
+      },
+      {
+        "name": "Sindou Peaks",
+        "region": "Léraba"
+      },
+      {
+        "name": "Karfiguéla waterfalls",
+        "region": "Comoé"
+      },
+      {
+        "name": "Arly savanna",
+        "region": "Tapoa"
+      }
+    ],
+    "animals": [
+      "African elephant in protected savanna",
+      "roan antelope"
+    ],
+    "plants": [
+      "shea",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "painted Kassena architecture"
+    ],
+    "avatarFocus": "Loropéni stone ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bf/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://whc.unesco.org/en/list/1225/",
+        "title": "UNESCO: Ruins of Loropéni"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bg",
+    "name": "Bulgaria",
+    "landmarks": [
+      {
+        "name": "Rila Monastery",
+        "region": "Kyustendil"
+      },
+      {
+        "name": "Plovdiv Roman theatre",
+        "region": "Plovdiv"
+      },
+      {
+        "name": "Nesebar ancient churches",
+        "region": "Burgas"
+      },
+      {
+        "name": "Madara Rider rock relief",
+        "region": "Shumen"
+      },
+      {
+        "name": "Thracian tomb",
+        "region": "Kazanlak"
+      },
+      {
+        "name": "Belogradchik rocks and fortress",
+        "region": "Vidin"
+      },
+      {
+        "name": "Pirin mountains",
+        "region": "Blagoevgrad"
+      }
+    ],
+    "animals": [
+      "brown bear",
+      "Dalmatian pelican"
+    ],
+    "plants": [
+      "rose",
+      "black pine"
+    ],
+    "foodOrCraft": [
+      "rose oil craft"
+    ],
+    "avatarFocus": "Rila Monastery",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bg/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bh",
+    "name": "Bahrain",
+    "landmarks": [
+      {
+        "name": "Qalat al Bahrain archaeological fort",
+        "region": "Northern Governorate"
+      },
+      {
+        "name": "Bahrain National Museum civic exterior",
+        "region": "Manama"
+      },
+      {
+        "name": "Dilmun burial mounds",
+        "region": "western island"
+      },
+      {
+        "name": "Bu Maher Fort",
+        "region": "Muharraq"
+      },
+      {
+        "name": "Arad Fort",
+        "region": "Muharraq"
+      },
+      {
+        "name": "Tree of Life",
+        "region": "Southern Governorate"
+      },
+      {
+        "name": "pearling merchant houses",
+        "region": "Muharraq"
+      }
+    ],
+    "animals": [
+      "dugong in coastal waters",
+      "flamingo in wetlands"
+    ],
+    "plants": [
+      "date palm",
+      "mesquite"
+    ],
+    "foodOrCraft": [
+      "pearling dhow"
+    ],
+    "avatarFocus": "Qalat al Bahrain archaeological fort",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bh/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bi",
+    "name": "Burundi",
+    "landmarks": [
+      {
+        "name": "Gishora royal drum sanctuary",
+        "region": "Gitega"
+      },
+      {
+        "name": "Karera waterfalls",
+        "region": "Rutana"
+      },
+      {
+        "name": "Lake Tanganyika shore",
+        "region": "Bujumbura"
+      },
+      {
+        "name": "Kibira forest",
+        "region": "northwest"
+      },
+      {
+        "name": "Rusizi delta",
+        "region": "Bujumbura"
+      },
+      {
+        "name": "Gasumo spring",
+        "region": "Bururi"
+      }
+    ],
+    "animals": [
+      "hippopotamus in Rusizi",
+      "chimpanzee in Kibira"
+    ],
+    "plants": [
+      "papyrus",
+      "banana"
+    ],
+    "foodOrCraft": [
+      "royal drums"
+    ],
+    "avatarFocus": "Gishora royal drum sanctuary",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bi/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bi/tentative/",
+        "title": "UNESCO Burundi tentative sites inventory"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bj",
+    "name": "Benin",
+    "landmarks": [
+      {
+        "name": "Royal Palaces of Abomey",
+        "region": "Zou"
+      },
+      {
+        "name": "Ganvié stilt village",
+        "region": "Atlantique"
+      },
+      {
+        "name": "Door of No Return memorial",
+        "region": "Ouidah"
+      },
+      {
+        "name": "Tata Somba earthen houses",
+        "region": "Atakora"
+      },
+      {
+        "name": "Pendjari savanna",
+        "region": "Atakora"
+      },
+      {
+        "name": "Porto Novo colonial civic houses",
+        "region": "Ouémé"
+      }
+    ],
+    "animals": [
+      "elephant in Pendjari",
+      "roan antelope"
+    ],
+    "plants": [
+      "oil palm",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "appliqué textiles"
+    ],
+    "avatarFocus": "Royal Palaces of Abomey",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bj/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bn",
+    "name": "Brunei",
+    "landmarks": [
+      {
+        "name": "Kampong Ayer stilt houses secular portions",
+        "region": "Brunei-Muara"
+      },
+      {
+        "name": "Ulu Temburong forest canopy",
+        "region": "Temburong"
+      },
+      {
+        "name": "Tasek Merimbun lake",
+        "region": "Tutong"
+      },
+      {
+        "name": "Bubungan Dua Belas historic house",
+        "region": "Brunei-Muara"
+      },
+      {
+        "name": "Billionth Barrel monument",
+        "region": "Belait"
+      }
+    ],
+    "animals": [
+      "proboscis monkey in mangroves",
+      "hornbill in rainforest"
+    ],
+    "plants": [
+      "mangrove",
+      "dipterocarp"
+    ],
+    "foodOrCraft": [
+      "woven songket"
+    ],
+    "avatarFocus": "Kampong Ayer stilt houses secular portions",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bn/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://www.bruneitourism.com/places/tasek-merimbun-heritage-park/",
+        "title": "Brunei Tourism: Tasek Merimbun, Tutong"
+      },
+      {
+        "url": "https://www.history-centre.gov.bn/SiteAssets/Info%20Sejarah/INFO%20SEJARAH/TEMPAT-TEMPAT%20BERSEJARAH.pdf",
+        "title": "Brunei History Centre: Bubungan Dua Belas historic house"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bo",
+    "name": "Bolivia",
+    "landmarks": [
+      {
+        "name": "Tiwanaku archaeological site",
+        "region": "La Paz"
+      },
+      {
+        "name": "Salar de Uyuni",
+        "region": "Potosí"
+      },
+      {
+        "name": "Potosí mint",
+        "region": "Potosí"
+      },
+      {
+        "name": "Sucre colonial civic architecture",
+        "region": "Chuquisaca"
+      },
+      {
+        "name": "Jesuit Mission church",
+        "region": "Chiquitos"
+      },
+      {
+        "name": "Lake Titicaca Island of Sun ruins",
+        "region": "La Paz"
+      },
+      {
+        "name": "Madidi rainforest",
+        "region": "La Paz"
+      }
+    ],
+    "animals": [
+      "llama in Andes",
+      "Andean flamingo on salt lakes",
+      "jaguar in lowland forest"
+    ],
+    "plants": [
+      "quinoa",
+      "kantuta"
+    ],
+    "foodOrCraft": [
+      "woven aguayo"
+    ],
+    "avatarFocus": "Tiwanaku archaeological site",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bo/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "br",
+    "name": "Brazil",
+    "landmarks": [
+      {
+        "name": "Christ the Redeemer",
+        "region": "Rio de Janeiro"
+      },
+      {
+        "name": "Iguaçu Falls",
+        "region": "Paraná"
+      },
+      {
+        "name": "National Congress",
+        "region": "Brasília"
+      },
+      {
+        "name": "Ouro Preto churches",
+        "region": "Minas Gerais"
+      },
+      {
+        "name": "Pelourinho civic houses",
+        "region": "Bahia"
+      },
+      {
+        "name": "Amazon river forest",
+        "region": "Amazonas"
+      },
+      {
+        "name": "Lençóis Maranhenses dunes",
+        "region": "Maranhão"
+      },
+      {
+        "name": "Serra da Capivara rock art",
+        "region": "Piauí"
+      }
+    ],
+    "animals": [
+      "jaguar in Pantanal",
+      "toucan in forest",
+      "golden lion tamarin in Atlantic forest"
+    ],
+    "plants": [
+      "ipê",
+      "giant water lily"
+    ],
+    "foodOrCraft": [
+      "ceramic marajoara motifs"
+    ],
+    "avatarFocus": "Christ the Redeemer",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/br/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bs",
+    "name": "Bahamas",
+    "landmarks": [
+      {
+        "name": "Queens Staircase",
+        "region": "New Providence"
+      },
+      {
+        "name": "Fort Charlotte",
+        "region": "New Providence"
+      },
+      {
+        "name": "Elbow Reef lighthouse",
+        "region": "Abaco"
+      },
+      {
+        "name": "Deans Blue Hole",
+        "region": "Long Island"
+      },
+      {
+        "name": "Lucayan cave landscape",
+        "region": "Grand Bahama"
+      },
+      {
+        "name": "Exuma cays",
+        "region": "Exuma"
+      }
+    ],
+    "animals": [
+      "flamingo on Inagua",
+      "Bahamian rock iguana"
+    ],
+    "plants": [
+      "lignum vitae",
+      "palms"
+    ],
+    "foodOrCraft": [
+      "straw weaving"
+    ],
+    "avatarFocus": "Queens Staircase",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bs/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bt",
+    "name": "Bhutan",
+    "landmarks": [
+      {
+        "name": "Paro Taktsang monastery",
+        "region": "Paro"
+      },
+      {
+        "name": "Punakha dzong",
+        "region": "Punakha"
+      },
+      {
+        "name": "Trongsa dzong",
+        "region": "Trongsa"
+      },
+      {
+        "name": "Rinpung dzong",
+        "region": "Paro"
+      },
+      {
+        "name": "Bumthang temples",
+        "region": "Bumthang"
+      },
+      {
+        "name": "Phobjikha valley",
+        "region": "Wangdue Phodrang"
+      }
+    ],
+    "animals": [
+      "takin in mountain forest",
+      "black-necked crane in Phobjikha"
+    ],
+    "plants": [
+      "blue poppy",
+      "rhododendron"
+    ],
+    "foodOrCraft": [
+      "woven kira textile"
+    ],
+    "avatarFocus": "Paro Taktsang monastery",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bt/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bw",
+    "name": "Botswana",
+    "landmarks": [
+      {
+        "name": "Tsodilo rock art",
+        "region": "Northwest"
+      },
+      {
+        "name": "Okavango delta",
+        "region": "Northwest"
+      },
+      {
+        "name": "Makgadikgadi salt pans",
+        "region": "Central"
+      },
+      {
+        "name": "Kubu Island baobabs",
+        "region": "Central"
+      },
+      {
+        "name": "Moremi wetlands",
+        "region": "Northwest"
+      },
+      {
+        "name": "Tuli sandstone landscape",
+        "region": "Central"
+      }
+    ],
+    "animals": [
+      "African elephant",
+      "African wild dog",
+      "zebra"
+    ],
+    "plants": [
+      "baobab",
+      "mopane"
+    ],
+    "foodOrCraft": [
+      "woven baskets",
+      "dugout mokoro"
+    ],
+    "avatarFocus": "Tsodilo rock art",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bw/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "by",
+    "name": "Belarus",
+    "landmarks": [
+      {
+        "name": "Mir Castle",
+        "region": "Grodno"
+      },
+      {
+        "name": "Nesvizh palace",
+        "region": "Minsk Region"
+      },
+      {
+        "name": "Brest Fortress",
+        "region": "Brest"
+      },
+      {
+        "name": "Belovezhskaya Pushcha",
+        "region": "Brest and Grodno"
+      },
+      {
+        "name": "Saint Sophia Cathedral",
+        "region": "Polotsk"
+      },
+      {
+        "name": "Braslav lakes",
+        "region": "Vitebsk"
+      }
+    ],
+    "animals": [
+      "European bison",
+      "white stork"
+    ],
+    "plants": [
+      "cornflower",
+      "birch"
+    ],
+    "foodOrCraft": [
+      "straw weaving"
+    ],
+    "avatarFocus": "Mir Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/by/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "bz",
+    "name": "Belize",
+    "landmarks": [
+      {
+        "name": "Caracol Maya ruins",
+        "region": "Cayo"
+      },
+      {
+        "name": "Xunantunich Maya ruins",
+        "region": "Cayo"
+      },
+      {
+        "name": "Lamanai Maya ruins",
+        "region": "Orange Walk"
+      },
+      {
+        "name": "Altun Ha",
+        "region": "Belize District"
+      },
+      {
+        "name": "Great Blue Hole",
+        "region": "Belize offshore"
+      },
+      {
+        "name": "Glover Reef",
+        "region": "Stann Creek offshore"
+      }
+    ],
+    "animals": [
+      "Bairds tapir",
+      "jaguar in forest",
+      "scarlet macaw"
+    ],
+    "plants": [
+      "mahogany",
+      "black orchid"
+    ],
+    "foodOrCraft": [
+      "Maya ceramics"
+    ],
+    "avatarFocus": "Caracol Maya ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/bz/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ca",
+    "name": "Canada",
+    "landmarks": [
+      {
+        "name": "Château Frontenac",
+        "region": "Quebec"
+      },
+      {
+        "name": "CN Tower",
+        "region": "Ontario"
+      },
+      {
+        "name": "LAnse aux Meadows",
+        "region": "Newfoundland"
+      },
+      {
+        "name": "Banff mountain lakes",
+        "region": "Alberta"
+      },
+      {
+        "name": "Haida Gwaii village remains",
+        "region": "British Columbia"
+      },
+      {
+        "name": "Hopewell Rocks",
+        "region": "New Brunswick"
+      },
+      {
+        "name": "Nahanni canyon",
+        "region": "Northwest Territories"
+      },
+      {
+        "name": "Parliament Hill",
+        "region": "Ontario"
+      }
+    ],
+    "animals": [
+      "beaver",
+      "moose",
+      "polar bear in Arctic habitat"
+    ],
+    "plants": [
+      "maple",
+      "cedar"
+    ],
+    "foodOrCraft": [
+      "canoe",
+      "Indigenous motifs require specific cultural attribution"
+    ],
+    "avatarFocus": "Château Frontenac",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ca/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cd",
+    "name": "Congo (Dem. Rep.)",
+    "landmarks": [
+      {
+        "name": "Virunga volcanic landscape",
+        "region": "North Kivu"
+      },
+      {
+        "name": "Kahuzi Biega forest",
+        "region": "South Kivu"
+      },
+      {
+        "name": "Garamba savanna",
+        "region": "Haut Uele"
+      },
+      {
+        "name": "Salonga rainforest",
+        "region": "central basin"
+      },
+      {
+        "name": "Lola ya Bonobo sanctuary",
+        "region": "Kinshasa"
+      },
+      {
+        "name": "Boyoma Falls",
+        "region": "Tshopo"
+      }
+    ],
+    "animals": [
+      "okapi in northeastern forest",
+      "bonobo in central forest",
+      "mountain gorilla in Virunga"
+    ],
+    "plants": [
+      "raffia palm",
+      "moabi"
+    ],
+    "foodOrCraft": [
+      "Kuba raffia textile"
+    ],
+    "avatarFocus": "Virunga volcanic landscape",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cd/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cf",
+    "name": "Central African Rep.",
+    "landmarks": [
+      {
+        "name": "Dzanga Sangha forest clearing",
+        "region": "Sangha Mbaéré"
+      },
+      {
+        "name": "Manovo Gounda St Floris savanna",
+        "region": "Bamingui Bangoran"
+      },
+      {
+        "name": "Boali Falls",
+        "region": "Ombella Mpoko"
+      },
+      {
+        "name": "Notre Dame cathedral",
+        "region": "Bangui"
+      },
+      {
+        "name": "Chinko wilderness",
+        "region": "east"
+      }
+    ],
+    "animals": [
+      "forest elephant in Dzanga Sangha",
+      "western lowland gorilla",
+      "giant eland in northern savanna"
+    ],
+    "plants": [
+      "raffia",
+      "mahogany"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Dzanga Sangha forest clearing",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cf/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cg",
+    "name": "Congo (Rep.)",
+    "landmarks": [
+      {
+        "name": "Odzala Kokoua forest clearings",
+        "region": "Cuvette Ouest"
+      },
+      {
+        "name": "Nouabalé Ndoki rainforest",
+        "region": "Sangha"
+      },
+      {
+        "name": "Diosso Gorge",
+        "region": "Kouilou"
+      },
+      {
+        "name": "Basilica Sainte Anne",
+        "region": "Brazzaville"
+      },
+      {
+        "name": "Loufoulakari Falls",
+        "region": "Pool"
+      },
+      {
+        "name": "Pointe Noire railway station",
+        "region": "Kouilou"
+      }
+    ],
+    "animals": [
+      "western lowland gorilla",
+      "forest elephant"
+    ],
+    "plants": [
+      "raffia",
+      "limba"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Odzala Kokoua forest clearings",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cg/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ch",
+    "name": "Switzerland",
+    "landmarks": [
+      {
+        "name": "Matterhorn",
+        "region": "Valais"
+      },
+      {
+        "name": "Chillon Castle",
+        "region": "Vaud"
+      },
+      {
+        "name": "Chapel Bridge",
+        "region": "Lucerne"
+      },
+      {
+        "name": "Saint Gallen abbey",
+        "region": "Saint Gallen"
+      },
+      {
+        "name": "Bern medieval clock tower",
+        "region": "Bern"
+      },
+      {
+        "name": "Lavaux vineyards",
+        "region": "Vaud"
+      },
+      {
+        "name": "Landwasser viaduct",
+        "region": "Graubünden"
+      }
+    ],
+    "animals": [
+      "alpine ibex",
+      "marmot"
+    ],
+    "plants": [
+      "edelweiss",
+      "Swiss stone pine"
+    ],
+    "foodOrCraft": [
+      "watchmaking",
+      "cheese"
+    ],
+    "avatarFocus": "Matterhorn",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ch/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ci",
+    "name": "Côte d’Ivoire",
+    "landmarks": [
+      {
+        "name": "Grand Bassam colonial civic quarter",
+        "region": "Sud Comoé"
+      },
+      {
+        "name": "Basilica of Our Lady of Peace",
+        "region": "Yamoussoukro"
+      },
+      {
+        "name": "Mount Nimba",
+        "region": "Tonkpi"
+      },
+      {
+        "name": "Taï rainforest",
+        "region": "southwest"
+      },
+      {
+        "name": "Comoé savanna",
+        "region": "northeast"
+      },
+      {
+        "name": "La Dent de Man mountain",
+        "region": "Tonkpi"
+      }
+    ],
+    "animals": [
+      "pygmy hippopotamus in southwestern forests",
+      "chimpanzee in Taï"
+    ],
+    "plants": [
+      "cocoa",
+      "oil palm"
+    ],
+    "foodOrCraft": [
+      "Baoulé woven textile"
+    ],
+    "avatarFocus": "Grand Bassam colonial civic quarter",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ci/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cl",
+    "name": "Chile",
+    "landmarks": [
+      {
+        "name": "Rapa Nui moai",
+        "region": "Easter Island"
+      },
+      {
+        "name": "Torres del Paine",
+        "region": "Magallanes"
+      },
+      {
+        "name": "Valparaíso hillside houses",
+        "region": "Valparaíso"
+      },
+      {
+        "name": "Chiloé wooden churches",
+        "region": "Los Lagos"
+      },
+      {
+        "name": "Humberstone nitrate works",
+        "region": "Tarapacá"
+      },
+      {
+        "name": "Atacama salt valley",
+        "region": "Antofagasta"
+      },
+      {
+        "name": "Marble Caves",
+        "region": "Aysén"
+      }
+    ],
+    "animals": [
+      "Humboldt penguin on coast",
+      "guanaco in Patagonia",
+      "Andean condor"
+    ],
+    "plants": [
+      "araucaria",
+      "copihue"
+    ],
+    "foodOrCraft": [
+      "Chiloé woodcraft"
+    ],
+    "avatarFocus": "Rapa Nui moai",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cl/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cm",
+    "name": "Cameroon",
+    "landmarks": [
+      {
+        "name": "Dja forest reserve",
+        "region": "East and South"
+      },
+      {
+        "name": "Lobé waterfalls",
+        "region": "South"
+      },
+      {
+        "name": "Mount Cameroon",
+        "region": "Southwest"
+      },
+      {
+        "name": "Foumban royal palace",
+        "region": "West"
+      },
+      {
+        "name": "Rhumsiki rock formations",
+        "region": "Far North"
+      },
+      {
+        "name": "Shum Laka rock shelter",
+        "region": "Northwest"
+      },
+      {
+        "name": "Waza savanna",
+        "region": "Far North"
+      }
+    ],
+    "animals": [
+      "drill in southwestern forest",
+      "forest elephant",
+      "giraffe in northern savanna"
+    ],
+    "plants": [
+      "raffia",
+      "iroko"
+    ],
+    "foodOrCraft": [
+      "Bamum bronze craft"
+    ],
+    "avatarFocus": "Dja forest reserve",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cm/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cn",
+    "name": "China",
+    "landmarks": [
+      {
+        "name": "Great Wall",
+        "region": "Beijing and Hebei"
+      },
+      {
+        "name": "Forbidden City",
+        "region": "Beijing"
+      },
+      {
+        "name": "Terracotta Army",
+        "region": "Shaanxi"
+      },
+      {
+        "name": "Mogao Buddhist caves",
+        "region": "Gansu"
+      },
+      {
+        "name": "Leshan Giant Buddha",
+        "region": "Sichuan"
+      },
+      {
+        "name": "Potala Palace",
+        "region": "Tibet"
+      },
+      {
+        "name": "Guilin karst",
+        "region": "Guangxi"
+      },
+      {
+        "name": "Zhangjiajie pillars",
+        "region": "Hunan"
+      },
+      {
+        "name": "Huangshan peaks",
+        "region": "Anhui"
+      }
+    ],
+    "animals": [
+      "giant panda in Sichuan",
+      "red-crowned crane in northeast wetlands",
+      "golden snub-nosed monkey in mountain forest"
+    ],
+    "plants": [
+      "bamboo",
+      "peony"
+    ],
+    "foodOrCraft": [
+      "porcelain",
+      "silk"
+    ],
+    "avatarFocus": "Great Wall",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cn/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "co",
+    "name": "Colombia",
+    "landmarks": [
+      {
+        "name": "Cartagena secular ramparts",
+        "region": "Bolívar"
+      },
+      {
+        "name": "San Agustín stone sculptures",
+        "region": "Huila"
+      },
+      {
+        "name": "Tierradentro tombs",
+        "region": "Cauca"
+      },
+      {
+        "name": "Coffee cultural landscape",
+        "region": "Quindío and Caldas"
+      },
+      {
+        "name": "Las Lajas sanctuary",
+        "region": "Nariño"
+      },
+      {
+        "name": "Ciudad Perdida ruins",
+        "region": "Magdalena"
+      },
+      {
+        "name": "Caño Cristales",
+        "region": "Meta"
+      }
+    ],
+    "animals": [
+      "Andean condor in mountains",
+      "jaguar in forest",
+      "cotton-top tamarin in northwest"
+    ],
+    "plants": [
+      "wax palm",
+      "orchid"
+    ],
+    "foodOrCraft": [
+      "woven mochila"
+    ],
+    "avatarFocus": "Cartagena secular ramparts",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/co/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cr",
+    "name": "Costa Rica",
+    "landmarks": [
+      {
+        "name": "Guayabo archaeological site",
+        "region": "Cartago"
+      },
+      {
+        "name": "Diquís stone spheres",
+        "region": "Puntarenas"
+      },
+      {
+        "name": "Arenal volcano",
+        "region": "Alajuela"
+      },
+      {
+        "name": "Monteverde cloud forest",
+        "region": "Puntarenas"
+      },
+      {
+        "name": "National Theatre",
+        "region": "San José"
+      },
+      {
+        "name": "Tortuguero canals",
+        "region": "Limón"
+      },
+      {
+        "name": "Rincón de la Vieja",
+        "region": "Guanacaste"
+      }
+    ],
+    "animals": [
+      "three-toed sloth",
+      "resplendent quetzal in cloud forest",
+      "green turtle on Caribbean coast"
+    ],
+    "plants": [
+      "guaria morada orchid",
+      "guanacaste tree"
+    ],
+    "foodOrCraft": [
+      "painted oxcart"
+    ],
+    "avatarFocus": "Guayabo archaeological site",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cr/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cu",
+    "name": "Cuba",
+    "landmarks": [
+      {
+        "name": "Morro Castle",
+        "region": "Havana"
+      },
+      {
+        "name": "Trinidad colonial houses",
+        "region": "Sancti Spíritus"
+      },
+      {
+        "name": "Viñales mogotes",
+        "region": "Pinar del Río"
+      },
+      {
+        "name": "San Pedro de la Roca castle",
+        "region": "Santiago"
+      },
+      {
+        "name": "Cienfuegos civic square",
+        "region": "Cienfuegos"
+      },
+      {
+        "name": "Alejandro de Humboldt forest",
+        "region": "Holguín and Guantánamo"
+      }
+    ],
+    "animals": [
+      "Cuban trogon",
+      "bee hummingbird",
+      "Cuban crocodile in Zapata"
+    ],
+    "plants": [
+      "royal palm",
+      "tobacco"
+    ],
+    "foodOrCraft": [
+      "cigar rolling craft"
+    ],
+    "avatarFocus": "Morro Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cu/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cv",
+    "name": "Cape Verde",
+    "landmarks": [
+      {
+        "name": "Cidade Velha pillory and secular ruins",
+        "region": "Santiago"
+      },
+      {
+        "name": "Royal Fort of São Filipe",
+        "region": "Santiago"
+      },
+      {
+        "name": "Pico do Fogo",
+        "region": "Fogo"
+      },
+      {
+        "name": "Mindelo civic waterfront",
+        "region": "São Vicente"
+      },
+      {
+        "name": "Paul valley terraces",
+        "region": "Santo Antão"
+      },
+      {
+        "name": "Sal salt pans",
+        "region": "Sal"
+      }
+    ],
+    "animals": [
+      "loggerhead turtle on beaches",
+      "Cape Verde shearwater"
+    ],
+    "plants": [
+      "dragon tree",
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "woven pano cloth"
+    ],
+    "avatarFocus": "Cidade Velha pillory and secular ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cv/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cy",
+    "name": "Cyprus",
+    "landmarks": [
+      {
+        "name": "Paphos Roman mosaics",
+        "region": "Paphos"
+      },
+      {
+        "name": "Kourion theatre",
+        "region": "Limassol"
+      },
+      {
+        "name": "Choirokoitia Neolithic settlement",
+        "region": "Larnaca"
+      },
+      {
+        "name": "Painted Troodos churches",
+        "region": "Troodos"
+      },
+      {
+        "name": "Kolossi Castle",
+        "region": "Limassol"
+      },
+      {
+        "name": "Kyrenia castle",
+        "region": "Kyrenia"
+      },
+      {
+        "name": "Salamis ancient ruins",
+        "region": "Famagusta"
+      }
+    ],
+    "animals": [
+      "Cyprus mouflon in mountains",
+      "loggerhead turtle on coast"
+    ],
+    "plants": [
+      "Cyprus cedar",
+      "olive"
+    ],
+    "foodOrCraft": [
+      "Lefkara lace"
+    ],
+    "avatarFocus": "Paphos Roman mosaics",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cy/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Island-wide geographic selection does not imply a position on political status. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "cz",
+    "name": "Czech Republic",
+    "landmarks": [
+      {
+        "name": "Charles Bridge",
+        "region": "Prague"
+      },
+      {
+        "name": "Prague Castle and Saint Vitus",
+        "region": "Prague"
+      },
+      {
+        "name": "Český Krumlov castle",
+        "region": "South Bohemia"
+      },
+      {
+        "name": "Kutná Hora cathedral",
+        "region": "Central Bohemia"
+      },
+      {
+        "name": "Telč civic houses",
+        "region": "Vysočina"
+      },
+      {
+        "name": "Lednice chateau",
+        "region": "South Moravia"
+      },
+      {
+        "name": "Adršpach rock city",
+        "region": "Hradec Králové"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "European otter"
+    ],
+    "plants": [
+      "linden",
+      "hop"
+    ],
+    "foodOrCraft": [
+      "Bohemian glass"
+    ],
+    "avatarFocus": "Charles Bridge",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/cz/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "de",
+    "name": "Germany",
+    "landmarks": [
+      {
+        "name": "Brandenburg Gate",
+        "region": "Berlin"
+      },
+      {
+        "name": "Neuschwanstein Castle",
+        "region": "Bavaria"
+      },
+      {
+        "name": "Cologne Cathedral",
+        "region": "North Rhine Westphalia"
+      },
+      {
+        "name": "Wartburg Castle",
+        "region": "Thuringia"
+      },
+      {
+        "name": "Bremen town hall",
+        "region": "Bremen"
+      },
+      {
+        "name": "Dresden Frauenkirche",
+        "region": "Saxony"
+      },
+      {
+        "name": "Loreley Rhine cliffs",
+        "region": "Rhineland Palatinate"
+      },
+      {
+        "name": "Bauhaus building",
+        "region": "Dessau"
+      }
+    ],
+    "animals": [
+      "red squirrel",
+      "wild boar"
+    ],
+    "plants": [
+      "oak",
+      "cornflower"
+    ],
+    "foodOrCraft": [
+      "porcelain",
+      "wooden toys"
+    ],
+    "avatarFocus": "Brandenburg Gate",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/de/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "dj",
+    "name": "Djibouti",
+    "landmarks": [
+      {
+        "name": "Lake Assal",
+        "region": "Tadjourah"
+      },
+      {
+        "name": "Lake Abbe limestone chimneys",
+        "region": "Dikhil"
+      },
+      {
+        "name": "Day forest",
+        "region": "Tadjourah"
+      },
+      {
+        "name": "Abourma rock engravings",
+        "region": "Tadjourah"
+      },
+      {
+        "name": "Moucha islands",
+        "region": "Djibouti coast"
+      },
+      {
+        "name": "Goubet gulf",
+        "region": "Arta"
+      }
+    ],
+    "animals": [
+      "whale shark in gulf",
+      "Soemmerrings gazelle in arid plains"
+    ],
+    "plants": [
+      "juniper",
+      "acacia"
+    ],
+    "foodOrCraft": [
+      "woven mats"
+    ],
+    "avatarFocus": "Lake Assal",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/dj/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://whc.unesco.org/document/221408",
+        "title": "UNESCO tentative list 2025: Djibouti landscape and archaeological sites"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "dk",
+    "name": "Denmark",
+    "landmarks": [
+      {
+        "name": "Kronborg Castle",
+        "region": "Helsingør"
+      },
+      {
+        "name": "Roskilde Cathedral",
+        "region": "Zealand"
+      },
+      {
+        "name": "Jelling runestones",
+        "region": "Jutland"
+      },
+      {
+        "name": "Nyhavn civic houses",
+        "region": "Copenhagen"
+      },
+      {
+        "name": "Egeskov Castle",
+        "region": "Funen"
+      },
+      {
+        "name": "Møns Klint",
+        "region": "Møn"
+      },
+      {
+        "name": "Wadden Sea tidal flats",
+        "region": "southwest"
+      }
+    ],
+    "animals": [
+      "harbour seal",
+      "red deer"
+    ],
+    "plants": [
+      "beech",
+      "daisy"
+    ],
+    "foodOrCraft": [
+      "ceramics",
+      "wooden design"
+    ],
+    "avatarFocus": "Kronborg Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/dk/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "dm",
+    "name": "Dominica",
+    "landmarks": [
+      {
+        "name": "Boiling Lake",
+        "region": "Morne Trois Pitons"
+      },
+      {
+        "name": "Trafalgar Falls",
+        "region": "Saint Paul"
+      },
+      {
+        "name": "Cabrits Fort Shirley",
+        "region": "Saint John"
+      },
+      {
+        "name": "Emerald Pool",
+        "region": "Saint David"
+      },
+      {
+        "name": "Kalinago traditional carbet",
+        "region": "Kalinago Territory"
+      },
+      {
+        "name": "Titou Gorge",
+        "region": "Saint George"
+      }
+    ],
+    "animals": [
+      "imperial amazon parrot",
+      "red-necked amazon parrot"
+    ],
+    "plants": [
+      "gommier",
+      "tree fern"
+    ],
+    "foodOrCraft": [
+      "Kalinago basket weaving"
+    ],
+    "avatarFocus": "Boiling Lake",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/dm/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "do",
+    "name": "Dominican Republic",
+    "landmarks": [
+      {
+        "name": "Alcázar de Colón palace",
+        "region": "Santo Domingo"
+      },
+      {
+        "name": "Cathedral of Santo Domingo",
+        "region": "Santo Domingo"
+      },
+      {
+        "name": "Altos de Chavón",
+        "region": "La Romana"
+      },
+      {
+        "name": "Los Haitises karst",
+        "region": "Samaná"
+      },
+      {
+        "name": "Pico Duarte",
+        "region": "Cordillera Central"
+      },
+      {
+        "name": "Jaragua coast",
+        "region": "Pedernales"
+      }
+    ],
+    "animals": [
+      "Hispaniolan solenodon",
+      "Rhinoceros iguana",
+      "humpback whale off Samaná"
+    ],
+    "plants": [
+      "royal palm",
+      "mahogany"
+    ],
+    "foodOrCraft": [
+      "amber jewellery"
+    ],
+    "avatarFocus": "Alcázar de Colón palace",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/do/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "dz",
+    "name": "Algeria",
+    "landmarks": [
+      {
+        "name": "Timgad Roman ruins",
+        "region": "Batna"
+      },
+      {
+        "name": "Djemila Roman ruins",
+        "region": "Sétif"
+      },
+      {
+        "name": "Tipasa ancient ruins",
+        "region": "Tipaza"
+      },
+      {
+        "name": "Tassili nAjjer rock art",
+        "region": "Illizi"
+      },
+      {
+        "name": "Royal Mausoleum of Mauretania",
+        "region": "Tipaza"
+      },
+      {
+        "name": "Beni Hammad secular fortress walls",
+        "region": "M’Sila"
+      },
+      {
+        "name": "Ahaggar mountains",
+        "region": "Tamanrasset"
+      }
+    ],
+    "animals": [
+      "fennec fox",
+      "Barbary macaque in northern forest",
+      "dromedary in Sahara"
+    ],
+    "plants": [
+      "date palm",
+      "cedar"
+    ],
+    "foodOrCraft": [
+      "Tuareg silverwork"
+    ],
+    "avatarFocus": "Timgad Roman ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/dz/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ec",
+    "name": "Ecuador",
+    "landmarks": [
+      {
+        "name": "Galápagos volcanic islands",
+        "region": "Galápagos"
+      },
+      {
+        "name": "Ingapirca Inca ruins",
+        "region": "Cañar"
+      },
+      {
+        "name": "Quito colonial churches",
+        "region": "Pichincha"
+      },
+      {
+        "name": "Cuenca civic architecture",
+        "region": "Azuay"
+      },
+      {
+        "name": "Cotopaxi volcano",
+        "region": "Cotopaxi"
+      },
+      {
+        "name": "Chimborazo",
+        "region": "Chimborazo"
+      },
+      {
+        "name": "Yasuní forest",
+        "region": "Orellana"
+      }
+    ],
+    "animals": [
+      "Galápagos giant tortoise on islands",
+      "marine iguana on islands",
+      "Andean condor in highlands"
+    ],
+    "plants": [
+      "orchid",
+      "ceibo"
+    ],
+    "foodOrCraft": [
+      "toquilla straw hat"
+    ],
+    "avatarFocus": "Galápagos volcanic islands",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ec/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ee",
+    "name": "Estonia",
+    "landmarks": [
+      {
+        "name": "Tallinn town hall",
+        "region": "Harju"
+      },
+      {
+        "name": "Kuressaare Castle",
+        "region": "Saaremaa"
+      },
+      {
+        "name": "Tartu university",
+        "region": "Tartu"
+      },
+      {
+        "name": "Lahemaa manor houses",
+        "region": "Lääne Viru"
+      },
+      {
+        "name": "Narva Castle",
+        "region": "Ida Viru"
+      },
+      {
+        "name": "Kaali meteorite crater",
+        "region": "Saaremaa"
+      }
+    ],
+    "animals": [
+      "European lynx",
+      "grey seal"
+    ],
+    "plants": [
+      "cornflower",
+      "Scots pine"
+    ],
+    "foodOrCraft": [
+      "knitted mittens"
+    ],
+    "avatarFocus": "Tallinn town hall",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ee/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "eg",
+    "name": "Egypt",
+    "landmarks": [
+      {
+        "name": "Giza pyramids and sphinx",
+        "region": "Giza"
+      },
+      {
+        "name": "Karnak temple",
+        "region": "Luxor"
+      },
+      {
+        "name": "Abu Simbel temples",
+        "region": "Aswan"
+      },
+      {
+        "name": "Philae temple",
+        "region": "Aswan"
+      },
+      {
+        "name": "Valley of Kings",
+        "region": "Luxor"
+      },
+      {
+        "name": "White Desert",
+        "region": "Farafra"
+      },
+      {
+        "name": "Saint Catherine monastery",
+        "region": "South Sinai"
+      },
+      {
+        "name": "Alexandria library modern exterior",
+        "region": "Alexandria"
+      }
+    ],
+    "animals": [
+      "Nubian ibex in desert mountains",
+      "dromedary camel",
+      "Nile crocodile in Lake Nasser"
+    ],
+    "plants": [
+      "papyrus",
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "alabaster carving"
+    ],
+    "avatarFocus": "Giza pyramids and sphinx",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/eg/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "er",
+    "name": "Eritrea",
+    "landmarks": [
+      {
+        "name": "Fiat Tagliero building",
+        "region": "Asmara"
+      },
+      {
+        "name": "Cinema Impero",
+        "region": "Asmara"
+      },
+      {
+        "name": "Qohaito archaeological ruins",
+        "region": "Debub"
+      },
+      {
+        "name": "Adulis ancient port ruins",
+        "region": "Northern Red Sea"
+      },
+      {
+        "name": "Dahlak islands",
+        "region": "Northern Red Sea"
+      },
+      {
+        "name": "Metera ruins",
+        "region": "Debub"
+      }
+    ],
+    "animals": [
+      "Hamadryas baboon in arid hills",
+      "dugong in Red Sea"
+    ],
+    "plants": [
+      "doum palm",
+      "acacia"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Fiat Tagliero building",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/er/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "es",
+    "name": "Spain",
+    "landmarks": [
+      {
+        "name": "Sagrada Família",
+        "region": "Catalonia"
+      },
+      {
+        "name": "Roman aqueduct",
+        "region": "Segovia"
+      },
+      {
+        "name": "Santiago cathedral",
+        "region": "Galicia"
+      },
+      {
+        "name": "Alcázar secular fortress",
+        "region": "Castile and León"
+      },
+      {
+        "name": "Guggenheim Museum",
+        "region": "Basque Country"
+      },
+      {
+        "name": "Roman theatre",
+        "region": "Mérida"
+      },
+      {
+        "name": "Teide",
+        "region": "Canary Islands"
+      },
+      {
+        "name": "Altamira cave heritage",
+        "region": "Cantabria"
+      }
+    ],
+    "animals": [
+      "Iberian lynx",
+      "Spanish imperial eagle"
+    ],
+    "plants": [
+      "olive",
+      "cork oak"
+    ],
+    "foodOrCraft": [
+      "ceramic tiles",
+      "fan craft"
+    ],
+    "avatarFocus": "Sagrada Família",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/es/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "et",
+    "name": "Ethiopia",
+    "landmarks": [
+      {
+        "name": "Lalibela rock-hewn churches",
+        "region": "Amhara"
+      },
+      {
+        "name": "Aksum stelae",
+        "region": "Tigray"
+      },
+      {
+        "name": "Fasil Ghebbi castles",
+        "region": "Gondar"
+      },
+      {
+        "name": "Konso terraces",
+        "region": "South Ethiopia"
+      },
+      {
+        "name": "Simien escarpments",
+        "region": "Amhara"
+      },
+      {
+        "name": "Lower Omo archaeological landscape",
+        "region": "South Ethiopia"
+      },
+      {
+        "name": "Yeha ancient temple",
+        "region": "Tigray"
+      }
+    ],
+    "animals": [
+      "gelada in highlands",
+      "Ethiopian wolf in Afroalpine habitat"
+    ],
+    "plants": [
+      "coffee",
+      "enset"
+    ],
+    "foodOrCraft": [
+      "woven cotton"
+    ],
+    "avatarFocus": "Lalibela rock-hewn churches",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/et/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "fi",
+    "name": "Finland",
+    "landmarks": [
+      {
+        "name": "Suomenlinna fortress",
+        "region": "Helsinki"
+      },
+      {
+        "name": "Turku Castle",
+        "region": "Southwest Finland"
+      },
+      {
+        "name": "Petäjävesi old church",
+        "region": "Central Finland"
+      },
+      {
+        "name": "Old Rauma timber houses",
+        "region": "Satakunta"
+      },
+      {
+        "name": "Sammallahdenmäki burial cairns",
+        "region": "Satakunta"
+      },
+      {
+        "name": "Lake Saimaa",
+        "region": "Lakeland"
+      },
+      {
+        "name": "fells of Lapland",
+        "region": "Lapland"
+      }
+    ],
+    "animals": [
+      "Saimaa ringed seal in Saimaa",
+      "reindeer in north"
+    ],
+    "plants": [
+      "birch",
+      "cloudberry"
+    ],
+    "foodOrCraft": [
+      "birch-bark craft"
+    ],
+    "avatarFocus": "Suomenlinna fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/fi/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "fj",
+    "name": "Fiji",
+    "landmarks": [
+      {
+        "name": "Levuka colonial civic waterfront",
+        "region": "Ovalau"
+      },
+      {
+        "name": "Sigatoka sand dunes",
+        "region": "Viti Levu"
+      },
+      {
+        "name": "Bouma waterfalls",
+        "region": "Taveuni"
+      },
+      {
+        "name": "Sri Siva Subramaniya temple",
+        "region": "Nadi"
+      },
+      {
+        "name": "Tavoro forest",
+        "region": "Taveuni"
+      },
+      {
+        "name": "Great Astrolabe Reef",
+        "region": "Kadavu"
+      }
+    ],
+    "animals": [
+      "Fiji crested iguana",
+      "collared lory"
+    ],
+    "plants": [
+      "coconut",
+      "hibiscus"
+    ],
+    "foodOrCraft": [
+      "masi barkcloth"
+    ],
+    "avatarFocus": "Levuka colonial civic waterfront",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/fj/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "fm",
+    "name": "Micronesia",
+    "landmarks": [
+      {
+        "name": "Nan Madol stone islets",
+        "region": "Pohnpei"
+      },
+      {
+        "name": "Lelu archaeological ruins",
+        "region": "Kosrae"
+      },
+      {
+        "name": "Kepirohi waterfall",
+        "region": "Pohnpei"
+      },
+      {
+        "name": "Yap stone money banks",
+        "region": "Yap"
+      },
+      {
+        "name": "Chuuk lagoon",
+        "region": "Chuuk"
+      },
+      {
+        "name": "Pohnpei basalt peaks",
+        "region": "Pohnpei"
+      }
+    ],
+    "animals": [
+      "Pohnpei lorikeet",
+      "sea turtle"
+    ],
+    "plants": [
+      "breadfruit",
+      "coconut"
+    ],
+    "foodOrCraft": [
+      "outrigger canoe",
+      "stone money"
+    ],
+    "avatarFocus": "Nan Madol stone islets",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/fm/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "fr",
+    "name": "France",
+    "landmarks": [
+      {
+        "name": "Eiffel Tower",
+        "region": "Île de France"
+      },
+      {
+        "name": "Mont Saint Michel abbey",
+        "region": "Normandy"
+      },
+      {
+        "name": "Chambord château",
+        "region": "Loire"
+      },
+      {
+        "name": "Pont du Gard",
+        "region": "Occitanie"
+      },
+      {
+        "name": "Carcassonne ramparts",
+        "region": "Occitanie"
+      },
+      {
+        "name": "Strasbourg cathedral",
+        "region": "Alsace"
+      },
+      {
+        "name": "Provence lavender landscapes",
+        "region": "Provence"
+      },
+      {
+        "name": "Chamonix Mont Blanc",
+        "region": "Alps"
+      }
+    ],
+    "animals": [
+      "alpine marmot",
+      "Camargue horse",
+      "flamingo in Camargue"
+    ],
+    "plants": [
+      "lavender",
+      "oak"
+    ],
+    "foodOrCraft": [
+      "porcelain",
+      "pastry"
+    ],
+    "avatarFocus": "Eiffel Tower",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/fr/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ga",
+    "name": "Gabon",
+    "landmarks": [
+      {
+        "name": "Lopé forest-savanna",
+        "region": "Ogooué Ivindo"
+      },
+      {
+        "name": "Ivindo Kongou falls",
+        "region": "Ogooué Ivindo"
+      },
+      {
+        "name": "Loango lagoon",
+        "region": "Ogooué Maritime"
+      },
+      {
+        "name": "Lastoursville caves",
+        "region": "Ogooué Lolo"
+      },
+      {
+        "name": "Batéké plateaus",
+        "region": "Haut Ogooué"
+      },
+      {
+        "name": "Saint Michael church carved pillars",
+        "region": "Libreville"
+      }
+    ],
+    "animals": [
+      "mandrill in forest",
+      "forest elephant",
+      "western lowland gorilla"
+    ],
+    "plants": [
+      "okoumé",
+      "raffia"
+    ],
+    "foodOrCraft": [
+      "carved wood"
+    ],
+    "avatarFocus": "Lopé forest-savanna",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ga/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gb",
+    "name": "Britain (UK)",
+    "landmarks": [
+      {
+        "name": "Stonehenge",
+        "region": "Wiltshire"
+      },
+      {
+        "name": "Tower Bridge",
+        "region": "London"
+      },
+      {
+        "name": "Edinburgh Castle",
+        "region": "Scotland"
+      },
+      {
+        "name": "Caernarfon Castle",
+        "region": "Wales"
+      },
+      {
+        "name": "Giants Causeway",
+        "region": "Northern Ireland"
+      },
+      {
+        "name": "Roman Baths",
+        "region": "Bath"
+      },
+      {
+        "name": "York Minster",
+        "region": "Yorkshire"
+      },
+      {
+        "name": "Lake District",
+        "region": "Cumbria"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "Atlantic puffin on coastal cliffs",
+      "red squirrel"
+    ],
+    "plants": [
+      "oak",
+      "heather"
+    ],
+    "foodOrCraft": [
+      "tweed",
+      "pottery"
+    ],
+    "avatarFocus": "Stonehenge",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gb/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gd",
+    "name": "Grenada",
+    "landmarks": [
+      {
+        "name": "Fort George",
+        "region": "Saint George"
+      },
+      {
+        "name": "Belmont Estate",
+        "region": "Saint Patrick"
+      },
+      {
+        "name": "Annandale Falls",
+        "region": "Saint George"
+      },
+      {
+        "name": "Underwater Sculpture Park",
+        "region": "west coast"
+      },
+      {
+        "name": "Carriacou boatbuilding shore",
+        "region": "Carriacou"
+      },
+      {
+        "name": "Grand Etang lake",
+        "region": "Saint Andrew"
+      }
+    ],
+    "animals": [
+      "Grenada dove",
+      "leatherback turtle"
+    ],
+    "plants": [
+      "nutmeg",
+      "cocoa"
+    ],
+    "foodOrCraft": [
+      "traditional wooden boat"
+    ],
+    "avatarFocus": "Fort George",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gd/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ge",
+    "name": "Georgia",
+    "landmarks": [
+      {
+        "name": "Svetitskhoveli cathedral",
+        "region": "Mtskheta"
+      },
+      {
+        "name": "Gelati monastery",
+        "region": "Imereti"
+      },
+      {
+        "name": "Svan tower houses",
+        "region": "Samegrelo Zemo Svaneti"
+      },
+      {
+        "name": "Uplistsikhe cave town",
+        "region": "Shida Kartli"
+      },
+      {
+        "name": "Vardzia cave monastery",
+        "region": "Samtskhe Javakheti"
+      },
+      {
+        "name": "Narikala fortress secular walls",
+        "region": "Tbilisi"
+      },
+      {
+        "name": "Kazbegi peak",
+        "region": "Mtskheta Mtianeti"
+      }
+    ],
+    "animals": [
+      "Caucasian tur",
+      "brown bear"
+    ],
+    "plants": [
+      "grapevine",
+      "pomegranate"
+    ],
+    "foodOrCraft": [
+      "qvevri pottery"
+    ],
+    "avatarFocus": "Svetitskhoveli cathedral",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ge/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gh",
+    "name": "Ghana",
+    "landmarks": [
+      {
+        "name": "Cape Coast Castle",
+        "region": "Central"
+      },
+      {
+        "name": "Elmina Castle",
+        "region": "Central"
+      },
+      {
+        "name": "Asante traditional buildings",
+        "region": "Ashanti"
+      },
+      {
+        "name": "Nzulezu stilt village",
+        "region": "Western"
+      },
+      {
+        "name": "Kakum canopy",
+        "region": "Central"
+      },
+      {
+        "name": "Mole savanna",
+        "region": "Savannah"
+      },
+      {
+        "name": "Navrongo cathedral",
+        "region": "Upper East"
+      }
+    ],
+    "animals": [
+      "African elephant in Mole",
+      "olive colobus in forest"
+    ],
+    "plants": [
+      "cocoa",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "kente weaving"
+    ],
+    "avatarFocus": "Cape Coast Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gh/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gm",
+    "name": "Gambia",
+    "landmarks": [
+      {
+        "name": "Kunta Kinteh Island fort",
+        "region": "Lower River"
+      },
+      {
+        "name": "Wassu stone circles",
+        "region": "Central River"
+      },
+      {
+        "name": "JanJanbureh civic heritage",
+        "region": "Central River"
+      },
+      {
+        "name": "River Gambia mangroves",
+        "region": "river corridor"
+      },
+      {
+        "name": "Abuko reserve",
+        "region": "West Coast"
+      },
+      {
+        "name": "Tanji fishing boats",
+        "region": "West Coast"
+      }
+    ],
+    "animals": [
+      "red colobus in forest",
+      "African fish eagle on river"
+    ],
+    "plants": [
+      "mangrove",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Kunta Kinteh Island fort",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gm/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gn",
+    "name": "Guinea",
+    "landmarks": [
+      {
+        "name": "Mount Nimba",
+        "region": "Lola"
+      },
+      {
+        "name": "Fouta Djallon escarpments",
+        "region": "Middle Guinea"
+      },
+      {
+        "name": "Dame de Mali rock formation",
+        "region": "Mali prefecture"
+      },
+      {
+        "name": "Niger river source",
+        "region": "Faranah"
+      },
+      {
+        "name": "Îles de Los",
+        "region": "Conakry"
+      },
+      {
+        "name": "Badiar savanna",
+        "region": "Koundara"
+      }
+    ],
+    "animals": [
+      "western chimpanzee",
+      "Nimba viviparous toad at Nimba"
+    ],
+    "plants": [
+      "oil palm",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "woven textiles"
+    ],
+    "avatarFocus": "Mount Nimba",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gn/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gq",
+    "name": "Equatorial Guinea",
+    "landmarks": [
+      {
+        "name": "Santa Isabel cathedral",
+        "region": "Malabo"
+      },
+      {
+        "name": "Pico Basilé",
+        "region": "Bioko"
+      },
+      {
+        "name": "Ureka waterfalls",
+        "region": "Bioko"
+      },
+      {
+        "name": "Monte Alén rainforest",
+        "region": "mainland"
+      },
+      {
+        "name": "Annobón volcanic landscape",
+        "region": "Annobón"
+      },
+      {
+        "name": "Bata civic waterfront",
+        "region": "Litoral"
+      }
+    ],
+    "animals": [
+      "drill on Bioko",
+      "western lowland gorilla on mainland"
+    ],
+    "plants": [
+      "ceiba",
+      "cocoa"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Santa Isabel cathedral",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gq/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gr",
+    "name": "Greece",
+    "landmarks": [
+      {
+        "name": "Parthenon",
+        "region": "Attica"
+      },
+      {
+        "name": "Delphi ancient sanctuary",
+        "region": "Central Greece"
+      },
+      {
+        "name": "Olympia ruins",
+        "region": "Western Greece"
+      },
+      {
+        "name": "Meteora monasteries",
+        "region": "Thessaly"
+      },
+      {
+        "name": "Knossos",
+        "region": "Crete"
+      },
+      {
+        "name": "Epidaurus theatre",
+        "region": "Peloponnese"
+      },
+      {
+        "name": "Santorini caldera",
+        "region": "South Aegean"
+      },
+      {
+        "name": "Rhodes medieval walls",
+        "region": "Dodecanese"
+      }
+    ],
+    "animals": [
+      "loggerhead turtle in Ionian Sea",
+      "Cretan wild goat"
+    ],
+    "plants": [
+      "olive",
+      "cypress"
+    ],
+    "foodOrCraft": [
+      "painted pottery"
+    ],
+    "avatarFocus": "Parthenon",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gr/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gt",
+    "name": "Guatemala",
+    "landmarks": [
+      {
+        "name": "Tikal Maya temples",
+        "region": "Petén"
+      },
+      {
+        "name": "Quiriguá stelae",
+        "region": "Izabal"
+      },
+      {
+        "name": "Antigua colonial churches",
+        "region": "Sacatepéquez"
+      },
+      {
+        "name": "Lake Atitlán",
+        "region": "Sololá"
+      },
+      {
+        "name": "Iximché ruins",
+        "region": "Chimaltenango"
+      },
+      {
+        "name": "Semuc Champey",
+        "region": "Alta Verapaz"
+      },
+      {
+        "name": "Takalik Abaj",
+        "region": "Retalhuleu"
+      }
+    ],
+    "animals": [
+      "resplendent quetzal in cloud forest",
+      "jaguar in Petén"
+    ],
+    "plants": [
+      "ceiba",
+      "coffee"
+    ],
+    "foodOrCraft": [
+      "Maya woven huipil"
+    ],
+    "avatarFocus": "Tikal Maya temples",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gt/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gw",
+    "name": "Guinea-Bissau",
+    "landmarks": [
+      {
+        "name": "Bolama colonial civic buildings",
+        "region": "Bolama"
+      },
+      {
+        "name": "Cacheu Fort",
+        "region": "Cacheu"
+      },
+      {
+        "name": "Orango island mangroves",
+        "region": "Bijagós"
+      },
+      {
+        "name": "João Vieira Poilão islands",
+        "region": "Bijagós"
+      },
+      {
+        "name": "Cantanhez forest",
+        "region": "Tombali"
+      },
+      {
+        "name": "Bissau colonial civic waterfront",
+        "region": "Bissau"
+      }
+    ],
+    "animals": [
+      "saltwater-adapted hippopotamus on Orango",
+      "green turtle at Poilão",
+      "chimpanzee in Cantanhez"
+    ],
+    "plants": [
+      "mangrove",
+      "cashew"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Bolama colonial civic buildings",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gw/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "gy",
+    "name": "Guyana",
+    "landmarks": [
+      {
+        "name": "Kaieteur Falls",
+        "region": "Potaro Siparuni"
+      },
+      {
+        "name": "Saint Georges cathedral",
+        "region": "Georgetown"
+      },
+      {
+        "name": "Stabroek Market",
+        "region": "Georgetown"
+      },
+      {
+        "name": "Iwokrama rainforest",
+        "region": "central Guyana"
+      },
+      {
+        "name": "Mount Roraima",
+        "region": "western highlands"
+      },
+      {
+        "name": "Rupununi savanna",
+        "region": "Upper Takutu Upper Essequibo"
+      }
+    ],
+    "animals": [
+      "jaguar",
+      "giant river otter",
+      "hoatzin"
+    ],
+    "plants": [
+      "giant water lily",
+      "greenheart"
+    ],
+    "foodOrCraft": [
+      "Indigenous woven baskets"
+    ],
+    "avatarFocus": "Kaieteur Falls",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/gy/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "hn",
+    "name": "Honduras",
+    "landmarks": [
+      {
+        "name": "Copán Maya ruins",
+        "region": "Copán"
+      },
+      {
+        "name": "Río Plátano forest",
+        "region": "Gracias a Dios"
+      },
+      {
+        "name": "Fort San Fernando",
+        "region": "Omoa"
+      },
+      {
+        "name": "Comayagua cathedral",
+        "region": "Comayagua"
+      },
+      {
+        "name": "Yojoa lake",
+        "region": "central Honduras"
+      },
+      {
+        "name": "Roatán reef",
+        "region": "Bay Islands"
+      }
+    ],
+    "animals": [
+      "scarlet macaw",
+      "jaguar in forest"
+    ],
+    "plants": [
+      "pine",
+      "orchid"
+    ],
+    "foodOrCraft": [
+      "Lenca pottery"
+    ],
+    "avatarFocus": "Copán Maya ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/hn/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "hr",
+    "name": "Croatia",
+    "landmarks": [
+      {
+        "name": "Dubrovnik ramparts",
+        "region": "Dubrovnik Neretva"
+      },
+      {
+        "name": "Diocletian palace",
+        "region": "Split"
+      },
+      {
+        "name": "Plitvice lakes",
+        "region": "Lika Senj"
+      },
+      {
+        "name": "Šibenik cathedral",
+        "region": "Šibenik Knin"
+      },
+      {
+        "name": "Pula Roman amphitheatre",
+        "region": "Istria"
+      },
+      {
+        "name": "Trogir cathedral",
+        "region": "Split Dalmatia"
+      },
+      {
+        "name": "Zagreb tiled Saint Marks roof",
+        "region": "Zagreb"
+      }
+    ],
+    "animals": [
+      "brown bear in Dinaric forest",
+      "griffon vulture on Cres"
+    ],
+    "plants": [
+      "lavender",
+      "olive"
+    ],
+    "foodOrCraft": [
+      "Pag lace"
+    ],
+    "avatarFocus": "Dubrovnik ramparts",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/hr/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ht",
+    "name": "Haiti",
+    "landmarks": [
+      {
+        "name": "Citadelle Laferrière",
+        "region": "Nord"
+      },
+      {
+        "name": "Sans Souci palace ruins",
+        "region": "Nord"
+      },
+      {
+        "name": "Jacmel civic houses",
+        "region": "Sud Est"
+      },
+      {
+        "name": "Bassin Bleu",
+        "region": "Sud Est"
+      },
+      {
+        "name": "Pic Macaya cloud forest",
+        "region": "Sud"
+      },
+      {
+        "name": "Iron Market",
+        "region": "Port au Prince"
+      }
+    ],
+    "animals": [
+      "Hispaniolan trogon",
+      "Hispaniolan hutia"
+    ],
+    "plants": [
+      "royal palm",
+      "mahogany"
+    ],
+    "foodOrCraft": [
+      "painted metalwork"
+    ],
+    "avatarFocus": "Citadelle Laferrière",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ht/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "hu",
+    "name": "Hungary",
+    "landmarks": [
+      {
+        "name": "Parliament building",
+        "region": "Budapest"
+      },
+      {
+        "name": "Buda Castle",
+        "region": "Budapest"
+      },
+      {
+        "name": "Pannonhalma abbey",
+        "region": "Győr Moson Sopron"
+      },
+      {
+        "name": "Hortobágy nine-arch bridge",
+        "region": "Hajdú Bihar"
+      },
+      {
+        "name": "Hollókő village",
+        "region": "Nógrád"
+      },
+      {
+        "name": "Lake Balaton",
+        "region": "Transdanubia"
+      },
+      {
+        "name": "Pécs early Christian tombs",
+        "region": "Baranya"
+      }
+    ],
+    "animals": [
+      "Hungarian grey cattle",
+      "great bustard on plains"
+    ],
+    "plants": [
+      "paprika",
+      "sunflower"
+    ],
+    "foodOrCraft": [
+      "embroidery"
+    ],
+    "avatarFocus": "Parliament building",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/hu/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "id",
+    "name": "Indonesia",
+    "landmarks": [
+      {
+        "name": "Borobudur Buddhist temple",
+        "region": "Central Java"
+      },
+      {
+        "name": "Prambanan Hindu temples",
+        "region": "Yogyakarta"
+      },
+      {
+        "name": "Bali rice terraces",
+        "region": "Bali"
+      },
+      {
+        "name": "Tongkonan houses",
+        "region": "South Sulawesi"
+      },
+      {
+        "name": "Lake Toba",
+        "region": "North Sumatra"
+      },
+      {
+        "name": "Komodo landscape",
+        "region": "East Nusa Tenggara"
+      },
+      {
+        "name": "Raja Ampat limestone islets",
+        "region": "Southwest Papua"
+      },
+      {
+        "name": "Sangiran archaeology",
+        "region": "Central Java"
+      }
+    ],
+    "animals": [
+      "Komodo dragon on Komodo islands",
+      "orangutan in Sumatra and Borneo",
+      "Bali myna on Bali"
+    ],
+    "plants": [
+      "rafflesia",
+      "frangipani"
+    ],
+    "foodOrCraft": [
+      "batik",
+      "woven ikat"
+    ],
+    "avatarFocus": "Borobudur Buddhist temple",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/id/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ie",
+    "name": "Ireland",
+    "landmarks": [
+      {
+        "name": "Newgrange passage tomb",
+        "region": "Meath"
+      },
+      {
+        "name": "Rock of Cashel",
+        "region": "Tipperary"
+      },
+      {
+        "name": "Cliffs of Moher",
+        "region": "Clare"
+      },
+      {
+        "name": "Skellig Michael monastery",
+        "region": "Kerry"
+      },
+      {
+        "name": "Trinity College",
+        "region": "Dublin"
+      },
+      {
+        "name": "Kylemore abbey",
+        "region": "Galway"
+      },
+      {
+        "name": "Dun Aonghasa stone fort",
+        "region": "Aran Islands"
+      }
+    ],
+    "animals": [
+      "red deer",
+      "Atlantic puffin at coast"
+    ],
+    "plants": [
+      "shamrock",
+      "oak"
+    ],
+    "foodOrCraft": [
+      "Aran knitwear"
+    ],
+    "avatarFocus": "Newgrange passage tomb",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ie/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "il",
+    "name": "Israel",
+    "landmarks": [
+      {
+        "name": "Masada fortress",
+        "region": "Southern District"
+      },
+      {
+        "name": "Caesarea Roman aqueduct",
+        "region": "Haifa District"
+      },
+      {
+        "name": "Western Wall",
+        "region": "Jerusalem"
+      },
+      {
+        "name": "Church of Holy Sepulchre",
+        "region": "Jerusalem"
+      },
+      {
+        "name": "Bahai gardens",
+        "region": "Haifa"
+      },
+      {
+        "name": "Beit Shean Roman ruins",
+        "region": "Northern District"
+      },
+      {
+        "name": "White City Bauhaus buildings",
+        "region": "Tel Aviv"
+      },
+      {
+        "name": "Timna rock formations",
+        "region": "Southern District"
+      }
+    ],
+    "animals": [
+      "Nubian ibex in desert",
+      "hoopoe"
+    ],
+    "plants": [
+      "olive",
+      "date palm"
+    ],
+    "foodOrCraft": [
+      "ceramics"
+    ],
+    "avatarFocus": "Masada fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/il/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Jerusalem references are geographic and do not imply a position on sovereignty. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "in",
+    "name": "India",
+    "landmarks": [
+      {
+        "name": "Hampi ruins",
+        "region": "Karnataka"
+      },
+      {
+        "name": "Khajuraho Hindu temples",
+        "region": "Madhya Pradesh"
+      },
+      {
+        "name": "Konark Sun temple",
+        "region": "Odisha"
+      },
+      {
+        "name": "Ajanta Buddhist caves",
+        "region": "Maharashtra"
+      },
+      {
+        "name": "Sanchi stupa",
+        "region": "Madhya Pradesh"
+      },
+      {
+        "name": "Brihadisvara temple",
+        "region": "Tamil Nadu"
+      },
+      {
+        "name": "Jaipur Hawa Mahal",
+        "region": "Rajasthan"
+      },
+      {
+        "name": "Darjeeling mountain railway",
+        "region": "West Bengal"
+      },
+      {
+        "name": "Kaziranga grasslands",
+        "region": "Assam"
+      }
+    ],
+    "animals": [
+      "Bengal tiger in reserves",
+      "Indian elephant in forests",
+      "one-horned rhinoceros in Assam"
+    ],
+    "plants": [
+      "lotus",
+      "banyan"
+    ],
+    "foodOrCraft": [
+      "block print textile"
+    ],
+    "avatarFocus": "Hampi ruins",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/in/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "iq",
+    "name": "Iraq",
+    "landmarks": [
+      {
+        "name": "Ur ziggurat",
+        "region": "Dhi Qar"
+      },
+      {
+        "name": "Babylon archaeological ruins",
+        "region": "Babil"
+      },
+      {
+        "name": "Hatra ancient temples",
+        "region": "Nineveh"
+      },
+      {
+        "name": "Erbil citadel secular walls",
+        "region": "Erbil"
+      },
+      {
+        "name": "Aqar Quf ziggurat",
+        "region": "Baghdad"
+      },
+      {
+        "name": "Mesopotamian marshes",
+        "region": "Dhi Qar and Maysan"
+      },
+      {
+        "name": "Alqosh monastery",
+        "region": "Nineveh"
+      }
+    ],
+    "animals": [
+      "water buffalo in marshes",
+      "marbled teal in wetlands"
+    ],
+    "plants": [
+      "date palm",
+      "reed"
+    ],
+    "foodOrCraft": [
+      "reed boat and weaving"
+    ],
+    "avatarFocus": "Ur ziggurat",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/iq/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ir",
+    "name": "Iran",
+    "landmarks": [
+      {
+        "name": "Persepolis",
+        "region": "Fars"
+      },
+      {
+        "name": "Pasargadae Cyrus tomb",
+        "region": "Fars"
+      },
+      {
+        "name": "Chogha Zanbil ziggurat",
+        "region": "Khuzestan"
+      },
+      {
+        "name": "Shushtar hydraulic system",
+        "region": "Khuzestan"
+      },
+      {
+        "name": "Takht e Soleyman pre-Islamic sanctuary remains",
+        "region": "West Azerbaijan"
+      },
+      {
+        "name": "Bam citadel secular walls",
+        "region": "Kerman"
+      },
+      {
+        "name": "Armenian Saint Thaddeus monastery",
+        "region": "West Azerbaijan"
+      },
+      {
+        "name": "Lut desert",
+        "region": "Kerman"
+      }
+    ],
+    "animals": [
+      "Asiatic cheetah in central desert",
+      "Persian onager"
+    ],
+    "plants": [
+      "pomegranate",
+      "pistachio"
+    ],
+    "foodOrCraft": [
+      "carpet weaving"
+    ],
+    "avatarFocus": "Persepolis",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ir/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "is",
+    "name": "Iceland",
+    "landmarks": [
+      {
+        "name": "Þingvellir rift",
+        "region": "South"
+      },
+      {
+        "name": "Gullfoss waterfall",
+        "region": "South"
+      },
+      {
+        "name": "Jökulsárlón glacial lagoon",
+        "region": "Southeast"
+      },
+      {
+        "name": "Hallgrímskirkja church",
+        "region": "Reykjavík"
+      },
+      {
+        "name": "Kirkjufell",
+        "region": "West"
+      },
+      {
+        "name": "Dimmuborgir lava",
+        "region": "North"
+      },
+      {
+        "name": "Reynisfjara basalt",
+        "region": "South"
+      }
+    ],
+    "animals": [
+      "Atlantic puffin",
+      "Arctic fox",
+      "Icelandic horse"
+    ],
+    "plants": [
+      "lupin introduced plant",
+      "moss"
+    ],
+    "foodOrCraft": [
+      "wool knitting"
+    ],
+    "avatarFocus": "Þingvellir rift",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/is/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "it",
+    "name": "Italy",
+    "landmarks": [
+      {
+        "name": "Colosseum",
+        "region": "Lazio"
+      },
+      {
+        "name": "Florence cathedral",
+        "region": "Tuscany"
+      },
+      {
+        "name": "Venice Rialto bridge",
+        "region": "Veneto"
+      },
+      {
+        "name": "Pompeii",
+        "region": "Campania"
+      },
+      {
+        "name": "Leaning Tower",
+        "region": "Tuscany"
+      },
+      {
+        "name": "Trulli of Alberobello",
+        "region": "Apulia"
+      },
+      {
+        "name": "Valley of Temples",
+        "region": "Sicily"
+      },
+      {
+        "name": "Dolomites",
+        "region": "northeast"
+      }
+    ],
+    "animals": [
+      "Apennine wolf",
+      "alpine ibex"
+    ],
+    "plants": [
+      "olive",
+      "cypress"
+    ],
+    "foodOrCraft": [
+      "Murano glass"
+    ],
+    "avatarFocus": "Colosseum",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/it/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "jm",
+    "name": "Jamaica",
+    "landmarks": [
+      {
+        "name": "Blue Mountains coffee landscape",
+        "region": "eastern Jamaica"
+      },
+      {
+        "name": "Port Royal fort remains",
+        "region": "Kingston"
+      },
+      {
+        "name": "Devon House",
+        "region": "Kingston"
+      },
+      {
+        "name": "Rose Hall",
+        "region": "Saint James"
+      },
+      {
+        "name": "Dunns River Falls",
+        "region": "Saint Ann"
+      },
+      {
+        "name": "Seville Great House",
+        "region": "Saint Ann"
+      }
+    ],
+    "animals": [
+      "red-billed streamertail",
+      "Jamaican iguana"
+    ],
+    "plants": [
+      "lignum vitae",
+      "ackee"
+    ],
+    "foodOrCraft": [
+      "wood carving"
+    ],
+    "avatarFocus": "Blue Mountains coffee landscape",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/jm/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "jo",
+    "name": "Jordan",
+    "landmarks": [
+      {
+        "name": "Petra rock-cut tombs",
+        "region": "Ma’an"
+      },
+      {
+        "name": "Jerash Roman ruins",
+        "region": "Jerash"
+      },
+      {
+        "name": "Wadi Rum",
+        "region": "Aqaba"
+      },
+      {
+        "name": "Umm Qais Roman ruins",
+        "region": "Irbid"
+      },
+      {
+        "name": "Kerak Castle",
+        "region": "Karak"
+      },
+      {
+        "name": "Mount Nebo church mosaics",
+        "region": "Madaba"
+      },
+      {
+        "name": "Madaba church mosaic map",
+        "region": "Madaba"
+      }
+    ],
+    "animals": [
+      "Arabian oryx in managed reserves",
+      "Nubian ibex"
+    ],
+    "plants": [
+      "olive",
+      "black iris"
+    ],
+    "foodOrCraft": [
+      "mosaic craft"
+    ],
+    "avatarFocus": "Petra rock-cut tombs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/jo/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "jp",
+    "name": "Japan",
+    "landmarks": [
+      {
+        "name": "Himeji Castle",
+        "region": "Hyōgo"
+      },
+      {
+        "name": "Mount Fuji",
+        "region": "Yamanashi and Shizuoka"
+      },
+      {
+        "name": "Tōji pagoda",
+        "region": "Kyoto"
+      },
+      {
+        "name": "Itsukushima shrine",
+        "region": "Hiroshima"
+      },
+      {
+        "name": "Shirakawa gasshō houses",
+        "region": "Gifu"
+      },
+      {
+        "name": "Hōryūji temple",
+        "region": "Nara"
+      },
+      {
+        "name": "Shiretoko coast",
+        "region": "Hokkaidō"
+      },
+      {
+        "name": "Shuri Castle restoration context",
+        "region": "Okinawa"
+      },
+      {
+        "name": "Jōmon stone circles",
+        "region": "Akita"
+      }
+    ],
+    "animals": [
+      "Japanese macaque in mountains",
+      "sika deer in Nara",
+      "red-crowned crane in Hokkaidō"
+    ],
+    "plants": [
+      "sakura",
+      "Japanese cedar"
+    ],
+    "foodOrCraft": [
+      "origami",
+      "porcelain"
+    ],
+    "avatarFocus": "Himeji Castle",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/jp/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Shuri Castle was damaged by fire in 2019; verify reconstruction status before depicting. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ke",
+    "name": "Kenya",
+    "landmarks": [
+      {
+        "name": "Fort Jesus",
+        "region": "Mombasa"
+      },
+      {
+        "name": "Mount Kenya",
+        "region": "Central"
+      },
+      {
+        "name": "Lake Nakuru",
+        "region": "Rift Valley"
+      },
+      {
+        "name": "Maasai Mara savanna",
+        "region": "Narok"
+      },
+      {
+        "name": "Gedi secular palace ruins",
+        "region": "Kilifi"
+      },
+      {
+        "name": "Thimlich Ohinga stone settlement",
+        "region": "Migori"
+      },
+      {
+        "name": "Turkana archaeological landscape",
+        "region": "Turkana"
+      }
+    ],
+    "animals": [
+      "African elephant in savanna",
+      "giraffe",
+      "Grevy zebra in north"
+    ],
+    "plants": [
+      "acacia",
+      "baobab"
+    ],
+    "foodOrCraft": [
+      "beadwork with community-specific attribution"
+    ],
+    "avatarFocus": "Fort Jesus",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ke/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kg",
+    "name": "Kyrgyzstan",
+    "landmarks": [
+      {
+        "name": "Tash Rabat caravanserai",
+        "region": "Naryn"
+      },
+      {
+        "name": "Issyk Kul",
+        "region": "Issyk Kul"
+      },
+      {
+        "name": "Sary Chelek lake",
+        "region": "Jalal Abad"
+      },
+      {
+        "name": "Saimaluu Tash petroglyphs",
+        "region": "Jalal Abad"
+      },
+      {
+        "name": "Ala Archa peaks",
+        "region": "Chüy"
+      }
+    ],
+    "animals": [
+      "snow leopard in high mountains",
+      "Kyrgyz horse"
+    ],
+    "plants": [
+      "edelweiss",
+      "walnut"
+    ],
+    "foodOrCraft": [
+      "felt shyrdak"
+    ],
+    "avatarFocus": "Tash Rabat caravanserai",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kg/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kh",
+    "name": "Cambodia",
+    "landmarks": [
+      {
+        "name": "Angkor Wat Hindu-Buddhist temple",
+        "region": "Siem Reap"
+      },
+      {
+        "name": "Bayon Buddhist temple",
+        "region": "Siem Reap"
+      },
+      {
+        "name": "Preah Vihear Hindu temple",
+        "region": "Preah Vihear"
+      },
+      {
+        "name": "Sambor Prei Kuk Hindu ruins",
+        "region": "Kampong Thom"
+      },
+      {
+        "name": "Koh Ker Hindu ruins",
+        "region": "Preah Vihear"
+      },
+      {
+        "name": "Tonle Sap stilt villages",
+        "region": "lake basin"
+      },
+      {
+        "name": "Cardamom forest",
+        "region": "southwest"
+      }
+    ],
+    "animals": [
+      "giant ibis in northern wetlands",
+      "Irrawaddy dolphin in Mekong"
+    ],
+    "plants": [
+      "sugar palm",
+      "lotus"
+    ],
+    "foodOrCraft": [
+      "silk weaving"
+    ],
+    "avatarFocus": "Angkor Wat Hindu-Buddhist temple",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kh/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "ki",
+    "name": "Kiribati",
+    "landmarks": [
+      {
+        "name": "Maneaba ni Maungatabu parliament",
+        "region": "Ambo, South Tarawa"
+      },
+      {
+        "name": "Phoenix Islands reefs",
+        "region": "Phoenix Islands"
+      },
+      {
+        "name": "Christmas Island lagoon",
+        "region": "Kiritimati"
+      },
+      {
+        "name": "Butaritari lagoon",
+        "region": "Gilbert Islands"
+      },
+      {
+        "name": "traditional maneaba meetinghouse",
+        "region": "Gilbert Islands"
+      }
+    ],
+    "animals": [
+      "frigatebird",
+      "sooty tern",
+      "green turtle"
+    ],
+    "plants": [
+      "coconut",
+      "pandanus"
+    ],
+    "foodOrCraft": [
+      "outrigger canoe",
+      "woven mats"
+    ],
+    "avatarFocus": "traditional maneaba meetinghouse",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/ki/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      },
+      {
+        "url": "https://parliament.gov.ki/index.php",
+        "title": "Kiribati Parliament: location in Ambo and architecture inspired by traditional maneaba"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "km",
+    "name": "Comoros",
+    "landmarks": [
+      {
+        "name": "Mount Karthala",
+        "region": "Grande Comore"
+      },
+      {
+        "name": "Lac Salé crater lake",
+        "region": "Grande Comore"
+      },
+      {
+        "name": "Mohéli marine park",
+        "region": "Mohéli"
+      },
+      {
+        "name": "Itsandra secular seaside houses",
+        "region": "Grande Comore"
+      },
+      {
+        "name": "Mutsamudu citadel secular walls",
+        "region": "Anjouan"
+      },
+      {
+        "name": "Dziani Boundouni lake",
+        "region": "Mohéli"
+      }
+    ],
+    "animals": [
+      "Livingstones fruit bat on Anjouan and Mohéli",
+      "green turtle on Mohéli"
+    ],
+    "plants": [
+      "ylang ylang",
+      "clove"
+    ],
+    "foodOrCraft": [
+      "woven baskets"
+    ],
+    "avatarFocus": "Mount Karthala",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/km/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kn",
+    "name": "St Kitts & Nevis",
+    "landmarks": [
+      {
+        "name": "Brimstone Hill fortress",
+        "region": "Saint Kitts"
+      },
+      {
+        "name": "Wingfield estate ruins",
+        "region": "Saint Kitts"
+      },
+      {
+        "name": "Romney Manor",
+        "region": "Saint Kitts"
+      },
+      {
+        "name": "Nevis Peak",
+        "region": "Nevis"
+      },
+      {
+        "name": "Charlestown Georgian civic buildings",
+        "region": "Nevis"
+      },
+      {
+        "name": "Saint Kitts scenic railway",
+        "region": "Saint Kitts"
+      }
+    ],
+    "animals": [
+      "green vervet monkey introduced population",
+      "hawksbill turtle"
+    ],
+    "plants": [
+      "flamboyant tree",
+      "sugar cane"
+    ],
+    "foodOrCraft": [
+      "batik"
+    ],
+    "avatarFocus": "Brimstone Hill fortress",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kn/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kp",
+    "name": "Korea (North)",
+    "landmarks": [
+      {
+        "name": "Koguryo tomb murals",
+        "region": "South Pyongan"
+      },
+      {
+        "name": "Kaesong Confucian academy",
+        "region": "North Hwanghae"
+      },
+      {
+        "name": "Juche Tower secular exterior",
+        "region": "Pyongyang"
+      },
+      {
+        "name": "Paektu crater lake",
+        "region": "Ryanggang"
+      },
+      {
+        "name": "Mount Kumgang",
+        "region": "Kangwon"
+      },
+      {
+        "name": "Pohyon Buddhist temple",
+        "region": "North Pyongan"
+      }
+    ],
+    "animals": [
+      "red-crowned crane in wetlands"
+    ],
+    "plants": [
+      "pine",
+      "magnolia"
+    ],
+    "foodOrCraft": [
+      "celadon"
+    ],
+    "avatarFocus": "Koguryo tomb murals",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kp/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kr",
+    "name": "Korea (South)",
+    "landmarks": [
+      {
+        "name": "Bulguksa Buddhist temple",
+        "region": "Gyeongju"
+      },
+      {
+        "name": "Seokguram grotto",
+        "region": "Gyeongju"
+      },
+      {
+        "name": "Changdeokgung palace",
+        "region": "Seoul"
+      },
+      {
+        "name": "Hwaseong fortress",
+        "region": "Suwon"
+      },
+      {
+        "name": "Haeinsa temple",
+        "region": "South Gyeongsang"
+      },
+      {
+        "name": "Jeju volcanic landscape",
+        "region": "Jeju"
+      },
+      {
+        "name": "Hahoe village",
+        "region": "North Gyeongsang"
+      }
+    ],
+    "animals": [
+      "Korean water deer",
+      "red-crowned crane in winter wetlands"
+    ],
+    "plants": [
+      "mugunghwa",
+      "pine"
+    ],
+    "foodOrCraft": [
+      "celadon",
+      "hanji paper"
+    ],
+    "avatarFocus": "Bulguksa Buddhist temple",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kr/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kw",
+    "name": "Kuwait",
+    "landmarks": [
+      {
+        "name": "Kuwait Towers",
+        "region": "Kuwait City"
+      },
+      {
+        "name": "Failaka Greek archaeological ruins",
+        "region": "Failaka"
+      },
+      {
+        "name": "Red Fort",
+        "region": "Al Jahra"
+      },
+      {
+        "name": "Sadu House",
+        "region": "Kuwait City"
+      },
+      {
+        "name": "Al Qurain house museum",
+        "region": "Mubarak Al Kabeer"
+      },
+      {
+        "name": "Kuwait Bay mudflats",
+        "region": "coast"
+      }
+    ],
+    "animals": [
+      "Arabian red fox",
+      "greater flamingo in wetlands",
+      "dromedary"
+    ],
+    "plants": [
+      "date palm",
+      "desert shrubs"
+    ],
+    "foodOrCraft": [
+      "sadu weaving"
+    ],
+    "avatarFocus": "Kuwait Towers",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kw/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "kz",
+    "name": "Kazakhstan",
+    "landmarks": [
+      {
+        "name": "Tamgaly petroglyphs",
+        "region": "Almaty Region"
+      },
+      {
+        "name": "Charyn canyon",
+        "region": "Almaty Region"
+      },
+      {
+        "name": "Baiterek tower",
+        "region": "Astana"
+      },
+      {
+        "name": "Aksu Zhabagly",
+        "region": "Turkistan Region"
+      },
+      {
+        "name": "Burabay rock lakes",
+        "region": "Akmola"
+      },
+      {
+        "name": "Bozzhyra chalk landscape",
+        "region": "Mangystau"
+      },
+      {
+        "name": "Issyk golden warrior burial archaeology",
+        "region": "Almaty Region"
+      }
+    ],
+    "animals": [
+      "saiga on steppe",
+      "snow leopard in Tian Shan",
+      "Bactrian camel domestic herds"
+    ],
+    "plants": [
+      "tulip",
+      "steppe feather grass"
+    ],
+    "foodOrCraft": [
+      "felt yurt craft"
+    ],
+    "avatarFocus": "Tamgaly petroglyphs",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/kz/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "la",
+    "name": "Laos",
+    "landmarks": [
+      {
+        "name": "Wat Xieng Thong Buddhist temple",
+        "region": "Luang Prabang"
+      },
+      {
+        "name": "Vat Phou Hindu ruins",
+        "region": "Champasak"
+      },
+      {
+        "name": "Plain of Jars",
+        "region": "Xiangkhouang"
+      },
+      {
+        "name": "Kuang Si falls",
+        "region": "Luang Prabang"
+      },
+      {
+        "name": "Kong Lor cave",
+        "region": "Khammouane"
+      },
+      {
+        "name": "Si Phan Don river islands",
+        "region": "Champasak"
+      }
+    ],
+    "animals": [
+      "Asian elephant in forests",
+      "white-cheeked gibbon in forest"
+    ],
+    "plants": [
+      "frangipani",
+      "bamboo"
+    ],
+    "foodOrCraft": [
+      "silk weaving"
+    ],
+    "avatarFocus": "Wat Xieng Thong Buddhist temple",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/la/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  },
+  {
+    "code": "lb",
+    "name": "Lebanon",
+    "landmarks": [
+      {
+        "name": "Baalbek Roman temples",
+        "region": "Baalbek Hermel"
+      },
+      {
+        "name": "Byblos ancient harbour ruins",
+        "region": "Mount Lebanon"
+      },
+      {
+        "name": "Tyre Roman hippodrome",
+        "region": "South"
+      },
+      {
+        "name": "Anjar secular Umayyad city ruins",
+        "region": "Beqaa"
+      },
+      {
+        "name": "Qadisha Christian monasteries",
+        "region": "North"
+      },
+      {
+        "name": "Cedars of God",
+        "region": "North"
+      },
+      {
+        "name": "Sidon Sea Castle",
+        "region": "South"
+      }
+    ],
+    "animals": [
+      "striped hyena",
+      "Eurasian otter in rivers"
+    ],
+    "plants": [
+      "cedar",
+      "olive"
+    ],
+    "foodOrCraft": [
+      "blown glass"
+    ],
+    "avatarFocus": "Baalbek Roman temples",
+    "sources": [
+      {
+        "url": "https://whc.unesco.org/en/statesparties/lb/",
+        "title": "UNESCO country heritage inventory — reference for site verification, not exhaustive regional coverage"
+      }
+    ],
+    "notes": "Representative selection across regions; does not claim all provinces, districts or cultural heritage. Keep distinct habitats separate. Exclude Islamic religious architecture, symbols and calligraphy, including incidental skyline features. Verify exact building silhouettes against reference before production. Source list provides heritage research references; this draft is not a claim that every listed animal, craft or site has completed source-by-source verification."
+  }
+]
