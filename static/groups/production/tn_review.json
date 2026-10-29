@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Tunisia montage with Carthage-like column ruins, El Jem amphitheatre, Dougga theater/temple, Kerkouane-like archaeology and salt lake oasis. Natural fennec/camel, olive/date palms. Classical masonry and relative geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Tunisia montage with Carthage-like column ruins, El Jem amphitheatre, Dougga theater/temple, Kerkouane-like archaeology and salt lake oasis. Natural fennec/camel, olive/date palms. Classical masonry and relative geography are illustrative approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Carthage-like classical columns and ruins above Mediterranean bay with natural fennec and olive. Column shapes and archaeological terrain are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
