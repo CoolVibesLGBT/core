@@ -1,0 +1,8 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-b5fd99dc-526b-44d8-b440-6920f54da219.png",
+  "prompt": "Edit this country illustration with only a camera/framing change. Preserve the current polished detailed painterly cel-shaded adventure-game style, texture, lighting, palette, country-specific monuments and natural animals. Zoom out the entire composition by about 20 percent and reveal surrounding scenery; keep all primary landmark roofs and full bodies of every animal including feet, horns and complete tails inside the central 84 percent of the frame. Leave clear space around each animal. Do not place principal buildings on canvas borders. Specifically make the entire Schonbrunn Palace facade and both roof ends visible with scenery before the left and right edges; make Melk Abbey entirely visible too. Keep all ibex and marmot silhouettes inside frame. No text, logos, people, flags, mosques, minarets, Islamic religious architecture or iconography. Keep authentic non-Islamic historic religious monuments. Final aspect ratio 3:1 wide panorama final 1500x500.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-c865deb4-27cb-4537-8c1c-50373cbc2362.png"
+  ]
+}
