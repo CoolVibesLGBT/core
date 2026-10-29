@@ -1,0 +1,38 @@
+[
+  {
+    "code": "au",
+    "kind": "hero",
+    "size": [
+      1920,
+      1280
+    ],
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-35408177-af00-49e8-abac-436e6ebc53ca.png"
+  },
+  {
+    "code": "at",
+    "kind": "hero",
+    "size": [
+      1920,
+      1280
+    ],
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-41b63155-c65d-46c8-b340-c62b72320638.png"
+  },
+  {
+    "code": "at",
+    "kind": "cover",
+    "size": [
+      1500,
+      500
+    ],
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-c865deb4-27cb-4537-8c1c-50373cbc2362.png"
+  },
+  {
+    "code": "at",
+    "kind": "avatar",
+    "size": [
+      512,
+      512
+    ],
+    "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-e28a55f9-9bb8-4cd0-b74e-13610434cfea.png"
+  }
+]
