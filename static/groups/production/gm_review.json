@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Gambian river montage with island fort interpretation, Wassu stones, civic waterfront and fishing boats; natural colobus and fish eagle. No mountains. Colobus tail reaches lower edge. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed low-lying Gambia river panorama with island fort, Wassu stones, civic waterfront, boats and mangroves. Entire colobus tail and fish eagle visible. Illustrative landmark approximation and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Kunta Kinteh fort interpretation and red colobus with full curled tail, low river landscape and mangroves. Peripheral upper-left animal may be trimmed by circular crop. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

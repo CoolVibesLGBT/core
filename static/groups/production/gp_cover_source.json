@@ -1,0 +1,10 @@
+{
+  "path": "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-1d0ee9df-a7a8-4f7a-8265-f98bc54729bf.png",
+  "prompt": "Use case: precise-object-edit. Correct ONLY the endemic bird in this regional illustration to its accurate species-specific plumage: Guadeloupe woodpecker (Melanerpes herminieri): the head and crown are BLACK, not red; throat and belly deep blood-red; back and wings solid blue-black with metallic blue sheen; no white wing bars, no white spots and no white facial stripes. Slim straight dark bill. Remove the red crown and European spotted-woodpecker markings. Preserve the bird's current pose and position, complete silhouette safely inside image, and natural neutral expression. Preserve ALL other elements, landscapes, buildings, other wildlife, flowers, detailed painterly cel-shaded atlas style, lighting, palette, textures and framing. No new people, words, lettering, flags, emblems, mosques, minarets or Islamic religious structures. Same source aspect ratio.",
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "/Users/ersanyakit/.codex/generated_images/01a16d69-3d5b-7f73-9d74-2f9366bfab6b/exec-428af144-0586-4806-9193-44ea71b65f35.png"
+  ],
+  "saved_asset": "images/gp_cover.avif",
+  "source_png_available": false
+}
