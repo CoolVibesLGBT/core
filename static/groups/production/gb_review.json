@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed UK national montage with Stonehenge, Tower Bridge, castles, York Minster, Roman Baths and Causeway. Natural deer, squirrel and coastal puffin. Tiny flag-like pennant on castle remains a generated imperfection. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed UK panorama with regional landmark clusters and natural deer, puffin, squirrel; no visible flags. Cel-shaded illustrative architecture, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Stonehenge and red deer, strong outlines and layered sunset landscape. Deer at left may be partially trimmed by circular crop. Approximate depth masks only.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
