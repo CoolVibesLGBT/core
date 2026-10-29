@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Nigeria montage of Sukur, Benin palace/bronze interpretation, Osun grove, Olumo rock, cave and National Theatre. Natural drill and elephant, oil palm. No lettering or excluded architecture. Elephant rear near edge. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Nigeria heritage montage: Sukur, Osun grove sculptures, Benin palace and bronzes, National Theatre, Olumo rock and cave. Natural elephant and drill, oil palm. No lettering or excluded structures. Approximate landmark detail and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Sukur hill settlement interpretation, natural elephant and oil palms. No lettering or excluded structures. Elephant entirely inside frame, settlement roof near upper center. Stone architecture simplified; approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

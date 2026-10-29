@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Nicaragua montage with Leon Cathedral, ruins, Granada, island fort and volcanoes. Guardabarranco full tail and howler monkey visible. Architecture illustrated, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Nicaragua panorama with Leon Cathedral, Granada, ruins, fort, lake and volcanoes. Full guardabarranco and howler monkey visible. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Leon Cathedral interpretation and guardabarranco with full racket tail; frangipani accents. Bird and tower inside square; circular crop trims peripheral tail tips. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
