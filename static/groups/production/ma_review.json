@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Moroccan civilian kasbah and coast fortress, Roman ruins, modern bridge, waterfall and gorge visible. Natural Barbary macaque, argan framing. No visible mosques, minarets, lettering or religious symbols. Approximate regional montage and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Selected regenerated Morocco panorama after rejecting minaret-like coastal tower. Low civilian coastal houses, defensive ramparts, ancient Roman ruins, kasbah, modern bridge, waterfall and gorge visible. Macaque and camel. No visible religious symbols or lettering. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Volubilis Roman ruin interpretation and Barbary macaque, argan framing. No lettering, minarets or excluded religious structures visible. Animal inside square, face central safe circle. Approximate landmark geometry and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

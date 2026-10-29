@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Libyan montage with classical theaters/column ruins, white Ghadames-like civilian houses, Sahara rock art and date palms, natural camel/fennec. Ancient column counts, theater facades and relative coast/desert positions are artistic approximations; no lettering/flags or religious architecture observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Libyan montage with classical theaters/column ruins, white Ghadames-like civilian houses, Sahara rock art and date palms, natural camel/fennec. Ancient column counts, theater facades and relative coast/desert positions are artistic approximations; no lettering/flags or religious architecture observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Leptis-like classical Roman theater with natural camel and date palm. Theater columns are approximate and stage facade right edge extends outside frame; camel fully inside square. No lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
