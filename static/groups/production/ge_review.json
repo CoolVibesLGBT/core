@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Georgian regional montage with Christian stone churches, cave sites, Svan towers, hill fortress and Caucasus peaks, grapes and pomegranates. Church/cave details and mountain scale are artistic approximations. Natural tur and bear; no lettering or flags observed. Foreground tur nearly reaches right edge.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Georgian regional montage with Christian stone churches, cave sites, Svan towers, hill fortress and Caucasus peaks, grapes and pomegranates. Church/cave details and mountain scale are artistic approximations. Natural tur and bear; no lettering or flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Georgian stone cathedral, natural Caucasian tur, grapes and pomegranates. Cathedral facade and surrounding geography are illustrative approximations; outer fruit and tur may trim in circular crop. No lettering/flags.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
