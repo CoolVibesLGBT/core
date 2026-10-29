@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Kosovo montage with stone bridge, monastery, civilian bazaar houses and Rugova; chamois and eagle. Detailed painterly atlas style and framing visually inspected; no lettering or excluded religious architecture observed. Subject regions are approximate, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Kosovo stone bridge and monastery panorama, natural chamois and eagle. Detailed painterly atlas style and framing visually inspected; no lettering or excluded religious architecture observed. Subject regions are approximate, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Prizren stone bridge and fortress landscape with natural chamois. Detailed painterly atlas style and framing visually inspected; no lettering or excluded religious architecture observed. Subject regions are approximate, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
