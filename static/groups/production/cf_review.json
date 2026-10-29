@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Bangui red-brick cathedral corrected via image edit to flat square bell towers and central niche, replacing invented spires. Boali waterfall and forest/savanna montage with gorilla elephant and eland. No restricted Islamic forms observed. Warm gold/peach outlined layers.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Bangui red-brick cathedral with flat square bell towers/niche, Boali waterfall montage, gorilla forest elephant and striped giant eland. No restricted architecture observed. Warm golden outlined sculpted depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Natural elephant at forest clearing water, raffia and tall forest silhouettes. No architecture or restricted motifs observed. Warm gold/peach outlined sculpted depth. Representative clearing, not mapped documentary site.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
