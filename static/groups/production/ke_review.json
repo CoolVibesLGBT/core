@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Kenyan montage with Fort Jesus-like coastal fortress, Mount Kenya, Gedi-like stone ruins, Thimlich-like circular walls and rift valley lake/pillars. Natural elephant, giraffe, zebra and flamingos in separate habitats. Ruin arches and geographical scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Kenyan montage with Fort Jesus-like coastal fortress, Mount Kenya, Gedi-like stone ruins, Thimlich-like circular walls and rift valley lake/pillars. Natural elephant, giraffe, zebra and flamingos in separate habitats. Ruin arches and geographical scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Fort Jesus-like coastal fortress with natural elephant, acacia/baobab and aloe. Fortress proportions and distant landforms are artistic approximations; fortress right edge is outside frame. No lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
