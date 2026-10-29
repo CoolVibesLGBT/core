@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "checks": [
+    "WebGL program, flow texture and opaque frame",
+    "Taiwan, revised AZ/AU/AT and special/subdivision codes: Turkish names and all three images decoded",
+    "stitched panorama shader, seam and full-turn screenshots",
+    "profiles and personal preset",
+    "decoded-image snapshot crossfade",
+    "quality selection",
+    "touch pan and pinch",
+    "real MediaRecorder video download",
+    "mobile layout fits viewport",
+    "saved settings after reload"
+  ],
+  "errors": [],
+  "backend": "gpu"
+}

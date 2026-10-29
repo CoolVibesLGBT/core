@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Fiji montage with Levuka, Nadi Hindu temple, dunes, waterfall and reef. Regenerated to fit entire iguana including curled tail. Lory tail near right margin. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Fiji panorama: temple, Levuka, dunes, waterfalls and reef in separate montage regions. Entire iguana visible, lory at far right can be trimmed by edge. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Levuka waterfront and fully visible crested iguana with curled tail. Circular crop trims lower tail, central face remains readable. Approximate illustrated waterfront and depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}

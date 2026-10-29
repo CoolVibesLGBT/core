@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Finnish castle, timber town, wooden church, sea fortress, cairns and lakes visible. Seal foreground right, reindeer distant tundra; birch and cloudberry frame. No lettering or excluded architecture. Seal tail touches right edge; softer illustrative treatment. Approximate depth masks.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Finland panorama inspected with sea fortress, castle, wooden houses and church, cairns and lake country. Seal foreground and reindeer distant right. No visible text or excluded structures. Seal at right margin. Approximate hand drawn depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Sea fortress, seal, birch and cloudberry visible. No visible text or prohibited structures. Seal head inside central crop safe area; fortress right edge close to margin. Approximate hand authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
