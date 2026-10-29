@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Iraq montage inspected: ancient ziggurats, Ishtar gate interpretation, Hatra arches, citadel and Christian monastery; marsh reeds, buffalo and ducks. No visible lettering or excluded architecture. Archaeological reconstruction approximate; hand-authored depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Iraqi ancient sites and citadel, Christian monastery, marsh buffalo and ducks visible. Date palm and reeds frame foreground. No lettering or excluded architecture. Archaeological reconstruction and depth approximate.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Ancient ziggurat interpretation and natural marsh buffalo, date palms and reeds. No visible lettering or excluded architecture. Ziggurat reconstructed rather than exact ruin detail. Animal face inside central circle. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
