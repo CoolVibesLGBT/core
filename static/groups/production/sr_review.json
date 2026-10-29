@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Suriname montage with Paramaribo-like wooden civilian houses and twin-spire Christian cathedral, Fort Zeelandia-like brick fort, Jodensavanne-like ruins and rainforest plateau/waterfall. Natural jaguar/scarlet ibis, kapok and heliconia. Facades and landscape scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Suriname montage with Paramaribo-like wooden civilian houses and twin-spire Christian cathedral, Fort Zeelandia-like brick fort, Jodensavanne-like ruins and rainforest plateau/waterfall. Natural jaguar/scarlet ibis, kapok and heliconia. Facades and landscape scale are artistic approximations; no lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Paramaribo-like white wooden houses with natural jaguar, kapok tree and heliconia. Riverside arrangement and facades are artistic approximations, large nearest house reaches right frame. No lettering/flags observed.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
