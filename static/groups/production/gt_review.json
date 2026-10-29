@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "status": "reviewed",
+    "observations": "Reviewed Guatemala national montage with Tikal, Maya stelae, Antigua churches, lake volcanoes and limestone pools. Jaguar and quetzal fully visible. Carvings are illustrative approximations. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Reviewed Guatemala panorama: Maya ruins and carved stelae, Antigua churches and arch, lake, volcanoes and pools. Jaguar and full quetzal tail fit inside. Carvings illustrative, approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Reviewed Tikal temples and quetzal with curled tail, ceiba and coffee. Main temple and bird inside square; circular crop may trim edge of temple and bird crest. Approximate depth.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
