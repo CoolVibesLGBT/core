@@ -1,0 +1,17 @@
+{
+  "avatar": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Olavtoppen ice cap, Nyr\u00f8ysa black volcanic shore, Cape Valdivia cliffs, glacier terminus and Southern Ocean surf. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "hero": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Olavtoppen ice cap, Nyr\u00f8ysa black volcanic shore, Cape Valdivia cliffs, glacier terminus and Southern Ocean surf. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  },
+  "cover": {
+    "status": "reviewed",
+    "observations": "Visually inspected detailed painterly atlas style, complete foreground wildlife silhouettes and principal landmark framing. Regional selection: Olavtoppen ice cap, Nyr\u00f8ysa black volcanic shore, Cape Valdivia cliffs, glacier terminus and Southern Ocean surf. No lettering or excluded religious architecture observed at review scale. Wildlife stylized. Approximate depth masks, not measured geometry.",
+    "depth": "approximate hand-authored subject masks; not measured geometry"
+  }
+}
