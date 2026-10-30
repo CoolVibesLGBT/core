@@ -40,6 +40,8 @@ func chatProjection(entity *chatmodel.Chat, viewerID uuid.UUID, knownUsers ...*m
 		Title:                cloneLocalizedString(entity.Title),
 		Description:          cloneLocalizedString(entity.Description),
 		Avatar:               chatMediaProjection(entity.Avatar),
+		Cover:                chatMediaProjection(entity.Cover),
+		Hero:                 chatMediaProjection(entity.Hero),
 		PinnedMsgID:          entity.PinnedMsgID,
 		PinnedMessageIDs:     entity.PinnedMessages.IDs(),
 		LastMessageID:        entity.LastMessageID,

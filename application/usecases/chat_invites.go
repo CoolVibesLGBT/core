@@ -31,7 +31,7 @@ func (s *ChatService) PreviewGroup(ctx context.Context, token, username string) 
 	if err != nil {
 		return nil, err
 	}
-	return &types.ChatGroupPreview{ID: entity.ID, Title: cloneLocalizedString(entity.Title), Description: cloneLocalizedString(entity.Description), Visibility: entity.Visibility, PublicUsername: entity.PublicUsername, Avatar: chatMediaProjection(entity.Avatar), MemberCount: count}, nil
+	return &types.ChatGroupPreview{ID: entity.ID, Title: cloneLocalizedString(entity.Title), Description: cloneLocalizedString(entity.Description), Visibility: entity.Visibility, PublicUsername: entity.PublicUsername, Avatar: chatMediaProjection(entity.Avatar), Cover: chatMediaProjection(entity.Cover), Hero: chatMediaProjection(entity.Hero), MemberCount: count}, nil
 }
 func (s *ChatService) JoinGroup(ctx context.Context, actor *models.User, token, username string) (*types.Chat, error) {
 	r, ok := s.chatRepo.(ports.ChatGroupInvitesRepository)

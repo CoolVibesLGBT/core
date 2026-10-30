@@ -26,3 +26,5 @@ build
 
 ./seeders/taxonomy
 seeders/taxonomy
+
+static/groups/index.html

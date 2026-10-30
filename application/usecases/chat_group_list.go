@@ -25,7 +25,7 @@ func (s *ChatService) ListPublicGroups(ctx context.Context, query ports.PublicGr
 	groups := make([]types.ChatGroupPreview, 0, len(page.Groups))
 	for _, row := range page.Groups {
 		entity := row.Chat
-		groups = append(groups, types.ChatGroupPreview{ID: entity.ID, Title: cloneLocalizedString(entity.Title), Description: cloneLocalizedString(entity.Description), Visibility: entity.Visibility, PublicUsername: entity.PublicUsername, Avatar: chatMediaProjection(entity.Avatar), MemberCount: row.MemberCount})
+		groups = append(groups, types.ChatGroupPreview{ID: entity.ID, Title: cloneLocalizedString(entity.Title), Description: cloneLocalizedString(entity.Description), Visibility: entity.Visibility, PublicUsername: entity.PublicUsername, Avatar: chatMediaProjection(entity.Avatar), Cover: chatMediaProjection(entity.Cover), Hero: chatMediaProjection(entity.Hero), MemberCount: row.MemberCount})
 	}
 	var cursor *string
 	if page.HasMore && len(page.Groups) > 0 {

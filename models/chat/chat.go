@@ -27,6 +27,12 @@ type Chat struct {
 	AvatarID *uuid.UUID   `gorm:"type:uuid" json:"avatar_id,omitempty"`
 	Avatar   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:AvatarID;references:ID" json:"avatar,omitempty"`
 
+	CoverID *uuid.UUID   `gorm:"type:uuid" json:"cover_id,omitempty"`
+	Cover   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:CoverID;references:ID" json:"cover,omitempty"`
+
+	HeroID *uuid.UUID   `gorm:"type:uuid" json:"hero_id,omitempty"`
+	Hero   *media.Media `gorm:"constraint:OnDelete:SET NULL;foreignKey:HeroID;references:ID" json:"hero,omitempty"`
+
 	CreatorID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"creator_id"`
 	PinnedMsgID *uuid.UUID `gorm:"type:uuid;index" json:"pinned_msg_id,omitempty"`
 	PinnedMsg   *post.Post `gorm:"foreignKey:PinnedMsgID;references:ID" json:"pinned_msg,omitempty"`

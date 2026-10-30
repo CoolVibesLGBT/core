@@ -273,6 +273,8 @@ func (r *ChatRepository) chatsByUserIDQuery(ctx context.Context, query ports.Cha
 		Where("chats.id NOT IN (?)", deletedChatContentIDs(r.db, models.EngagementContentableTypeChat,
 			query.UserID, models.EngagementKindChatDeletedForMe, models.EngagementKindChatDeletedForAll)).
 		Preload("Avatar", chatMediaReadScope).Preload("Avatar.File", chatAvatarFileReadScope).
+		Preload("Cover", chatMediaReadScope).Preload("Cover.File", chatAvatarFileReadScope).
+		Preload("Hero", chatMediaReadScope).Preload("Hero.File", chatAvatarFileReadScope).
 		Preload("Participants", "left_at IS NULL").
 		Preload("Participants.User", chatUserReadScope).
 		Preload("Participants.User.Avatar", chatMediaReadScope).

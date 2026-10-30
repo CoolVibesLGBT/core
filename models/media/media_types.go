@@ -17,6 +17,8 @@ const (
 	RoleChatImage MediaRole = "chat_image"
 	RoleChatMedia MediaRole = "chat_media"
 	RoleChatVideo MediaRole = "chat_video"
+	RoleChatCover MediaRole = "chat_cover"
+	RoleChatHero  MediaRole = "chat_hero"
 	RoleOther     MediaRole = "other"
 	RoleVideo     MediaRole = "video"
 

@@ -44,6 +44,8 @@ type Chat struct {
 	Title          map[string]string `json:"title,omitempty"`
 	Description    map[string]string `json:"description,omitempty"`
 	Avatar         *ChatMedia        `json:"avatar,omitempty"`
+	Cover          *ChatMedia        `json:"cover,omitempty"`
+	Hero           *ChatMedia        `json:"hero,omitempty"`
 
 	CreatorID   *SnowflakeID `json:"creator_id,omitempty"`
 	PinnedMsgID *uuid.UUID   `json:"pinned_msg_id,omitempty"`
@@ -199,5 +201,7 @@ type ChatGroupPreview struct {
 	Visibility     string            `json:"visibility"`
 	PublicUsername *string           `json:"public_username,omitempty"`
 	Avatar         *ChatMedia        `json:"avatar,omitempty"`
+	Cover          *ChatMedia        `json:"cover,omitempty"`
+	Hero           *ChatMedia        `json:"hero,omitempty"`
 	MemberCount    int64             `json:"member_count"`
 }

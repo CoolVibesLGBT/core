@@ -4,6 +4,7 @@ import (
 	"core/helpers"
 	default_users "core/seeders/default_users"
 	eventkinds "core/seeders/eventkinds"
+	groups "core/seeders/groups"
 	payments "core/seeders/payments"
 	places "core/seeders/places"
 	preferences "core/seeders/preferences"
@@ -39,6 +40,11 @@ func Seed(db *gorm.DB, node *helpers.Node) error {
 	}
 
 	err = places.SeedPlaces(db, node)
+	if err != nil {
+		return err
+	}
+
+	err = groups.SeedGroups(db, node)
 	if err != nil {
 		return err
 	}

@@ -84,7 +84,7 @@ func (r *ChatRepository) PreviewGroup(ctx context.Context, token, username strin
 	if err := tx.Model(&chat.ChatParticipant{}).Where("chat_id = ? AND left_at IS NULL", entity.ID).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
-	if err := tx.Preload("Avatar.File").Take(entity, "id = ?", entity.ID).Error; err != nil {
+	if err := tx.Preload("Avatar.File").Preload("Cover.File").Preload("Hero.File").Take(entity, "id = ?", entity.ID).Error; err != nil {
 		return nil, 0, err
 	}
 	return entity, count, nil
@@ -138,7 +138,7 @@ func (r *ChatRepository) JoinGroup(ctx context.Context, actor *models.User, toke
 	if err != nil {
 		return nil, err
 	}
-	if err := r.db.WithContext(ctx).Preload("Avatar.File").Preload("Participants", "left_at IS NULL").Preload("Participants.User", chatUserReadScope).Preload("Participants.User.Avatar.File").Take(entity, "id = ?", entity.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Avatar.File").Preload("Cover.File").Preload("Hero.File").Preload("Participants", "left_at IS NULL").Preload("Participants.User", chatUserReadScope).Preload("Participants.User.Avatar.File").Take(entity, "id = ?", entity.ID).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil

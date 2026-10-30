@@ -15,7 +15,9 @@ func (r *ChatRepository) ListPublicGroups(ctx context.Context, query ports.Publi
 		Select("chats.*, (?) AS member_count", r.db.Model(&chat.ChatParticipant{}).Select("COUNT(*)").Where("chat_participants.chat_id = chats.id AND left_at IS NULL")).
 		Where("chats.type = ? AND chats.visibility = ?", chat.ChatTypeGroup, "public").
 		Where("chats.id NOT IN (?)", deletedChatContentIDs(r.db, models.EngagementContentableTypeChat, uuid.Nil, models.EngagementKindChatDeletedForMe, models.EngagementKindChatDeletedForAll)).
-		Preload("Avatar", chatMediaReadScope).Preload("Avatar.File", chatAvatarFileReadScope)
+		Preload("Avatar", chatMediaReadScope).Preload("Avatar.File", chatAvatarFileReadScope).
+		Preload("Cover", chatMediaReadScope).Preload("Cover.File", chatAvatarFileReadScope).
+		Preload("Hero", chatMediaReadScope).Preload("Hero.File", chatAvatarFileReadScope)
 	if query.Cursor != nil {
 		db = db.Where("chats.id < ?", *query.Cursor)
 	}
