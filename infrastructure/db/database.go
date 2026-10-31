@@ -667,65 +667,102 @@ func reportIndexDefinitions() []IndexDefinition {
 	}
 }
 
-func MigrateLegacyChatMediaOwnership(db *gorm.DB) error {
-	// Older chat uploads used owner_type=chat even though owner_id was the
-	// message post UUID. Correct only rows proven to belong to chat-message
-	// posts; file metadata and physical storage are intentionally untouched.
-	messages := db.Session(&gorm.Session{NewDB: true}).Model(&post.Post{}).Unscoped().Select("id").
-		Where("post_kind = ? AND contentable_type = ?", post.PostKindMessage, "chat")
-	return db.Model(&media.Media{}).Where("owner_type = ? AND role = ?", "chat", media.RoleChatMedia).
-		Where("owner_id IN (?)", messages).UpdateColumn("owner_type", media.OwnerPost).Error
+// EnsureMediaVisibilityConstraint enforces, at the database boundary, that
+// protected media roles can never be marked public. GORM has no CHECK
+// constraint support, so this one invariant stays raw SQL regardless of how
+// the model tags are written; it does not repair or backfill any data.
+func EnsureMediaVisibilityConstraint(db *gorm.DB) error {
+	if db == nil {
+		return errors.New("ensure media visibility constraint: database is nil")
+	}
+	if db.Name() != "postgres" {
+		return nil
+	}
+	return db.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conname = 'chk_medias_protected_visibility'
+				  AND conrelid = 'medias'::regclass
+			) THEN
+				ALTER TABLE medias ADD CONSTRAINT chk_medias_protected_visibility
+				CHECK (role NOT IN ('private_photo', 'chat_image', 'chat_media', 'chat_video') OR is_public = FALSE);
+			END IF;
+		END $$;
+	`).Error
 }
 
-// MigrateProtectedMediaVisibility repairs rows created by older media writers
-// whose ORM default could override an explicit false IsPublic value, then
-// enforces the invariant at the database boundary for every protected role.
-func MigrateProtectedMediaVisibility(db *gorm.DB) error {
+// EnsureFriendshipDetailConstraints enforces, at the database boundary, the
+// two invariants the dedicated friendships table used to get from
+// chk_friendship_status and chk_friendship_requester: a friendship kind's
+// JSON status must be one of the valid states, and its requester must be
+// one of the row's two participants. GORM cannot express a CHECK against a
+// JSON path, so this stays raw SQL regardless of the storage shape.
+func EnsureFriendshipDetailConstraints(db *gorm.DB) error {
 	if db == nil {
-		return errors.New("migrate protected media visibility: database is nil")
+		return errors.New("ensure friendship detail constraints: database is nil")
 	}
-	protectedRoles := []media.MediaRole{
-		media.RolePrivatePhoto,
-		media.RoleChatImage,
-		media.RoleChatMedia,
-		media.RoleChatVideo,
+	if db.Name() != "postgres" {
+		return nil
 	}
-	return db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&media.Media{}).
-			Where("role IN ? AND is_public IS DISTINCT FROM FALSE", protectedRoles).
-			UpdateColumn("is_public", false).Error; err != nil {
-			return err
-		}
-		if tx.Name() != "postgres" {
-			return nil
-		}
-		if err := tx.Model(&media.Media{}).Where("is_public IS NULL").UpdateColumn("is_public", false).Error; err != nil {
-			return err
-		}
-		if err := tx.Exec("ALTER TABLE medias ALTER COLUMN is_public SET DEFAULT FALSE").Error; err != nil {
-			return err
-		}
-		if err := tx.Exec("ALTER TABLE medias ALTER COLUMN is_public SET NOT NULL").Error; err != nil {
-			return err
-		}
-		if err := tx.Exec(`
-			DO $$
-			BEGIN
-				IF NOT EXISTS (
-					SELECT 1 FROM pg_constraint
-					WHERE conname = 'chk_medias_protected_visibility'
-					  AND conrelid = 'medias'::regclass
-				) THEN
-					ALTER TABLE medias ADD CONSTRAINT chk_medias_protected_visibility
-					CHECK (role NOT IN ('private_photo', 'chat_image', 'chat_media', 'chat_video') OR is_public = FALSE)
-					NOT VALID;
-				END IF;
-			END $$;
-		`).Error; err != nil {
-			return err
-		}
-		return tx.Exec("ALTER TABLE medias VALIDATE CONSTRAINT chk_medias_protected_visibility").Error
-	})
+	return db.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conname = 'chk_engagement_details_friendship_status'
+				  AND conrelid = 'engagement_details'::regclass
+			) THEN
+				ALTER TABLE engagement_details ADD CONSTRAINT chk_engagement_details_friendship_status
+				CHECK (kind <> 'friendship' OR details->>'status' IN ('pending', 'accepted', 'denied', 'cancelled', 'removed'));
+			END IF;
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conname = 'chk_engagement_details_friendship_requester'
+				  AND conrelid = 'engagement_details'::regclass
+			) THEN
+				ALTER TABLE engagement_details ADD CONSTRAINT chk_engagement_details_friendship_requester
+				CHECK (kind <> 'friendship' OR details->>'requested_by' IN (engager_id::text, engagee_id::text));
+			END IF;
+		END $$;
+	`).Error
+}
+
+// EnsurePrivatePhotoAccessConstraints enforces, at the database boundary,
+// the two invariants the dedicated private_photo_access_requests table used
+// to get from chk_private_photo_access_status and
+// chk_private_photo_access_distinct_users. GORM cannot express a CHECK
+// against a JSON path, so this stays raw SQL regardless of the storage
+// shape.
+func EnsurePrivatePhotoAccessConstraints(db *gorm.DB) error {
+	if db == nil {
+		return errors.New("ensure private photo access constraints: database is nil")
+	}
+	if db.Name() != "postgres" {
+		return nil
+	}
+	return db.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conname = 'chk_engagement_details_private_photo_access_status'
+				  AND conrelid = 'engagement_details'::regclass
+			) THEN
+				ALTER TABLE engagement_details ADD CONSTRAINT chk_engagement_details_private_photo_access_status
+				CHECK (kind <> 'private_photo_access' OR details->>'status' IN ('pending', 'approved', 'denied'));
+			END IF;
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint
+				WHERE conname = 'chk_engagement_details_private_photo_access_distinct_users'
+				  AND conrelid = 'engagement_details'::regclass
+			) THEN
+				ALTER TABLE engagement_details ADD CONSTRAINT chk_engagement_details_private_photo_access_distinct_users
+				CHECK (kind <> 'private_photo_access' OR engager_id <> engagee_id);
+			END IF;
+		END $$;
+	`).Error
 }
 
 func Migrate(db *gorm.DB) error {
@@ -739,18 +776,6 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	if err := EnableExtensions(context.Background(), db, extensions); err != nil {
-		return err
-	}
-	// Existing installations may still have the legacy nullable/default-true
-	// visibility column. Repair it before AutoMigrate tightens the model to
-	// NOT NULL so old NULL rows cannot make the schema migration fail.
-	if db.Migrator().HasTable(&media.Media{}) {
-		if err := MigrateProtectedMediaVisibility(db); err != nil {
-			return err
-		}
-	}
-
-	if err := MigrateChatParticipants(db); err != nil {
 		return err
 	}
 
@@ -781,8 +806,6 @@ func Migrate(db *gorm.DB) error {
 		&models.Preferences{},
 
 		&models.User{},
-		&models.PrivatePhotoAccessRequest{},
-		&models.Friendship{},
 		&models.ReferralReward{},
 		&models.BroadcastSession{},
 		&models.BroadcastGift{},
@@ -806,23 +829,17 @@ func Migrate(db *gorm.DB) error {
 		&chat.GroupInvite{},
 
 		&chat.ChatParticipant{},
-		&chat.MessageView{},
 	)
 	if err != nil {
 		return err
 	}
-	if err := MigrateLegacyChatMediaOwnership(db); err != nil {
+	if err := EnsureMediaVisibilityConstraint(db); err != nil {
 		return err
 	}
-	// Single pinned messages become the first entry of the pinned list.
-	if err := db.Exec(`UPDATE chats SET pinned_messages = jsonb_build_array(jsonb_build_object(
-		'message_id', pinned_msg_id,
-		'pinned_by_id', COALESCE(pinned_by_id, creator_id),
-		'pinned_at', to_jsonb(updated_at)))
-		WHERE pinned_msg_id IS NOT NULL AND (pinned_messages IS NULL OR pinned_messages = '[]'::jsonb)`).Error; err != nil {
+	if err := EnsureFriendshipDetailConstraints(db); err != nil {
 		return err
 	}
-	if err := MigrateProtectedMediaVisibility(db); err != nil {
+	if err := EnsurePrivatePhotoAccessConstraints(db); err != nil {
 		return err
 	}
 	// Report kinds are required reference data, not optional demo content.

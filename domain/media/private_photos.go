@@ -30,8 +30,25 @@ func IsPrivatePhotoImageHeader(header []byte) bool {
 		return true
 	case bytes.HasPrefix(header, []byte("II*\x00")), bytes.HasPrefix(header, []byte("MM\x00*")): // TIFF
 		return true
+	case isAVIFHeader(header):
+		return true
 	}
 	return false
+}
+
+// isAVIFHeader checks the ISOBMFF "ftyp" box for an AVIF major brand. The
+// first 4 bytes are the box size (ignored here), so the magic can't be a
+// fixed-offset literal the way the other formats above are.
+func isAVIFHeader(header []byte) bool {
+	if len(header) < 12 || !bytes.Equal(header[4:8], []byte("ftyp")) {
+		return false
+	}
+	switch string(header[8:12]) {
+	case "avif", "avis":
+		return true
+	default:
+		return false
+	}
 }
 
 func ParsePrivatePhotoAccessStatus(value string) (PrivatePhotoAccessStatus, error) {

@@ -882,6 +882,7 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			"location[email]":        {p.Email},
 			"location[website]":      {p.Website},
 			"extras[place]":          {jsonPlaceString},
+			"metadata":               {jsonPlaceString},
 		}
 
 		for i, question := range LGBTPlaceSurveyQuestions {
@@ -924,7 +925,13 @@ func SeedPlaces(db *gorm.DB, node *helpers.Node) error {
 			return err
 		}
 
-		err = db.Model(place).Association("Clusters").Append(postCluster)
+		placePost, err := postRepo.GetPostByPublicID(int64(place.ID))
+		if err != nil {
+			fmt.Println("failed to load place post:", err)
+			return err
+		}
+
+		err = db.Model(placePost).Association("Clusters").Append(postCluster)
 		if err != nil {
 			fmt.Println("failed to attach cluster:", err)
 		}

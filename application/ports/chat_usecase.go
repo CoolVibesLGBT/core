@@ -24,6 +24,7 @@ type ChatUseCase interface {
 	AddMessageToChat(ctx context.Context, values map[string][]string, files []*domainmedia.UploadedFile, author *models.User) (*types.ChatMessage, error)
 	FetchChatMessages(ctx context.Context, userID, chatID uuid.UUID, cursor *ChatMessageListCursor, limit int) ([]types.ChatMessage, *string, error)
 	MarkChatMessageRead(ctx context.Context, authUser *models.User, chatID uuid.UUID, messageIDs []uuid.UUID) error
+	GetMessageReaders(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, cursor *types.MatchListCursor, limit int) ([]types.UserEngagement, *types.MatchListCursor, error)
 	OpenMessage(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, now time.Time) (*types.ChatOpenMessageResult, error)
 	PinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error
 	UnpinMessage(ctx context.Context, authUser *models.User, chatID, userID, messageID uuid.UUID) error

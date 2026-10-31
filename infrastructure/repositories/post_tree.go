@@ -15,8 +15,11 @@ func postTreeVisibility(db *gorm.DB, includeUnpublished bool) *gorm.DB {
 		Where(repositorySubquery(db).Where(map[string]any{"audience": nil}).Or(map[string]any{"audience": ""}).Or(map[string]any{"audience": "public"}))
 }
 
-// Read descendants in bounded GORM queries. The visited set terminates even
-// if legacy parent links contain a cycle; no recursive SQL is needed.
+// postTreeIDs walks descendants breadth-first in bounded GORM queries
+// instead of recursive SQL. The visited set is standard level-order
+// book-keeping, not a guard against bad data: a post's parent is always an
+// already-existing post at write time and parent_id is never rewritten
+// after creation, so the tree cannot contain a cycle.
 func postTreeIDs(db, rootQuery *gorm.DB, includeUnpublished bool) ([]uuid.UUID, error) {
 	var roots []uuid.UUID
 	if err := postTreeVisibility(rootQuery, includeUnpublished).Pluck("id", &roots).Error; err != nil {

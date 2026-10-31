@@ -50,7 +50,7 @@ type imageSpec struct {
 }
 
 var imageSpecs = map[string]imageSpec{
-	"avatar": {role: media.RoleChatImage, width: 512, height: 512, isPublic: true},
+	"avatar": {role: media.RoleChatImage, width: 512, height: 512, isPublic: false},
 	"cover":  {role: media.RoleChatCover, width: 1500, height: 500, isPublic: true},
 	"hero":   {role: media.RoleChatHero, width: 1920, height: 1280, isPublic: true},
 }

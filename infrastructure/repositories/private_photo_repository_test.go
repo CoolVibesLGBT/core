@@ -83,7 +83,7 @@ func privatePhotoIntegrationDB(t *testing.T) *gorm.DB {
 	pool.SetMaxOpenConns(20)
 	t.Cleanup(func() { _ = pool.Close() })
 	if err := db.AutoMigrate(&models.User{}, &modelutils.FileMetadata{}, &modelmedia.Media{},
-		&models.PrivatePhotoAccessRequest{}, &models.Friendship{}, &models.ReferralReward{}, &models.BroadcastSession{}, &models.BroadcastGift{}, &models.VapidKey{}, &models.Engagement{}, &models.TransactionLock{}, &models.EngagementDetail{}, &notifications.Notification{}, &notifications.Delivery{}); err != nil {
+		&models.ReferralReward{}, &models.BroadcastSession{}, &models.BroadcastGift{}, &models.VapidKey{}, &models.Engagement{}, &models.TransactionLock{}, &models.EngagementDetail{}, &notifications.Notification{}, &notifications.Delivery{}); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Exec(`CREATE TABLE posts (id uuid PRIMARY KEY, author_id uuid, post_kind text,
@@ -402,8 +402,8 @@ func TestPrivatePhotoGrantRevocationFailureRollsBackBlockIntegration(t *testing.
 		BEGIN RAISE EXCEPTION 'forced grant update failure'; END $$`).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Exec(`CREATE TRIGGER reject_photo_grant_update BEFORE UPDATE ON private_photo_access_requests
-		FOR EACH ROW EXECUTE FUNCTION reject_photo_grant_update()`).Error; err != nil {
+	if err := db.Exec(`CREATE TRIGGER reject_photo_grant_update BEFORE UPDATE ON engagement_details
+		FOR EACH ROW WHEN (OLD.kind = 'private_photo_access') EXECUTE FUNCTION reject_photo_grant_update()`).Error; err != nil {
 		t.Fatal(err)
 	}
 	block, _ := domainuser.NewSetInteractionState(domainuser.InteractionBlock, true)

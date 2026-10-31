@@ -23,7 +23,7 @@ import (
 func TestChatForwardIntegration(t *testing.T) {
 	t.Chdir(t.TempDir())
 	db := privatePhotoIntegrationDB(t)
-	if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}, &chat.MessageView{}, &payloads.Event{}, &payloads.Poll{}, &models.Hashtag{}); err != nil {
+	if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}, &payloads.Event{}, &payloads.Poll{}, &models.Hashtag{}); err != nil {
 		t.Fatal(err)
 	}
 	for _, sql := range []string{"CREATE TABLE locations (id uuid, contentable_id uuid, contentable_type text, deleted_at timestamptz)", "CREATE TABLE post_hashtags (post_id uuid, hashtag_id uuid)"} {

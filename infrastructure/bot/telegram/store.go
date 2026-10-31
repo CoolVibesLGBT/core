@@ -52,24 +52,6 @@ func (s *TopicStore) save() error {
 	return os.WriteFile(s.FilePath, data, 0644) // ioutil.WriteFile yerine
 }
 
-// ChatID bazlı topic listesinden topic bul
-func (s *TopicStore) GetByNameLegacy(chatID string, name string) *TopicData {
-	s.Lock()
-	defer s.Unlock()
-
-	topics, ok := s.Topics[chatID]
-	if !ok {
-		return nil
-	}
-
-	for i := range topics {
-		if helpers.GenerateSlug(topics[i].Name) == helpers.GenerateSlug(name) {
-			return &topics[i]
-		}
-	}
-	return nil
-}
-
 func (s *TopicStore) GetByName(chatID string, name string) *TopicData {
 	s.Lock()
 	defer s.Unlock()

@@ -566,6 +566,19 @@ func baseActionDocuments() []ActionDoc {
 			},
 		},
 		{
+			Action:      constants.CMD_CHAT_MESSAGE_READERS,
+			Tag:         "Chat",
+			Summary:     "List who read a message",
+			Description: "Returns the chat participants who have marked message_id as read, newest first, for read-receipt UI.",
+			Auth:        AuthRequired,
+			Params: []Param{
+				uuidParam("chat_id", "Chat UUID.", true),
+				uuidParam("message_id", "Message UUID.", true),
+				intParam("limit", "Page size. Defaults to 100 and is capped at the server maximum.", false, 100),
+				stringParam("cursor", "Opaque cursor returned by the previous response.", false),
+			},
+		},
+		{
 			Action:      constants.CMD_SEND_MESSAGE,
 			Tag:         "Chat",
 			Summary:     "Send chat message",

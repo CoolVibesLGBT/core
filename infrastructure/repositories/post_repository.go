@@ -147,10 +147,9 @@ func lockEventRSVP(tx *gorm.DB, postPublicID int64) *gorm.DB {
 	return lockTransactionResource(tx, fmt.Sprintf("event-rsvp:%d", postPublicID))
 }
 
-// SetEventRSVP serializes all RSVP writes for an event, repairs historical
-// duplicate rows, and returns the canonical participant projection and counts.
-// Passing nil clears the current user's RSVP; sending the same status again
-// also toggles it off.
+// SetEventRSVP serializes all RSVP writes for an event and returns the
+// canonical participant projection and counts. Passing nil clears the
+// current user's RSVP; sending the same status again also toggles it off.
 func (r *PostRepository) SetEventRSVP(
 	ctx context.Context,
 	postPublicID int64,
@@ -202,34 +201,16 @@ func (r *PostRepository) SetEventRSVP(
 		var existingRows []post_payloads.EventAttendee
 		if err := tx.
 			Where("event_id = ?", event.ID).
-			Order("joined_at DESC, id DESC").
 			Find(&existingRows).Error; err != nil {
 			return err
 		}
 
-		// Keep the newest row per user. The event-level lock guarantees that no
-		// writer can insert another duplicate while this repair is in progress.
-		seenUsers := make(map[uuid.UUID]struct{}, len(existingRows))
-		uniqueRows := make([]post_payloads.EventAttendee, 0, len(existingRows))
-		duplicateIDs := make([]uuid.UUID, 0)
-		for _, attendee := range existingRows {
-			if _, exists := seenUsers[attendee.UserID]; exists {
-				duplicateIDs = append(duplicateIDs, attendee.ID)
-				continue
-			}
-			seenUsers[attendee.UserID] = struct{}{}
-			uniqueRows = append(uniqueRows, attendee)
-		}
-		if len(duplicateIDs) > 0 {
-			if err := tx.Delete(&post_payloads.EventAttendee{}, "id IN ?", duplicateIDs).Error; err != nil {
-				return err
-			}
-		}
-
+		// uidx_event_attendee_user guarantees at most one row per
+		// (event, user), so there is exactly one candidate to find here.
 		var current *post_payloads.EventAttendee
-		for i := range uniqueRows {
-			if uniqueRows[i].UserID == userID {
-				current = &uniqueRows[i]
+		for i := range existingRows {
+			if existingRows[i].UserID == userID {
+				current = &existingRows[i]
 				break
 			}
 		}
@@ -1305,6 +1286,7 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		Postcode        string  `form:"location[postcode]"`
 		Country         string  `form:"location[country]"`
 		Extras          string  `form:"extras"`
+		Metadata        string  `form:"metadata"`
 	}
 
 	decoder := form.NewDecoder()
@@ -1623,6 +1605,18 @@ func (r *PostRepository) createContentablePostInTransaction(ctx context.Context,
 		}
 		newPost.Extras = datatypes.JSON(extrasBytes)
 
+	}
+
+	if postForm.Metadata != "" {
+		var metadata any
+		if err := json.Unmarshal([]byte(postForm.Metadata), &metadata); err != nil {
+			return nil, err
+		}
+		metadataBytes, err := json.Marshal(metadata)
+		if err != nil {
+			return nil, err
+		}
+		newPost.Metadata = datatypes.JSON(metadataBytes)
 	}
 
 	if err := tx.Save(newPost).Error; err != nil {

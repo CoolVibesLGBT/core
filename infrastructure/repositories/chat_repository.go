@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"core/application/ports"
+	"core/application/types"
 	"core/constants"
 	domainmedia "core/domain/media"
 	"core/helpers"
@@ -68,9 +69,11 @@ func (r *ChatRepository) consumedViewOnceIDs(userID uuid.UUID, messageIDs []uuid
 		return consumed, nil
 	}
 	var ids []uuid.UUID
-	if err := r.db.Model(&chat.MessageView{}).
-		Where("user_id = ? AND message_id IN ?", userID, messageIDs).
-		Pluck("message_id", &ids).Error; err != nil {
+	if err := r.db.Model(&models.EngagementDetail{}).
+		Joins("JOIN engagements ON engagements.id = engagement_details.engagement_id").
+		Where("engagement_details.kind = ? AND engagement_details.engager_id = ?", models.EngagementKindChatMessageOpened, userID).
+		Where("engagements.contentable_type = ? AND engagements.contentable_id IN ?", models.EngagementContentableTypeMessage, messageIDs).
+		Pluck("engagements.contentable_id", &ids).Error; err != nil {
 		return nil, err
 	}
 	for _, id := range ids {
@@ -877,7 +880,7 @@ func (r *ChatRepository) DeleteMessageForAll(ctx context.Context, authUser *mode
 				return err
 			}
 		}
-		return repairChatLastMessage(tx, chatID, time.Now().UTC())
+		return refreshChatLastMessage(tx, chatID, time.Now().UTC())
 	})
 }
 
@@ -955,7 +958,7 @@ func (r *ChatRepository) DeleteMessage(ctx context.Context, authUser *models.Use
 				return err
 			}
 		}
-		return repairChatLastMessage(tx, chatID, time.Now().UTC())
+		return refreshChatLastMessage(tx, chatID, time.Now().UTC())
 	})
 }
 
@@ -1164,8 +1167,10 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 		alreadyViewed := false
 		if disappearing {
 			var count int64
-			if err := tx.Model(&chat.MessageView{}).
-				Where("message_id = ? AND user_id = ?", message.ID, authUser.ID).
+			if err := tx.Model(&models.EngagementDetail{}).
+				Joins("JOIN engagements ON engagements.id = engagement_details.engagement_id").
+				Where("engagements.contentable_id = ? AND engagements.contentable_type = ?", message.ID, models.EngagementContentableTypeMessage).
+				Where("engagement_details.kind = ? AND engagement_details.engager_id = ?", models.EngagementKindChatMessageOpened, authUser.ID).
 				Count(&count).Error; err != nil {
 				return err
 			}
@@ -1200,8 +1205,15 @@ func (r *ChatRepository) OpenMessage(ctx context.Context, authUser *models.User,
 		}
 
 		if disappearing && !alreadyViewed {
-			view := chat.MessageView{ID: uuid.New(), MessageID: message.ID, UserID: authUser.ID, ViewedAt: now}
-			if err := tx.Create(&view).Error; err != nil {
+			if _, err := addChatVisibilityFlag(
+				tx,
+				authUser.ID,
+				message.AuthorID,
+				models.EngagementKindChatMessageOpened,
+				message.ID,
+				models.EngagementContentableTypeMessage,
+				false,
+			); err != nil {
 				return err
 			}
 		}
@@ -1243,7 +1255,13 @@ func (r *ChatRepository) dueMessagesQuery(tx *gorm.DB, now time.Time, limit int)
 		Limit(limit)
 }
 
-func repairChatLastMessage(tx *gorm.DB, chatID uuid.UUID, now time.Time) error {
+// refreshChatLastMessage recomputes the chat's cached last_message_id/
+// last_message_timestamp after a mutation (delete, expiry) that may have
+// removed the message those fields pointed to. This is routine cache
+// maintenance, not a fix for corrupted data: any delete/expire can change
+// which message is now the most recent survivor, so the cache must be
+// recomputed from the current message set every time.
+func refreshChatLastMessage(tx *gorm.DB, chatID uuid.UUID, now time.Time) error {
 	var latest post.Post
 	err := tx.
 		Select("id", "created_at").
@@ -1336,7 +1354,7 @@ func (r *ChatRepository) ExpireMessages(ctx context.Context, now time.Time, limi
 		}
 
 		for chatID := range touchedChats {
-			if err := repairChatLastMessage(tx, chatID, now); err != nil {
+			if err := refreshChatLastMessage(tx, chatID, now); err != nil {
 				return err
 			}
 		}
@@ -1451,6 +1469,45 @@ func (r *ChatRepository) MarkChatMessageRead(ctx context.Context, authUser *mode
 				"last_read_at": now,
 			}).Error
 	})
+}
+
+// GetMessageReaders lists who has marked messageID as read, newest first.
+// It is a plain read so it intentionally skips the row-locking mutation
+// helpers used by MarkChatMessageRead.
+func (r *ChatRepository) GetMessageReaders(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, cursor *types.MatchListCursor, limit int) ([]models.EngagementDetail, *types.MatchListCursor, error) {
+	if authUser == nil {
+		return nil, nil, chat.ErrNotParticipant
+	}
+	if err := r.ensureActiveParticipant(ctx, chatID, authUser.ID); err != nil {
+		return nil, nil, err
+	}
+
+	var message post.Post
+	err := r.db.WithContext(ctx).
+		Where("id = ? AND post_kind = ? AND contentable_type = ? AND contentable_id = ?",
+			messageID, post.PostKindMessage, post.PostKindChat, chatID).
+		Take(&message).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil, chat.ErrMessageNotFound
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var engagement models.Engagement
+	err = r.db.WithContext(ctx).
+		Where("contentable_id = ? AND contentable_type = ?", message.ID, models.EngagementContentableTypeMessage).
+		First(&engagement).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return []models.EngagementDetail{}, nil, nil
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	query := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+		Where("engagement_details.engagement_id = ? AND engagement_details.kind = ?", engagement.ID, models.EngagementKindChatMessageRead)
+	return engagementDetailsPage(query, cursor, limit)
 }
 
 // Deleted content is selected through its aggregate so other engagement kinds

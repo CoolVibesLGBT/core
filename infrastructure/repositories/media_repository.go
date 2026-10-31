@@ -873,6 +873,8 @@ func imageFormatMetadata(format string) (mimeType, extension string, ok bool) {
 		return constants.MIMEImageBMP, constants.ImageExtensionBMP, true
 	case constants.ImageFormatTIFF:
 		return constants.MIMEImageTIFF, constants.ImageExtensionTIFF, true
+	case constants.ImageFormatAVIF:
+		return constants.MIMEImageAVIF, constants.ImageExtensionAVIF, true
 	default:
 		return "", "", false
 	}

@@ -51,7 +51,9 @@ func TestPrivatePhotoImageHeaderUsesFileSignature(t *testing.T) {
 		{name: "gif", header: []byte("GIF89a"), valid: true},
 		{name: "webp", header: []byte("RIFF\x00\x00\x00\x00WEBP"), valid: true},
 		{name: "unsupported heic", header: []byte("\x00\x00\x00\x18ftypheic"), valid: false},
-		{name: "unsupported avif", header: []byte("\x00\x00\x00\x18ftypmif1avif"), valid: false},
+		{name: "avif", header: []byte("\x00\x00\x00\x18ftypavif"), valid: true},
+		{name: "avif sequence", header: []byte("\x00\x00\x00\x18ftypavis"), valid: true},
+		{name: "generic heif container only compatible with avif", header: []byte("\x00\x00\x00\x18ftypmif1avif"), valid: false},
 		{name: "spoofed text", header: []byte("this is not an image"), valid: false},
 		{name: "truncated riff", header: []byte("RIFF"), valid: false},
 	}

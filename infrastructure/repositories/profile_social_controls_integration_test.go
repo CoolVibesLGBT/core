@@ -79,7 +79,9 @@ func TestProfileFriendshipStatusAndDirectPhotoSharingIntegration(t *testing.T) {
 		t.Fatalf("blocked relation exposed: %v", err)
 	}
 	var pending int64
-	if err := db.Model(&models.PrivatePhotoAccessRequest{}).Where("owner_id = ? AND viewer_id = ? AND status = 'pending'", owner.ID, viewer.ID).Count(&pending).Error; err != nil || pending != 0 {
+	if err := db.Model(&models.EngagementDetail{}).
+		Where("kind = ? AND engager_id = ? AND engagee_id = ? AND details->>'status' = 'pending'", models.EngagementKindPrivatePhotoAccess, owner.ID, viewer.ID).
+		Count(&pending).Error; err != nil || pending != 0 {
 		t.Fatal("direct share left fake pending request")
 	}
 }

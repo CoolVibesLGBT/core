@@ -64,8 +64,10 @@ func (r *UserRepository) AddReferral(ctx context.Context, referrerID, referredUs
 }
 
 func applyReferralInTransaction(tx *gorm.DB, referral domainuser.Referral) (decimal.Decimal, error) {
-	// The identity belongs to the referred user, regardless of referrer. Check
-	// legacy pair-based ledger keys as well, so upgrading cannot remint a reward.
+	// The identity belongs to the referred user, regardless of referrer. The
+	// EngagementDetail credit record is the durable source of truth for
+	// "already paid": it must still block a new pending reward even if the
+	// ReferralReward audit row itself was later deleted.
 	if tx.Name() == "postgres" {
 		if err := lockViewAggregate(tx, "referral:"+referral.DedupeKey()).Error; err != nil {
 			return decimal.Zero, err

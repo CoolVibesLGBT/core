@@ -29,6 +29,35 @@ func TestProfileAndSwipeShareSingleViewIntegration(t *testing.T) {
 	assertUserEngagementCount(t, db, target.ID, "view_received_count", 1)
 }
 
+// A swipe (refresh=true) bumps the shared view's last-seen time so the
+// 24-hour discovery exclusion stays accurate; a plain profile revisit
+// (refresh=false) must not disturb that timestamp or double-count the view.
+func TestProfileViewReplayPreservesSwipeTimestampIntegration(t *testing.T) {
+	db := socialGraphIntegrationDB(t)
+	actor, target := privatePhotoTestUsers(t, db)
+	ctx := context.Background()
+	engagements := NewEngagementRepository(db)
+	if _, err := NewMatchesRepository(db, nil).RecordView(ctx, actor.ID, target.ID, domainuser.MatchReactionDislike); err != nil {
+		t.Fatal(err)
+	}
+	var before models.EngagementDetail
+	if err := db.Where("engager_id = ? AND engagee_id = ? AND kind = ?", actor.ID, target.ID, models.EngagementKindViewGiven).First(&before).Error; err != nil {
+		t.Fatal(err)
+	}
+	counted, err := engagements.RecordViewOnce(ctx, actor.ID, target.ID, models.EngagementKindViewReceived, target.ID, models.EngagementContentableTypeUser)
+	if err != nil || counted {
+		t.Fatalf("profile replay: counted=%v err=%v", counted, err)
+	}
+	var after models.EngagementDetail
+	if err := db.First(&after, "id = ?", before.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if !after.UpdatedAt.Equal(before.UpdatedAt) {
+		t.Fatal("profile replay changed the swipe's last-seen time")
+	}
+	assertUserEngagementCount(t, db, target.ID, "view_received_count", 1)
+}
+
 func socialRegressionPost(t *testing.T, db *gorm.DB, author uuid.UUID) (*PostRepository, int64) {
 	t.Helper()
 	if err := db.Exec("ALTER TABLE posts ADD COLUMN public_id bigint").Error; err != nil {
@@ -232,61 +261,6 @@ func TestBlockedUserCannotReactToPostIntegration(t *testing.T) {
 	if !errors.Is(err, domainuser.ErrInteractionBlocked) || count != 0 {
 		t.Fatalf("blocked post reaction: rows=%d err=%v", count, err)
 	}
-}
-
-func TestLegacyProfileViewsRepairBothDirectionsWithoutDoubleCountingIntegration(t *testing.T) {
-	db := socialGraphIntegrationDB(t)
-	first, second := privatePhotoTestUsers(t, db)
-	now := time.Now().UTC().Add(-48 * time.Hour)
-	for _, pair := range [][2]models.User{{first, second}, {second, first}} {
-		aggregate := models.Engagement{ID: uuid.New(), ContentableID: pair[1].ID, ContentableType: models.EngagementContentableTypeUser}
-		if err := db.Create(&aggregate).Error; err != nil {
-			t.Fatal(err)
-		}
-		for i := 0; i < 2; i++ {
-			detail := models.EngagementDetail{ID: uuid.New(), EngagementID: aggregate.ID, EngagerID: pair[0].ID, EngageeID: pair[1].ID, Kind: models.EngagementKindViewReceived, CreatedAt: now, UpdatedAt: now}
-			if err := db.Create(&detail).Error; err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-	repo := NewEngagementRepository(db)
-	// Repair the first pair, then the reverse. Neither is a new view.
-	for _, pair := range [][2]models.User{{first, second}, {second, first}} {
-		counted, err := repo.RecordViewOnce(context.Background(), pair[0].ID, pair[1].ID, models.EngagementKindViewReceived, pair[1].ID, models.EngagementContentableTypeUser)
-		if err != nil || counted {
-			t.Fatalf("legacy view counted again: %v %v", counted, err)
-		}
-	}
-	for _, pair := range [][2]models.User{{first, second}, {second, first}} {
-		assertUserEngagementCount(t, db, pair[0].ID, "view_given_count", 1)
-		assertUserEngagementCount(t, db, pair[0].ID, "view_received_count", 1)
-		assertLogicalMatchDetailCount(t, db, pair[0].ID, pair[1].ID, models.EngagementKindViewGiven, 1)
-		assertLogicalMatchDetailCount(t, db, pair[0].ID, pair[1].ID, models.EngagementKindViewReceived, 1)
-	}
-	// A replayed profile visit preserves the last swipe timestamp; a swipe
-	// refreshes it so the 24-hour discovery exclusion remains correct.
-	if _, err := NewMatchesRepository(db, nil).RecordView(context.Background(), first.ID, second.ID, domainuser.MatchReactionDislike); err != nil {
-		t.Fatal(err)
-	}
-	var before, after models.EngagementDetail
-	if err := db.Where("engager_id = ? AND engagee_id = ? AND kind = ?", first.ID, second.ID, models.EngagementKindViewGiven).First(&before).Error; err != nil {
-		t.Fatal(err)
-	}
-	if !before.UpdatedAt.After(now) {
-		t.Fatal("swipe did not refresh last seen time")
-	}
-	counted, err := repo.RecordViewOnce(context.Background(), first.ID, second.ID, models.EngagementKindViewReceived, second.ID, models.EngagementContentableTypeUser)
-	if err != nil || counted {
-		t.Fatalf("profile replay: %v %v", counted, err)
-	}
-	if err := db.First(&after, "id = ?", before.ID).Error; err != nil {
-		t.Fatal(err)
-	}
-	if !after.UpdatedAt.Equal(before.UpdatedAt) {
-		t.Fatal("profile replay changed last swipe time")
-	}
-	assertUserEngagementCount(t, db, second.ID, "view_received_count", 1)
 }
 
 func TestConcurrentProfileAndSwipeViewsRemainUniqueIntegration(t *testing.T) {

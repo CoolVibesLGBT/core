@@ -42,7 +42,7 @@ func validateGroupAvatar(file *domainmedia.UploadedFile) (retErr error) {
 		return chat.ErrInvalidGroupAvatar
 	}
 	switch format {
-	case constants.ImageFormatJPEG, constants.ImageFormatPNG:
+	case constants.ImageFormatJPEG, constants.ImageFormatPNG, constants.ImageFormatAVIF:
 	default:
 		return chat.ErrInvalidGroupAvatar
 	}

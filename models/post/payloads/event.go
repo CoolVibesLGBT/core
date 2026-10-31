@@ -134,8 +134,8 @@ type EventAttendanceCounts struct {
 
 type EventAttendee struct {
 	ID      uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	EventID uuid.UUID `gorm:"type:uuid;not null;index" json:"event_id"`
-	UserID  uuid.UUID `gorm:"type:uuid;not null;index" json:"-"`
+	EventID uuid.UUID `gorm:"type:uuid;not null;index;uniqueIndex:uidx_event_attendee_user,priority:1" json:"event_id"`
+	UserID  uuid.UUID `gorm:"type:uuid;not null;index;uniqueIndex:uidx_event_attendee_user,priority:2" json:"-"`
 
 	Status    EventAttendanceStatus `gorm:"size:32;default:'maybe'" json:"status"`
 	JoinedAt  time.Time             `gorm:"autoCreateTime" json:"joined_at"`

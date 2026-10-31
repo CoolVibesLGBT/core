@@ -265,6 +265,56 @@ func HandleChatMessageRead(s ports.ChatUseCase) fiber.Handler {
 	}
 }
 
+// HandleGetChatMessageReaders returns who has marked a message as read, so
+// clients can render read receipts ("seen by ...").
+func HandleGetChatMessageReaders(s ports.ChatUseCase) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authUser, ok := middleware.GetAuthenticatedUser(c)
+		if !ok || authUser == nil {
+			return utils.SendError(c, fiber.StatusUnauthorized, constants.ErrUserUnauthorized)
+		}
+
+		chatID, err := uuid.Parse(requestField(c, "chat_id"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidChatID)
+		}
+		messageID, err := uuid.Parse(requestField(c, "message_id"))
+		if err != nil {
+			return utils.SendError(c, fiber.StatusBadRequest, constants.ErrInvalidMessageID)
+		}
+
+		cursor, err := parseMatchListCursor(requestField(c, "cursor"))
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid cursor format.")
+		}
+
+		limit := 100
+		if limitStr := requestField(c, "limit"); limitStr != "" {
+			parsedLimit, err := strconv.Atoi(limitStr)
+			if err != nil || parsedLimit <= 0 {
+				return utils.SendErrorWithMessage(c, fiber.StatusBadRequest, constants.ErrInvalidInput, "Invalid limit value")
+			}
+			limit = parsedLimit
+		}
+
+		readers, nextCursor, err := s.GetMessageReaders(c.Context(), authUser, chatID, messageID, cursor, limit)
+		if err != nil {
+			return sendChatMutationError(c, err, constants.ErrUnknown)
+		}
+
+		prevCursorToken, nextCursorToken, err := encodeSocialCursorPair(cursor, nextCursor)
+		if err != nil {
+			return utils.SendErrorWithMessage(c, fiber.StatusInternalServerError, constants.ErrInternalServer, err.Error())
+		}
+
+		return utils.SendSuccess(c, fiber.StatusOK, fiber.Map{
+			"readers":     readers,
+			"cursor":      nextCursorToken,
+			"prev_cursor": prevCursorToken,
+		})
+	}
+}
+
 func HandleChatMessageOpen(s ports.ChatUseCase) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		authUser, ok := middleware.GetAuthenticatedUser(c)

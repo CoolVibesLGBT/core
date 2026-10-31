@@ -11,6 +11,7 @@ import (
 	"core/models/post"
 	postpayloads "core/models/post/payloads"
 	modelutils "core/models/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -38,8 +39,19 @@ func TestGORMNullableLegacyBlockDoesNotHideUnrelatedUsersIntegration(t *testing.
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := db.Omit(clause.Associations).Create(&models.PrivatePhotoAccessRequest{
-		ID: uuid.New(), PublicID: 1, OwnerID: owner.ID, ViewerID: viewer.ID, Status: domainmedia.PrivatePhotoAccessApproved, RequestedAt: time.Now(),
+	ownerAggregate := models.Engagement{ID: uuid.New(), ContentableID: owner.ID, ContentableType: models.EngagementContentableTypeUser}
+	if err := db.Create(&ownerAggregate).Error; err != nil {
+		t.Fatal(err)
+	}
+	accessDetails, err := json.Marshal(privatePhotoAccessDetails{Status: domainmedia.PrivatePhotoAccessApproved, PublicID: 1, RequestedAt: time.Now()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dedupeKey := privatePhotoAccessDedupeKey(owner.ID, viewer.ID)
+	if err := db.Omit(clause.Associations).Create(&models.EngagementDetail{
+		ID: uuid.New(), EngagementID: ownerAggregate.ID, DedupeKey: &dedupeKey,
+		EngagerID: owner.ID, EngageeID: viewer.ID, Kind: models.EngagementKindPrivatePhotoAccess,
+		Details: datatypes.JSON(accessDetails), CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +135,7 @@ func TestGORMChatDeletionRemainsScopedToViewerAndAggregateIntegration(t *testing
 	if err := db.Model(&detail).UpdateColumn("kind", models.EngagementKindMessageDeletedForAll).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := repairChatLastMessage(db, chatID, time.Now()); err != nil {
+	if err := refreshChatLastMessage(db, chatID, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.First(&conversation, "id = ?", chatID).Error; err != nil || conversation.LastMessageID != nil {

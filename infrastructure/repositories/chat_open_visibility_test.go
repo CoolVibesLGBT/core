@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"core/application/ports"
+	"core/models"
 	"core/models/chat"
 	"core/models/post"
 	modelutils "core/models/utils"
@@ -23,7 +24,7 @@ func TestOpenMessageRespectsDeletionAndClearedHistoryIntegration(t *testing.T) {
 		for _, visibility := range []string{"visible", "deleted for me", "deleted for all", "cleared history"} {
 			t.Run(kind+"/"+visibility, func(t *testing.T) {
 				db := privatePhotoIntegrationDB(t)
-				if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}, &chat.MessageView{}); err != nil {
+				if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}); err != nil {
 					t.Fatal(err)
 				}
 				author, recipient := privatePhotoTestUsers(t, db)
@@ -113,7 +114,11 @@ func TestOpenMessageRespectsDeletionAndClearedHistoryIntegration(t *testing.T) {
 					t.Fatal("rejected opening started expiry")
 				}
 				var views int64
-				if err := db.Model(&chat.MessageView{}).Where("message_id = ?", message.ID).Count(&views).Error; err != nil {
+				if err := db.Model(&models.EngagementDetail{}).
+					Joins("JOIN engagements ON engagements.id = engagement_details.engagement_id").
+					Where("engagements.contentable_id = ? AND engagements.contentable_type = ?", message.ID, models.EngagementContentableTypeMessage).
+					Where("engagement_details.kind = ?", models.EngagementKindChatMessageOpened).
+					Count(&views).Error; err != nil {
 					t.Fatal(err)
 				}
 				if views != 0 {

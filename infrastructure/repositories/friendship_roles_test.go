@@ -7,6 +7,7 @@ import (
 	"core/helpers"
 	"core/models"
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -102,14 +103,14 @@ func TestFriendshipRolesStayDirectionalAcrossRetriesAndNewRequestsIntegration(t 
 				}
 				assertRoles(rows[0], 20, 10, other)
 			}
-			var stored models.Friendship
-			if err := db.Where("public_id = ?", reversed.PublicID).Take(&stored).Error; err != nil {
+			var stored models.EngagementDetail
+			if err := db.Where("kind = ? AND details->>'public_id' = ?", models.EngagementKindFriendship, strconv.FormatInt(reversed.PublicID, 10)).Take(&stored).Error; err != nil {
 				t.Fatal(err)
 			}
-			if stored.FirstUserID != lower || stored.SecondUserID != higher {
+			if stored.EngagerID != lower || stored.EngageeID != higher {
 				t.Fatal("request reversal changed the canonical storage pair")
 			}
-			if _, err := repo.friendshipRecords(ctx, []models.Friendship{stored}, uuid.New()); !errors.Is(err, domainuser.ErrFriendshipForbidden) {
+			if _, err := repo.friendshipRecords(ctx, []models.EngagementDetail{stored}, uuid.New()); !errors.Is(err, domainuser.ErrFriendshipForbidden) {
 				t.Fatalf("outsider received participant view: %v", err)
 			}
 		})

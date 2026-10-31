@@ -11,6 +11,7 @@ const (
 	MIMEImageWebP   = "image/webp"
 	MIMEImageBMP    = "image/bmp"
 	MIMEImageTIFF   = "image/tiff"
+	MIMEImageAVIF   = "image/avif"
 	MIMEOctetStream = "application/octet-stream"
 )
 
@@ -21,6 +22,7 @@ const (
 	ImageFormatWebP = "webp"
 	ImageFormatBMP  = "bmp"
 	ImageFormatTIFF = "tiff"
+	ImageFormatAVIF = "avif"
 
 	ImageExtensionJPEG = ".jpg"
 	ImageExtensionPNG  = ".png"
@@ -28,6 +30,7 @@ const (
 	ImageExtensionWebP = ".webp"
 	ImageExtensionBMP  = ".bmp"
 	ImageExtensionTIFF = ".tiff"
+	ImageExtensionAVIF = ".avif"
 )
 
 const (

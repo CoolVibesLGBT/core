@@ -27,7 +27,7 @@ func TestCreateChatMessagePersistsPostLifecycleAndMediaIntegration(t *testing.T)
 		t.Run(name, func(t *testing.T) {
 			t.Chdir(t.TempDir())
 			db := privatePhotoIntegrationDB(t)
-			if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}, &chat.MessageView{}, &payloads.Event{}, &payloads.Poll{}, &models.Hashtag{}); err != nil {
+			if err := db.AutoMigrate(&post.Post{}, &chat.Chat{}, &chat.ChatParticipant{}, &payloads.Event{}, &payloads.Poll{}, &models.Hashtag{}); err != nil {
 				t.Fatal(err)
 			}
 			// Empty projection relations keep hydration enabled without requiring

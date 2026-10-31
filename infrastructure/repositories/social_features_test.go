@@ -8,6 +8,7 @@ import (
 	"core/models"
 	"core/models/notifications"
 	"errors"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -111,9 +112,13 @@ func TestFriendshipBlockAndNotificationFailureAreAtomicIntegration(t *testing.T)
 	if _, err := friends.RequestFriendship(ctx, first.ID, second.PublicID); err == nil {
 		t.Fatal("request committed without its notification")
 	}
-	var stored models.Friendship
-	if err := db.First(&stored, "public_id = ?", record.PublicID).Error; err != nil || stored.Status != domainuser.FriendshipRemoved {
-		t.Fatalf("failed request changed relationship=%+v %v", stored, err)
+	var stored models.EngagementDetail
+	if err := db.First(&stored, "kind = ? AND details->>'public_id' = ?", models.EngagementKindFriendship, strconv.FormatInt(record.PublicID, 10)).Error; err != nil {
+		t.Fatal(err)
+	}
+	details, err := decodeFriendshipDetails(stored.Details)
+	if err != nil || details.Status != domainuser.FriendshipRemoved {
+		t.Fatalf("failed request changed relationship=%+v %v", details, err)
 	}
 }
 

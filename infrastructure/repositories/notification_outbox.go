@@ -134,7 +134,7 @@ func (r *NotificationRepository) ProcessNextNotification(ctx context.Context, no
 			if err != nil {
 				return true, err
 			}
-			updates["remaining_subscriptions"] = encoded
+			updates["remaining_subscriptions"] = datatypes.JSON(encoded)
 		}
 	}
 	// Shutdown/cancellation must not erase the durable job. An expired lease
@@ -260,7 +260,9 @@ func (r *NotificationRepository) notificationStillCurrent(ctx context.Context, i
 			status = domainuser.FriendshipAccepted
 		}
 		var count int64
-		err = r.db.WithContext(ctx).Model(&models.Friendship{}).Where("public_id = ? AND status = ?", id, status).Count(&count).Error
+		err = r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+			Where("kind = ? AND details->>'public_id' = ? AND details->>'status' = ?", models.EngagementKindFriendship, strconv.FormatInt(id, 10), string(status)).
+			Count(&count).Error
 		return count > 0, err
 	}
 	if item.Type == notifications.NotificationTypePrivatePhotoAccessRequest || item.Type == notifications.NotificationTypePrivatePhotoAccessResponse {
@@ -280,7 +282,9 @@ func (r *NotificationRepository) notificationStillCurrent(ctx context.Context, i
 				return false, nil
 			}
 		}
-		err = r.db.WithContext(ctx).Model(&models.PrivatePhotoAccessRequest{}).Where("public_id = ? AND status = ?", id, status).Count(&count).Error
+		err = r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+			Where("kind = ? AND details->>'public_id' = ? AND details->>'status' = ?", models.EngagementKindPrivatePhotoAccess, strconv.FormatInt(id, 10), string(status)).
+			Count(&count).Error
 		return count > 0, err
 	}
 	return true, nil

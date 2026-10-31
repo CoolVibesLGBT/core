@@ -63,6 +63,24 @@ const (
 	EngagementKindChatDeletedForAll EngagementKind = "chat_deleted_for_all"
 
 	EngagementKindChatMessageRead EngagementKind = "chat_mark_message_read"
+
+	// EngagementKindChatMessageOpened records a disappearing/view-once
+	// message's one-time consumption per recipient.
+	EngagementKindChatMessageOpened EngagementKind = "chat_message_opened"
+
+	// EngagementKindFriendship stores the single canonical relationship row
+	// for a user pair. Unlike toggleable kinds, its EngagementDetail.Details
+	// JSON carries a status state machine (pending/accepted/denied/
+	// cancelled/removed) plus the requester, so the row persists across
+	// terminal states instead of being deleted like a toggle.
+	EngagementKindFriendship EngagementKind = "friendship"
+
+	// EngagementKindPrivatePhotoAccess stores one row per (owner, viewer)
+	// direction — EngagerID is always the album owner, EngageeID the
+	// viewer. Its Details JSON carries the pending/approved/denied status
+	// state machine, so (unlike a toggle) the row persists across terminal
+	// states instead of being deleted.
+	EngagementKindPrivatePhotoAccess EngagementKind = "private_photo_access"
 )
 
 var EngagementCountKeys = map[EngagementKind]struct {
@@ -111,6 +129,9 @@ var EngagementCountKeys = map[EngagementKind]struct {
 	EngagementKindChatDeletedForMe:     {"chat_deleted_for_me_count", ""},
 	EngagementKindChatDeletedForAll:    {"chat_deleted_for_all_count", ""},
 	EngagementKindChatMessageRead:      {"chat_message_read_count", ""},
+	EngagementKindChatMessageOpened:    {"chat_message_opened_count", ""},
+	EngagementKindFriendship:           {"friendship_count", ""},
+	EngagementKindPrivatePhotoAccess:   {"private_photo_access_count", ""},
 }
 
 func NewCountsMap() map[string]interface{} {
@@ -186,7 +207,10 @@ func (e EngagementKind) IsValid() bool {
 		EngagementKindMessageDeletedForAll,
 		EngagementKindChatDeletedForMe,
 		EngagementKindChatDeletedForAll,
-		EngagementKindChatMessageRead:
+		EngagementKindChatMessageRead,
+		EngagementKindChatMessageOpened,
+		EngagementKindFriendship,
+		EngagementKindPrivatePhotoAccess:
 		return true
 	default:
 		return false

@@ -29,9 +29,11 @@ func userBlockScope(query *gorm.DB, viewer uuid.UUID, alias string) *gorm.DB {
 }
 func userAudienceScope(query *gorm.DB, viewer uuid.UUID, alias string) *gorm.DB {
 	fresh := func() *gorm.DB { return repositorySubquery(query) }
-	firstFriends := fresh().Model(&models.Friendship{}).Select("second_user_id").Where("first_user_id = ? AND status = ?", viewer, domainuser.FriendshipAccepted)
-	secondFriends := fresh().Model(&models.Friendship{}).Select("first_user_id").Where("second_user_id = ? AND status = ?", viewer, domainuser.FriendshipAccepted)
-	friends := fresh().Where(alias+".privacy_level = ?", constants.PrivacyFriendsOnly).Where(fresh().Where(alias+".id IN (?)", firstFriends).Or(alias+".id IN (?)", secondFriends))
+	friendIDs := fresh().Model(&models.EngagementDetail{}).
+		Select("CASE WHEN engager_id = ? THEN engagee_id ELSE engager_id END", viewer).
+		Where("kind = ? AND details->>'status' = ?", models.EngagementKindFriendship, string(domainuser.FriendshipAccepted)).
+		Where("engager_id = ? OR engagee_id = ?", viewer, viewer)
+	friends := fresh().Where(alias+".privacy_level = ?", constants.PrivacyFriendsOnly).Where(alias+".id IN (?)", friendIDs)
 	following := userRelationshipTargets(query, viewer, models.EngagementKindFollowing, false)
 	followers := userRelationshipTargets(query, viewer, models.EngagementKindFollowing, true)
 	followsOnly := fresh().Where(alias+".privacy_level = ?", constants.PrivacyFollowersOnly).Where(alias+".id IN (?)", following)

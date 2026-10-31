@@ -56,7 +56,7 @@ func eventRSVPIntegrationDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestSetEventRSVPChangesTogglesRepairsDuplicatesAndCounts(t *testing.T) {
+func TestSetEventRSVPTogglesAndCounts(t *testing.T) {
 	db := eventRSVPIntegrationDB(t)
 	if err := db.AutoMigrate(&postpayloads.Event{}, &postpayloads.EventAttendee{}); err != nil {
 		t.Fatalf("migrate event RSVP schema: %v", err)
@@ -103,23 +103,51 @@ func TestSetEventRSVPChangesTogglesRepairsDuplicatesAndCounts(t *testing.T) {
 		t.Fatalf("SetEventRSVP(toggle clear) = %#v, %v", result, err)
 	}
 
-	now := time.Now().UTC()
-	duplicates := []postpayloads.EventAttendee{
-		{ID: uuid.New(), EventID: event.ID, UserID: viewer.ID, Status: postpayloads.EventAttendanceMaybe, JoinedAt: now},
-		{ID: uuid.New(), EventID: event.ID, UserID: viewer.ID, Status: postpayloads.EventAttendanceNotGoing, JoinedAt: now.Add(-time.Minute)},
-	}
-	if err := db.Create(&duplicates).Error; err != nil {
-		t.Fatalf("create historical duplicate RSVPs: %v", err)
-	}
 	result, err = repo.SetEventRSVP(context.Background(), eventPost.PublicID, viewer.ID, &going)
 	if err != nil || result.Status == nil || *result.Status != going || result.Counts.Going != 1 {
-		t.Fatalf("SetEventRSVP(repair duplicate) = %#v, %v", result, err)
+		t.Fatalf("SetEventRSVP(re-RSVP going) = %#v, %v", result, err)
 	}
 	var rowCount int64
 	if err := db.Model(&postpayloads.EventAttendee{}).Where("event_id = ? AND user_id = ?", event.ID, viewer.ID).Count(&rowCount).Error; err != nil {
-		t.Fatalf("count repaired RSVPs: %v", err)
+		t.Fatalf("count RSVPs: %v", err)
 	}
 	if rowCount != 1 {
-		t.Fatalf("RSVP rows after repair = %d; want 1", rowCount)
+		t.Fatalf("RSVP rows = %d; want 1", rowCount)
+	}
+}
+
+// TestSetEventRSVPRejectsDuplicateAttendeeRows locks in the guarantee the
+// old dedup-on-every-write loop used to provide manually: uidx_event_attendee_user
+// now makes a second (event, user) row impossible at the database level.
+func TestSetEventRSVPRejectsDuplicateAttendeeRows(t *testing.T) {
+	db := eventRSVPIntegrationDB(t)
+	basePublicID := time.Now().UTC().UnixNano()
+	viewer := models.User{
+		ID: uuid.New(), PublicID: basePublicID, Domain: models.CoolVibes,
+		UserName: "rsvp-dup-" + uuid.NewString(), DisplayName: "RSVP Dup", UserRole: constants.UserRoleUser,
+	}
+	if err := db.Omit(clause.Associations).Create(&viewer).Error; err != nil {
+		t.Fatalf("create RSVP user: %v", err)
+	}
+	contentableType := string(post.PostKindEvent)
+	eventPost := post.Post{
+		ID: uuid.New(), PublicID: basePublicID + 1, AuthorID: viewer.ID, Domain: models.CoolVibes,
+		PostKind: post.PostKindEvent, ContentableType: &contentableType, Published: true,
+	}
+	if err := db.Omit(clause.Associations).Create(&eventPost).Error; err != nil {
+		t.Fatalf("create event post: %v", err)
+	}
+	event := postpayloads.Event{ID: uuid.New(), PostID: eventPost.ID, Status: "scheduled"}
+	if err := db.Omit(clause.Associations).Create(&event).Error; err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	first := postpayloads.EventAttendee{ID: uuid.New(), EventID: event.ID, UserID: viewer.ID, Status: postpayloads.EventAttendanceMaybe, JoinedAt: time.Now().UTC()}
+	if err := db.Create(&first).Error; err != nil {
+		t.Fatalf("create first attendee row: %v", err)
+	}
+	second := postpayloads.EventAttendee{ID: uuid.New(), EventID: event.ID, UserID: viewer.ID, Status: postpayloads.EventAttendanceGoing, JoinedAt: time.Now().UTC()}
+	if err := db.Create(&second).Error; err == nil {
+		t.Fatal("database accepted a second attendee row for the same (event, user)")
 	}
 }

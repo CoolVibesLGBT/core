@@ -341,16 +341,27 @@ var blockedRelationshipKinds = []models.EngagementKind{
 
 func clearBlockedUserRelationships(tx *gorm.DB, actor, target *models.Engagement) error {
 	first, second := friendshipPair(actor.ContentableID, target.ContentableID)
-	if err := tx.Model(&models.Friendship{}).Where("first_user_id = ? AND second_user_id = ? AND status IN ?", first, second, []domainuser.FriendshipStatus{domainuser.FriendshipPending, domainuser.FriendshipAccepted}).Updates(map[string]any{"status": domainuser.FriendshipRemoved, "updated_at": time.Now().UTC()}).Error; err != nil {
+	friendship, err := findFriendshipDetail(tx, first, second, false)
+	if err != nil {
 		return err
 	}
-	var friendship models.Friendship
-	result := tx.Where("first_user_id = ? AND second_user_id = ?", first, second).Take(&friendship)
-	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return result.Error
-	}
-	if result.Error == nil {
-		if err := resolveFriendshipNotification(tx, friendship); err != nil {
+	if friendship != nil {
+		details, err := decodeFriendshipDetails(friendship.Details)
+		if err != nil {
+			return err
+		}
+		if details.Status == domainuser.FriendshipPending || details.Status == domainuser.FriendshipAccepted {
+			details.Status = domainuser.FriendshipRemoved
+			payload, err := json.Marshal(details)
+			if err != nil {
+				return err
+			}
+			if err := tx.Model(&models.EngagementDetail{}).Where("id = ?", friendship.ID).
+				Updates(map[string]any{"details": datatypes.JSON(payload), "updated_at": time.Now().UTC()}).Error; err != nil {
+				return err
+			}
+		}
+		if err := resolveFriendshipNotification(tx, details.PublicID, details.Status); err != nil {
 			return err
 		}
 	}
@@ -709,19 +720,6 @@ func (r *EngagementRepository) GetEngagement(ctx context.Context, contentableID 
 		return nil, err
 	}
 	return &engagement, nil
-}
-
-// ListEngagementDetails lists all engagement details for a given engagement ID, optionally filtered by kind
-func (r *EngagementRepository) ListEngagementDetailsDeprecated(ctx context.Context, engagementID uuid.UUID, kind *string) ([]models.EngagementDetail, error) {
-	var details []models.EngagementDetail
-	query := r.db.WithContext(ctx).Where("engagement_id = ?", engagementID)
-	if kind != nil {
-		query = query.Where("kind = ?", *kind)
-	}
-	if err := query.Order("created_at desc").Find(&details).Error; err != nil {
-		return nil, err
-	}
-	return details, nil
 }
 
 func (r *EngagementRepository) GetEngagementDetails(ctx context.Context, engagementID uuid.UUID, kind *models.EngagementKind) ([]models.EngagementDetail, error) {

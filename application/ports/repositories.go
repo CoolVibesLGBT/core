@@ -179,6 +179,7 @@ type ChatRepository interface {
 	DeleteChatHistoryForUser(ctx context.Context, authUser *models.User, chatID uuid.UUID) error
 	DeleteChatHistoryForAll(ctx context.Context, authUser *models.User, chatID uuid.UUID) error
 	MarkChatMessageRead(ctx context.Context, authUser *models.User, chatID uuid.UUID, messages []uuid.UUID) error
+	GetMessageReaders(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, cursor *types.MatchListCursor, limit int) ([]models.EngagementDetail, *types.MatchListCursor, error)
 	OpenMessage(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, now time.Time) (*chat.OpenMessageResult, error)
 	ExpireMessages(ctx context.Context, now time.Time, limit int) ([]chat.ExpiredMessage, error)
 }

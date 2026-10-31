@@ -376,6 +376,24 @@ func (s *ChatService) MarkChatMessageRead(ctx context.Context, authUser *models.
 	return s.chatRepo.MarkChatMessageRead(ctx, authUser, chatID, messageIDs)
 }
 
+func (s *ChatService) GetMessageReaders(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, cursor *types.MatchListCursor, limit int) ([]types.UserEngagement, *types.MatchListCursor, error) {
+	rows, next, err := s.chatRepo.GetMessageReaders(ctx, authUser, chatID, messageID, cursor, limit)
+	if err != nil {
+		return nil, nil, err
+	}
+	views := make([]types.UserEngagement, 0, len(rows))
+	for _, row := range rows {
+		views = append(views, types.UserEngagement{
+			ID:        row.ID.String(),
+			Kind:      string(row.Kind),
+			CreatedAt: row.CreatedAt,
+			UpdatedAt: row.UpdatedAt,
+			Engager:   publicUserSummaryFromModel(&row.Engager),
+		})
+	}
+	return views, next, nil
+}
+
 func (s *ChatService) OpenMessage(ctx context.Context, authUser *models.User, chatID, messageID uuid.UUID, now time.Time) (*types.ChatOpenMessageResult, error) {
 	if authUser == nil || authUser.ID == uuid.Nil {
 		return nil, chat.ErrNotParticipant

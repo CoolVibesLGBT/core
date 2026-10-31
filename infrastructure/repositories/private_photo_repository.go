@@ -11,6 +11,7 @@ import (
 	modelmedia "core/models/media"
 	"core/models/notifications"
 	modelutils "core/models/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -20,6 +21,7 @@ import (
 	"io"
 	"log"
 	"mime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,9 +29,92 @@ import (
 	"github.com/google/uuid"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// privatePhotoAccessDetails is the JSON payload carried in
+// EngagementDetail.Details for the single row representing one
+// (owner, viewer) direction. The status and distinct-users invariants this
+// used to get from chk_private_photo_access_status and
+// chk_private_photo_access_distinct_users are enforced by raw SQL CHECK
+// constraints on this JSON path (see EnsurePrivatePhotoAccessConstraints)
+// since GORM cannot express them through tags.
+type privatePhotoAccessDetails struct {
+	Status      domainmedia.PrivatePhotoAccessStatus `json:"status"`
+	PublicID    int64                                `json:"public_id,string"`
+	RequestedAt time.Time                            `json:"requested_at"`
+	RespondedAt *time.Time                           `json:"responded_at,omitempty"`
+}
+
+func decodePrivatePhotoAccessDetails(raw datatypes.JSON) (privatePhotoAccessDetails, error) {
+	var details privatePhotoAccessDetails
+	if len(raw) == 0 {
+		return details, nil
+	}
+	err := json.Unmarshal(raw, &details)
+	return details, err
+}
+
+// privatePhotoAccessDedupeKey is fixed-role, not canonically ordered: an
+// owner can independently grant a viewer access while the viewer separately
+// owns no reciprocal grant, so (owner, viewer) and (viewer, owner) are two
+// distinct rows, each unique via this key's existing index — the same
+// guarantee the dedicated table used to get from
+// uidx_private_photo_access_owner_viewer.
+func privatePhotoAccessDedupeKey(ownerID, viewerID uuid.UUID) string {
+	return "private_photo_access:" + ownerID.String() + ":" + viewerID.String()
+}
+
+func findPrivatePhotoAccessDetail(tx *gorm.DB, ownerID, viewerID uuid.UUID, lock bool) (*models.EngagementDetail, error) {
+	query := tx.Where("dedupe_key = ?", privatePhotoAccessDedupeKey(ownerID, viewerID))
+	if lock {
+		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	var row models.EngagementDetail
+	err := query.Take(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+func createPrivatePhotoAccessDetail(tx *gorm.DB, ownerID, viewerID uuid.UUID, details privatePhotoAccessDetails, now time.Time) (models.EngagementDetail, error) {
+	payload, err := json.Marshal(details)
+	if err != nil {
+		return models.EngagementDetail{}, err
+	}
+	aggregate, err := loadOrCreateEngagementAggregate(tx, ownerID, models.EngagementContentableTypeUser)
+	if err != nil {
+		return models.EngagementDetail{}, err
+	}
+	dedupeKey := privatePhotoAccessDedupeKey(ownerID, viewerID)
+	row := models.EngagementDetail{
+		ID: uuid.New(), EngagementID: aggregate.ID, DedupeKey: &dedupeKey,
+		EngagerID: ownerID, EngageeID: viewerID, Kind: models.EngagementKindPrivatePhotoAccess,
+		Details: datatypes.JSON(payload), CreatedAt: now, UpdatedAt: now,
+	}
+	if err := tx.Create(&row).Error; err != nil {
+		return models.EngagementDetail{}, err
+	}
+	return row, nil
+}
+
+func updatePrivatePhotoAccessDetail(tx *gorm.DB, id uuid.UUID, details privatePhotoAccessDetails, now time.Time) (datatypes.JSON, error) {
+	payload, err := json.Marshal(details)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Model(&models.EngagementDetail{}).Where("id = ?", id).
+		Updates(map[string]any{"details": datatypes.JSON(payload), "updated_at": now}).Error; err != nil {
+		return nil, err
+	}
+	return datatypes.JSON(payload), nil
+}
 
 type PrivatePhotoRepository struct {
 	db            *gorm.DB
@@ -322,17 +407,14 @@ func (r *PrivatePhotoRepository) ArePrivatePhotoUsersBlocked(ctx context.Context
 }
 
 func (r *PrivatePhotoRepository) GetPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID) (*ports.PrivatePhotoAccessRecord, error) {
-	var request models.PrivatePhotoAccessRequest
-	result := r.db.WithContext(ctx).
-		Where("owner_id = ? AND viewer_id = ?", ownerID, viewerID).
-		Take(&request)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	row, err := findPrivatePhotoAccessDetail(r.db.WithContext(ctx), ownerID, viewerID, false)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
 		return nil, ports.ErrNotFound
 	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return r.privatePhotoAccessRecord(ctx, request)
+	return r.privatePhotoAccessRecord(ctx, *row)
 }
 
 func (r *PrivatePhotoRepository) GrantPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID, now time.Time) (*ports.PrivatePhotoAccessRecord, bool, error) {
@@ -342,7 +424,8 @@ func (r *PrivatePhotoRepository) GrantPrivatePhotoAccess(ctx context.Context, ow
 	if ownerID == viewerID {
 		return nil, false, ports.ErrPrivatePhotoAccessBlocked
 	}
-	var request models.PrivatePhotoAccessRequest
+	var row models.EngagementDetail
+	var details privatePhotoAccessDetails
 	changed := false
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := lockPrivatePhotoAccessPair(tx, ownerID, viewerID); err != nil {
@@ -351,27 +434,43 @@ func (r *PrivatePhotoRepository) GrantPrivatePhotoAccess(ctx context.Context, ow
 		if err := ensurePrivatePhotoUsersNotBlocked(tx, ownerID, viewerID); err != nil {
 			return err
 		}
-		err := privatePhotoLockingQuery(tx).Where("owner_id = ? AND viewer_id = ?", ownerID, viewerID).Take(&request).Error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		existing, err := findPrivatePhotoAccessDetail(tx, ownerID, viewerID, true)
+		if err != nil {
 			return err
 		}
-		if err == nil && request.Status == domainmedia.PrivatePhotoAccessApproved {
-			return nil
+		if existing != nil {
+			details, err = decodePrivatePhotoAccessDetails(existing.Details)
+			if err != nil {
+				return err
+			}
+			if details.Status == domainmedia.PrivatePhotoAccessApproved {
+				row = *existing
+				return nil
+			}
+		} else {
+			details.PublicID, details.RequestedAt = r.snowFlakeNode.Generate().Int64(), now
 		}
-		if request.ID == uuid.Nil {
-			request = models.PrivatePhotoAccessRequest{ID: uuid.New(), PublicID: r.snowFlakeNode.Generate().Int64(), OwnerID: ownerID, ViewerID: viewerID, RequestedAt: now, CreatedAt: now}
-		}
-		request.Status, request.RespondedAt, request.UpdatedAt = domainmedia.PrivatePhotoAccessApproved, &now, now
-		if err := tx.Save(&request).Error; err != nil {
-			return err
-		}
+		details.Status, details.RespondedAt = domainmedia.PrivatePhotoAccessApproved, &now
 		changed = true
-		return enqueuePrivatePhotoNotification(tx, request, true)
+		if existing != nil {
+			payload, err := updatePrivatePhotoAccessDetail(tx, existing.ID, details, now)
+			if err != nil {
+				return err
+			}
+			row = *existing
+			row.Details, row.UpdatedAt = payload, now
+		} else {
+			row, err = createPrivatePhotoAccessDetail(tx, ownerID, viewerID, details, now)
+			if err != nil {
+				return err
+			}
+		}
+		return enqueuePrivatePhotoNotification(tx, row, details, true)
 	})
 	if err != nil {
 		return nil, false, err
 	}
-	record, err := r.privatePhotoAccessRecord(ctx, request)
+	record, err := r.privatePhotoAccessRecord(ctx, row)
 	return record, changed, err
 }
 
@@ -380,7 +479,8 @@ func (r *PrivatePhotoRepository) RequestPrivatePhotoAccess(ctx context.Context, 
 		return nil, false, constants.ErrPrivatePhotoPublicIDNotConfigured
 	}
 
-	var request models.PrivatePhotoAccessRequest
+	var row models.EngagementDetail
+	var details privatePhotoAccessDetails
 	changed := false
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := lockPrivatePhotoAccessPair(tx, ownerID, viewerID); err != nil {
@@ -390,191 +490,184 @@ func (r *PrivatePhotoRepository) RequestPrivatePhotoAccess(ctx context.Context, 
 			return err
 		}
 
-		query := privatePhotoLockingQuery(tx).
-			Where("owner_id = ? AND viewer_id = ?", ownerID, viewerID).
-			Take(&request)
-		if errors.Is(query.Error, gorm.ErrRecordNotFound) {
-			request = models.PrivatePhotoAccessRequest{
-				ID:          uuid.New(),
-				PublicID:    r.snowFlakeNode.Generate().Int64(),
-				OwnerID:     ownerID,
-				ViewerID:    viewerID,
-				Status:      domainmedia.PrivatePhotoAccessPending,
-				RequestedAt: now,
-				CreatedAt:   now,
-				UpdatedAt:   now,
-			}
-			changed = true
-			if err := tx.Create(&request).Error; err != nil {
-				return err
-			}
-			return enqueuePrivatePhotoNotification(tx, request, false)
-		}
-		if query.Error != nil {
-			return query.Error
-		}
-
-		next, requestChanged := domainmedia.RequestPrivatePhotoAccess(&request.Status)
-		changed = requestChanged
-		if !changed {
-			return nil
-		}
-		request.Status = next
-		request.RequestedAt = now
-		request.RespondedAt = nil
-		request.UpdatedAt = now
-		if err := tx.Model(&models.PrivatePhotoAccessRequest{}).
-			Where("id = ?", request.ID).
-			Updates(map[string]any{
-				"status":       request.Status,
-				"requested_at": request.RequestedAt,
-				"responded_at": nil,
-				"updated_at":   request.UpdatedAt,
-			}).Error; err != nil {
+		existing, err := findPrivatePhotoAccessDetail(tx, ownerID, viewerID, true)
+		if err != nil {
 			return err
 		}
-		return enqueuePrivatePhotoNotification(tx, request, false)
+		if existing == nil {
+			details = privatePhotoAccessDetails{Status: domainmedia.PrivatePhotoAccessPending, PublicID: r.snowFlakeNode.Generate().Int64(), RequestedAt: now}
+			changed = true
+			row, err = createPrivatePhotoAccessDetail(tx, ownerID, viewerID, details, now)
+			if err != nil {
+				return err
+			}
+			return enqueuePrivatePhotoNotification(tx, row, details, false)
+		}
+
+		details, err = decodePrivatePhotoAccessDetails(existing.Details)
+		if err != nil {
+			return err
+		}
+		next, requestChanged := domainmedia.RequestPrivatePhotoAccess(&details.Status)
+		changed = requestChanged
+		if !changed {
+			row = *existing
+			return nil
+		}
+		details.Status, details.RequestedAt, details.RespondedAt = next, now, nil
+		payload, err := updatePrivatePhotoAccessDetail(tx, existing.ID, details, now)
+		if err != nil {
+			return err
+		}
+		row = *existing
+		row.Details, row.UpdatedAt = payload, now
+		return enqueuePrivatePhotoNotification(tx, row, details, false)
 	})
 	if err != nil {
 		return nil, false, err
 	}
-	record, err := r.privatePhotoAccessRecord(ctx, request)
+	record, err := r.privatePhotoAccessRecord(ctx, row)
 	return record, changed, err
 }
 
 func (r *PrivatePhotoRepository) FindPrivatePhotoAccessByPublicID(ctx context.Context, requestPublicID int64) (*ports.PrivatePhotoAccessRecord, error) {
-	var request models.PrivatePhotoAccessRequest
-	result := r.db.WithContext(ctx).Where("public_id = ?", requestPublicID).Take(&request)
+	var row models.EngagementDetail
+	result := r.db.WithContext(ctx).
+		Where("kind = ? AND details->>'public_id' = ?", models.EngagementKindPrivatePhotoAccess, strconv.FormatInt(requestPublicID, 10)).
+		Take(&row)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, ports.ErrNotFound
 	}
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return r.privatePhotoAccessRecord(ctx, request)
+	return r.privatePhotoAccessRecord(ctx, row)
 }
 
 func (r *PrivatePhotoRepository) RespondPrivatePhotoAccess(ctx context.Context, requestPublicID int64, ownerID uuid.UUID, decision domainmedia.PrivatePhotoAccessStatus, now time.Time) (*ports.PrivatePhotoAccessRecord, bool, error) {
-	var request models.PrivatePhotoAccessRequest
+	var row models.EngagementDetail
+	var details privatePhotoAccessDetails
 	changed := false
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Read the immutable pair first, then lock it before the request row.
 		// Blocks, new requests and decisions all use this same lock order.
-		if err := tx.Select("owner_id", "viewer_id").
-			Where("public_id = ? AND owner_id = ?", requestPublicID, ownerID).Take(&request).Error; err != nil {
+		if err := tx.Select("engager_id", "engagee_id").
+			Where("kind = ? AND details->>'public_id' = ? AND engager_id = ?", models.EngagementKindPrivatePhotoAccess, strconv.FormatInt(requestPublicID, 10), ownerID).
+			Take(&row).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return ports.ErrNotFound
 			}
 			return err
 		}
-		if err := lockPrivatePhotoAccessPair(tx, request.OwnerID, request.ViewerID); err != nil {
+		viewerID := row.EngageeID
+		if err := lockPrivatePhotoAccessPair(tx, ownerID, viewerID); err != nil {
 			return err
 		}
 		if decision == domainmedia.PrivatePhotoAccessApproved {
-			if err := ensurePrivatePhotoUsersNotBlocked(tx, request.OwnerID, request.ViewerID); err != nil {
+			if err := ensurePrivatePhotoUsersNotBlocked(tx, ownerID, viewerID); err != nil {
 				return err
 			}
 		}
-		query := privatePhotoLockingQuery(tx).
-			Where("public_id = ? AND owner_id = ?", requestPublicID, ownerID).
-			Take(&request)
-		if errors.Is(query.Error, gorm.ErrRecordNotFound) {
+		existing, err := findPrivatePhotoAccessDetail(tx, ownerID, viewerID, true)
+		if err != nil {
+			return err
+		}
+		if existing == nil {
 			return ports.ErrNotFound
 		}
-		if query.Error != nil {
-			return query.Error
+		details, err = decodePrivatePhotoAccessDetails(existing.Details)
+		if err != nil {
+			return err
+		}
+		if details.PublicID != requestPublicID {
+			return ports.ErrNotFound
 		}
 
-		next, responseChanged, err := domainmedia.RespondToPrivatePhotoAccess(request.Status, decision)
+		next, responseChanged, err := domainmedia.RespondToPrivatePhotoAccess(details.Status, decision)
 		if err != nil {
 			return err
 		}
 		changed = responseChanged
 		if !changed {
+			row = *existing
 			return nil
 		}
-		request.Status = next
-		request.RespondedAt = &now
-		request.UpdatedAt = now
-		if err := tx.Model(&models.PrivatePhotoAccessRequest{}).
-			Where("id = ?", request.ID).
-			Updates(map[string]any{
-				"status":       request.Status,
-				"responded_at": request.RespondedAt,
-				"updated_at":   request.UpdatedAt,
-			}).Error; err != nil {
+		details.Status, details.RespondedAt = next, &now
+		payload, err := updatePrivatePhotoAccessDetail(tx, existing.ID, details, now)
+		if err != nil {
 			return err
 		}
-		return enqueuePrivatePhotoNotification(tx, request, true)
+		row = *existing
+		row.Details, row.UpdatedAt = payload, now
+		return enqueuePrivatePhotoNotification(tx, row, details, true)
 	})
 	if err != nil {
 		return nil, false, err
 	}
-	record, err := r.privatePhotoAccessRecord(ctx, request)
+	record, err := r.privatePhotoAccessRecord(ctx, row)
 	return record, changed, err
 }
 
 func (r *PrivatePhotoRepository) RevokePrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID, now time.Time) (*ports.PrivatePhotoAccessRecord, bool, error) {
-	var request models.PrivatePhotoAccessRequest
+	var row models.EngagementDetail
+	var details privatePhotoAccessDetails
 	changed := false
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := lockPrivatePhotoAccessPair(tx, ownerID, viewerID); err != nil {
 			return err
 		}
-		query := privatePhotoLockingQuery(tx).
-			Where("owner_id = ? AND viewer_id = ?", ownerID, viewerID).
-			Take(&request)
-		if errors.Is(query.Error, gorm.ErrRecordNotFound) {
+		existing, err := findPrivatePhotoAccessDetail(tx, ownerID, viewerID, true)
+		if err != nil {
+			return err
+		}
+		if existing == nil {
 			return ports.ErrNotFound
 		}
-		if query.Error != nil {
-			return query.Error
+		details, err = decodePrivatePhotoAccessDetails(existing.Details)
+		if err != nil {
+			return err
 		}
 
-		next, revoked, err := domainmedia.RevokePrivatePhotoAccess(request.Status)
+		next, revoked, err := domainmedia.RevokePrivatePhotoAccess(details.Status)
 		if err != nil {
 			return err
 		}
 		changed = revoked
 		if !changed {
+			row = *existing
 			return nil
 		}
-		request.Status = next
-		request.RespondedAt = &now
-		request.UpdatedAt = now
-		if err := tx.Model(&models.PrivatePhotoAccessRequest{}).
-			Where("id = ?", request.ID).
-			Updates(map[string]any{
-				"status":       request.Status,
-				"responded_at": request.RespondedAt,
-				"updated_at":   request.UpdatedAt,
-			}).Error; err != nil {
+		details.Status, details.RespondedAt = next, &now
+		payload, err := updatePrivatePhotoAccessDetail(tx, existing.ID, details, now)
+		if err != nil {
 			return err
 		}
-		return enqueuePrivatePhotoNotification(tx, request, true)
+		row = *existing
+		row.Details, row.UpdatedAt = payload, now
+		return enqueuePrivatePhotoNotification(tx, row, details, true)
 	})
 	if err != nil {
 		return nil, false, err
 	}
-	record, err := r.privatePhotoAccessRecord(ctx, request)
+	record, err := r.privatePhotoAccessRecord(ctx, row)
 	return record, changed, err
 }
 
 func (r *PrivatePhotoRepository) ListPrivatePhotoAccessRequests(ctx context.Context, ownerID uuid.UUID) ([]ports.PrivatePhotoAccessRecord, error) {
-	var requests []models.PrivatePhotoAccessRequest
+	var rows []models.EngagementDetail
 	if err := r.db.WithContext(ctx).
-		Where("owner_id = ?", ownerID).
-		Order("requested_at DESC, public_id DESC").
-		Find(&requests).Error; err != nil {
+		Where("kind = ? AND engager_id = ?", models.EngagementKindPrivatePhotoAccess, ownerID).
+		Order("(details->>'requested_at')::timestamptz DESC, (details->>'public_id')::bigint DESC").
+		Find(&rows).Error; err != nil {
 		return nil, err
 	}
-	if len(requests) == 0 {
+	if len(rows) == 0 {
 		return []ports.PrivatePhotoAccessRecord{}, nil
 	}
 
-	viewerIDs := make([]uuid.UUID, 0, len(requests))
-	for _, request := range requests {
-		viewerIDs = append(viewerIDs, request.ViewerID)
+	viewerIDs := make([]uuid.UUID, 0, len(rows))
+	for _, row := range rows {
+		viewerIDs = append(viewerIDs, row.EngageeID)
 	}
 	var viewers []models.User
 	if err := r.db.WithContext(ctx).
@@ -594,16 +687,20 @@ func (r *PrivatePhotoRepository) ListPrivatePhotoAccessRequests(ctx context.Cont
 		return nil, err
 	}
 
-	result := make([]ports.PrivatePhotoAccessRecord, 0, len(requests))
-	for _, request := range requests {
-		viewer, exists := viewerMap[request.ViewerID]
+	result := make([]ports.PrivatePhotoAccessRecord, 0, len(rows))
+	for _, row := range rows {
+		viewer, exists := viewerMap[row.EngageeID]
 		if !exists {
 			// The access row can briefly outlive a viewer in installations that
 			// predate the current foreign-key migration. Do not turn one stale
 			// historical row into a 500 for the album owner.
 			continue
 		}
-		result = append(result, privatePhotoAccessRecord(request, owner.PublicID, viewer))
+		details, err := decodePrivatePhotoAccessDetails(row.Details)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, privatePhotoAccessRecord(row, details, owner.PublicID, viewer))
 	}
 	return result, nil
 }
@@ -611,15 +708,16 @@ func (r *PrivatePhotoRepository) ListPrivatePhotoAccessRequests(ctx context.Cont
 func (r *PrivatePhotoRepository) HasApprovedPrivatePhotoAccess(ctx context.Context, ownerID, viewerID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
-		Model(&models.PrivatePhotoAccessRequest{}).
-		Joins("JOIN users AS owner ON owner.id = private_photo_access_requests.owner_id").
-		Joins("JOIN users AS viewer ON viewer.id = private_photo_access_requests.viewer_id").
+		Model(&models.EngagementDetail{}).
+		Joins("JOIN users AS owner ON owner.id = engagement_details.engager_id").
+		Joins("JOIN users AS viewer ON viewer.id = engagement_details.engagee_id").
 		Where("owner.deleted_at IS NULL AND viewer.deleted_at IS NULL").
 		Where("owner.user_role NOT IN ? AND viewer.user_role NOT IN ?", []string{"banned", "deleted"}, []string{"banned", "deleted"}).
-		Where("owner_id = ? AND viewer_id = ? AND status = ?", ownerID, viewerID, domainmedia.PrivatePhotoAccessApproved).
-		Where("owner_id NOT IN (?)", repositorySubquery(r.db).Model(&models.EngagementDetail{}).
+		Where("engagement_details.kind = ? AND engager_id = ? AND engagee_id = ? AND details->>'status' = ?",
+			models.EngagementKindPrivatePhotoAccess, ownerID, viewerID, string(domainmedia.PrivatePhotoAccessApproved)).
+		Where("? NOT IN (?)", ownerID, repositorySubquery(r.db).Model(&models.EngagementDetail{}).
 			Select("engagee_id").Where("engagee_id IS NOT NULL").Where("kind = ? AND engager_id = ?", models.EngagementKindBlocking, viewerID)).
-		Where("viewer_id NOT IN (?)", repositorySubquery(r.db).Model(&models.EngagementDetail{}).
+		Where("? NOT IN (?)", viewerID, repositorySubquery(r.db).Model(&models.EngagementDetail{}).
 			Select("engagee_id").Where("engagee_id IS NOT NULL").Where("kind = ? AND engager_id = ?", models.EngagementKindBlocking, ownerID)).
 		Count(&count).Error
 	return count > 0, err
@@ -633,46 +731,52 @@ func (r *PrivatePhotoRepository) RevokePrivatePhotoAccessBetween(ctx context.Con
 		if err := lockPrivatePhotoAccessPair(tx, firstUserID, secondUserID); err != nil {
 			return err
 		}
-		var requests []models.PrivatePhotoAccessRequest
+		var rows []models.EngagementDetail
 		query := privatePhotoLockingQuery(tx).
 			Where(
-				"(owner_id = ? AND viewer_id = ?) OR (owner_id = ? AND viewer_id = ?)",
-				firstUserID,
-				secondUserID,
-				secondUserID,
-				firstUserID,
+				"kind = ? AND ((engager_id = ? AND engagee_id = ?) OR (engager_id = ? AND engagee_id = ?))",
+				models.EngagementKindPrivatePhotoAccess, firstUserID, secondUserID, secondUserID, firstUserID,
 			).
-			Where("status <> ?", domainmedia.PrivatePhotoAccessDenied).
-			Find(&requests)
-		if query.Error != nil || len(requests) == 0 {
+			Find(&rows)
+		if query.Error != nil {
 			return query.Error
 		}
 
-		requestIDs := make([]uuid.UUID, 0, len(requests))
-		for index := range requests {
-			requestIDs = append(requestIDs, requests[index].ID)
-			requests[index].Status = domainmedia.PrivatePhotoAccessDenied
-			requests[index].RespondedAt = &now
+		revoked := make([]privatePhotoAccessRevocation, 0, len(rows))
+		for i := range rows {
+			details, err := decodePrivatePhotoAccessDetails(rows[i].Details)
+			if err != nil {
+				return err
+			}
+			if details.Status == domainmedia.PrivatePhotoAccessDenied {
+				continue
+			}
+			details.Status, details.RespondedAt = domainmedia.PrivatePhotoAccessDenied, &now
+			if _, err := updatePrivatePhotoAccessDetail(tx, rows[i].ID, details, now); err != nil {
+				return err
+			}
+			revoked = append(revoked, privatePhotoAccessRevocation{ownerID: rows[i].EngagerID, publicID: details.PublicID})
 		}
-		if err := tx.Model(&models.PrivatePhotoAccessRequest{}).
-			Where("id IN ?", requestIDs).
-			Updates(map[string]any{
-				"status":       domainmedia.PrivatePhotoAccessDenied,
-				"responded_at": now,
-				"updated_at":   now,
-			}).Error; err != nil {
-			return err
+		if len(revoked) == 0 {
+			return nil
 		}
-		return resolveBlockedPrivatePhotoNotifications(tx, requests, now)
+		return resolveBlockedPrivatePhotoNotifications(tx, revoked, now)
 	})
 }
 
-func resolveBlockedPrivatePhotoNotifications(tx *gorm.DB, requests []models.PrivatePhotoAccessRequest, now time.Time) error {
-	requestByPublicID := make(map[string]models.PrivatePhotoAccessRequest, len(requests))
-	ownerIDs := make([]uuid.UUID, 0, len(requests))
-	for _, request := range requests {
-		requestByPublicID[fmt.Sprint(request.PublicID)] = request
-		ownerIDs = append(ownerIDs, request.OwnerID)
+// privatePhotoAccessRevocation is the minimal projection resolveBlockedPrivatePhotoNotifications
+// needs for each row RevokePrivatePhotoAccessBetween just denied.
+type privatePhotoAccessRevocation struct {
+	ownerID  uuid.UUID
+	publicID int64
+}
+
+func resolveBlockedPrivatePhotoNotifications(tx *gorm.DB, revoked []privatePhotoAccessRevocation, now time.Time) error {
+	requestByPublicID := make(map[string]privatePhotoAccessRevocation, len(revoked))
+	ownerIDs := make([]uuid.UUID, 0, len(revoked))
+	for _, request := range revoked {
+		requestByPublicID[fmt.Sprint(request.publicID)] = request
+		ownerIDs = append(ownerIDs, request.ownerID)
 	}
 
 	var items []notifications.Notification
@@ -682,7 +786,7 @@ func resolveBlockedPrivatePhotoNotifications(tx *gorm.DB, requests []models.Priv
 		Find(&items).Error; err != nil {
 		return err
 	}
-	resolved := make(map[string]bool, len(requests))
+	resolved := make(map[string]bool, len(revoked))
 	for _, item := range items {
 		data, ok := item.Payload.Data.(map[string]any)
 		if !ok {
@@ -690,7 +794,7 @@ func resolveBlockedPrivatePhotoNotifications(tx *gorm.DB, requests []models.Priv
 		}
 		requestID := fmt.Sprint(data["request_id"])
 		request, ok := requestByPublicID[requestID]
-		if !ok || request.OwnerID != item.UserID || resolved[requestID] {
+		if !ok || request.ownerID != item.UserID || resolved[requestID] {
 			continue
 		}
 		status := fmt.Sprint(data["access_status"])
@@ -762,11 +866,15 @@ func lockPrivatePhotoAlbum(db *gorm.DB, ownerID uuid.UUID) error {
 	return lockTransactionResource(db, "private-photos:"+ownerID.String()).Error
 }
 
-func (r *PrivatePhotoRepository) privatePhotoAccessRecord(ctx context.Context, request models.PrivatePhotoAccessRequest) (*ports.PrivatePhotoAccessRecord, error) {
+func (r *PrivatePhotoRepository) privatePhotoAccessRecord(ctx context.Context, row models.EngagementDetail) (*ports.PrivatePhotoAccessRecord, error) {
+	details, err := decodePrivatePhotoAccessDetails(row.Details)
+	if err != nil {
+		return nil, err
+	}
 	var users []models.User
 	if err := r.db.WithContext(ctx).
 		Preload("Avatar.File").
-		Where("id IN ?", []uuid.UUID{request.OwnerID, request.ViewerID}).
+		Where("id IN ?", []uuid.UUID{row.EngagerID, row.EngageeID}).
 		Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -774,30 +882,30 @@ func (r *PrivatePhotoRepository) privatePhotoAccessRecord(ctx context.Context, r
 	var viewer ports.PrivatePhotoUser
 	for _, user := range users {
 		switch user.ID {
-		case request.OwnerID:
+		case row.EngagerID:
 			ownerPublicID = user.PublicID
-		case request.ViewerID:
+		case row.EngageeID:
 			viewer = privatePhotoUser(user)
 		}
 	}
 	if ownerPublicID == 0 || viewer.ID == uuid.Nil {
 		return nil, ports.ErrNotFound
 	}
-	record := privatePhotoAccessRecord(request, ownerPublicID, viewer)
+	record := privatePhotoAccessRecord(row, details, ownerPublicID, viewer)
 	return &record, nil
 }
 
-func privatePhotoAccessRecord(request models.PrivatePhotoAccessRequest, ownerPublicID int64, viewer ports.PrivatePhotoUser) ports.PrivatePhotoAccessRecord {
+func privatePhotoAccessRecord(row models.EngagementDetail, details privatePhotoAccessDetails, ownerPublicID int64, viewer ports.PrivatePhotoUser) ports.PrivatePhotoAccessRecord {
 	return ports.PrivatePhotoAccessRecord{
-		ID:             request.ID,
-		PublicID:       request.PublicID,
-		OwnerID:        request.OwnerID,
+		ID:             row.ID,
+		PublicID:       details.PublicID,
+		OwnerID:        row.EngagerID,
 		OwnerPublicID:  ownerPublicID,
-		ViewerID:       request.ViewerID,
+		ViewerID:       row.EngageeID,
 		ViewerPublicID: viewer.PublicID,
-		Status:         request.Status,
-		RequestedAt:    request.RequestedAt,
-		RespondedAt:    request.RespondedAt,
+		Status:         details.Status,
+		RequestedAt:    details.RequestedAt,
+		RespondedAt:    details.RespondedAt,
 		Viewer:         viewer,
 	}
 }

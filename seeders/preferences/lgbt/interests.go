@@ -15,8 +15,10 @@ import (
 func FetchInterests() ([]models.PreferenceCategory, error) {
 	var attributes []models.PreferenceCategory
 
-	// JSON dosyasını aç
-	file, err := os.Open("static/data/interests.json")
+	// JSON dosyasını aç — interests_i18n.json, interests.json'un yerini alır:
+	// her kategori/öge artık tek bir "en" yerine core.Languages'teki her dil
+	// için bir çeviri taşıyor (bkz. docs/interface-audit.md, web reposu).
+	file, err := os.Open("static/data/interests_i18n.json")
 	if err != nil {
 		return nil, fmt.Errorf("cannot open JSON file: %w", err)
 	}
@@ -29,19 +31,16 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 	// JSON yapısını Go struct'larıyla eşliyoruz
 
 	type Group struct {
-		Gpb              string `json:"$gpb"`
-		GroupID          int    `json:"group_id"`
-		Name             string `json:"name"`
-		ItemPreviewCount int    `json:"item_preview_count"`
+		GroupID          int               `json:"group_id"`
+		ItemPreviewCount int               `json:"item_preview_count"`
+		Titles           map[string]string `json:"titles"`
 	}
 
 	type Interest struct {
-		Gpb         string `json:"$gpb"`
-		InterestID  int    `json:"interest_id"`
-		Name        string `json:"name"`
-		GroupID     int    `json:"group_id"`
-		Emoji       string `json:"emoji"`
-		HpElementID int    `json:"hp_element_id"`
+		InterestID int               `json:"interest_id"`
+		GroupID    int               `json:"group_id"`
+		Emoji      string            `json:"emoji"`
+		Titles     map[string]string `json:"titles"`
 	}
 
 	type Data struct {
@@ -55,18 +54,22 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 	}
 
 	for _, group := range data.Groups {
-		category_title := group.Name
+		// Slug'lar (ve onlardan türeyen deterministik ID'ler) kasıtlı olarak
+		// hep İngilizce başlıktan üretiliyor, böylece bu çeviri geçişi mevcut
+		// kullanıcı tercih seçimlerinin referans verdiği UUID'leri değiştirmiyor.
+		category_title := group.Titles["en"]
 		category_slug := helpers.GenerateSlug(category_title)
 		category_tag := payloads.UserAttributeInterests
 
 		category_id := uuid.NewSHA1(payloads.NameSpace, []byte(category_slug))
 		category_description := ""
+		category_titles := utils.LocalizedString(group.Titles)
 
 		category := models.PreferenceCategory{
 			ID:            category_id,
 			Tag:           &category_tag,
 			Slug:          &category_slug,
-			Title:         utils.MakeLocalizedString("en", category_title),
+			Title:         &category_titles,
 			Description:   utils.MakeLocalizedString("en", category_description),
 			Icon:          nil,
 			AllowMultiple: true,
@@ -75,21 +78,22 @@ func FetchInterests() ([]models.PreferenceCategory, error) {
 
 		for interestId, item := range data.Interests {
 			if item.GroupID == group.GroupID {
-				title := item.Name
+				title := item.Titles["en"]
 				icon := item.Emoji
 				slug := helpers.GenerateSlug(title)
 				item_id := uuid.NewSHA1(payloads.NameSpace, []byte(fmt.Sprintf("%s-%s", category_slug, slug)))
 				slugPtr := &slug
-				item := models.PreferenceItem{
+				item_titles := utils.LocalizedString(item.Titles)
+				prefItem := models.PreferenceItem{
 					ID:           item_id,
 					DisplayOrder: interestId,
 					Slug:         slugPtr,
-					Title:        utils.MakeLocalizedString("en", title),
+					Title:        &item_titles,
 					Description:  nil,
 					Icon:         &icon,
 					Visible:      true,
 				}
-				category.Items = append(category.Items, item)
+				category.Items = append(category.Items, prefItem)
 			}
 		}
 		attributes = append(attributes, category)

@@ -16,7 +16,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type MatchesRepository struct {
@@ -46,52 +45,36 @@ func matchDetailDedupeKey(kind models.EngagementKind, engagerID, engageeID uuid.
 	return fmt.Sprintf("match:%s:%s:%s", kind, engagerID, engageeID)
 }
 
-// setCanonicalMatchDetail repairs legacy rows that were stored on the other
-// user's aggregate and enforces one logical row for the relationship. Both
-// user aggregates are locked by RecordView before this helper is called.
+// setCanonicalMatchDetail enforces exactly one EngagementDetail row per
+// (kind, engager, engagee) triple, keyed by its dedupe_key unique index.
 func setCanonicalMatchDetail(
 	tx *gorm.DB,
 	expectedAggregate *models.Engagement,
-	otherAggregate *models.Engagement,
 	engagerID uuid.UUID,
 	engageeID uuid.UUID,
 	kind models.EngagementKind,
 	enabled bool,
 ) error {
-	if tx == nil || expectedAggregate == nil || otherAggregate == nil {
+	if tx == nil || expectedAggregate == nil {
 		return constants.ErrMatchEngagementAggregateRequired
 	}
 
-	var existing []models.EngagementDetail
-	query := tx
-	if kind == models.EngagementKindViewReceived {
-		query = query.Where("engagement_details.engagement_id = ?", expectedAggregate.ID)
-	}
-	if err := query.
-		Joins("JOIN engagements AS match_aggregate ON match_aggregate.id = engagement_details.engagement_id").
-		Where("match_aggregate.contentable_type = ?", models.EngagementContentableTypeUser).
-		Where("match_aggregate.contentable_id IN ?", []uuid.UUID{expectedAggregate.ContentableID, otherAggregate.ContentableID}).
-		Where("engagement_details.engager_id = ? AND engagement_details.engagee_id = ? AND engagement_details.kind = ?", engagerID, engageeID, kind).
-		Clauses(clause.OrderBy{Expression: clause.Expr{SQL: "CASE WHEN engagement_details.engagement_id = ? THEN 0 ELSE 1 END, engagement_details.created_at ASC, engagement_details.id ASC", Vars: []interface{}{expectedAggregate.ID}}}).
-		Find(&existing).Error; err != nil {
+	dedupeKey := matchDetailDedupeKey(kind, engagerID, engageeID)
+	var existing models.EngagementDetail
+	err := tx.Where("dedupe_key = ?", dedupeKey).Take(&existing).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
+	found := err == nil
 
 	if !enabled {
-		if len(existing) > 0 {
-			ids := make([]uuid.UUID, 0, len(existing))
-			for _, detail := range existing {
-				ids = append(ids, detail.ID)
-			}
-			if err := tx.Delete(&models.EngagementDetail{}, "id IN ?", ids).Error; err != nil {
-				return err
-			}
+		if found {
+			return tx.Delete(&models.EngagementDetail{}, "id = ?", existing.ID).Error
 		}
 		return nil
 	}
 
-	dedupeKey := matchDetailDedupeKey(kind, engagerID, engageeID)
-	if len(existing) == 0 {
+	if !found {
 		now := time.Now().UTC()
 		detail := models.EngagementDetail{
 			ID:           uuid.New(),
@@ -103,32 +86,11 @@ func setCanonicalMatchDetail(
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
-		if err := tx.Create(&detail).Error; err != nil {
-			return err
-		}
-	} else {
-		keeper := existing[0]
-		if len(existing) > 1 {
-			duplicateIDs := make([]uuid.UUID, 0, len(existing)-1)
-			for _, detail := range existing[1:] {
-				duplicateIDs = append(duplicateIDs, detail.ID)
-			}
-			if err := tx.Delete(&models.EngagementDetail{}, "id IN ?", duplicateIDs).Error; err != nil {
-				return err
-			}
-		}
-		if err := tx.Model(&models.EngagementDetail{}).
-			Where("id = ?", keeper.ID).
-			Updates(map[string]interface{}{
-				"engagement_id": expectedAggregate.ID,
-				"dedupe_key":    dedupeKey,
-				"updated_at":    time.Now().UTC(),
-			}).Error; err != nil {
-			return err
-		}
+		return tx.Create(&detail).Error
 	}
-
-	return nil
+	return tx.Model(&models.EngagementDetail{}).
+		Where("id = ?", existing.ID).
+		Update("updated_at", time.Now().UTC()).Error
 }
 
 var matchingEngagementKinds = []models.EngagementKind{
@@ -194,10 +156,10 @@ func syncUserAggregateKinds(tx *gorm.DB, aggregate *models.Engagement, kinds []m
 // Both profile reactions and swipe reactions must update the same canonical
 // rows. A selected reaction replaces its opposite; removing it selects none.
 func setUserReaction(tx *gorm.DB, actor, target *models.Engagement, pair domainuser.EngagementPair, enabled bool) error {
-	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKind(pair.Given), enabled); err != nil {
+	if err := setCanonicalMatchDetail(tx, actor, actor.ContentableID, target.ContentableID, models.EngagementKind(pair.Given), enabled); err != nil {
 		return err
 	}
-	if err := setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKind(pair.Received), enabled); err != nil {
+	if err := setCanonicalMatchDetail(tx, target, target.ContentableID, actor.ContentableID, models.EngagementKind(pair.Received), enabled); err != nil {
 		return err
 	}
 	if !enabled {
@@ -207,10 +169,10 @@ func setUserReaction(tx *gorm.DB, actor, target *models.Engagement, pair domainu
 	if err != nil {
 		return err
 	}
-	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKind(opposite.Given), false); err != nil {
+	if err := setCanonicalMatchDetail(tx, actor, actor.ContentableID, target.ContentableID, models.EngagementKind(opposite.Given), false); err != nil {
 		return err
 	}
-	return setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKind(opposite.Received), false)
+	return setCanonicalMatchDetail(tx, target, target.ContentableID, actor.ContentableID, models.EngagementKind(opposite.Received), false)
 }
 
 func syncMutualUserMatch(tx *gorm.DB, actor, target *models.Engagement) (matched, newMatch bool, err error) {
@@ -244,10 +206,10 @@ func syncMutualUserMatch(tx *gorm.DB, actor, target *models.Engagement) (matched
 		}
 	}
 	newMatch = matched && !hadForward && !hadReverse
-	if err := setCanonicalMatchDetail(tx, actor, target, actor.ContentableID, target.ContentableID, models.EngagementKindMatched, matched); err != nil {
+	if err := setCanonicalMatchDetail(tx, actor, actor.ContentableID, target.ContentableID, models.EngagementKindMatched, matched); err != nil {
 		return false, false, err
 	}
-	if err := setCanonicalMatchDetail(tx, target, actor, target.ContentableID, actor.ContentableID, models.EngagementKindMatched, matched); err != nil {
+	if err := setCanonicalMatchDetail(tx, target, target.ContentableID, actor.ContentableID, models.EngagementKindMatched, matched); err != nil {
 		return false, false, err
 	}
 	return matched, newMatch, nil

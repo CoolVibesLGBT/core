@@ -40,13 +40,13 @@ var repositoryMethodCoverage = map[string]string{
 		"DeleteChat", "DeleteChatForAll", "DeleteChatForUser", "DeleteChatHistoryForAll", "DeleteChatHistoryForUser",
 		"DeleteMessage", "DeleteMessageForAll", "DeleteMessageForUser", "EditMessage", "ExpireMessages", "ForwardMessages", "OpenMessage", "GetChatByID", "GetChatByIDWithoutRelations",
 		"GetChatsByUserID", "GetChatsByUserIDW", "GetChatsByUserIDWithCursor", "GetMessagesByChatID", "ListChats", "ListPublicGroups", "ListChatMessages",
-		"GetMessagesByChatIDWithCursor", "GetParticipants", "GetPrivateChatBetweenUsers", "GetUserChatIDsByUserPublicID",
+		"GetMessagesByChatIDWithCursor", "GetMessageReaders", "GetParticipants", "GetPrivateChatBetweenUsers", "GetUserChatIDsByUserPublicID",
 		"ListPinnedMessages", "ListScheduledMessages", "MarkChatMessageRead", "Node", "NotifyChatParticipants", "PinMessage", "PublishScheduledMessages", "RemoveParticipant", "SendScheduledNow", "SendTypingEvent", "SetChatMuted",
 		"UnpinMessage",
 	}, " "),
 	"EngagementRepository": strings.Join([]string{
 		"AddEngagement", "AddTip", "ApplyReciprocalUserInteraction", "CreateEngagementDetail", "DB", "GetEngagement", "GetEngagementDetails",
-		"GetEngagementDetailsWithCursor", "GetEngagements", "HasUserEngaged", "ListEngagementDetailsDeprecated",
+		"GetEngagementDetailsWithCursor", "GetEngagements", "HasUserEngaged",
 		"RecordViewOnce", "RemoveEngagementDetail", "ToggleEngagement", "SocialNotificationsTransactional",
 	}, " "),
 	"ListingRepository": strings.Join([]string{

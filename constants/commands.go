@@ -36,6 +36,7 @@ const (
 	CMD_CHAT_SEND_CALL              = "chat.send_call"
 	CMD_CHAT_SEND_STICKER           = "chat.send_sticker"
 	CMD_CHAT_MESSAGE_READ           = "chat.message_read"
+	CMD_CHAT_MESSAGE_READERS        = "chat.message_readers"
 	CMD_CHAT_MESSAGE_OPEN           = "chat.message.open"
 	CMD_CHAT_MESSAGE_OPENED         = "chat.message_opened"
 	CMD_CHAT_MESSAGE_EXPIRED        = "chat.message_expired"

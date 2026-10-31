@@ -120,7 +120,11 @@ func TestOpenMessageStartsOnOpenAndAuthorizesEachRecipient(t *testing.T) {
 		}
 	}
 	var authorViews int64
-	if err := db.Model(&chat.MessageView{}).Where("message_id = ? AND user_id = ?", viewOnce.ID, author.ID).Count(&authorViews).Error; err != nil || authorViews != 0 {
+	if err := db.Model(&models.EngagementDetail{}).
+		Joins("JOIN engagements ON engagements.id = engagement_details.engagement_id").
+		Where("engagements.contentable_id = ? AND engagements.contentable_type = ?", viewOnce.ID, models.EngagementContentableTypeMessage).
+		Where("engagement_details.kind = ? AND engagement_details.engager_id = ?", models.EngagementKindChatMessageOpened, author.ID).
+		Count(&authorViews).Error; err != nil || authorViews != 0 {
 		t.Fatalf("author preview recorded consumption: count=%d err=%v", authorViews, err)
 	}
 	beforeOnce := findMessage(before, viewOnce.ID)

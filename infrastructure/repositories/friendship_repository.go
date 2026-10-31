@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -35,6 +36,54 @@ func friendshipPair(first, second uuid.UUID) (uuid.UUID, uuid.UUID) {
 	return first, second
 }
 
+// friendshipDedupeKey is always computed from the canonical pair order, so
+// there is exactly one EngagementDetail row per user pair, enforced by the
+// column's existing unique index — the same guarantee the dedicated
+// friendships table used to get from uidx_friendship_pair.
+func friendshipDedupeKey(first, second uuid.UUID) string {
+	return "friendship:" + first.String() + ":" + second.String()
+}
+
+// friendshipDetails is the JSON payload carried in EngagementDetail.Details
+// for the single row representing a user pair's relationship. The status
+// and requester invariants this used to get from chk_friendship_status and
+// chk_friendship_requester are enforced by raw SQL CHECK constraints on this
+// JSON path (see EnsureFriendshipDetailConstraints) since GORM cannot
+// express them through tags.
+type friendshipDetails struct {
+	Status      domainuser.FriendshipStatus `json:"status"`
+	RequestedBy uuid.UUID                   `json:"requested_by"`
+	RequestedAt time.Time                   `json:"requested_at"`
+	PublicID    int64                       `json:"public_id,string"`
+}
+
+func decodeFriendshipDetails(raw datatypes.JSON) (friendshipDetails, error) {
+	var details friendshipDetails
+	if len(raw) == 0 {
+		return details, nil
+	}
+	err := json.Unmarshal(raw, &details)
+	return details, err
+}
+
+// findFriendshipDetail loads the pair's single relationship row by its
+// canonical dedupe key, or nil if the pair has never requested friendship.
+func findFriendshipDetail(tx *gorm.DB, first, second uuid.UUID, lock bool) (*models.EngagementDetail, error) {
+	query := tx.Where("dedupe_key = ?", friendshipDedupeKey(first, second))
+	if lock {
+		query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
+	var row models.EngagementDetail
+	err := query.Take(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
 func (r *FriendshipRepository) FindFriendship(ctx context.Context, actor uuid.UUID, targetPublicID int64) (*ports.FriendshipRecord, error) {
 	var target models.User
 	query := r.db.WithContext(ctx).Model(&models.User{}).Table("users").Select("users.id").Where("users.public_id = ? AND users.deleted_at IS NULL", targetPublicID).
@@ -46,14 +95,14 @@ func (r *FriendshipRepository) FindFriendship(ctx context.Context, actor uuid.UU
 		return nil, err
 	}
 	first, second := friendshipPair(actor, target.ID)
-	var record models.Friendship
-	if err := r.db.WithContext(ctx).Where("first_user_id = ? AND second_user_id = ?", first, second).Take(&record).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
+	row, err := findFriendshipDetail(r.db.WithContext(ctx), first, second, false)
+	if err != nil {
 		return nil, err
 	}
-	rows, err := r.friendshipRecords(ctx, []models.Friendship{record}, actor)
+	if row == nil {
+		return nil, nil
+	}
+	rows, err := r.friendshipRecords(ctx, []models.EngagementDetail{*row}, actor)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +121,7 @@ func (r *FriendshipRepository) RequestFriendship(ctx context.Context, actor uuid
 		return ports.FriendshipRecord{}, domainuser.ErrSelfInteraction
 	}
 	first, second := friendshipPair(actor, target.ID)
-	var record models.Friendship
+	var row models.EngagementDetail
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := lockPrivatePhotoAccessPair(tx, first, second); err != nil {
 			return err
@@ -83,37 +132,62 @@ func (r *FriendshipRepository) RequestFriendship(ctx context.Context, actor uuid
 		if err := ensureSocialInteractionAllowed(tx, actor, target.ID, domainuser.InteractionFollow); err != nil {
 			return err
 		}
-		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("first_user_id = ? AND second_user_id = ?", first, second).Take(&record)
-		if result.Error == nil && (record.Status == domainuser.FriendshipPending || record.Status == domainuser.FriendshipAccepted) {
-			return nil
-		}
-		if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return result.Error
-		}
-		now := time.Now().UTC()
-		if record.ID == uuid.Nil {
-			if r.node == nil {
-				return constants.ErrFriendshipIDGeneratorRequired
-			}
-			record = models.Friendship{ID: uuid.New(), PublicID: r.node.Generate().Int64(), FirstUserID: first, SecondUserID: second, CreatedAt: now}
-		} else {
-			if r.node == nil {
-				return constants.ErrFriendshipIDGeneratorRequired
-			}
-			record.PublicID = r.node.Generate().Int64()
-		}
-		record.RequestedByID, record.Status, record.RequestedAt, record.UpdatedAt = actor, domainuser.FriendshipPending, now, now
-		if err := tx.Omit(clause.Associations).Save(&record).Error; err != nil {
+		existing, err := findFriendshipDetail(tx, first, second, true)
+		if err != nil {
 			return err
 		}
-		payload := notifications.NotificationPayload{Data: map[string]string{"request_id": strconv.FormatInt(record.PublicID, 10), "status": string(domainuser.FriendshipPending)}}
-		_, err := persistQueuedNotification(tx, actor, target.ID, notifications.NotificationTypeFriendRequest, "Friend request", "You have a new friend request.", payload)
+		if existing != nil {
+			existingDetails, err := decodeFriendshipDetails(existing.Details)
+			if err != nil {
+				return err
+			}
+			if existingDetails.Status == domainuser.FriendshipPending || existingDetails.Status == domainuser.FriendshipAccepted {
+				row = *existing
+				return nil
+			}
+		}
+		if r.node == nil {
+			return constants.ErrFriendshipIDGeneratorRequired
+		}
+		now := time.Now().UTC()
+		details := friendshipDetails{
+			Status: domainuser.FriendshipPending, RequestedBy: actor,
+			RequestedAt: now, PublicID: r.node.Generate().Int64(),
+		}
+		payload, err := json.Marshal(details)
+		if err != nil {
+			return err
+		}
+		if existing != nil {
+			row = *existing
+			row.Details, row.UpdatedAt = datatypes.JSON(payload), now
+			if err := tx.Model(&models.EngagementDetail{}).Where("id = ?", row.ID).
+				Updates(map[string]any{"details": row.Details, "updated_at": row.UpdatedAt}).Error; err != nil {
+				return err
+			}
+		} else {
+			aggregate, err := loadOrCreateEngagementAggregate(tx, first, models.EngagementContentableTypeUser)
+			if err != nil {
+				return err
+			}
+			dedupeKey := friendshipDedupeKey(first, second)
+			row = models.EngagementDetail{
+				ID: uuid.New(), EngagementID: aggregate.ID, DedupeKey: &dedupeKey,
+				EngagerID: first, EngageeID: second, Kind: models.EngagementKindFriendship,
+				Details: datatypes.JSON(payload), CreatedAt: now, UpdatedAt: now,
+			}
+			if err := tx.Create(&row).Error; err != nil {
+				return err
+			}
+		}
+		notifPayload := notifications.NotificationPayload{Data: map[string]string{"request_id": strconv.FormatInt(details.PublicID, 10), "status": string(domainuser.FriendshipPending)}}
+		_, err = persistQueuedNotification(tx, actor, target.ID, notifications.NotificationTypeFriendRequest, "Friend request", "You have a new friend request.", notifPayload)
 		return err
 	})
 	if err != nil {
 		return ports.FriendshipRecord{}, err
 	}
-	rows, err := r.friendshipRecords(ctx, []models.Friendship{record}, actor)
+	rows, err := r.friendshipRecords(ctx, []models.EngagementDetail{row}, actor)
 	if err != nil {
 		return ports.FriendshipRecord{}, err
 	}
@@ -121,49 +195,67 @@ func (r *FriendshipRepository) RequestFriendship(ctx context.Context, actor uuid
 }
 
 func (r *FriendshipRepository) ChangeFriendship(ctx context.Context, actor uuid.UUID, requestID int64, desired domainuser.FriendshipStatus) (ports.FriendshipRecord, error) {
-	var record models.Friendship
-	if err := r.db.WithContext(ctx).Where("public_id = ? AND (first_user_id = ? OR second_user_id = ?)", requestID, actor, actor).Take(&record).Error; err != nil {
+	var row models.EngagementDetail
+	if err := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).
+		Where("kind = ? AND details->>'public_id' = ? AND (engager_id = ? OR engagee_id = ?)",
+			models.EngagementKindFriendship, strconv.FormatInt(requestID, 10), actor, actor).
+		Take(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ports.FriendshipRecord{}, ports.ErrNotFound
 		}
 		return ports.FriendshipRecord{}, err
 	}
+	first, second := row.EngagerID, row.EngageeID
+
+	var details friendshipDetails
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := lockPrivatePhotoAccessPair(tx, record.FirstUserID, record.SecondUserID); err != nil {
+		if err := lockPrivatePhotoAccessPair(tx, first, second); err != nil {
 			return err
 		}
-		if err := lockUserEngagementAggregates(tx, record.FirstUserID, record.SecondUserID); err != nil {
+		if err := lockUserEngagementAggregates(tx, first, second); err != nil {
 			return err
 		}
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", record.ID).Take(&record).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", row.ID).Take(&row).Error; err != nil {
 			return err
 		}
-		if record.PublicID != requestID {
+		var err error
+		details, err = decodeFriendshipDetails(row.Details)
+		if err != nil {
+			return err
+		}
+		if details.PublicID != requestID {
 			return ports.ErrNotFound
 		}
-		other := record.FirstUserID
-		if other == actor {
-			other = record.SecondUserID
+		other := first
+		if actor == first {
+			other = second
 		}
 		if desired == domainuser.FriendshipAccepted {
 			if err := ensureSocialInteractionAllowed(tx, actor, other, domainuser.InteractionFollow); err != nil {
 				return err
 			}
 		}
-		next, changed, err := domainuser.DecideFriendship(record.Status, desired, record.RequestedByID == actor)
+		next, changed, err := domainuser.DecideFriendship(details.Status, desired, details.RequestedBy == actor)
 		if err != nil || !changed {
 			return err
 		}
-		record.Status, record.UpdatedAt = next, time.Now().UTC()
-		if err := tx.Model(&record).Updates(map[string]any{"status": next, "updated_at": record.UpdatedAt}).Error; err != nil {
+		details.Status = next
+		now := time.Now().UTC()
+		payload, err := json.Marshal(details)
+		if err != nil {
 			return err
 		}
-		if err := resolveFriendshipNotification(tx, record); err != nil {
+		if err := tx.Model(&models.EngagementDetail{}).Where("id = ?", row.ID).
+			Updates(map[string]any{"details": datatypes.JSON(payload), "updated_at": now}).Error; err != nil {
+			return err
+		}
+		row.Details, row.UpdatedAt = datatypes.JSON(payload), now
+		if err := resolveFriendshipNotification(tx, details.PublicID, details.Status); err != nil {
 			return err
 		}
 		if next == domainuser.FriendshipAccepted {
-			payload := notifications.NotificationPayload{Data: map[string]string{"request_id": strconv.FormatInt(record.PublicID, 10)}}
-			_, err := persistQueuedNotification(tx, actor, other, notifications.NotificationTypeFriendRequestAccepted, "Friend request accepted", "Your friend request was accepted.", payload)
+			notifPayload := notifications.NotificationPayload{Data: map[string]string{"request_id": strconv.FormatInt(details.PublicID, 10)}}
+			_, err := persistQueuedNotification(tx, actor, other, notifications.NotificationTypeFriendRequestAccepted, "Friend request accepted", "Your friend request was accepted.", notifPayload)
 			return err
 		}
 		return nil
@@ -171,46 +263,48 @@ func (r *FriendshipRepository) ChangeFriendship(ctx context.Context, actor uuid.
 	if err != nil {
 		return ports.FriendshipRecord{}, err
 	}
-	rows, err := r.friendshipRecords(ctx, []models.Friendship{record}, actor)
+	rows, err := r.friendshipRecords(ctx, []models.EngagementDetail{row}, actor)
 	if err != nil {
 		return ports.FriendshipRecord{}, err
 	}
 	return rows[0], nil
 }
 
-func resolveFriendshipNotification(tx *gorm.DB, record models.Friendship) error {
+func resolveFriendshipNotification(tx *gorm.DB, publicID int64, status domainuser.FriendshipStatus) error {
 	return tx.Model(&notifications.Notification{}).
-		Where("type = ? AND payload->'data'->>'request_id' = ?", notifications.NotificationTypeFriendRequest, strconv.FormatInt(record.PublicID, 10)).
-		Updates(map[string]any{"is_read": true, "read_at": time.Now().UTC(), "payload": gorm.Expr("jsonb_set(payload,'{data,status}',to_jsonb(CAST(? AS text)),true)", string(record.Status))}).Error
+		Where("type = ? AND payload->'data'->>'request_id' = ?", notifications.NotificationTypeFriendRequest, strconv.FormatInt(publicID, 10)).
+		Updates(map[string]any{"is_read": true, "read_at": time.Now().UTC(), "payload": gorm.Expr("jsonb_set(payload,'{data,status}',to_jsonb(CAST(? AS text)),true)", string(status))}).Error
 }
 
 func (r *FriendshipRepository) ListFriendships(ctx context.Context, actor uuid.UUID, scope domainuser.FriendshipScope, cursor *types.MatchListCursor, limit int) ([]ports.FriendshipRecord, *types.MatchListCursor, error) {
 	limit = normalizedMatchLimit(limit)
-	query := r.db.WithContext(ctx).Model(&models.Friendship{}).Select("friendships.*").
-		Joins("JOIN users ON users.id = CASE WHEN friendships.first_user_id = ? THEN friendships.second_user_id ELSE friendships.first_user_id END", actor).
-		Where("friendships.first_user_id = ? OR friendships.second_user_id = ?", actor, actor).
+	query := r.db.WithContext(ctx).Model(&models.EngagementDetail{}).Select("engagement_details.*").
+		Joins("JOIN users ON users.id = CASE WHEN engagement_details.engager_id = ? THEN engagement_details.engagee_id ELSE engagement_details.engager_id END", actor).
+		Where("engagement_details.kind = ?", models.EngagementKindFriendship).
+		Where("engagement_details.engager_id = ? OR engagement_details.engagee_id = ?", actor, actor).
 		Where("users.deleted_at IS NULL AND users.is_bot = FALSE AND users.user_role NOT IN ?", []constants.UserRole{constants.UserRoleBanned, constants.UserRoleDeleted, constants.UserRolePending}).
 		Where("users.domain = (?)", userDomainSubquery(r.db, actor))
 	query = userBlockScope(query, actor, "users")
+	actorText := actor.String()
 	switch scope {
 	case domainuser.FriendshipScopeFriends:
-		query = query.Where("friendships.status = ?", domainuser.FriendshipAccepted)
+		query = query.Where("engagement_details.details->>'status' = ?", string(domainuser.FriendshipAccepted))
 	case domainuser.FriendshipScopeIncoming:
-		query = query.Where("friendships.status = ? AND friendships.requested_by_id <> ?", domainuser.FriendshipPending, actor)
+		query = query.Where("engagement_details.details->>'status' = ? AND engagement_details.details->>'requested_by' <> ?", string(domainuser.FriendshipPending), actorText)
 	case domainuser.FriendshipScopeOutgoing:
-		query = query.Where("friendships.status = ? AND friendships.requested_by_id = ?", domainuser.FriendshipPending, actor)
+		query = query.Where("engagement_details.details->>'status' = ? AND engagement_details.details->>'requested_by' = ?", string(domainuser.FriendshipPending), actorText)
 	default:
 		return nil, nil, domainuser.ErrFriendshipTransition
 	}
 	if cursor != nil {
 		if cursor.DetailID == uuid.Nil {
-			query = query.Where("friendships.updated_at < ?", cursor.OccurredAt)
+			query = query.Where("engagement_details.updated_at < ?", cursor.OccurredAt)
 		} else {
-			query = query.Where("friendships.updated_at < ? OR (friendships.updated_at = ? AND friendships.id < ?)", cursor.OccurredAt, cursor.OccurredAt, cursor.DetailID)
+			query = query.Where("engagement_details.updated_at < ? OR (engagement_details.updated_at = ? AND engagement_details.id < ?)", cursor.OccurredAt, cursor.OccurredAt, cursor.DetailID)
 		}
 	}
-	var rows []models.Friendship
-	if err := query.Order("friendships.updated_at DESC, friendships.id DESC").Limit(limit + 1).Find(&rows).Error; err != nil {
+	var rows []models.EngagementDetail
+	if err := query.Order("engagement_details.updated_at DESC, engagement_details.id DESC").Limit(limit + 1).Find(&rows).Error; err != nil {
 		return nil, nil, err
 	}
 	var next *types.MatchListCursor
@@ -223,14 +317,14 @@ func (r *FriendshipRepository) ListFriendships(ctx context.Context, actor uuid.U
 	return records, next, err
 }
 
-func (r *FriendshipRepository) friendshipRecords(ctx context.Context, rows []models.Friendship, actor uuid.UUID) ([]ports.FriendshipRecord, error) {
+func (r *FriendshipRepository) friendshipRecords(ctx context.Context, rows []models.EngagementDetail, actor uuid.UUID) ([]ports.FriendshipRecord, error) {
 	result := make([]ports.FriendshipRecord, 0, len(rows))
 	if len(rows) == 0 {
 		return result, nil
 	}
 	ids := make([]uuid.UUID, 0, len(rows)*2)
 	for _, row := range rows {
-		ids = append(ids, row.FirstUserID, row.SecondUserID)
+		ids = append(ids, row.EngagerID, row.EngageeID)
 	}
 	var users []models.User
 	if err := r.db.WithContext(ctx).Select("id", "public_id", "user_name", "display_name", "is_online", "avatar_id").
@@ -242,17 +336,23 @@ func (r *FriendshipRepository) friendshipRecords(ctx context.Context, rows []mod
 		byID[u.ID] = u
 	}
 	for _, row := range rows {
-		// Pair order is a storage detail. Request direction comes exclusively
-		// from RequestedByID and remains stable for either participant's view.
-		if (row.RequestedByID != row.FirstUserID && row.RequestedByID != row.SecondUserID) ||
-			(actor != row.FirstUserID && actor != row.SecondUserID) {
+		details, err := decodeFriendshipDetails(row.Details)
+		if err != nil {
+			return nil, err
+		}
+		// Pair order (EngagerID/EngageeID) is a storage detail only. Request
+		// direction comes exclusively from Details.RequestedBy and remains
+		// stable for either participant's view.
+		first, second := row.EngagerID, row.EngageeID
+		if (details.RequestedBy != first && details.RequestedBy != second) ||
+			(actor != first && actor != second) {
 			return nil, domainuser.ErrFriendshipForbidden
 		}
-		recipientID := row.FirstUserID
-		if recipientID == row.RequestedByID {
-			recipientID = row.SecondUserID
+		recipientID := first
+		if recipientID == details.RequestedBy {
+			recipientID = second
 		}
-		requester, requesterExists := byID[row.RequestedByID]
+		requester, requesterExists := byID[details.RequestedBy]
 		recipient, recipientExists := byID[recipientID]
 		if !requesterExists || !recipientExists {
 			return nil, ports.ErrNotFound
@@ -275,11 +375,11 @@ func (r *FriendshipRepository) friendshipRecords(ctx context.Context, rows []mod
 			projection.AvatarVariants = variants
 		}
 		result = append(result, ports.FriendshipRecord{
-			PublicID:          row.PublicID,
+			PublicID:          details.PublicID,
 			RequesterPublicID: requester.PublicID,
 			RecipientPublicID: recipient.PublicID,
-			Status:            row.Status,
-			RequestedAt:       row.RequestedAt,
+			Status:            details.Status,
+			RequestedAt:       details.RequestedAt,
 			UpdatedAt:         row.UpdatedAt,
 			OtherUser:         projection.summaryView(),
 		})
