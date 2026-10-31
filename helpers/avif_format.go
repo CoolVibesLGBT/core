@@ -66,7 +66,7 @@ func decodeAVIF(r io.Reader) (image.Image, error) {
 	}
 	dstPath := dst.Name()
 	_ = dst.Close()
-	defer os.Remove(dstPath)
+	defer func() { _ = os.Remove(dstPath) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), avifProcessTimeout)
 	defer cancel()
@@ -81,7 +81,7 @@ func decodeAVIF(r io.Reader) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	return png.Decode(f)
 }
 
@@ -92,7 +92,7 @@ func bufferAVIFToTempFile(r io.Reader) (path string, cleanup func(), err error) 
 	if err != nil {
 		return "", nil, err
 	}
-	cleanup = func() { os.Remove(tmp.Name()) }
+	cleanup = func() { _ = os.Remove(tmp.Name()) }
 
 	n, copyErr := io.Copy(tmp, io.LimitReader(r, avifMaxInputBytes+1))
 	closeErr := tmp.Close()
