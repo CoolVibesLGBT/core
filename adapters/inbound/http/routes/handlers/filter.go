@@ -180,7 +180,7 @@ func ParseFilters(c fiber.Ctx, authUser *models.User) (types.Filter, error) {
 	}
 
 	// The web client sends the public app domain because the API host can be a
-	// different hostname (for example api.coolvibes.lgbt). Prefer that value,
+	// different hostname (for example api.coolvibes.gay). Prefer that value,
 	// then fall back to the request host. Unknown local/proxy hosts are treated
 	// as the default CoolVibes domain instead of producing an unusable
 	// `domain = unknown` predicate.

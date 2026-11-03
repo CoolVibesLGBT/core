@@ -30,7 +30,7 @@ services:
       DB_CONNECT_TIMEOUT: 3s
       DB_MAX_OPEN_CONNS: 50
       DB_MAX_IDLE_CONNS: 10
-      SITE_URI: https://api.coolvibes.lgbt
+      SITE_URI: https://api.coolvibes.gay
       APP_BASE_URL: http://localhost:3001
       RIG_JWT_SECRET: "${RIG_JWT_SECRET:-}"
       USER_JWT_SECRET: "${USER_JWT_SECRET:?set USER_JWT_SECRET to at least 32 bytes}"

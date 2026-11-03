@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name api.coolvibes.lgbt;
+    server_name api.coolvibes.gay;
 
     # HTTP -> HTTPS yönlendirmesi
     return 301 https://$host$request_uri;
@@ -8,7 +8,7 @@ server {
 
 server {
     listen 443 ssl;
-    server_name api.coolvibes.lgbt;
+    server_name api.coolvibes.gay;
     # Proxy ayarları - Go uygulaması 3001 portunda
     location / {
         proxy_pass http://127.0.0.1:3001;
