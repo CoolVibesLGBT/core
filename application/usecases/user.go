@@ -274,6 +274,9 @@ func (s *UserService) LoginUser(ctx context.Context, input LoginInput) (*models.
 }
 
 func (s *UserService) verifyCaptcha(ctx context.Context, token string) (bool, error) {
+	if !constants.CAPTCHA_ENABLED {
+		return true, nil
+	}
 	if s.captchaVerifier == nil {
 		return false, ErrCaptchaNotConfigured
 	}

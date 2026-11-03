@@ -155,8 +155,12 @@ func TestHandleRegisterParsesMultipartAndReturnsToken(t *testing.T) {
 	if userRepo.created == nil || userRepo.created.PublicID != 777 || userRepo.created.Password != "hashed:secret-123" {
 		t.Fatalf("expected created registered user, got %#v", userRepo.created)
 	}
-	if captcha.token != "captcha-token" {
-		t.Fatalf("expected recaptcha token to pass through, got %q", captcha.token)
+	wantCaptchaToken := ""
+	if constants.CAPTCHA_ENABLED {
+		wantCaptchaToken = "captcha-token"
+	}
+	if captcha.token != wantCaptchaToken {
+		t.Fatalf("captcha token = %q, want %q", captcha.token, wantCaptchaToken)
 	}
 
 	var body struct {

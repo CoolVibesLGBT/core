@@ -72,8 +72,12 @@ func TestRegisterUserCreatesUserAndReturnsIssuedToken(t *testing.T) {
 	if userRepo.checkedNameOrMail != "" {
 		t.Fatalf("combined identity lookup should not be used, got %q", userRepo.checkedNameOrMail)
 	}
-	if captcha.token != "captcha-token" {
-		t.Fatalf("expected recaptcha token to be used, got %q", captcha.token)
+	wantCaptchaToken := ""
+	if constants.CAPTCHA_ENABLED {
+		wantCaptchaToken = "captcha-token"
+	}
+	if captcha.token != wantCaptchaToken {
+		t.Fatalf("captcha token = %q, want %q", captcha.token, wantCaptchaToken)
 	}
 	if len(events.events) != 1 {
 		t.Fatalf("expected registration event, got %d", len(events.events))
@@ -144,7 +148,7 @@ func TestRegisterUserRejectsUsernameAndEmailCollisionsSeparately(t *testing.T) {
 	}
 }
 
-func TestRegisterUserRejectsInvalidCaptchaBeforeCreate(t *testing.T) {
+func TestRegisterUserRespectsCaptchaEnabled(t *testing.T) {
 	userRepo := &fakeUserRepository{}
 	service := NewUserService(
 		userRepo,
@@ -153,16 +157,28 @@ func TestRegisterUserRejectsInvalidCaptchaBeforeCreate(t *testing.T) {
 		&fakeEngagementRepository{},
 		&fakeNotificationRepository{},
 		WithCaptchaVerifier(&fakeCaptchaVerifier{valid: false}),
+		WithPasswordHasher(&fakePasswordHasher{}),
+		WithTokenIssuer(&fakeTokenIssuer{token: "issued-token"}),
+		WithPublicIDGenerator(&fakePublicIDGenerator{next: 4242}),
 	)
 
 	_, _, err := service.RegisterUser(context.Background(), RegisterInput{
 		Name: "alice", Nickname: "Alice", Password: "secret-123", Domain: string(models.CoolVibes), Email: "alice@example.com",
 	})
-	if err == nil {
-		t.Fatalf("expected invalid captcha error")
-	}
-	if userRepo.created != nil {
-		t.Fatalf("user should not be created when captcha fails")
+	if constants.CAPTCHA_ENABLED {
+		if !errors.Is(err, constants.ErrInvalidCaptcha) {
+			t.Fatalf("expected invalid captcha error, got %v", err)
+		}
+		if userRepo.created != nil {
+			t.Fatal("user should not be created when captcha fails")
+		}
+	} else {
+		if err != nil {
+			t.Fatalf("registration without captcha failed: %v", err)
+		}
+		if userRepo.created == nil {
+			t.Fatal("expected user to be created with captcha disabled")
+		}
 	}
 }
 

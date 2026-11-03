@@ -19,6 +19,7 @@ type TravelPurpose string
 
 const TELEGRAM_NEWS_GROUP_ID = -1003818830543
 const TELEGRAM_WEBHOOK_PUBLIC_URL = "https://6fbd-46-197-60-41.ngrok-free.app/webhook/bot/telegram/"
+const CAPTCHA_ENABLED = false
 const (
 	SystemUserSystem    = "system"
 	SystemUserAdmin     = "admin"
