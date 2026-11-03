@@ -65,7 +65,7 @@ func baseActionDocuments() []ActionDoc {
 				stringParam("name", "User display or profile name.", true),
 				stringParam("nickname", "Unique username/nickname.", true),
 				stringParam("password", "Plain text password to hash server-side.", true),
-				enumParam("domain", "Domain identifier or host.", true, "coolvibes", "coolvibes.lgbt", "coolvibes.app", "coolvibes.io", "kewlswap.com", "kewlswap.io", "kewlswap.app"),
+				enumParam("domain", "Domain identifier or host.", true, "coolvibes", "coolvibes.gay", "coolvibes.lgbt", "coolvibes.app", "coolvibes.io", "kewlswap.com", "kewlswap.io", "kewlswap.app"),
 				stringParam("email", "Optional email address.", false),
 				stringParam("captcha", "Captcha token fallback.", false),
 				stringParam("recaptchaToken", "Google reCAPTCHA token.", false),

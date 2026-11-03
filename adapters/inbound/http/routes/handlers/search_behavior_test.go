@@ -59,7 +59,7 @@ func TestHandleGlobalSearchReturnsGroupedResults(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/",
-		bytes.NewBufferString("query=pride&scope=all&limit=5&domain=coolvibes.lgbt"),
+		bytes.NewBufferString("query=pride&scope=all&limit=5&domain=coolvibes.gay"),
 	)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := app.Test(req)

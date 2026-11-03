@@ -68,7 +68,7 @@ func SeedGroups(db *gorm.DB, node *helpers.Node) error {
 	}
 
 	var admin models.User
-	adminEmail := fmt.Sprintf("%s@coolvibes.lgbt", constants.SystemUserAdmin)
+	adminEmail := fmt.Sprintf("%s@coolvibes.gay", constants.SystemUserAdmin)
 	if err := db.Unscoped().
 		Where("LOWER(user_name) = ? AND LOWER(email) = ?", strings.ToLower(constants.SystemUserAdmin), strings.ToLower(adminEmail)).
 		First(&admin).Error; err != nil {

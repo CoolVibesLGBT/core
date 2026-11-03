@@ -19,7 +19,7 @@ func SeedDefaultSystemUsers(db *gorm.DB, node *helpers.Node) error {
 
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, defaultUserName := range constants.DefaultSystemUsers {
-			defaultUserEmail := fmt.Sprintf("%s@coolvibes.lgbt", defaultUserName)
+			defaultUserEmail := fmt.Sprintf("%s@coolvibes.gay", defaultUserName)
 			desiredRole := defaultSystemRole(defaultUserName)
 
 			var existing models.User
